@@ -84,7 +84,10 @@ header h1{margin:0;font-size:19px}header .sub{color:var(--muted);font-size:12.5p
   padding:5px 11px;border-radius:8px;font-size:12.5px;margin-bottom:8px}
 .home:hover{border-color:var(--acc);color:var(--ink);text-decoration:none}
 .backbtn{display:none}
-.backbtn:focus-visible,.st-btn:focus-visible,.card:focus-visible,
+.fbtn{display:none;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+  padding:7px 12px;border-radius:8px;font-size:13px;cursor:pointer}
+.filters{display:contents}
+.backbtn:focus-visible,.fbtn:focus-visible,.st-btn:focus-visible,.card:focus-visible,
 .bar input:focus-visible,.bar select:focus-visible,.viewtoggle button:focus-visible,
 .home:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 /* ── Responsive / movil ──────────────────────────────────────────── */
@@ -92,8 +95,12 @@ header h1{margin:0;font-size:19px}header .sub{color:var(--muted);font-size:12.5p
   header{position:static;padding:12px 16px}
   header h1{font-size:16px}
   .bar{gap:7px}
-  .bar input#q{min-width:140px;flex:1 1 100%}
+  .bar input#q{min-width:120px;flex:1 1 55%}
   .bar select,.bar .clear{font-size:12px;padding:8px 9px}
+  .fbtn{display:inline-block}
+  .filters{display:none;flex-wrap:wrap;gap:7px;width:100%;margin-top:2px}
+  body.filters-open .filters{display:flex}
+  .filters select,.filters .clear{flex:1 1 45%}
   .viewtoggle{flex:1 1 100%}
   .viewtoggle button{flex:1;padding:9px 12px}
   .wrap{display:block;min-height:0}
@@ -122,15 +129,18 @@ header h1{margin:0;font-size:19px}header .sub{color:var(--muted);font-size:12.5p
   <div class="sub">107 conceptos · generado 2026-06-10 · física · control · programación</div>
   <div class="bar">
     <input id="q" placeholder="🔎 buscar concepto, técnica, parámetro...">
-    <select id="fcat"><option value="">Categoría</option></select>
-    <select id="ftipo"><option value="">Tipo</option></select>
-    <select id="fpro"><option value="">Proyecto</option></select>
-    <select id="fobj"><option value="">Objetivo</option></select>
-    <select id="fniv"><option value="">Nivel</option></select>
-    <select id="ftag"><option value="">Tag</option></select>
-    <select id="fstat"><option value="">Estado</option><option value="ninguno">Sin estado</option><option value="visto">Visto</option><option value="dominado">Dominado</option><option value="repasar">Repasar</option></select>
-    <select id="sort"><option value="fecha">Orden: fecha</option><option value="titulo">Orden: nombre</option></select>
-    <span class="clear" onclick="clearAll()">limpiar</span>
+    <button class="fbtn" onclick="document.body.classList.toggle('filters-open')" aria-label="Mostrar u ocultar filtros">⚙ Filtros</button>
+    <div class="filters">
+      <select id="fcat"><option value="">Categoría</option></select>
+      <select id="ftipo"><option value="">Tipo</option></select>
+      <select id="fpro"><option value="">Proyecto</option></select>
+      <select id="fobj"><option value="">Objetivo</option></select>
+      <select id="fniv"><option value="">Nivel</option></select>
+      <select id="ftag"><option value="">Tag</option></select>
+      <select id="fstat"><option value="">Estado</option><option value="ninguno">Sin estado</option><option value="visto">Visto</option><option value="dominado">Dominado</option><option value="repasar">Repasar</option></select>
+      <select id="sort"><option value="fecha">Orden: fecha</option><option value="titulo">Orden: nombre</option></select>
+      <span class="clear" onclick="clearAll()">limpiar</span>
+    </div>
     <span class="viewtoggle"><button id="vlist" class="on">📋 Lista</button><button id="vgraph">🕸 Grafo</button><button id="vrutas">📚 Rutas</button></span>
   </div>
 </header>
