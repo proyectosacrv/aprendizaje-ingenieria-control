@@ -175,6 +175,38 @@ header h1{margin:0;font-size:19px}header .sub{color:var(--muted);font-size:12.5p
 .ruta-n{color:var(--muted);font-size:11px;min-width:22px;text-align:right;flex-shrink:0}
 .ruta-step-ico{width:16px;text-align:center;flex-shrink:0;font-size:13px}
 .ruta-nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ── Inicio / volver / accesibilidad ─────────────────────────────── */
+.home{display:inline-block;color:var(--muted);border:1px solid var(--line);
+  padding:5px 11px;border-radius:8px;font-size:12.5px;margin-bottom:8px}
+.home:hover{border-color:var(--acc);color:var(--ink);text-decoration:none}
+.backbtn{display:none}
+.backbtn:focus-visible,.st-btn:focus-visible,.card:focus-visible,
+.bar input:focus-visible,.bar select:focus-visible,.viewtoggle button:focus-visible,
+.home:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+/* ── Responsive / movil ──────────────────────────────────────────── */
+@media(max-width:760px){
+  header{position:static;padding:12px 16px}
+  header h1{font-size:16px}
+  .bar{gap:7px}
+  .bar input#q{min-width:140px;flex:1 1 100%}
+  .bar select,.bar .clear{font-size:12px;padding:8px 9px}
+  .viewtoggle{flex:1 1 100%}
+  .viewtoggle button{flex:1;padding:9px 12px}
+  .wrap{display:block;min-height:0}
+  .list{width:100%;flex:none;max-height:none;border-right:0}
+  .detail{max-height:none;padding:16px 15px}
+  .detail h1{font-size:21px}
+  .detail pre{font-size:12px}
+  #graph{height:72vh}
+  /* conmutar lista <-> teoria a pantalla completa */
+  body:not(.detail-open) #detail{display:none}
+  body.detail-open .list,body.detail-open #graphwrap,body.detail-open #rutaswrap{display:none}
+  body.detail-open header .bar{display:none}
+  .backbtn{display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:6;
+    width:calc(100% + 30px);margin:-16px -15px 12px;padding:13px 16px;
+    background:var(--panel);border:0;border-bottom:1px solid var(--line);
+    color:var(--acc);font-size:15px;cursor:pointer}
+}
 """
 
 JS = """
@@ -271,7 +303,7 @@ function show(slug){
   const bl=D.filter(x=>(x.relacionados||[]).includes(slug)&&x.slug!==slug);
   const blHTML=bl.length?`<div class="backlinks"><span class="bl-lbl">← Referenciado por:</span>`+
     bl.map(x=>`<a class="wl" data-slug="${x.slug}">${x.titulo}</a>`).join(' · ')+`</div>`:'';
-  det.innerHTML=`<h1>${d.titulo}</h1><div class="metahead">
+  det.innerHTML=`<button class="backbtn" onclick="history.back()" aria-label="Volver a la lista de conceptos">← Volver a la lista</button><h1>${d.titulo}</h1><div class="metahead">
     <span class="chip cat" style="background:${catColor(d.categoria)}">${CATL[d.categoria]||d.categoria}</span>
     <span class="chip">${d.tipo}</span><span class="chip">${d.nivel}</span>
     ${(d.proyectos||[]).map(p=> PROJL[p]
@@ -284,8 +316,9 @@ function show(slug){
   renderStBar(slug);
   det.querySelectorAll('.wl').forEach(a=>a.onclick=()=>{const s=a.dataset.slug; if(D.find(x=>x.slug===s)) show(s);});
   if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([det]);
-  history.replaceState(null,'','#'+slug);
-  det.scrollTop=0; render();
+  if(location.hash!=='#'+slug) history.pushState(null,'','#'+slug);
+  document.body.classList.add('detail-open');
+  det.scrollTop=0; window.scrollTo(0,0); render();
 }
 
 // ─── Rutas de aprendizaje ─────────────────────────────────────────────────
@@ -334,6 +367,7 @@ const GCOLOR={'fisica-modelado':'#4ea3ff','control':'#a78bfa','programacion':'#5
 
 function setView(v){
   view=v;
+  document.body.classList.remove('detail-open');
   $('#vlist').classList.toggle('on',v==='list');
   $('#vgraph').classList.toggle('on',v==='graph');
   $('#vrutas').classList.toggle('on',v==='rutas');
@@ -369,7 +403,8 @@ function buildGraph(){
 
 function onFilter(){render(); if(view==='graph') buildGraph(); if(view==='rutas') renderRutas();}
 function clearAll(){['#q','#fcat','#ftipo','#fniv','#fpro','#fobj','#ftag','#fstat'].forEach(s=>$(s).value=''); onFilter();}
-function applyHash(){const s=decodeURIComponent(location.hash.slice(1)); if(s&&D.find(x=>x.slug===s)) show(s);}
+function applyHash(){const s=decodeURIComponent(location.hash.slice(1));
+  if(s&&D.find(x=>x.slug===s)) show(s); else document.body.classList.remove('detail-open');}
 
 window.addEventListener('DOMContentLoaded',()=>{
   uniqOptions('#fcat','categoria'); uniqOptions('#ftipo','tipo'); uniqOptions('#fniv','nivel');
@@ -392,6 +427,7 @@ TEMPLATE = """<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
 <script defer src="assets/vis-network.min.js"></script>
 </head><body>
 <header>
+  <a class="home" href="../index.html">🏠 Inicio · proyectos y repositorio</a>
   <h1>Repositorio de Conocimiento — Ingeniería de convertidores</h1>
   <div class="sub">{n} conceptos · generado {fecha} · física · control · programación</div>
   <div class="bar">

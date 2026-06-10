@@ -148,6 +148,7 @@
   <a href="#apE">E · Reproducir</a>
   <a href="#apF">F · Glosario</a>
   <h2>Enlaces</h2>
+  <a href="../index.html">🏠 Inicio (proyectos y repositorio)</a>
   <a href="../00%20-%20Repositorio/index.html">📚 Repositorio</a>
   <a href="../02%20-%20GFL-Impedance/informe.html">📁 02 · GFL</a>
   <a href="../03%20-%20Energia-DataCenter-IA/informe.html">📁 03 · DataCenter</a>
@@ -2319,78 +2320,141 @@ if __name__ == &quot;__main__&quot;:
     esquema_electrico(); print(&quot;esquema_electrico.png&quot;)
     diagrama_modelo(); print(&quot;diagrama_modelo.png&quot;)
     diagrama_control(); print(&quot;diagrama_control.png&quot;)
-</pre></div><div class="cap">Genera los diagramas (esquema eléctrico, modelo, control) de la carpeta results/.</div><div class="codefile"><div class="h"><span>📄 plecs_cosim.py</span><span>73 líneas · código real del proyecto</span></div><pre>&quot;&quot;&quot;Esqueleto de co-simulacion Python &lt;-&gt; PLECS via XML-RPC.
+</pre></div><div class="cap">Genera los diagramas (esquema eléctrico, modelo, control) de la carpeta results/.</div><div class="codefile"><div class="h"><span>📄 plecs_cosim.py</span><span>136 líneas · código real del proyecto</span></div><pre>&quot;&quot;&quot;Co-simulacion Python &lt;-&gt; PLECS via XML-RPC: mide la impedancia del modelo
+CONMUTADO y la compara con la analitica (modelo promediado) para cerrar la Fase 4.
 
-Patron: Python orquesta (fija parametros, lanza simulaciones, recoge resultados);
-PLECS ejecuta el modelo CONMUTADO. Permite, p.ej., reproducir el barrido de SCR de la
-Fase 3 sobre la planta conmutada y comparar con el modelo promediado de Python.
+Patron: Python orquesta (fija parametros, lanza simulaciones, demodula y compara);
+PLECS ejecuta el modelo conmutado (IGBTs + PWM).
 
-Requisitos:
-  - PLECS abierto con el servidor XML-RPC activo
-    (Preferences &gt; XML-RPC Interface &gt; Enable, puerto por defecto 1080).
-  - Un modelo .plecs con variables de inicializacion expuestas en &#x27;Model initialization
-    commands&#x27; (p.ej. Lg, Rg, Pset...) y un bloque que escriba a la salida los registros.
+REQUISITOS EN PLECS
+  - Modelo gfm_switched.plecs construido segun PLECS_GUIA.md, con el control del
+    bloque C-Script (plecs_control_gfm.c).
+  - Servidor XML-RPC activo: Preferences &gt; XML-RPC Interface &gt; Enable (puerto 1080).
+  - El modelo expone, en sus &#x27;Model initialization commands&#x27;, las variables:
+        f_pert, amp_pert, axis_d   (fuente de perturbacion en el PCC)
+        Lg, Rg                     (red Thevenin, para el barrido de SCR)
+    y deja en la estructura de salida (orden de las senales del bloque &#x27;Outport&#x27; o
+    &#x27;To File&#x27;) las series:  [t]  vpcc_d  vpcc_q  ig_d  ig_q   ( + i_L1 para faltas ).
 
-Este archivo es una PLANTILLA: adapta nombres de modelo, variables y salidas a tu .plecs.
-No se ejecuta aqui (requiere PLECS); documenta el flujo y deja el codigo listo.
+Sin PLECS este archivo no simula, pero el codigo de demodulacion y comparacion es el
+mismo (correcto) que se usa en inject.py / main_phase4.py.
+    python plecs_cosim.py        # imprime instrucciones si PLECS no esta accesible
 &quot;&quot;&quot;
-import xmlrpc.client
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
+import xmlrpc.client
+from params import SystemParams
+from impedance import build_linear, impedance
+from inject import _phasor          # reutilizamos la demodulacion por correlacion
 
 PLECS_URL = &quot;http://localhost:1080/RPC2&quot;
-MODEL = &quot;gfm_switched&quot;          # nombre del .plecs (sin extension)
+MODEL = &quot;gfm_switched&quot;               # nombre del .plecs (sin extension)
+MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), MODEL + &quot;.plecs&quot;)
 
 
+# --------------------------------------------------------------------- #
 def connect():
+    &quot;&quot;&quot;Conecta con PLECS y carga el modelo. Lanza si no esta accesible.&quot;&quot;&quot;
     server = xmlrpc.client.ServerProxy(PLECS_URL)
-    server.plecs.load(f&quot;{MODEL}.plecs&quot;)     # ruta al modelo
+    server.plecs.load(MODEL_PATH)
     return server
 
 
-def simulate(server, model_vars):
-    &quot;&quot;&quot;Lanza una simulacion con las variables dadas. Devuelve el struct de salida.
-    model_vars: dict de variables de inicializacion del modelo (Lg, Rg, Pset, ...).
-    El modelo debe exponer las senales de interes en un bloque &#x27;To File&#x27; o en la
-    estructura de salida (Time, Values).&quot;&quot;&quot;
+def _simulate(server, model_vars):
+    &quot;&quot;&quot;Lanza una simulacion con las variables dadas; devuelve (t, Y) con
+    Y de forma (n_senales, n_tiempo).&quot;&quot;&quot;
     opts = {&quot;ModelVars&quot;: {k: float(v) for k, v in model_vars.items()}}
-    return server.plecs.simulate(MODEL, opts)
+    out = server.plecs.simulate(MODEL, opts)
+    t = np.asarray(out[&quot;Time&quot;], dtype=float)
+    Y = np.asarray(out[&quot;Values&quot;], dtype=float)
+    return t, Y
 
 
-def sweep_scr(scr_list, xr=5.0, Vll=400.0, Sn=10e3, w0=2*np.pi*50):
-    &quot;&quot;&quot;Ejemplo: barrer SCR sobre el modelo conmutado y devolver el pico de i_L1
-    durante una falta (o cualquier metrica que el modelo registre).&quot;&quot;&quot;
-    server = connect()
-    results = {}
+# --------------------------------------------------------------------- #
+def measure_point(server, fp, amp, axis, settle_frac=0.6):
+    &quot;&quot;&quot;Una inyeccion a frecuencia fp en eje &#x27;d&#x27; o &#x27;q&#x27; sobre el modelo conmutado.
+    Demodula la ventana final (regimen permanente) y devuelve (Vd,Vq,Id,Iq).&quot;&quot;&quot;
+    t, Y = _simulate(server, {&quot;f_pert&quot;: fp, &quot;amp_pert&quot;: amp,
+                              &quot;axis_d&quot;: 1.0 if axis == &quot;d&quot; else 0.0})
+    vpcc_d, vpcc_q, ig_d, ig_q = Y[0], Y[1], Y[2], Y[3]
+    # ventana de medicion: ultimo tramo, recortado a un numero entero de periodos
+    t0 = t[0] + settle_frac * (t[-1] - t[0])
+    m = t &gt;= t0
+    tm = t[m]
+    Tp = 1.0 / fp
+    n_per = int((tm[-1] - tm[0]) / Tp)        # periodos enteros
+    tend = tm[0] + n_per * Tp
+    w = tm &lt;= tend
+    tm = tm[w]
+    return (_phasor(tm, vpcc_d[m][w], fp), _phasor(tm, vpcc_q[m][w], fp),
+            _phasor(tm, ig_d[m][w], fp),   _phasor(tm, ig_q[m][w], fp))
+
+
+def measure_Z(server, freqs, amp=2.0):
+    &quot;&quot;&quot;Barrido MIMO 2x2: dos inyecciones (d y q) por frecuencia -&gt; Z (N,2,2).&quot;&quot;&quot;
+    Z = np.zeros((len(freqs), 2, 2), dtype=complex)
+    for k, fp in enumerate(freqs):
+        Vd1, Vq1, Id1, Iq1 = measure_point(server, fp, amp, &quot;d&quot;)
+        Vd2, Vq2, Id2, Iq2 = measure_point(server, fp, amp, &quot;q&quot;)
+        V = np.array([[Vd1, Vd2], [Vq1, Vq2]])
+        I = np.array([[Id1, Id2], [Iq1, Iq2]])
+        G = I @ np.linalg.inv(V)
+        Z[k] = np.linalg.inv(-G)              # Z = (-G)^-1 = Y^-1
+        print(f&quot;  {fp:7.1f} Hz  |Zdd|={abs(Z[k,0,0]):7.3f}  |Zqq|={abs(Z[k,1,1]):7.3f}&quot;)
+    return Z
+
+
+def compare_with_analytic(freqs, Z_plecs, out_csv=&quot;datos/impedancia_plecs_vs_analitica.csv&quot;):
+    &quot;&quot;&quot;Compara Z medida en PLECS con la analitica y guarda CSV + error.&quot;&quot;&quot;
+    p = SystemParams()
+    A, B, C, D, _ = build_linear(p)
+    Za = impedance(A, B, C, D, freqs)
+    err = np.array([100*abs(Z_plecs[k,0,0]-Za[k,0,0])/abs(Za[k,0,0]) for k in range(len(freqs))])
+    os.makedirs(os.path.dirname(out_csv), exist_ok=True)
+    np.savetxt(out_csv,
+               np.column_stack([freqs,
+                                np.abs(Za[:,0,0]), np.abs(Z_plecs[:,0,0]),
+                                np.abs(Za[:,1,1]), np.abs(Z_plecs[:,1,1]), err]),
+               delimiter=&quot;,&quot;,
+               header=&quot;f_Hz,absZdd_analitica,absZdd_plecs,absZqq_analitica,absZqq_plecs,err_pct&quot;,
+               comments=&quot;&quot;, fmt=&quot;%.6g&quot;)
+    print(f&quot;\nError medio |Zdd| (PLECS vs analitica): {err.mean():.2f}%  (max {err.max():.2f}%)&quot;)
+    print(f&quot;CSV: {out_csv}&quot;)
+    return err
+
+
+def sweep_scr(server, scr_list, xr=5.0):
+    &quot;&quot;&quot;Barrido de SCR sobre el modelo conmutado: pico de i_L1 (p.ej. bajo falta).&quot;&quot;&quot;
+    p = SystemParams()
+    res = {}
     for scr in scr_list:
-        Zg = Vll**2 / (scr * Sn)
+        Zg = p.Vll**2 / (scr * p.Sn)
         Rg = Zg / np.sqrt(1 + xr**2)
-        Lg = Rg * xr / w0
-        out = simulate(server, {&quot;Lg&quot;: Lg, &quot;Rg&quot;: Rg})
-        t = np.array(out[&quot;Time&quot;])
-        vals = np.array(out[&quot;Values&quot;])        # forma: (n_senales, n_tiempo)
-        iL1_peak = np.max(np.abs(vals[0]))    # ajustar indice a tu modelo
-        results[scr] = iL1_peak
-        print(f&quot;  SCR={scr:5.1f}  pico i_L1 = {iL1_peak:.1f} A&quot;)
-    return results
+        Lg = Rg * xr / p.w0
+        t, Y = _simulate(server, {&quot;Lg&quot;: Lg, &quot;Rg&quot;: Rg})
+        iL1_peak = float(np.max(np.abs(Y[4])))   # ajustar indice de i_L1 a tu modelo
+        res[scr] = iL1_peak
+        print(f&quot;  SCR={scr:5.2f}  pico i_L1 = {iL1_peak:.1f} A&quot;)
+    return res
 
 
-def measure_impedance_point(server, fp, amp, axis):
-    &quot;&quot;&quot;Inyeccion de perturbacion en PLECS: fija frecuencia/eje/amplitud, simula,
-    y devuelve las series de v_pcc e i_g para extraer Z con inject._phasor().
-    El modelo debe tener una fuente de perturbacion parametrizada por (fp, amp, axis).&quot;&quot;&quot;
-    ax = 1.0 if axis == &quot;d&quot; else 0.0
-    out = simulate(server, {&quot;f_pert&quot;: fp, &quot;amp_pert&quot;: amp, &quot;axis_d&quot;: ax})
-    t = np.array(out[&quot;Time&quot;])
-    vals = np.array(out[&quot;Values&quot;])
-    # vals: [v_pcc_d, v_pcc_q, i_g_d, i_g_q] (ajustar a tu modelo)
-    return t, vals
-
-
+# --------------------------------------------------------------------- #
 if __name__ == &quot;__main__&quot;:
-    print(__doc__)
-    print(&quot;Plantilla XML-RPC. Abre PLECS con el servidor activo y adapta MODEL/variables.&quot;)
-    # Ejemplo de uso (descomentar con PLECS abierto):
-    # sweep_scr([2.0, 3.0, 3.35, 4.0, 5.0])
+    freqs = np.array([2, 3.3, 5, 8, 13, 20, 35, 60, 100, 180, 320, 500.0])
+    try:
+        srv = connect()
+        print(&quot;PLECS conectado. Midiendo impedancia en el modelo conmutado...&quot;)
+        Zp = measure_Z(srv, freqs, amp=2.0)
+        compare_with_analytic(freqs, Zp)
+    except Exception as e:
+        print(&quot;PLECS no accesible (esto es normal si no esta abierto):&quot;)
+        print(f&quot;  {type(e).__name__}: {e}&quot;)
+        print(&quot;\nPara usarlo:&quot;)
+        print(&quot;  1) Construye gfm_switched.plecs siguiendo PLECS_GUIA.md&quot;)
+        print(&quot;     (control: pega plecs_control_gfm.c en un bloque C-Script).&quot;)
+        print(&quot;  2) Activa el servidor XML-RPC en PLECS (puerto 1080).&quot;)
+        print(&quot;  3) Vuelve a ejecutar: python plecs_cosim.py&quot;)
 </pre></div><div class="cap">Plantilla de co-simulación XML-RPC con PLECS para la validación sobre el modelo conmutado.</div>
   <div class="note">Resumen de ficheros: <span class="file">params.py</span>
   <span class="file">model.py</span> <span class="file">impedance.py</span>

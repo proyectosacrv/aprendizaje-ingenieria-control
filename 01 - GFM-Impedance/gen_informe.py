@@ -268,6 +268,7 @@ NAV = """<nav id="nav">
   <a href="#apE">E · Reproducir</a>
   <a href="#apF">F · Glosario</a>
   <h2>Enlaces</h2>
+  <a href="../index.html">🏠 Inicio (proyectos y repositorio)</a>
   <a href="../00%20-%20Repositorio/index.html">📚 Repositorio</a>
   <a href="../02%20-%20GFL-Impedance/informe.html">📁 02 · GFL</a>
   <a href="../03%20-%20Energia-DataCenter-IA/informe.html">📁 03 · DataCenter</a>
