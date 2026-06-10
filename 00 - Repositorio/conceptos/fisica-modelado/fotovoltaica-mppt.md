@@ -1,0 +1,84 @@
+---
+titulo: Sistema fotovoltaico y MPPT
+slug: fotovoltaica-mppt
+categoria: fisica-modelado
+tipo: concepto
+nivel: intermedio
+proyectos: []
+objetivos: [modelar la célula PV y extraer la máxima potencia con MPPT]
+tags: [pv, fotovoltaica, mppt, p-and-o, inc-cond, curva-iv, intermedio, modelado]
+fecha_creacion: 2026-06-09
+fecha_actualizacion: 2026-06-09
+relacionados: [modelo-bateria-bess, convertidor-vsc, dinamica-bus-dc, control-tension-bus-dc, sistema-por-unidad]
+referencias:
+  - "Sera et al., PV Panel Model Based on Datasheet Values, IEEE ISIE 2007"
+  - "Esram, Chapman, Comparison of Photovoltaic Array MPPT Techniques, IEEE TEC 2007"
+---
+
+## Definición
+Modelo eléctrico de la célula/módulo fotovoltaico (curva I-V no lineal) y algoritmos de
+**Maximum Power Point Tracking (MPPT)** que ajustan el punto de operación para extraer la máxima
+potencia disponible ante variaciones de irradiancia y temperatura.
+
+## Fundamento teórico
+**Modelo de diodo único:**
+$$ I = I_{ph} - I_0\left(\exp\!\frac{V+IR_s}{nV_T}-1\right) - \frac{V+IR_s}{R_{sh}} $$
+con \( V_T=kT/q \) (tensión térmica, \( \approx26 \) mV a 25 °C), \( n \) factor de idealidad,
+\( I_{ph} \) fotocorriente (proporcional a irradiancia G), \( I_0 \) corriente de saturación inversa
+(fuertemente dependiente de T). La curva I-V tiene:
+- **Isc** (cortocircuito, \( V=0 \)): corriente máxima ≈ \( I_{ph} \).
+- **Voc** (circuito abierto, \( I=0 \)): tensión máxima.
+- **MPP** (máxima potencia): punto de tangente \( dP/dV=0 \); típicamente 70–80 % de \( V_{oc} \).
+
+La irradiancia eleva \( I_{ph}\sim G \); la temperatura sube \( V_{oc} \) cae (\( -2.3 \) mV/°C
+por célula).
+
+**MPPT — algoritmos:**
+- **Perturba y observa (P&O):** incrementa/decrementa la tensión de referencia y compara \( P \) con
+  el ciclo anterior. Simple; oscila alrededor del MPP en régimen permanente (amplitud \( \propto \Delta V_{step} \)).
+- **Conductancia incremental (INC):** condición exacta del MPP: \( dI/dV=-I/V \) (la conductancia
+  incremental iguala la conductancia instantánea). Sin oscilación en permanente; más costoso.
+- **MPPT por tensión constante (Voc fracción):** \( V_{MPP}\approx0.76 V_{oc} \). Muy simple, no
+  requiere medida de corriente; impreciso ante sombreado.
+- **MPP global con sombreado parcial:** la curva P-V tiene **múltiples máximos locales** (bypass
+  diodes); P&O/INC quedan atrapados. Se requieren técnicas globales (barrido periódico, PSO).
+
+**Integración al convertidor:** el MPPT genera la referencia de tensión DC \( V^*_{dc} \) (o de
+corriente). Un boost DC/DC intermedio adapta la tensión del string al bus DC; el VSC controla el bus
+DC hacia la red ([[control-tension-bus-dc]]).
+
+## Cuándo y por qué se usa
+En toda instalación PV conectada a red o a microrred. El MPPT es la capa de control más exterior
+(más lenta, decenas de ms) sobre el lazo de tensión/corriente del DC/DC.
+
+## Procedimiento de diseño (genérico)
+1. Parametriza el modelo de diodo único con los datos de la hoja (Isc, Voc, Impp, Vmpp a STC).
+2. Elige el algoritmo MPPT (P&O para simplicidad; INC para menos rizado; global si hay sombreado).
+3. Sintoniza el paso \( \Delta V \) (P&O): pequeño → poco rizado, respuesta lenta; grande → rápido, mucho rizado.
+4. Conecta el MPPT al lazo de tensión del DC/DC; separa bandas (MPPT \( \ll \) lazo de tensión).
+5. Verifica comportamiento con irradiancia variable y sombreado parcial.
+
+## Ejemplo de código
+```python
+def mppt_po(V_ref, P_now, P_prev, V_prev, dV=0.5):
+    if P_now >= P_prev:
+        return V_ref + dV if V_ref >= V_prev else V_ref - dV
+    else:
+        return V_ref - dV if V_ref >= V_prev else V_ref + dV
+```
+
+## Parámetros y valores típicos
+Paso P&O \( \Delta V \) 0.5–2 V; periodo MPPT 10–100 ms. \( V_{MPP}/V_{oc}\approx0.76 \);
+\( I_{MPP}/I_{sc}\approx0.92 \). Eficiencia MPPT > 99 % en condiciones uniformes.
+
+## Errores comunes
+- Paso \( \Delta V \) grande en P&O → rizado permanente significativo en potencia.
+- Usar P&O simple con sombreado parcial → queda en máximo local (pérdidas de hasta 30–50 %).
+- MPPT más rápido que el lazo de tensión del convertidor → interacción y oscilación.
+
+## Conceptos relacionados
+- [[convertidor-vsc]] · [[dinamica-bus-dc]] · [[control-tension-bus-dc]] · [[modelo-bateria-bess]] · [[sistema-por-unidad]]
+
+## Referencias
+- Sera et al., *PV Panel Model Based on Datasheet Values*, IEEE ISIE 2007.
+- Esram, Chapman, *Comparison of PV Array MPPT Techniques*, IEEE TEC 2007.

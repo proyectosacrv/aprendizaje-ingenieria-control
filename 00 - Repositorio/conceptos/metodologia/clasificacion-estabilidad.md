@@ -1,0 +1,76 @@
+---
+titulo: Clasificación de la estabilidad del sistema de potencia
+slug: clasificacion-estabilidad
+categoria: metodologia
+tipo: concepto
+nivel: intermedio
+proyectos: []
+objetivos: [ubicar cada fenómeno de estabilidad en un marco común y elegir la herramienta]
+tags: [estabilidad, clasificacion, converter-driven, frecuencia, tension, angulo, intermedio]
+fecha_creacion: 2026-06-09
+fecha_actualizacion: 2026-06-09
+relacionados: [estabilidad-armonica, oscilaciones-subsincronas, ecuacion-oscilacion, interaccion-pll-red-debil, grid-forming-vs-following]
+referencias:
+  - "Hatziargyriou et al., Definition and Classification of Power System Stability Revisited & Extended, IEEE TPWRS 2021"
+  - "Kundur, Power System Stability and Control, McGraw-Hill 1994"
+---
+
+## Definición
+Marco taxonómico (IEEE/CIGRE 2021) que organiza **todos** los fenómenos de estabilidad de un
+sistema eléctrico según la variable física afectada, la magnitud de la perturbación y la escala de
+tiempo. Permite ubicar cada concepto del repositorio y elegir el modelo/criterio adecuado.
+
+## Fundamento teórico
+Categorías principales:
+- **Estabilidad de ángulo del rotor:** capacidad de las máquinas síncronas de mantener sincronismo.
+  Subdivisiones: *pequeña señal* (oscilaciones, [[ecuacion-oscilacion|modo electromecánico]]) y
+  *transitoria* (gran perturbación, criterio de áreas iguales).
+- **Estabilidad de frecuencia:** equilibrio generación-carga tras un desbalance grande; depende de
+  inercia y reservas (FFR, droop). Escala: segundos a minutos.
+- **Estabilidad de tensión:** capacidad de mantener tensiones aceptables; *pequeña* y *gran*
+  perturbación; ligada a límites de reactiva y colapso de tensión.
+- **Estabilidad de resonancia:** intercambio de energía oscilatorio — *eléctrica* (serie, SSR) y
+  *electromecánica* (torsional); ver [[oscilaciones-subsincronas]].
+- **Estabilidad impulsada por convertidor (converter-driven):** la categoría **nueva** de 2021,
+  por la dinámica rápida de la electrónica de potencia. Dos bandas:
+  - *Interacción lenta* (< ~10 Hz): PLL en red débil, lazo de potencia/sincronización
+    ([[interaccion-pll-red-debil]], GFM vs GFL).
+  - *Interacción rápida* (decenas de Hz–kHz): resonancia/[[estabilidad-armonica|estabilidad armónica]].
+
+Eje transversal: **pequeña señal** (linealización, autovalores/impedancia) vs **gran perturbación**
+(simulación no lineal en el tiempo).
+
+## Cuándo y por qué se usa
+Como mapa para diagnosticar: ante una oscilación o colapso, su frecuencia y causa la sitúan en una
+categoría, lo que dicta el modelo (electromecánico, fasorial, conmutado), la herramienta (modal,
+impedancia, dominio del tiempo) y la mitigación.
+
+## Procedimiento de diseño (genérico)
+1. Caracteriza el evento: variable afectada (ángulo/frecuencia/tensión), frecuencia de oscilación,
+   tamaño de la perturbación.
+2. Ubícalo en la categoría correspondiente.
+3. Elige el modelo y el criterio (modal/impedancia/temporal) acorde a la escala.
+4. Aplica la mitigación propia de esa categoría.
+
+## Ejemplo de código
+```text
+f_osc < 1 Hz  ........ ángulo (modo electromecánico) / frecuencia
+1–10 Hz ............. converter-driven lento (PLL, red débil)
+10 Hz–kHz ........... converter-driven rápido (resonancia/armónica)
+```
+
+## Parámetros y valores típicos
+Modo electromecánico 0.1–2 Hz; interárea 0.1–0.8 Hz; converter-driven lento 1–10 Hz; armónico
+100 Hz–3 kHz; SSR/SSCI 5–100 Hz.
+
+## Errores comunes
+- Aplicar modelos electromecánicos (fasor a 50 Hz) a fenómenos converter-driven rápidos.
+- Tratar como "estabilidad de tensión" una oscilación que es resonancia de impedancia.
+- Olvidar que en sistemas dominados por convertidores la inercia ya no garantiza estabilidad.
+
+## Conceptos relacionados
+- [[estabilidad-armonica]] · [[oscilaciones-subsincronas]] · [[ecuacion-oscilacion]] · [[interaccion-pll-red-debil]] · [[grid-forming-vs-following]]
+
+## Referencias
+- Hatziargyriou et al., *Definition and Classification of Power System Stability Revisited & Extended*, IEEE TPWRS 2021.
+- Kundur, *Power System Stability and Control*, 1994.

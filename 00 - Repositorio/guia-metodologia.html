@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guía: el ciclo de diseño de control</title>
+<style>
+:root{--bg:#0f1419;--panel:#161d26;--panel2:#1c2530;--ink:#e6edf3;--muted:#9aa7b4;--line:#2a3542;
+--dis:#4ea3ff;--eva:#a78bfa;--val:#5ad19a;--acc:#ffb454}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
+font:15px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif}
+a{text-decoration:none}
+.hero{max-width:1180px;margin:0 auto;padding:46px 36px 10px}
+.hero h1{font-size:28px;margin:0 0 6px}.hero p{color:var(--muted);margin:4px 0}
+.crumb{max-width:1180px;margin:0 auto;padding:0 36px 10px;font-size:13px}
+.crumb a{color:var(--acc)}
+.trace{max-width:1180px;margin:14px auto;padding:14px 20px;background:#13202e;border:1px dashed var(--acc);
+border-radius:10px;font-size:14px;color:#cfe1f0}
+.trace code{background:#0b0f14;border:1px solid var(--line);border-radius:5px;padding:2px 7px;color:#ffd9a0;font-size:12.5px}
+.cols{max-width:1180px;margin:18px auto;padding:0 36px 40px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+.phase{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.phase header{padding:14px 18px;font-weight:700;font-size:17px;color:#0b0e12}
+.phase.dis header{background:var(--dis)}.phase.eva header{background:var(--eva)}.phase.val header{background:var(--val)}
+.phase .body{padding:14px 16px}
+.phase .sub{color:var(--muted);font-size:12.5px;margin:10px 0 4px;text-transform:uppercase;letter-spacing:.05em}
+.chip{display:block;background:var(--panel2);border:1px solid var(--line);border-radius:9px;
+padding:9px 12px;margin:6px 0;color:var(--ink);font-size:13.5px;transition:.12s}
+.chip:hover{border-color:var(--acc);transform:translateX(2px)}
+.chip small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+.arrowrow{max-width:1180px;margin:0 auto;padding:0 36px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;color:var(--muted);font-size:12px;text-align:center}
+.ladder{max-width:1180px;margin:10px auto 50px;padding:0 36px}
+.ladder h2{font-size:18px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.steps{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch;margin-top:12px}
+.steps .s{flex:1;min-width:150px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px}
+.steps .s b{color:#cdd9e5}.steps .ar{display:grid;place-items:center;color:var(--muted);font-size:20px}
+</style></head><body>
+<div class="crumb"><a href="index.html">📚 Repositorio</a> &nbsp;·&nbsp; <a href="../index.html">🏠 Portada</a></div>
+<div class="hero">
+  <h1>El ciclo de diseño de control</h1>
+  <p>Mapa de la metodología: cómo diseñar, evaluar y validar el control de un convertidor.</p>
+  <p style="font-size:13.5px">Cada tarjeta abre su ficha en el repositorio. Categoría
+  <b style="color:var(--acc)">Metodología</b> · 16 conceptos.</p>
+</div>
+<div class="trace"><b>Principio rector — trazabilidad:</b>
+  <code>requisito → especificación medible → decisión de diseño → métrica de evaluación → prueba de validación</code>.
+  Cada decisión de diseño tiene su criterio de aceptación y su ensayo que lo confirma.</div>
+
+<div class="cols">
+  <div class="phase dis"><header>1 · DISEÑAR</header><div class="body">
+    <div class="sub">de la especificación al controlador</div>
+    <a class="chip" href="index.html#especificaciones-control">Especificaciones<small>traducir requisitos a métricas</small></a>
+    <a class="chip" href="index.html#arquitecturas-control">Arquitecturas<small>cascada · feedforward · 2-DOF</small></a>
+    <a class="chip" href="index.html#metodos-sintesis-control">Métodos de síntesis (panorama)<small>qué método elegir</small></a>
+    <div class="sub">clásico</div>
+    <a class="chip" href="index.html#sintonia-pi-pid">Sintonía PI/PID<small>cancelación de polo, módulo óptimo</small></a>
+    <a class="chip" href="index.html#loop-shaping">Loop-shaping<small>diseño en frecuencia</small></a>
+    <div class="sub">estado / avanzado</div>
+    <a class="chip" href="index.html#asignacion-polos-lqr">Asignación de polos · LQR/LQG<small>espacio de estados</small></a>
+    <a class="chip" href="index.html#control-predictivo">Control predictivo (MPC/FCS-MPC)<small>restricciones explícitas</small></a>
+    <a class="chip" href="index.html#control-robusto-hinf">Control robusto (H∞)<small>garantías ante incertidumbre</small></a>
+  </div></div>
+
+  <div class="phase eva"><header>2 · EVALUAR</header><div class="body">
+    <div class="sub">¿cumple y es robusto?</div>
+    <a class="chip" href="index.html#analisis-modal">Análisis modal<small>polos, participación, ζ</small></a>
+    <a class="chip" href="index.html#margenes-estabilidad">Márgenes de estabilidad<small>ganancia, fase, módulo (M_s)</small></a>
+    <a class="chip" href="index.html#funciones-sensibilidad">Funciones de sensibilidad S/T<small>rechazo, ruido, compromiso de Bode</small></a>
+    <a class="chip" href="index.html#metricas-desempeno">Métricas de desempeño<small>temporal y frecuencial</small></a>
+    <a class="chip" href="index.html#robustez-parametrica">Robustez paramétrica<small>barridos, peor caso, Monte Carlo</small></a>
+    <a class="chip" href="index.html#impedancia-salida-estabilidad">Estabilidad por impedancia<small>Nyquist generalizado</small></a>
+  </div></div>
+
+  <div class="phase val"><header>3 · VALIDAR</header><div class="body">
+    <div class="sub">¿funciona en la realidad?</div>
+    <a class="chip" href="index.html#niveles-validacion">Niveles de validación<small>lineal → conmutado → HIL → real</small></a>
+    <a class="chip" href="index.html#pruebas-validacion">Pruebas de validación<small>escalón, perturbación, falta, inyección</small></a>
+    <a class="chip" href="index.html#validacion-cruzada">Validación cruzada<small>dos vías independientes</small></a>
+    <a class="chip" href="index.html#medicion-impedancia-inyeccion">Medición de impedancia por inyección<small>el método de PLECS/hardware</small></a>
+    <a class="chip" href="index.html#modelo-promediado">Modelo promediado vs conmutado<small>¿vale el modelo de diseño?</small></a>
+  </div></div>
+</div>
+<div class="arrowrow"><div>▼ especificaciones → controlador</div><div>▼ análisis nominal y robusto</div><div>▼ subir fidelidad hasta el hardware</div></div>
+
+<div class="ladder">
+  <h2>La escalera de validación (fidelidad creciente)</h2>
+  <div class="steps">
+    <div class="s"><b>1 · Lineal</b><br>polos, impedancia, márgenes. Donde se diseña.</div>
+    <div class="ar">→</div>
+    <div class="s"><b>2 · No lineal</b><br>gran señal: faltas, saturación, escalones.</div>
+    <div class="ar">→</div>
+    <div class="s"><b>3 · Conmutado</b><br>PWM, rizado, retardo de cómputo (PLECS).</div>
+    <div class="ar">→</div>
+    <div class="s"><b>4 · HIL</b><br>control real vs planta en tiempo real.</div>
+    <div class="ar">→</div>
+    <div class="s"><b>5 · Hardware</b><br>parásitos, EMI, térmica, tolerancias.</div>
+  </div>
+  <p style="color:var(--muted);font-size:13px;margin-top:14px">Sube de nivel solo cuando el
+  anterior está validado; cada salto añade física nueva. La <b>validación cruzada</b> comprueba
+  que niveles/métodos contiguos coinciden (en GFM/GFL: lineal ↔ inyección, acoplado ↔ Nyquist).</p>
+</div>
+</body></html>

@@ -1,0 +1,100 @@
+- nombre: "Fundamentos de control"
+  descripcion: "Transformadas, estabilidad y sintonía de controladores clásicos"
+  icono: "📐"
+  conceptos:
+    - transformada-laplace
+    - funcion-transferencia
+    - polos-ceros
+    - sistema-primer-orden
+    - respuesta-segundo-orden
+    - realimentacion
+    - diagrama-bode
+    - lugar-raices
+    - routh-hurwitz
+    - estabilidad-bibo
+    - criterio-nyquist
+    - controlador-pid
+    - anti-windup
+    - error-regimen-permanente
+    - diagrama-bloques
+
+- nombre: "Física del convertidor VSC"
+  descripcion: "Transformaciones, potencia y modelo del inversor trifásico"
+  icono: "⚡"
+  conceptos:
+    - sistema-trifasico
+    - potencia-ac-fasores
+    - convertidor-vsc
+    - modulacion-pwm
+    - transformada-clarke
+    - marco-dq
+    - potencia-instantanea-dq
+    - sistema-por-unidad
+    - filtro-lcl
+
+- nombre: "Control del lazo de corriente"
+  descripcion: "Diseño del lazo interno: desacoplo, resonante, notch y discretización"
+  icono: "🎛"
+  conceptos:
+    - diagrama-bloques
+    - desacoplo-dq
+    - control-cascada
+    - controlador-resonante
+    - compensador-adelanto-atraso
+    - filtro-notch
+    - observador-estados
+    - compensacion-retardo
+    - discretizacion-controladores
+
+- nombre: "Estabilidad y robustez"
+  descripcion: "Márgenes, criterios y robustez ante variación de parámetros"
+  icono: "🛡"
+  conceptos:
+    - margenes-estabilidad
+    - clasificacion-estabilidad
+    - especificaciones-control
+    - criterio-middlebrook
+    - robustez-parametrica
+    - funciones-sensibilidad
+    - nyquist-generalizado
+    - valores-singulares-mimo
+
+- nombre: "Grid-forming"
+  descripcion: "Droop, VSM, inercia virtual y control jerárquico de microrred"
+  icono: "🏭"
+  conceptos:
+    - ecuacion-oscilacion
+    - droop-control
+    - control-tension-bus-dc
+    - dinamica-bus-dc
+    - impedancia-virtual
+    - vsm-inercia
+    - matching-control
+    - power-synchronization-control
+    - control-jerarquico-microrred
+
+- nombre: "Sincronización y red débil"
+  descripcion: "PLL, desequilibrio y estabilidad de interacción convertidor-red"
+  icono: "🔗"
+  conceptos:
+    - componentes-simetricas
+    - pll-srf
+    - dsogi-pll
+    - red-thevenin-scr
+    - interaccion-pll-red-debil
+    - fault-ride-through
+    - grid-forming-vs-following
+
+- nombre: "Análisis numérico en Python"
+  descripcion: "Herramientas para simulación, linealización y barridos paramétricos"
+  icono: "💻"
+  conceptos:
+    - equilibrio-fsolve
+    - linealizacion-numerica
+    - analisis-modal
+    - barrido-parametrico
+    - respuesta-frecuencia-ss
+    - integracion-edos-stiff
+    - simulacion-conmutada
+    - fft-analisis-espectral
+    - discretizacion-controladores
