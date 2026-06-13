@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [convertir el lazo de corriente dq acoplado en dos lazos SISO independientes]
 tags: [desacoplo, feedforward, acoplamiento-cruzado, dq, lazo-corriente, intermedio, control]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-11
 relacionados: [marco-dq, control-cascada, control-vectorial, controlador-pid, filtro-lcl]
 referencias:
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
@@ -31,6 +31,8 @@ $$ L\frac{di_d}{dt}=v_d'-R i_d \ \Rightarrow\ \frac{i_d}{v_d'}=\frac{1}{Ls+R} $$
 es decir, dos plantas de primer orden idénticas y **desacopladas**, donde \( v_{dq}' \) lo fija el
 PI. El feedforward de \( e_{dq} \) mejora el rechazo de perturbación de red y la respuesta ante
 huecos; el desacoplo de \( \omega L \) elimina el sobreimpulso cruzado en transitorios de par.
+
+<div class="cfig"><img src="figuras/desacoplo-dq-bloques.png" alt="lazo de corriente con desacoplo"><div class="cap">Lazo de corriente del eje d: el término de desacoplo −ωL·iq se inyecta antes de la planta para cancelar el acoplamiento cruzado +ωL·iq, dejando una planta SISO 1/(Ls+R) que el PI controla sin interferencia del eje q.</div></div>
 
 ## Cuándo y por qué se usa
 En todo control vectorial de corriente de convertidores y máquinas, sobre todo cuando \( \omega L \)

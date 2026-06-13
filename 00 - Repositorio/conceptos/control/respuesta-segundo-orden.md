@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [relacionar amortiguamiento y frecuencia natural con la respuesta]
 tags: [segundo-orden, amortiguamiento, frecuencia-natural, sobreimpulso, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [sistema-primer-orden, polos-ceros, metricas-desempeno, funcion-transferencia]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -30,6 +30,8 @@ Polos: \( s=-\zeta\omega_n \pm j\omega_n\sqrt{1-\zeta^2} \). Según \( \zeta \):
 Métricas (caso subamortiguado):
 $$ M_p = e^{-\pi\zeta/\sqrt{1-\zeta^2}}\;(\text{sobreimpulso}), \qquad
    t_s \approx \frac{4}{\zeta\omega_n}\;(\text{establecimiento al 2\%}) $$
+
+<div class="cfig"><img src="figuras/respuesta-segundo-orden-familia.png" alt="respuestas al escalon segun zeta"><div class="cap">Respuesta al escalón según ζ: ζ<1 oscila (más sobreimpulso cuanto menor ζ), ζ=1 es lo más rápido sin oscilar, ζ>1 es lento sin oscilar. ζ≈0.7 es el compromiso habitual.</div></div>
 
 ## Cuándo y por qué se usa
 Es el patrón con el que se fijan especificaciones (sobreimpulso, tiempo de establecimiento) y se

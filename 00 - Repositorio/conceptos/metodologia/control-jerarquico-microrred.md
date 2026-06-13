@@ -37,6 +37,8 @@ Principio de **separación temporal**: cada nivel es ~5–10× más lento que el
 interactuar. Modos de operación: **conectado a red** (terciario manda P/Q) e **isla** (primario +
 secundario mantienen la red).
 
+<div class="cfig"><img src="figuras/control-jerarquico-microrred-capas.png" alt="tres capas del control jerarquico de microrred por escala de tiempo"><div class="cap">El control se organiza en tres capas separadas por escala de tiempo: el primario (ms–s, local, droop) da estabilidad y reparto pero deja desviación; el secundario (s–min) la restaura devolviendo ω/V a su nominal; el terciario (min–h) optimiza el despacho. Cada capa es ~5–10× más lenta que la inferior para no interactuar.</div></div>
+
 ## Cuándo y por qué se usa
 En microrredes (incluida la híbrida AC/DC del data center): coordina varias fuentes/convertidores,
 garantiza reparto de carga, calidad de tensión/frecuencia y operación económica, con transición

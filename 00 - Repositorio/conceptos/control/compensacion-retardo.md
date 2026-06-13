@@ -40,6 +40,8 @@ no-pasividad ([[estabilidad-armonica]]). Compensaciones:
 Limitación: todas dependen de la **exactitud del modelo**; un \( \hat G \) o \( T_d \) erróneo
 reintroduce error y puede empeorar la robustez.
 
+<div class="cfig"><img src="figuras/compensacion-retardo-fase.png" alt="fase restada por el retardo en funcion de la frecuencia"><div class="cap">El retardo $T_d=1.5\,T_s$ resta fase pura $\Delta\phi=-\omega T_d$, que crece linealmente con la frecuencia. A la frecuencia de cruce $f_c=f_s/10$ ya se pierden ~54° de margen: por eso en lazos rápidos hay que compensarlo (predicción de estados, Smith, adelanto de ángulo).</div></div>
+
 ## Cuándo y por qué se usa
 En lazos rápidos (corriente) con \( f_c \) cercano a \( f_s/10 \), donde el retardo ya cuesta varios
 grados de margen; en convertidores de alta frecuencia de cruce; y para mejorar la pasividad de la

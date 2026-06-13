@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance, 03-DataCenter-IA]
 objetivos: [obtener el modelo lineal A,B,C,D para analisis de estabilidad e impedancia]
 tags: [linealizacion, jacobiano, espacio-estados, numerico, scipy]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [equilibrio-fsolve, analisis-modal, impedancia-salida-estabilidad]
 referencias:
   - "Khalil, Nonlinear Systems, 3rd ed., cap. 4 (linealizacion)"
@@ -29,6 +29,8 @@ $$ \Delta\dot{\mathbf{x}} = A\,\Delta\mathbf{x} + B\,\Delta\mathbf{u}, \quad
 Cada columna del Jacobiano se aproxima por **diferencias centradas** (error \( O(h^2) \)):
 
 $$ A_{:,j} \approx \frac{\mathbf{f}(\mathbf{x}_e+h\mathbf{e}_j,\mathbf{u}_e)-\mathbf{f}(\mathbf{x}_e-h\mathbf{e}_j,\mathbf{u}_e)}{2h} $$
+
+<div class="cfig"><img src="figuras/linealizacion-numerica-tangente.png" alt="linealizacion: tangente por diferencias centradas"><div class="cap">La linealización sustituye f(x) por su tangente en x0; numéricamente la pendiente A se aproxima con los dos puntos f(x0±h) (diferencias centradas, error O(h²)).</div></div>
 
 ## Cuándo y por qué se usa
 Cuando el modelo es complejo (muchos estados, no linealidades como rotaciones dq, droop,

@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [elegir la arquitectura de control del inversor]
 tags: [grid-forming, grid-following, PLL, red-debil, SCR]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [droop-control, vsm-inercia, impedancia-salida-estabilidad, red-thevenin-scr, pll-srf, interaccion-pll-red-debil]
 referencias:
   - "Rocabert et al., Control of Power Converters in AC Microgrids, IEEE TPEL 2012"
@@ -19,6 +19,8 @@ referencias:
 Dos filosofías de control de un inversor conectado a red. El **grid-following (GFL)** se
 sincroniza con la red (PLL) e **inyecta corriente**. El **grid-forming (GFM)** **impone una
 tensión** con su propia frecuencia y ángulo, como una fuente de tensión detrás de una impedancia.
+
+<div class="cfig"><img src="figuras/grid-forming-vs-following-comparativa.png" alt="comparativa GFM vs GFL"><div class="cap">GFM se comporta como una fuente de tensión tras una impedancia (impone V y f, genera su ángulo); GFL como una fuente de corriente que sigue el ángulo de la PLL. Esa diferencia explica su robustez opuesta frente a la red.</div></div>
 
 ## Fundamento teórico
 - **GFL**: fuente de corriente controlada; depende de una PLL para conocer el ángulo de red.

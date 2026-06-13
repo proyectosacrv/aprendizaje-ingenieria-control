@@ -8,8 +8,8 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [amortiguar la resonancia LCL sin perdidas]
 tags: [LCL, resonancia, damping, realimentacion, dq]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
-relacionados: [filtro-lcl, control-cascada]
+fecha_actualizacion: 2026-06-10
+relacionados: [resonancia-lcl, filtro-lcl, control-cascada]
 referencias:
   - "Dannehl et al., Investigation of Active Damping Approaches for LCL Filters, IEEE TIA 2010"
 ---
@@ -27,6 +27,8 @@ $$ \mathbf{v}_i = \mathbf{v}_{i,PI} - K_{ad}\,(\mathbf{i}_{L1}-\mathbf{i}_{L2}) 
 
 Esto añade un término disipativo en la dinámica de \( i_{L1} \) que amortigua los polos de
 resonancia (lleva su \( \zeta \) de ~0 a un valor útil).
+
+<div class="cfig"><img src="figuras/amortiguamiento-activo-lcl-polos.png" alt="polos de resonancia LCL al barrer Kad"><div class="cap">Barrido de la ganancia $K_{ad}$: el par de polos de resonancia del LCL parte casi sobre el eje imaginario ($\zeta\approx0$) y, al subir $K_{ad}$, se desplaza hacia la izquierda (más amortiguado). Equivale a una resistencia en serie con $L_1$ pero sin pérdidas.</div></div>
 
 ## Cuándo y por qué se usa
 Siempre que la resonancia LCL caiga dentro o cerca del ancho de banda de control, o cuando se

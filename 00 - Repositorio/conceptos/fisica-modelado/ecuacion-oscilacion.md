@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [describir la dinámica ángulo-frecuencia de una fuente síncrona]
 tags: [swing, inercia, angulo, frecuencia, par-sincronizante, intermedio, modelado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [vsm-inercia, droop-control, grid-forming-vs-following, potencia-ac-fasores, red-thevenin-scr]
 referencias:
   - "Kundur, Power System Stability and Control, McGraw-Hill 1994"
@@ -39,6 +39,8 @@ $$ \omega_{n}=\sqrt{\frac{\omega_0 K_s}{2H}},\qquad \zeta=\frac{D}{2}\sqrt{\frac
 \( K_s \) es el **par/potencia sincronizante**: si \( K_s<0 \) (p.ej. \( \delta_0>90^\circ \)) se
 pierde el sincronismo. Menos inercia \( H \) → oscilaciones más rápidas; red débil (\( X \) grande,
 bajo [[red-thevenin-scr|SCR]]) → \( K_s \) pequeño → modo lento y poco amortiguado.
+
+<div class="cfig"><img src="figuras/ecuacion-oscilacion-swing.png" alt="oscilacion del angulo tras un escalon de potencia"><div class="cap">Tras un escalón de potencia, el ángulo δ oscila a la frecuencia del modo electromecánico √(ω0·Ks/2H) y se asienta en el nuevo equilibrio; menos inercia o amortiguamiento → más oscilatorio.</div></div>
 
 ## Cuándo y por qué se usa
 Para analizar estabilidad de frecuencia/ángulo, dimensionar inercia y droop, y entender por qué los

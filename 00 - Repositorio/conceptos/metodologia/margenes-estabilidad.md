@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [cuantificar cuanto margen tiene el diseno antes de inestabilizarse]
 tags: [margen-fase, margen-ganancia, M_s, robustez, nyquist]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [funciones-sensibilidad, loop-shaping, robustez-parametrica, impedancia-salida-estabilidad]
 referencias:
   - "Aström, Murray, Feedback Systems, Princeton 2008"
@@ -28,6 +28,8 @@ Sobre la ganancia de lazo \( L(j\omega) \):
   sensibilidad): distancia mínima de \( L(j\omega) \) al punto crítico −1. Es el más completo
   (resume GM y PM). \( M_s<2 \) (≈6 dB) es buen objetivo.
 - **Margen de retardo**: \( \mathrm{PM}/\omega_c \) → retardo de cómputo/PWM admisible.
+
+<div class="cfig"><img src="figuras/margenes-estabilidad-bode.png" alt="margenes de ganancia y fase sobre el Bode"><div class="cap">Sobre el Bode de la ganancia de lazo: el margen de fase (PM) se mide en el cruce de ganancia (|L|=0 dB) y el de ganancia (GM) en el cruce de fase (−180°). Aquí PM≈63°, GM≈27 dB (diseño holgado).</div></div>
 
 ## Cuándo y por qué se usa
 Tras comprobar estabilidad nominal: dice si el diseño aguanta variaciones de planta, retardos y

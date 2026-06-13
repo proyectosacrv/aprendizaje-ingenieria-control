@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [entender como un convertidor sintetiza una tension media conmutando]
 tags: [PWM, ciclo-de-trabajo, conmutacion, modulacion, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [modelo-promediado, topologias-multinivel, control-vectorial]
 referencias:
   - "Mohan, Undeland, Robbins, Power Electronics, Wiley"
@@ -29,6 +29,8 @@ el interruptor conduce. Así, el valor medio sigue a la moduladora. La conmutaci
 **armónicos** alrededor de \( f_{sw} \) y sus múltiplos, que el filtro atenúa. Esto justifica el
 [[modelo-promediado]]: para frecuencias muy por debajo de \( f_{sw} \), el convertidor se comporta
 como si aplicara \( \bar{v}=d\,V_{dc} \) de forma continua.
+
+<div class="cfig"><img src="figuras/modulacion-pwm-ondas.png" alt="moduladora, portadora y salida conmutada"><div class="cap">Arriba: la moduladora (referencia) se compara con la portadora triangular. Abajo: la tensión conmutada resultante; su media (discontinua) reproduce la moduladora. El filtro elimina los armónicos en torno a fsw.</div></div>
 
 ## Cuándo y por qué se usa
 En prácticamente todos los convertidores (inversores, DC-DC, rectificadores activos): es el modo

@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [regular la tension del condensador con lazos anidados]
 tags: [cascada, PI, desacoplo, dq, ancho-de-banda]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [filtro-lcl, amortiguamiento-activo-lcl, marco-dq, droop-control]
 referencias:
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
@@ -18,6 +18,9 @@ referencias:
 Arquitectura de control con lazos anidados: un lazo **interno de corriente** (rápido) dentro
 de un lazo **externo de tensión** (más lento), cada uno un PI en el marco dq con desacoplo
 cruzado.
+
+## Diagrama de bloques
+<div class="cfig"><img src="figuras/control-cascada-lazos.png" alt="lazos anidados de tension y corriente"><div class="cap">Lazos anidados: el lazo interno de corriente (rápido) regula iL1 dentro del lazo externo de tensión (lento) que regula vC. Cada PI vive en dq con su desacoplo cruzado.</div></div>
 
 ## Fundamento teórico
 Lazo de corriente sobre \( i_{L1} \) (planta \( 1/(sL_1+R_1) \)) y lazo de tensión sobre

@@ -46,6 +46,8 @@ agrupación en 3 s, 10 min, 2 h para estadísticas.
 [[estabilidad-armonica]] pueden amplificarlos. Las cargas pulsantes de data center (GPU en rafaga)
 generan flicker e interarmónicos.
 
+<div class="cfig"><img src="figuras/calidad-potencia-armonicos.png" alt="armonicos medidos frente al limite IEEE 519"><div class="cap">Comprobación de cumplimiento: cada armónico de corriente medido en el PCC se compara con el límite individual de IEEE 519 (que depende de la relación $I_{sc}/I_L$). Aquí todos cumplen salvo el 5º, que supera su límite; cumplir el THD global no basta si un armónico individual lo viola. La mitigación es más atenuación de filtro, filtro activo o resonantes.</div></div>
+
 ## Cuándo y por qué se usa
 Como criterio de aceptación en el diseño del filtro y del control, en auditorías de conexión a red
 y en el análisis de impacto de cargas de data center / renovables. Conecta los estudios de

@@ -27,6 +27,8 @@ El resultado garantiza que \( S, T \) quedan bajo las plantillas \( 1/W \). La i
 modelo se modela como bloques \( \Delta \) acotados; el teorema de la ganancia pequeña / \( \mu \)
 da la condición de robustez.
 
+<div class="cfig"><img src="figuras/control-robusto-hinf-sensibilidad.png" alt="conformado de las funciones de sensibilidad S y T con sus plantillas"><div class="cap">El diseño $H_\infty$ conforma las funciones de sensibilidad: $|S|$ debe quedar baja a baja frecuencia (buen seguimiento/rechazo) y $|T|$ baja a alta frecuencia (robustez al ruido y a la incertidumbre). Los pesos $W_S,W_T$ fijan esas plantillas $1/W$ y el optimizador minimiza el pico de las transferencias ponderadas.</div></div>
+
 ## Cuándo y por qué se usa
 Cuando la planta varía mucho (red de fortaleza desconocida, parámetros inciertos) y se necesitan
 **garantías** en vez de comprobaciones puntuales. Conecta con el análisis de impedancia: se puede

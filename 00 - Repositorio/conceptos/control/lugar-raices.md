@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [ver cómo migran los polos del lazo cerrado al variar una ganancia]
 tags: [root-locus, lugar-raices, polos, ganancia, basico, control]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-11
 relacionados: [polos-ceros, realimentacion, funcion-transferencia, controlador-pid, respuesta-segundo-orden]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -28,6 +28,8 @@ Reglas clave: las ramas parten de los **polos** (\( K=0 \)) y terminan en los **
 infinito (\( K\to\infty \)); hay \( n-m \) **asíntotas** con ángulos \( \frac{(2k+1)180^\circ}{n-m} \)
 y centroide \( \sigma_a=\frac{\sum p_i-\sum z_i}{n-m} \); el lugar sobre el eje real queda a la
 izquierda de un número impar de polos+ceros.
+
+<div class="cfig"><img src="figuras/lugar-raices-locus.png" alt="lugar de las raices"><div class="cap">Lugar de las raíces: al subir K, los polos del lazo cerrado salen de los de lazo abierto (×) y migran; aquí dos ramas se vuelven complejas y cruzan al semiplano derecho (inestable) para K grande.</div></div>
 
 ## Cuándo y por qué se usa
 Diseño y sintonía clásicos: elegir \( K \) para un amortiguamiento/velocidad objetivo, ver el

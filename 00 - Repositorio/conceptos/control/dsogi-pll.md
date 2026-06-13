@@ -39,6 +39,8 @@ adapta \( \omega' \) de los SOGI → seguimiento de frecuencia sin la no lineali
 Frente a la SRF-PLL simple: la DSOGI rechaza el rizado de \( 2\omega \) que la secuencia negativa
 provoca en dq, dando un ángulo limpio para el control y FRT.
 
+<div class="cfig"><img src="figuras/dsogi-pll-sogi.png" alt="respuesta en frecuencia del SOGI: banda y cuadratura"><div class="cap">Cada SOGI es un filtro resonante sintonizado a $f_0$: $v'/v$ es un paso-banda centrado en la fundamental y $qv'/v$ entrega la misma señal retrasada 90° (cuadratura). Con un SOGI por eje $\alpha\beta$ se calculan las secuencias positiva y negativa instantáneas, dando un ángulo limpio incluso con desequilibrio.</div></div>
+
 ## Cuándo y por qué se usa
 Sincronización de convertidores de red bajo **desequilibrio y armónicos**, imprescindible para
 [[fault-ride-through]] (necesita secuencia positiva limpia y secuencia negativa para soporte) y para

@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance]
 objetivos: [justificar el modelo de diseño y validar contra el conmutado]
 tags: [averaging, PWM, conmutado, simulacion, rizado]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [filtro-lcl, medicion-impedancia-inyeccion, marco-dq]
 referencias:
   - "Erickson, Maksimovic, Fundamentals of Power Electronics, Springer (averaging)"
@@ -18,6 +18,8 @@ referencias:
 El **modelo promediado** sustituye la tensión conmutada del puente por su valor medio en cada
 periodo de conmutación (la modulante × \( V_{dc}/2 \)). El **modelo conmutado** simula los IGBTs
 y el PWM reales, con su rizado de alta frecuencia.
+
+<div class="cfig"><img src="figuras/modelo-promediado-ondas.png" alt="conmutado vs promediado"><div class="cap">El modelo conmutado (gris) lleva el rizado de fsw; el promediado (azul) retiene solo la dinámica útil. Si fsw separa escalas, ambos coinciden salvo ese rizado de alta frecuencia.</div></div>
 
 ## Fundamento teórico
 Si la frecuencia de conmutación \( f_{sw} \) es mucho mayor que el ancho de banda de control y

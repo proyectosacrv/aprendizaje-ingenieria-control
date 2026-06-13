@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [analizar y diseñar control en tiempo discreto (digital)]
 tags: [transformada-z, discreto, control-digital, muestreo, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-12
 relacionados: [transformada-laplace, discretizacion-controladores, muestreo-aliasing, estabilidad-bibo]
 referencias:
   - "Ogata, Sistemas de Control en Tiempo Discreto, Pearson"
@@ -32,6 +32,8 @@ Por tanto, el criterio de estabilidad discreto es:
 $$ \text{estable} \iff |z_i| < 1 \ \ \forall \text{ polo } z_i $$
 El eje \( j\omega \) de \( s \) se convierte en la circunferencia \( |z|=1 \), y la frecuencia de
 Nyquist \( \omega_s/2 \) cae en \( z=-1 \).
+
+<div class="cfig"><img src="figuras/transformada-z-planos.png" alt="mapeo plano s a plano z"><div class="cap">La relación z=e^{sTs} mapea el semiplano izquierdo de s (estable en continuo) al interior del círculo unidad de z (estable en discreto). Por eso el criterio digital es |z|<1, no Re(z)<0.</div></div>
 
 ## Cuándo y por qué se usa
 Siempre que el control se ejecute en un procesador digital (la práctica totalidad de los

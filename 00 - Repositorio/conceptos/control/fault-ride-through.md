@@ -41,6 +41,8 @@ $$ p(t)=P_0+P_{c2}\cos2\omega t+P_{s2}\sin2\omega t $$
 Las referencias \( i_{dq}^{\pm*} \) se eligen para anular el rizado de potencia activa **o** de
 reactiva (no ambos a la vez), según objetivo.
 
+<div class="cfig"><img src="figuras/fault-ride-through-lvrt.png" alt="envolvente LVRT y curva de inyeccion de reactiva"><div class="cap">Izquierda: envolvente LVRT del grid code; mientras la tensión del PCC quede por encima de la curva, el convertidor no debe desconectar (debe soportar 0 pu durante ~150 ms). Derecha: durante el hueco se prioriza corriente reactiva proporcional a la caída, $\Delta I_q=k\,\Delta V$, saturada a $I_{max}$.</div></div>
+
 ## Cuándo y por qué se usa
 Obligatorio para conexión a red de PV/eólica/almacenamiento. Crítico en grid-forming, donde además
 hay que limitar corriente sin perder la fuente de tensión (transición a modo limitado).

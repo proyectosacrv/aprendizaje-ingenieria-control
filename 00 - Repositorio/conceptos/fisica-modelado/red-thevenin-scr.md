@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [modelar la fortaleza de la red en el punto de conexion]
 tags: [SCR, X/R, thevenin, red-debil, impedancia-red]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [impedancia-salida-estabilidad, grid-forming-vs-following]
 referencias:
   - "IEEE Std 1204; Kundur, Power System Stability and Control, 1994"
@@ -18,6 +18,8 @@ referencias:
 Modelo de la red vista desde el punto de conexión (PCC) como una fuente ideal detrás de una
 impedancia serie \( Z_{red}=R_g+jX_g \). La **fortaleza** se cuantifica con el **SCR**
 (short-circuit ratio) y la naturaleza con la relación **X/R**.
+
+<div class="cfig"><img src="figuras/red-thevenin-scr-circuito.png" alt="equivalente Thevenin de la red"><div class="cap">Equivalente Thévenin visto desde el PCC: una fuente ideal Vg detrás de la impedancia serie Rg + jXg. El SCR mide cuán pequeña es esa impedancia frente a la potencia nominal (red fuerte ↔ Z baja).</div></div>
 
 ## Fundamento teórico
 $$ \mathrm{SCR}=\frac{S_{cc}}{S_n}=\frac{V_{ll}^2}{|Z_{red}|\,S_n},\qquad

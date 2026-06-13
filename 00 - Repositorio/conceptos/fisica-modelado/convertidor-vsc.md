@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [entender la topología base del inversor trifásico controlado]
 tags: [vsc, inversor, dos-niveles, igbt, puente, basico, modelado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [modulacion-pwm, modelo-promediado, topologias-multinivel, filtro-lcl, sistema-trifasico]
 referencias:
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
@@ -29,6 +29,8 @@ El **índice de modulación** \( m=\hat V_{fase}/(V_{dc}/2) \) llega a 1 en SPWM
 \( 2/\sqrt3\approx1.15 \) con inyección de 3º armónico / SVPWM. Del lado DC, balance de potencia:
 \( v_{dc}i_{dc}=\sum_x v_x i_x \). El [[modelo-promediado]] sustituye la conmutación por las
 \( d_x \) continuas para análisis y control.
+
+<div class="cfig"><img src="figuras/convertidor-vsc-rama.png" alt="una rama del VSC de dos niveles"><div class="cap">Una de las tres ramas idénticas (a, b, c): dos interruptores (S1, S2, nunca a la vez) conmutan la salida entre +Vdc y 0. Las tres ramas juntas forman el VSC trifásico de 2 niveles.</div></div>
 
 ## Cuándo y por qué se usa
 Siempre que se necesite intercambiar potencia AC↔DC de forma controlada y bidireccional:

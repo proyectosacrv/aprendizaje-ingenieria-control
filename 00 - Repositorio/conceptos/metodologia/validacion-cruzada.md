@@ -26,6 +26,8 @@ La validación cruzada es la forma práctica de "verificación y validación" (V
 - Un desacuerdo acota el error: si dos métodos discrepan, el fallo está en uno de los dos (o en la
   hipótesis común), y se investiga.
 
+<div class="cfig"><img src="figuras/validacion-cruzada-scr.png" alt="SCR critico por dos metodos independientes en GFM y GFL"><div class="cap">El SCR crítico calculado por dos vías independientes —autovalores del modelo acoplado y Nyquist del cociente de impedancias— coincide en ambos proyectos con menos del 2 % de diferencia. Ese acuerdo convierte "el modelo dice que es estable" en confianza real; un desacuerdo, en cambio, acotaría dónde está el error.</div></div>
+
 ## Cuándo y por qué se usa
 Siempre que sea posible. Es lo que convierte "el modelo dice que es estable" en "estoy seguro de
 que es estable". Especialmente valioso antes de hardware.

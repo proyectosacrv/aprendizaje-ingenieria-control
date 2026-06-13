@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [reducir tres magnitudes trifásicas a dos ejes estacionarios ortogonales]
 tags: [clarke, alfa-beta, trifasico, transformada, basico, modelado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [marco-dq, control-vectorial, sistema-trifasico, potencia-instantanea-dq, componentes-simetricas]
 referencias:
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
@@ -30,6 +30,8 @@ $$ \begin{bmatrix}x_\alpha\\x_\beta\\x_0\end{bmatrix}=
 giratorio en abc se vuelve un vector que gira en el plano \( \alpha\beta \) a frecuencia \( \omega \).
 Con convención de **potencia invariante** el factor es \( \sqrt{2/3} \) (la matriz es ortonormal y
 conserva la potencia). El homopolar captura el desequilibrio de modo común.
+
+<div class="cfig"><img src="figuras/transformada-clarke-ejes.png" alt="ejes abc y alfa-beta de Clarke"><div class="cap">Clarke proyecta las tres fases (ejes a, b, c a 120°) sobre dos ejes ortogonales fijos: α (alineado con a) y β. Cualquier terna se reduce al vector espacial x = xα + j·xβ.</div></div>
 
 ## Cuándo y por qué se usa
 Base del **control vectorial** y de la teoría de potencia instantánea. Permite trabajar con un

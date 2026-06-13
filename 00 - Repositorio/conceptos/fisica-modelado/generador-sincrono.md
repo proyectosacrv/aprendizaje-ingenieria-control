@@ -41,6 +41,8 @@ el governor cierra \( \omega\to T_m \). Su dinámica (tiempo \( \sim100\,\)ms–
 **Relevancia para convertidores.** El VSM ([[vsm-inercia]]) emula exactamente este modelo pero
 sobre un convertidor; entender el original clarifica qué se emula, sus límites y las aproximaciones.
 
+<div class="cfig"><img src="figuras/generador-sincrono-pdelta.png" alt="curva potencia-angulo del generador sincrono"><div class="cap">La potencia transferida sigue $P=\frac{EV}{X}\sin\delta$. La pendiente en el punto de operación es el par sincronizante $K_s=\partial P/\partial\delta$, que mantiene la máquina en paso; el máximo de transferencia está en $\delta=90°$, y más allá el par sincronizante se vuelve negativo y se pierde el sincronismo. El VSM emula exactamente esta dinámica sobre un convertidor.</div></div>
+
 ## Cuándo y por qué se usa
 Para estudios de estabilidad de red mixta (generadores + convertidores), para entender la base
 física del VSM/PSC/matching, y para modelar el lado AC de sistemas back-to-back con máquina.

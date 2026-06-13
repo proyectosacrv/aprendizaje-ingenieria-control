@@ -35,6 +35,8 @@ Combinándolas se obtiene un sistema de EDOs \( \dot{\mathbf{x}}=\mathbf{f}(\mat
 La elección de **nivel de abstracción** (qué se desprecia) es la decisión clave: p.ej. modelo
 promediado vs conmutado.
 
+<div class="cfig"><img src="figuras/modelado-sistemas-flujo.png" alt="flujo del modelado caja blanca de sistema fisico a modelo lineal"><div class="cap">Flujo del modelado caja blanca: del sistema físico se extraen las leyes de balance y constitutivas, que dan un sistema de EDOs $\dot x=f(x,u)$; se lleva a espacio de estados, se lineliza si el análisis lo requiere y finalmente se valida contra datos o un modelo de mayor fidelidad. La decisión clave es el nivel de abstracción (qué se desprecia).</div></div>
+
 ## Cuándo y por qué se usa
 Es el primer paso de todo: sin modelo no hay diseño ni análisis. El nivel del modelo debe
 ajustarse al uso (diseño de control → promediado lineal; verificar EMI → conmutado).

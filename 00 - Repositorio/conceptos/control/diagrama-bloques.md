@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [interconectar subsistemas y reducirlos a una función de transferencia equivalente]
 tags: [diagrama-bloques, algebra-bloques, interconexion, lazo-cerrado, basico]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [funcion-transferencia, realimentacion, control-cascada, error-regimen-permanente]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -29,6 +29,8 @@ $$ \frac{Y}{R}=\frac{G}{1+GH}\quad(\text{negativa}),\qquad \frac{G}{1-GH}\quad(\
 \( L=GH \) es la **ganancia de lazo**; \( 1+L \) el **denominador característico**. Mover un
 sumador o una bifurcación a través de un bloque exige multiplicar/dividir por ese bloque para
 conservar las señales. Para topologías densas, la **regla de Mason** da \( G_{eq} \) directamente.
+
+<div class="cfig"><img src="figuras/diagrama-bloques-reduccion.png" alt="reduccion de un lazo realimentado"><div class="cap">Reducción de un lazo: el bucle con planta G y sensor H equivale a G/(1+GH). Series → G1·G2, paralelo → G1±G2, realimentación → esta fórmula.</div></div>
 
 ## Cuándo y por qué se usa
 Para modelar sistemas con varios lazos (corriente dentro de tensión dentro de potencia → ver

@@ -38,6 +38,8 @@ grid-forming **forma** tensión/frecuencia y aporta inercia y soporte de forma i
 [[grid-forming-vs-following]]). En **redes de baja inercia** estos servicios pasan de opcionales a
 imprescindibles.
 
+<div class="cfig"><img src="figuras/servicios-red-soporte-pf.png" alt="caracteristica droop P-f con banda muerta y saturacion"><div class="cap">Característica de la respuesta primaria de frecuencia: el convertidor ajusta su potencia activa proporcionalmente a la desviación de frecuencia, $\Delta P=-\Delta f/R$, con una banda muerta central (evita actuar por ruido) y saturación en los extremos (limitada por la reserva de energía disponible). Análogamente, el droop Q–V sostiene la tensión con reactiva.</div></div>
+
 ## Cuándo y por qué se usa
 En el diseño del nivel superior de control de cualquier convertidor de red moderno: define qué
 referencias de P y Q recibe el control de corriente y cómo responde a \( f \) y \( V \). Es donde

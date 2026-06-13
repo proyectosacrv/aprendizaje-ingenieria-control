@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [leer la respuesta en frecuencia: magnitud y fase]
 tags: [bode, frecuencia, magnitud, fase, decibelios, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [funcion-transferencia, margenes-estabilidad, loop-shaping, respuesta-frecuencia-ss]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -28,6 +28,8 @@ Reglas de lectura (asíntotas):
 - Un **integrador** \( 1/s \): \( -20 \) dB/dec y \( -90° \) constantes.
 La **frecuencia de cruce de ganancia** (donde \( |G|=0 \) dB) marca el ancho de banda; en ella se
 lee el **margen de fase**. La ventaja del logaritmo: multiplicar bloques = sumar sus Bode.
+
+<div class="cfig"><img src="figuras/diagrama-bode-ejemplo.png" alt="diagrama de Bode de ejemplo"><div class="cap">Bode (magnitud y fase): cada polo dobla la pendiente en −20 dB/dec y añade hasta −90°. Las frecuencias de esquina (líneas) marcan dónde entra en juego cada polo.</div></div>
 
 ## Cuándo y por qué se usa
 Para diseñar por loop-shaping, leer márgenes de estabilidad y entender el filtrado (qué

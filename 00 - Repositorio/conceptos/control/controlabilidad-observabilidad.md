@@ -31,6 +31,8 @@ no aparece en \( y \). Si además es **inestable**, el diseño es inviable (no e
 detectable). La pérdida de rango suele venir de **cancelaciones polo-cero** ocultas en
 \( G(s)=C(sI-A)^{-1}B \).
 
+<div class="cfig"><img src="figuras/controlabilidad-observabilidad-kalman.png" alt="descomposicion de Kalman en cuatro subsistemas"><div class="cap">Descomposición de Kalman: cada modo cae en uno de cuatro grupos según se pueda gobernar (controlable) y/o estimar (observable). Solo el bloque controlable+observable admite diseño completo; un modo no controlable o no observable inestable hace el diseño inviable (no estabilizable / no detectable).</div></div>
+
 ## Cuándo y por qué se usa
 Antes de diseñar realimentación de estado o un observador: la [[asignacion-polos-lqr|asignación de
 polos]] exige controlabilidad y el observador exige observabilidad. En modelos grandes de

@@ -30,6 +30,8 @@ cruzarse con la red inductiva se viola el Nyquist (ver [[impedancia-salida-estab
 Es el **espejo** del grid-forming: el GFL se inestabiliza en red DÉBIL; el GFM (con control
 agresivo) en red FUERTE.
 
+<div class="cfig"><img src="figuras/interaccion-pll-red-debil-mapa.png" alt="SCR critico en funcion del ancho de banda de la PLL"><div class="cap">Mapa de estabilidad del grid-following: cuanto más rápida es la PLL, mayor es el SCR crítico por debajo del cual el sistema oscila, es decir, más amplia la región de red débil inestable. La palanca principal de diseño es reducir el ancho de banda de la PLL.</div></div>
+
 ## Cuándo y por qué se usa (cómo se evita)
 Aparece en parques PV/eólicos GFL conectados por líneas largas (red débil). Se previene
 limitando el ancho de banda de la PLL, con impedance shaping, o migrando a grid-forming.

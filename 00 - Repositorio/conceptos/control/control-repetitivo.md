@@ -38,6 +38,8 @@ existente (PI/PR), que estabiliza y da respuesta rápida, mientras el repetitivo
 periódicos ciclo a ciclo. Coste: la convergencia tarda **varios periodos** y reacciona lento a
 perturbaciones no periódicas.
 
+<div class="cfig"><img src="figuras/control-repetitivo-peine.png" alt="respuesta en magnitud del modelo interno periodico con picos en los armonicos"><div class="cap">Magnitud del modelo interno $e^{-sT}/(1-e^{-sT})$: un peine de resonancias con ganancia alta en la fundamental y en TODOS sus armónicos a la vez, con un solo retardo realimentado. Equivale a infinitos resonantes en paralelo, lo que anula el error periódico ciclo a ciclo.</div></div>
+
 ## Cuándo y por qué se usa
 Cuando la perturbación/​referencia es periódica y rica en armónicos: inversores de tensión (UPS/CVCF)
 con carga no lineal, filtros activos, rectificadores con rizado periódico. Da muy bajo THD con poco

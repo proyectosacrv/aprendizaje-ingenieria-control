@@ -24,6 +24,8 @@ Un sistema es **stiff** cuando la relación entre la constante de tiempo más r�
 lenta es grande. Los métodos explícitos (RK45) necesitan pasos minúsculos por estabilidad
 numérica; los **implícitos** (BDF, LSODA) manejan la rigidez con pasos mayores.
 
+<div class="cfig"><img src="figuras/integracion-edos-stiff-comparativa.png" alt="integrador explicito inestable frente a implicito estable en sistema stiff"><div class="cap">En un sistema stiff (dinámica rápida $\tau\sim20$ ms junto a una lenta), un método explícito con paso grande viola su límite de estabilidad numérica y oscila o diverge, mientras un método implícito (BDF/LSODA) absorbe la rigidez y sigue la solución con pasos mayores. Por eso los modelos de convertidor (resonancia LCL + droop) exigen solvers implícitos.</div></div>
+
 ## Cuándo y por qué se usa
 Para validar el diseño en el dominio del tiempo (transitorios, faltas, gran señal) que el
 análisis lineal no captura.

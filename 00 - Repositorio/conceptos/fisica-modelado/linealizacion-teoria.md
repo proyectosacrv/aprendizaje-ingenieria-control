@@ -34,6 +34,8 @@ equilibrio coincide con el del linealizado. Es un resultado **local** (pequeña 
 mientras las desviaciones sean pequeñas. Falla con no linealidades fuertes (saturación,
 zona muerta) o en equilibrios no hiperbólicos.
 
+<div class="cfig"><img src="figuras/linealizacion-teoria-validez.png" alt="respuesta no lineal vs linealizada en pequena y gran senal"><div class="cap">Un péndulo no lineal frente a su modelo linealizado: en pequeña señal ($\theta_0$ pequeño) ambas respuestas coinciden y el análisis lineal es válido; en gran señal divergen, porque la aproximación de primer orden solo vale en un entorno del equilibrio. El teorema de Hartman–Grobman garantiza la equivalencia local si el equilibrio es hiperbólico.</div></div>
+
 ## Cuándo y por qué se usa
 Para diseñar y analizar control con herramientas lineales (polos, Bode, impedancia, LQR). El
 régimen de gran señal (faltas, saturación) requiere otros métodos (simulación no lineal).

@@ -32,6 +32,8 @@ Es decir: más potencia, menos resistencia o menos condensador → inestable. So
 - **Amortiguamiento activo**: el convertidor fuente emula resistencia sin pérdidas.
 - **Impedance shaping** y verificación por [[criterio-middlebrook]].
 
+<div class="cfig"><img src="figuras/estabilidad-bus-dc-cpl-polos.png" alt="polos del bus DC con CPL al subir la potencia"><div class="cap">Al aumentar la potencia de la CPL, el término $P/(V^2C_{dc})$ resta amortiguamiento y el par de polos del filtro L-C se desplaza hacia la derecha, cruzando el eje imaginario en $P_{crit}=V^2R_fC_{dc}/L_f$. Por encima de esa potencia el bus oscila: hay que dejar margen o subir $C_{dc}$.</div></div>
+
 ## Cuándo y por qué se usa
 En toda microrred DC con cargas reguladas: data centers, vehículos eléctricos, naval, aeronáutica.
 Es el análogo DC de la inestabilidad por impedancia que en AC vimos en el grid-following.

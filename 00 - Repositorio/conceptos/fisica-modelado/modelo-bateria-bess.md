@@ -44,6 +44,8 @@ resistencia interna \( R_0 \) aumenta y \( Q_{nom} \) cae. Para control de servi
 - La gestión de SoC y límites de potencia/corriente es responsabilidad del BMS (Battery Management
   System), que limita las referencias del control.
 
+<div class="cfig"><img src="figuras/modelo-bateria-bess-pulso.png" alt="respuesta de tension de la bateria a un pulso de corriente"><div class="cap">Respuesta del modelo Thevenin 1-RC a un pulso de descarga: al aplicar corriente, la tensión cae instantáneamente por la resistencia óhmica $R_0$ y luego sigue bajando con la constante $\tau_{RC}$ por la difusión; al cesar el pulso ocurre lo inverso. Un modelo solo resistivo (sin RC) no captura esa cola, relevante para dimensionar el convertidor.</div></div>
+
 ## Cuándo y por qué se usa
 Para modelar el bus DC de un BESS, diseñar los lazos de carga/descarga, los servicios de
 frecuencia/inercia ([[servicios-red-soporte]]) y el [[droop-dc|droop DC]] con equilibrio de SoC

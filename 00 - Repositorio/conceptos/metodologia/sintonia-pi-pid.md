@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [obtener las ganancias de un PI a partir del ancho de banda]
 tags: [PI, PID, sintonia, cancelacion-polo, modulo-optimo]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-12
 relacionados: [metodos-sintesis-control, control-cascada, especificaciones-control, loop-shaping]
 referencias:
   - "Aström, Hägglund, Advanced PID Control, ISA 2006"
@@ -28,6 +28,8 @@ Para una planta de primer orden \( G(s)=\dfrac{K}{1+\tau s} \) (típico del lazo
   banda; bueno para lazos internos.
 - **Óptimo simétrico**: para plantas con integrador (lazos de tensión/posición), maximiza el
   margen de fase a la frecuencia de cruce.
+
+<div class="cfig"><img src="figuras/sintonia-pi-pid-cancelacion.png" alt="cancelacion de polo y lazo resultante"><div class="cap">Cancelación de polo: el cero del PI se coloca sobre el polo de la planta; el lazo cerrado queda como un primer orden limpio del ancho de banda elegido (Kp=Lωc, Ki=Rωc).</div></div>
 
 ## Cuándo y por qué se usa
 Es el método base en convertidores: rápido, intuitivo y con relación directa al ancho de banda.

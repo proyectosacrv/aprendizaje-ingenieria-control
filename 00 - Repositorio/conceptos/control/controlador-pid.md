@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [entender que aporta cada termino proporcional, integral y derivativo]
 tags: [PID, PI, proporcional, integral, derivativo, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-12
 relacionados: [realimentacion, sintonia-pi-pid, sistema-primer-orden, control-cascada]
 referencias:
   - "Aström, Hägglund, Advanced PID Control, ISA 2006"
@@ -29,6 +29,8 @@ Qué aporta cada término:
 - **Derivativo** \( K_d \): anticipa según la tendencia del error; **amortigua** y mejora
   estabilidad, pero amplifica el **ruido** (se suele filtrar).
 En convertidores se usa casi siempre **PI** (sin D, por el ruido de conmutación).
+
+<div class="cfig"><img src="figuras/controlador-pid-estructura.png" alt="estructura paralela del PID"><div class="cap">Estructura PID: tres ramas en paralelo sobre el error — proporcional (Kp), integral (Ki/s) y derivativa (Kd·s) — que se suman para formar la acción de control u.</div></div>
 
 ## Cuándo y por qué se usa
 En lazos de corriente, tensión, velocidad: cuando se quiere seguimiento sin error en régimen con

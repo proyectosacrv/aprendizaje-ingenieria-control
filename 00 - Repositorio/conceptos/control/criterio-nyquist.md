@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [determinar la estabilidad en lazo cerrado a partir de la ganancia de lazo]
 tags: [nyquist, estabilidad, lazo-cerrado, rodeos, basico, control]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [margenes-estabilidad, diagrama-bode, estabilidad-bibo, polos-ceros, impedancia-salida-estabilidad]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -31,6 +31,8 @@ $$ Z = N + P $$
 
 Si \( L \) es estable en lazo abierto (\( P=0 \)), basta con que **no se rodee** \( -1 \). La
 distancia mínima de la traza a \( -1 \) define el [[margenes-estabilidad|margen de módulo]].
+
+<div class="cfig"><img src="figuras/criterio-nyquist-plot.png" alt="diagrama de Nyquist y el punto -1"><div class="cap">Diagrama de Nyquist de la ganancia de lazo L(jω): aquí la traza no rodea el punto crítico −1, así que (con L estable en lazo abierto) el lazo cerrado es estable. El cruce con el eje real negativo da el margen de ganancia.</div></div>
 
 ## Cuándo y por qué se usa
 Cuando hay retardos, polos en lazo abierto inestables o sistemas donde Routh no aplica bien. Es

@@ -37,6 +37,8 @@ droop AC]] (allí \( \omega\!-\!P \); aquí \( V_{dc}\!-\!I \)).
 distorsionan el reparto; \( R_d\gg R_{line} \) lo mitiga, o se compensa en el secundario. Variantes:
 droop **adaptativo** (función del SoC para equilibrar baterías) y droop no lineal.
 
+<div class="cfig"><img src="figuras/droop-dc-reparto.png" alt="curvas V-I de droop DC y reparto de corriente"><div class="cap">Cada convertidor impone una recta $V_{dc}=V_{dc}^*-R_d I_o$. Como todos comparten el mismo $V_{bus}$, el reparto de corriente queda fijado por las pendientes: $I_1/I_2=R_{d2}/R_{d1}$ (aquí 2:1). Más $R_d$ mejora el reparto pero hunde más la tensión con la carga.</div></div>
+
 ## Cuándo y por qué se usa
 En microrredes DC y en el subsistema DC de la [[microrred-hibrida-ac-dc|microrred híbrida]] (data
 center): reparto robusto entre fuentes/baterías/convertidores de interconexión sin depender de

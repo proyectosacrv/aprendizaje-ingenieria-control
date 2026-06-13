@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [modelar la célula PV y extraer la máxima potencia con MPPT]
 tags: [pv, fotovoltaica, mppt, p-and-o, inc-cond, curva-iv, intermedio, modelado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [modelo-bateria-bess, convertidor-vsc, dinamica-bus-dc, control-tension-bus-dc, sistema-por-unidad]
 referencias:
   - "Sera et al., PV Panel Model Based on Datasheet Values, IEEE ISIE 2007"
@@ -29,6 +29,8 @@ con \( V_T=kT/q \) (tensión térmica, \( \approx26 \) mV a 25 °C), \( n \) fac
 - **Isc** (cortocircuito, \( V=0 \)): corriente máxima ≈ \( I_{ph} \).
 - **Voc** (circuito abierto, \( I=0 \)): tensión máxima.
 - **MPP** (máxima potencia): punto de tangente \( dP/dV=0 \); típicamente 70–80 % de \( V_{oc} \).
+
+<div class="cfig"><img src="figuras/fotovoltaica-mppt-iv.png" alt="curva I-V y P-V de un modulo PV"><div class="cap">La curva I-V del PV (azul) es no lineal; la potencia P=V·I (rojo) tiene un máximo único, el MPP (~76 % de Voc), que el MPPT persigue ante cambios de irradiancia y temperatura.</div></div>
 
 La irradiancia eleva \( I_{ph}\sim G \); la temperatura sube \( V_{oc} \) cae (\( -2.3 \) mV/°C
 por célula).

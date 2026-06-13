@@ -38,6 +38,8 @@ Marco de análisis (criterio de pasividad / impedancia):
 Causas frecuentes de no-pasividad: retardo de cómputo+PWM (\( 1.5\,T_s \)), ancho de banda de la
 PLL, *feedforward* de tensión de red, y amortiguamiento insuficiente del [[filtro-lcl]].
 
+<div class="cfig"><img src="figuras/estabilidad-armonica-pasividad.png" alt="parte real de la impedancia de salida con region no pasiva"><div class="cap">La parte real de la impedancia de salida $Z_o$ del convertidor se vuelve negativa en una banda (sobre todo por el retardo digital): ahí el convertidor es no pasivo. Si esa región coincide con una resonancia de red, el amortiguamiento neto es negativo y aparece la oscilación armónica.</div></div>
+
 ## Cuándo y por qué se usa
 En parques eólicos/PV con cables largos (alta capacidad), HVDC, y redes con muchos convertidores,
 donde aparecen oscilaciones de cientos de Hz a kHz no explicables por la dinámica electromecánica.

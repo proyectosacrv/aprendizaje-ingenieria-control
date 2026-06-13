@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [pasar del dominio del tiempo al dominio s para analizar sistemas lineales]
 tags: [laplace, dominio-s, transformada, basico, control]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-12
 relacionados: [funcion-transferencia, polos-ceros, diagrama-bode]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -28,6 +28,8 @@ $$ \mathcal{L}\!\left\{\frac{df}{dt}\right\} = s\,F(s), \qquad
    \mathcal{L}\!\left\{\int_0^t f\,d\tau\right\} = \frac{F(s)}{s} $$
 Así, una ecuación diferencial lineal se vuelve un polinomio en \( s \). La parte real \( \sigma \)
 gobierna el crecimiento/decaimiento y la imaginaria \( \omega \) la oscilación.
+
+<div class="cfig"><img src="figuras/transformada-laplace-pares.png" alt="senales en el tiempo y sus polos en s"><div class="cap">Cada señal del tiempo tiene su imagen en el plano s: la exponencial e^{−2t} ↔ un polo en s=−2; la oscilación amortiguada ↔ un par de polos complejos. σ marca el decaimiento y ω la frecuencia.</div></div>
 
 ## Cuándo y por qué se usa
 Para analizar y diseñar sistemas lineales: resolver su respuesta, obtener la función de

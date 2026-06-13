@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [entender potencia activa, reactiva y aparente, y el uso de fasores]
 tags: [potencia, activa, reactiva, aparente, fasores, RMS, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-12
 relacionados: [potencia-instantanea-dq, marco-dq, droop-control]
 referencias:
   - "Irwin, Análisis Básico de Circuitos en Ingeniería"
@@ -28,6 +28,8 @@ $$ P = VI\cos\varphi, \qquad Q = VI\sin\varphi, \qquad S = VI = \sqrt{P^2+Q^2} $
 La **potencia compleja** es \( \bar S = \bar V\,\bar I^{*} = P + jQ \). El **factor de potencia**
 es \( \cos\varphi = P/S \). Una carga inductiva absorbe \( Q>0 \); una capacitiva, \( Q<0 \).
 En trifásico equilibrado, \( P=3\,V_{fase}I_{fase}\cos\varphi=\sqrt3\,V_{LL}I_L\cos\varphi \).
+
+<div class="cfig"><img src="figuras/potencia-ac-fasores-triangulo.png" alt="triangulo de potencia"><div class="cap">Triángulo de potencia: la activa P y la reactiva Q son los catetos, la aparente S la hipotenusa, y el factor de potencia es cos φ = P/S.</div></div>
 
 ## Cuándo y por qué se usa
 Es la base del análisis de sistemas de potencia: dimensionar equipos (por \( S \)), compensar

@@ -40,6 +40,8 @@ Categorías principales:
 Eje transversal: **pequeña señal** (linealización, autovalores/impedancia) vs **gran perturbación**
 (simulación no lineal en el tiempo).
 
+<div class="cfig"><img src="figuras/clasificacion-estabilidad-bandas.png" alt="bandas de frecuencia de los fenomenos de estabilidad"><div class="cap">La frecuencia de la oscilación ubica el fenómeno: modos electromecánicos de ángulo/frecuencia (0.1–2 Hz), interacción converter-driven lenta (PLL en red débil, 1–10 Hz), resonancia SSR/SSCI (5–100 Hz) e interacción rápida / armónica (100 Hz–3 kHz). Cada banda dicta el modelo (electromecánico, fasorial, conmutado), la herramienta y la mitigación.</div></div>
+
 ## Cuándo y por qué se usa
 Como mapa para diagnosticar: ante una oscilación o colapso, su frecuencia y causa la sitúan en una
 categoría, lo que dicta el modelo (electromecánico, fasorial, conmutado), la herramienta (modal,

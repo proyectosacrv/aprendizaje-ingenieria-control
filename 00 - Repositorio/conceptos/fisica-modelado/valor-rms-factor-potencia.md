@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [manejar magnitudes AC y el convenio pico/RMS del marco dq]
 tags: [rms, valor-eficaz, factor-potencia, potencia, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-12
 relacionados: [potencia-ac-fasores, sistema-trifasico, potencia-instantanea-dq, calidad-potencia, series-fourier]
 referencias:
   - "Mohan, Undeland & Robbins, Power Electronics"
@@ -29,6 +29,8 @@ $$ \mathrm{FP} = \frac{P}{S} = \cos\varphi \ \text{(senoidal)} $$
 En trifásico equilibrado \( P = \sqrt{3}\,V_{LL} I_L \cos\varphi \). **Convenio del proyecto:** se
 trabaja con **amplitud de pico de fase**, \( V_0 = V_{LL}\sqrt{2/3} \), y por eso la potencia
 trifásica instantánea en dq lleva el factor \( \tfrac32 \): \( P = \tfrac32(v_d i_d + v_q i_q) \).
+
+<div class="cfig"><img src="figuras/valor-rms-factor-potencia-rms.png" alt="valor RMS de una senoide"><div class="cap">El valor eficaz (RMS) de una senoide es su pico dividido por √2: la continua que disiparía la misma potencia en una resistencia. Las magnitudes nominales (400 V, etc.) son RMS.</div></div>
 
 ## Cuándo y por qué se usa
 Para dimensionar (las corrientes/tensiones nominales son RMS), medir potencia, y —crucial en este

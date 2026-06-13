@@ -36,6 +36,8 @@ En ambos casos se cierran **lazos de corriente PI sobre \( i_d, i_q \)** con **d
 términos cruzados \( \pm\omega L\,i \) que introduce el marco giratorio. Es la base de los lazos
 internos de casi todos los convertidores y accionamientos.
 
+<div class="cfig"><img src="figuras/control-vectorial-orientacion.png" alt="diagrama de orientacion dq con la tension en el eje d"><div class="cap">Al orientar el marco dq con la tensión de red ($v_q=0$, vía PLL), la corriente se descompone en $i_d$ —que gobierna la potencia activa P— e $i_q$ —que gobierna la reactiva Q—, controlables de forma independiente con dos PI. En máquinas el marco se alinea con el flujo y entonces $i_d$ es flujo e $i_q$ es par.</div></div>
+
 ## Cuándo y por qué se usa
 En accionamientos de máquinas AC (PMSM, inducción) y en convertidores conectados a red. Permite
 control independiente y de alto desempeño de par/flujo o de P/Q.

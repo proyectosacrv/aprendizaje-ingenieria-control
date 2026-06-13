@@ -42,6 +42,8 @@ elementos grandes/negativos → acoplamiento fuerte, evitar ese emparejamiento.
 **Incertidumbre estructurada (μ):** el valor singular estructurado \( \mu \) generaliza
 \( \bar\sigma \) cuando la incertidumbre tiene estructura; \( \mu<1 \) → estabilidad/desempeño robusto.
 
+<div class="cfig"><img src="figuras/valores-singulares-mimo-bode.png" alt="bode de valores singulares maximo y minimo"><div class="cap">Bode de valores singulares de una planta $2\times2$: $\sigma_{max}$ y $\sigma_{min}$ acotan la ganancia según la dirección de la entrada. La franja entre ambos es el número de condición $\gamma=\sigma_{max}/\sigma_{min}$: si es grande, la planta está mal condicionada (direcciones fuertes y débiles) y es difícil de controlar. El pico de $\sigma_{max}$ es la norma $H_\infty$.</div></div>
+
 ## Cuándo y por qué se usa
 Para diseñar y validar control de convertidores como sistema \( 2\times2 \) en dq (acoplamiento
 d-q), evaluar robustez MIMO real (no lazo a lazo), decidir el emparejamiento de variables y conectar

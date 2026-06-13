@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [predecir el error estacionario según el número de integradores del lazo]
 tags: [error-permanente, tipo-sistema, Kp, Kv, Ka, basico, control]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [realimentacion, metricas-desempeno, controlador-pid, funcion-transferencia, anti-windup]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -34,6 +34,8 @@ $$ K_p=\lim_{s\to0}L(s),\quad K_v=\lim_{s\to0}sL(s),\quad K_a=\lim_{s\to0}s^2L(s
 
 Cada integrador añade un tipo → anula el error ante una entrada de un orden más alto, **a costa**
 de margen de fase (90° menos por integrador).
+
+<div class="cfig"><img src="figuras/error-regimen-permanente-step.png" alt="error en regimen tipo 0 vs tipo 1"><div class="cap">Ante un escalón, el sistema tipo 0 (solo P) deja un error en régimen e_ss; el tipo 1 (con integrador) lo anula, a costa de más sobreimpulso / menos margen de fase.</div></div>
 
 ## Cuándo y por qué se usa
 Para decidir si hace falta acción **integral**: seguir una referencia constante sin error exige

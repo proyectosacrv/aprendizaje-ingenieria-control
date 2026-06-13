@@ -34,6 +34,8 @@ modela). Un **paso de integración** demasiado grande en la conmutada "pierde" i
 conmutación y falsea el rizado: regla práctica \( \Delta t \lesssim \dfrac{1}{20\,f_{sw}} \), o
 usar detección de eventos.
 
+<div class="cfig"><img src="figuras/simulacion-conmutada-rizado.png" alt="corriente conmutada con rizado frente a la promediada suave"><div class="cap">El modelo promediado sustituye la conmutación por el ciclo de trabajo y da la trayectoria suave de baja frecuencia; el conmutado reproduce el encendido/apagado real y añade el rizado triangular a $f_{sw}$. Ambos coinciden en la dinámica de baja frecuencia (la que importa para el control); las diferencias por encima de $f_{sw}/2$ son esperables y normales.</div></div>
+
 ## Cuándo y por qué se usa
 Para **validar** que el modelo de control diseñado sobre el promediado funciona con conmutación
 real, antes de pasar a HIL/hardware; para cuantificar rizado y armónicos (con

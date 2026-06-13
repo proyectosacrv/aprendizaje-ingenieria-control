@@ -24,6 +24,8 @@ A diferencia del droop (donde \( \omega \) es algebraica e instantánea), aquí 
 **estado** con inercia: la frecuencia no salta, su tasa de cambio (RoCoF) está limitada por
 \( J \). En régimen permanente el VSM reproduce un droop con pendiente \( 1/(\omega_0 D) \).
 
+<div class="cfig"><img src="figuras/vsm-inercia-rocof.png" alt="frecuencia tras escalon de carga: droop vs VSM"><div class="cap">Tras un escalón de carga, el droop puro salta a su nuevo valor de frecuencia de forma instantánea (sin inercia); el VSM la mueve con pendiente acotada (RoCoF $\propto 1/J$): la inercia virtual frena la caída inicial. Ambos asientan en el mismo punto (mismo droop estacionario).</div></div>
+
 ## Cuándo y por qué se usa
 Para aportar **soporte inercial** a la red (frenar el RoCoF ante perturbaciones) y para tener
 control directo del amortiguamiento del modo de potencia, que en droop puro es limitado.

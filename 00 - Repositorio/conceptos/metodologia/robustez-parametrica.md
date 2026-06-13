@@ -29,6 +29,8 @@ punto de operación varían dentro de su rango realista (no solo en el valor nom
 - Conecta con el control robusto ([[control-robusto-hinf]]) y con el análisis de impedancia
   ([[impedancia-salida-estabilidad]]) cuando la incertidumbre es la red.
 
+<div class="cfig"><img src="figuras/robustez-parametrica-barrido.png" alt="barrido de SCR mostrando el valor critico de estabilidad"><div class="cap">Barriendo un parámetro incierto (aquí la SCR de la red) y observando $\max\mathrm{Re}(\lambda)$ se localiza el valor crítico donde el sistema cruza a inestable. En el GFM el cruce está en $SCR\approx3.35$: es inestable en red fuerte. El valor nominal puede ser estable y el rango real no, por eso nunca se valida solo en el punto nominal.</div></div>
+
 ## Cuándo y por qué se usa
 Siempre antes de dar por bueno un diseño: el valor nominal puede ser estable y el rango real no.
 Es lo que reveló los SCR críticos de GFM/GFL.

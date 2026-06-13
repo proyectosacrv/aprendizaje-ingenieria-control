@@ -29,6 +29,8 @@ $$ \mathbf{I}=\mathbf{G}\,\mathbf{V}\;\Rightarrow\;\mathbf{G}=\mathbf{I}\,\mathb
 Los fasores se extraen por **demodulación** (correlación con sin/cos sobre un número entero de
 periodos).
 
+<div class="cfig"><img src="figuras/medicion-impedancia-inyeccion-bode.png" alt="impedancia medida por inyeccion frente a la analitica"><div class="cap">La impedancia medida inyectando perturbaciones y demodulando los fasores (en simulación conmutada, PLECS o hardware) se superpone a la calculada analíticamente con $Y=C(sI-A)^{-1}B+D$. El acuerdo (error medio ~0.2 %) valida el modelo promediado en pequeña señal; deja de valer si la amplitud activa el current limiting.</div></div>
+
 ## Cuándo y por qué se usa
 Para **validar** el modelo promediado contra la planta conmutada/real, y para caracterizar
 convertidores comerciales "caja negra" cuya impedancia no se conoce analíticamente.

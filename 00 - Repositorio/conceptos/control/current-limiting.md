@@ -29,6 +29,8 @@ $$ \lVert \mathbf{i}_{L1}^{*}\rVert \le I_{max} \;\Rightarrow\;
 Es un fenómeno de **gran señal**: rompe la linealidad, por lo que el análisis de impedancia/
 estabilidad lineal deja de aplicar y se estudia por simulación temporal.
 
+<div class="cfig"><img src="figuras/current-limiting-falta.png" alt="corriente en falta con y sin limite"><div class="cap">Ante un hueco de red, un grid-forming sin límite inyecta una corriente de falta enorme (≈4.76 pu) que destruiría los semiconductores; la saturación de la magnitud de la referencia la acota a $I_{max}$≈1.5 pu. Es un fenómeno de gran señal: rompe la linealidad y se estudia por simulación temporal.</div></div>
+
 ## Cuándo y por qué se usa
 Siempre en convertidores reales. El reto abierto en grid-forming: limitar **sin** perder el
 carácter formador ni la sincronización (un límite duro puede hacer que el inversor "siga" la

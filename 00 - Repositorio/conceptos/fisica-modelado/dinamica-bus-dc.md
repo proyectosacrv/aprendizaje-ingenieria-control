@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [modelar y dimensionar el condensador del bus DC y su tensión]
 tags: [bus-dc, condensador, balance-energia, rizado, hold-up, intermedio, modelado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [convertidor-vsc, control-tension-bus-dc, estabilidad-bus-dc-cpl, carga-potencia-constante-cpl, potencia-instantanea-dq]
 referencias:
   - "Mohan, Undeland, Robbins, Power Electronics, Wiley"
@@ -41,6 +41,8 @@ $$ C\ge\frac{2 P\, t_h}{V_{dc0}^2-V_{min}^2} $$
 **Estabilidad:** una carga de potencia constante presenta **impedancia incremental negativa**
 \( \partial v/\partial i<0 \), que puede desestabilizar el bus (ver
 [[carga-potencia-constante-cpl]], [[estabilidad-bus-dc-cpl]]).
+
+<div class="cfig"><img src="figuras/dinamica-bus-dc-respuesta.png" alt="respuesta del bus DC a un escalon de carga"><div class="cap">El condensador integra el desbalance: sin control (rojo) Vdc cae linealmente ante un exceso de carga; el lazo de tensión (azul) ajusta la potencia de entrada y lo recupera.</div></div>
 
 ## Cuándo y por qué se usa
 Para elegir \( C \) (rizado, autonomía, vida útil), modelar el lazo de tensión y analizar la

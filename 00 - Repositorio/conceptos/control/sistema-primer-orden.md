@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [entender la respuesta de un sistema de un solo polo]
 tags: [primer-orden, constante-de-tiempo, polo, respuesta-escalon, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [polos-ceros, respuesta-segundo-orden, funcion-transferencia, sintonia-pi-pid]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -27,6 +27,8 @@ $$ y(t) = A\,K\left(1 - e^{-t/\tau}\right) $$
 Alcanza el 63% del valor final en \( t=\tau \) y prácticamente el 100% en \( t\approx 4\tau \)
 (tiempo de establecimiento). Cuanto menor \( \tau \) (polo más a la izquierda), más rápido.
 Ejemplo físico: un inductor con resistencia tiene \( \tau=L/R \); un condensador, \( \tau=RC \).
+
+<div class="cfig"><img src="figuras/sistema-primer-orden-escalon.png" alt="respuesta al escalon de primer orden"><div class="cap">Respuesta al escalón de primer orden: alcanza el 63% del valor final en t=τ y prácticamente el 100% en 4τ. El polo en −1/τ fija la rapidez.</div></div>
 
 ## Cuándo y por qué se usa
 Muchos lazos internos (corriente sobre un inductor) son de primer orden. Entenderlo permite

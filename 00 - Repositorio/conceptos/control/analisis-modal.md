@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance, 03-DataCenter-IA]
 objetivos: [evaluar estabilidad e identificar el origen de cada modo]
 tags: [autovalores, polos, participacion, zeta, estabilidad]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [linealizacion-numerica, droop-control, impedancia-salida-estabilidad]
 referencias:
   - "Kundur, Power System Stability and Control, McGraw-Hill 1994 (cap. 12)"
@@ -25,6 +25,8 @@ $$ f=\frac{|\omega_d|}{2\pi}, \qquad \zeta=\frac{-\sigma}{|\lambda|} $$
 Estable si \( \sigma<0 \) para todos los modos. El **factor de participación** del estado \( k \)
 en el modo \( i \) combina los autovectores derecho \( \phi \) e izquierdo \( \psi \):
 \( p_{ki}=|\psi_{ik}\,\phi_{ki}| \). Identifica qué dinámica domina cada modo → guía el rediseño.
+
+<div class="cfig"><img src="figuras/analisis-modal-polos.png" alt="mapa de autovalores en el plano s"><div class="cap">Mapa de autovalores: cuanto más a la izquierda (σ más negativo), más amortiguado; la parte imaginaria da la frecuencia. El modo que preocupa es el cercano al eje con poco ζ (aquí, la resonancia LCL a 1.1 kHz).</div></div>
 
 ## Cuándo y por qué se usa
 Para saber no solo **si** es estable, sino **qué** modo es problemático y **qué estados** lo

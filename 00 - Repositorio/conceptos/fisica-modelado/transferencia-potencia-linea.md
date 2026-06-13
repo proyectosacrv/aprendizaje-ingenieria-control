@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance]
 objetivos: [fundamento del droop y de la rigidez sincronizante del grid-forming]
 tags: [flujo-potencia, angulo, p-delta, q-v, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-12
 relacionados: [droop-control, generador-sincrono, ecuacion-oscilacion, impedancia-virtual, grid-forming-vs-following]
 referencias:
   - "Kundur, Power System Stability and Control, McGraw-Hill"
@@ -32,6 +32,8 @@ $$ \frac{\partial P}{\partial \delta}\bigg|_{\delta\to 0} \approx \frac{VE}{X} $
 Si \( X \) es **pequeña** (red fuerte o poca reactancia de acoplamiento), \( \partial P/\partial\delta \)
 es **enorme**: el lazo de potencia se vuelve muy sensible y difícil de estabilizar. Esta es,
 exactamente, la razón por la que el grid-forming añade **impedancia virtual** (aumentar \( X \)).
+
+<div class="cfig"><img src="figuras/transferencia-potencia-linea-pdelta.png" alt="curva P-delta"><div class="cap">La potencia transmitida crece con sen δ (máxima a 90°). Cerca de δ=0 es casi lineal: la pendiente ∂P/∂δ=VE/X es la rigidez sincronizante; con X pequeña se dispara y el lazo de potencia se vuelve difícil de estabilizar.</div></div>
 
 ## Cuándo y por qué se usa
 En el reparto de carga (droop), en la estabilidad de ángulo de máquinas síncronas, y en el diseño del

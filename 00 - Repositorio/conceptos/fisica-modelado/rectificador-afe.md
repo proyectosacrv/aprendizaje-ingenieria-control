@@ -8,7 +8,7 @@ proyectos: [03-DataCenter-IA]
 objetivos: [entender la conversión AC-DC controlada que alimenta el bus DC]
 tags: [rectificador, afe, ac-dc, bidireccional, factor-potencia, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-12
 relacionados: [convertidor-vsc, control-tension-bus-dc, dinamica-bus-dc, microrred-hibrida-ac-dc, pll-srf]
 referencias:
   - "Mohan, Undeland & Robbins, Power Electronics"
@@ -30,6 +30,8 @@ ambos lados:
 $$ P_{ac} \approx P_{dc} = V_{dc}\,i_{dc} $$
 Frente al rectificador de diodos, el AFE corrige armónicos (corriente senoidal), controla el FP y
 permite el flujo de energía en los dos sentidos.
+
+<div class="cfig"><img src="figuras/rectificador-afe-bloques.png" alt="diagrama de bloques del AFE"><div class="cap">El AFE es un VSC que rectifica de forma activa: con su PLL y sus lazos de corriente y tensión regula Vdc, trabaja a FP=1 y es bidireccional (puede devolver energía a la red).</div></div>
 
 ## Cuándo y por qué se usa
 Para alimentar un bus DC de forma controlada y limpia: data centers, accionamientos, carga de

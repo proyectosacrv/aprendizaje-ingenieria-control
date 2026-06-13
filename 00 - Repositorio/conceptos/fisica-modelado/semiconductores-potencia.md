@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance]
 objetivos: [entender qué conmuta realmente en el VSC y de dónde salen las pérdidas]
 tags: [igbt, mosfet, diodo, conmutacion, perdidas, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-12
 relacionados: [convertidor-vsc, modulacion-pwm, modelo-promediado, simulacion-conmutada, topologias-multinivel]
 referencias:
   - "Mohan, Undeland & Robbins, Power Electronics"
@@ -36,6 +36,8 @@ muerto** (dead time) entre el apagado de uno y el encendido del otro.
 | Diodo | no | — | — |
 | MOSFET | sí (tensión) | baja-media tensión | alta (>100 kHz) |
 | IGBT | sí (tensión) | media-alta tensión/potencia | media (2–20 kHz) |
+
+<div class="cfig"><img src="figuras/semiconductores-potencia-conmutacion.png" alt="perdida de conmutacion V I solapadas"><div class="cap">Pérdida de conmutación: durante cada transición la tensión sube mientras la corriente aún no ha caído (y viceversa); ese solapamiento V·I es energía disipada, proporcional a fsw.</div></div>
 
 ## Cuándo y por qué se usa
 Definen el **modelo conmutado** (lo que PLECS simula en detalle) frente al **modelo promediado**

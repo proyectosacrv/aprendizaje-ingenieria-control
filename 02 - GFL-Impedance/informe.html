@@ -15,6 +15,7 @@
   body{margin:0;background:var(--bg);color:var(--ink);
     font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
   a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
+  .cref{color:var(--acc);border-bottom:1px dotted rgba(78,163,255,.55)} .cref:hover{border-bottom-style:solid;text-decoration:none}
   .wrap{display:flex;max-width:1560px;margin:0 auto}
   nav{position:sticky;top:0;align-self:flex-start;height:100vh;width:320px;flex:0 0 320px;
     overflow-y:auto;padding:24px 18px;border-right:1px solid var(--line);background:var(--panel)}
@@ -152,7 +153,7 @@
   <p class="sub">Informe técnico exhaustivo — el espejo del grid-forming. Modelo de pequeña señal de 10
   estados (PLL + lazo de corriente), impedancia de salida, resistencia negativa de la PLL y SCR crítico,
   con el código de simulación real y sus resultados.</p>
-  <p class="meta">Proyecto 02 · Repositorio de aprendizaje de ingeniería de control · Generado el 10/06/2026 a partir del código fuente.</p>
+  <p class="meta">Proyecto 02 · Repositorio de aprendizaje de ingeniería de control · Generado el 11/06/2026 a partir del código fuente.</p>
   <div class="tagrow">
     <span class="tag">Python 3.13</span><span class="tag">marco dq</span><span class="tag">SRF-PLL</span>
     <span class="tag">impedancia dq 2×2</span><span class="tag">resistencia negativa</span>
@@ -163,32 +164,32 @@
 <section id="resumen">
   <h2 class="sec">Resumen ejecutivo</h2>
   <p class="lead">El espejo del proyecto 01: mismo hardware, control opuesto, inestabilidad opuesta.</p>
-  <p>Sobre el <b>mismo filtro LCL</b> del proyecto 01 (10&nbsp;kVA), se implementa el control
-  <b>grid-following (GFL)</b>: una PLL que sigue la red y un lazo de corriente que inyecta la potencia
+  <p>Sobre el <b>mismo <a class="cref" href="../00%20-%20Repositorio/index.html#filtro-lcl">filtro LCL</a></b> del proyecto 01 (10&nbsp;kVA), se implementa el control
+  <b><a class="cref" href="../00%20-%20Repositorio/index.html#grid-forming-vs-following">grid-following</a> (GFL)</b>: una <a class="cref" href="../00%20-%20Repositorio/index.html#pll-srf">PLL</a> que sigue la red y un lazo de corriente que inyecta la potencia
   de consigna. El objetivo es entender, con la misma herramienta de impedancia, por qué el GFL <b>se
-  desestabiliza en red débil</b> —lo opuesto al grid-forming— y demostrar que el formalismo de
+  desestabiliza en <a class="cref" href="../00%20-%20Repositorio/index.html#red-thevenin-scr">red débil</a></b> —lo opuesto al grid-forming— y demostrar que el formalismo de
   impedancia es general (explica ambos). Como en el proyecto 01, todo el código mostrado es el código
   real y todos los números son la salida de consola real de ejecutarlo.</p>
   <div class="kpi">
     <div class="b"><div class="n">10</div><div class="l">estados del modelo dq</div></div>
     <div class="b"><div class="n">−50.0</div><div class="l">máx. Re (red rígida)</div></div>
     <div class="b"><div class="n">21.3 Hz</div><div class="l">modo PLL, ζ=0.71</div></div>
-    <div class="b"><div class="n">Re(Z<sub>qq</sub>)&lt;0</div><div class="l">resistencia negativa PLL</div></div>
+    <div class="b"><div class="n">Re(Z<sub>qq</sub>)&lt;0</div><div class="l"><a class="cref" href="../00%20-%20Repositorio/index.html#no-pasividad-resistencia-negativa">resistencia negativa</a> PLL</div></div>
     <div class="b"><div class="n">3.48</div><div class="l">SCR crítico (PLL 100 Hz)</div></div>
     <div class="b"><div class="n">2 %</div><div class="l">acuerdo de las dos vías</div></div>
   </div>
   <div class="def"><b>Idea central:</b> el GFL es estable en red fuerte e inestable en red débil si la
   PLL es rápida. El <b>ancho de banda de la PLL</b> fija el SCR crítico de forma monótona: 40&nbsp;Hz →
   SCR≈1 (robusto); 170&nbsp;Hz → SCR≈8 (frágil). Es lo contrario del GFM (inestable en red fuerte), y se
-  explica con la misma impedancia + Nyquist generalizado.</div>
+  explica con la misma impedancia + <a class="cref" href="../00%20-%20Repositorio/index.html#nyquist-generalizado">Nyquist generalizado</a>.</div>
 
   <h3>Resumen</h3>
-  <p>Se presenta el modelado en pequeña señal y el análisis de estabilidad por impedancia de un inversor
+  <p>Se presenta el modelado en pequeña señal y el análisis de <a class="cref" href="../00%20-%20Repositorio/index.html#impedancia-salida-estabilidad">estabilidad por impedancia</a> de un inversor
   grid-following trifásico de 10&nbsp;kVA con filtro LCL (el mismo hardware del proyecto 01), controlado
   mediante una PLL de marco síncrono y un lazo de corriente. El modelo no lineal en \( dq \), de diez
-  variables de estado, se linealiza numéricamente para obtener los modos propios y la matriz de impedancia
+  <a class="cref" href="../00%20-%20Repositorio/index.html#variables-estado">variables de estado</a>, se linealiza numéricamente para obtener los modos propios y la matriz de impedancia
   de salida \( \mathbf{Z}_{dq}(s) \). Se identifica la <b>resistencia negativa</b> que la PLL induce en el
-  eje q (comportamiento no pasivo) y, mediante el criterio de Nyquist generalizado, se determina la
+  eje q (comportamiento no pasivo) y, mediante el <a class="cref" href="../00%20-%20Repositorio/index.html#criterio-nyquist">criterio de Nyquist</a> generalizado, se determina la
   relación de cortocircuito (SCR) crítica por debajo de la cual el sistema se inestabiliza en red débil.
   Se demuestra que el ancho de banda de la PLL gobierna monótonamente dicha frontera y se cierra la
   dualidad grid-forming↔grid-following con la misma herramienta de impedancia.</p>
@@ -247,7 +248,7 @@
   <ol class="tight">
     <li><b>Modelar</b> el GFL en dq (PLL SRF + lazo de corriente) sobre el LCL del proyecto 01.</li>
     <li><b>Caracterizar</b> su impedancia de salida y exponer la <b>resistencia negativa</b> de la PLL.</li>
-    <li><b>Hallar</b> el SCR crítico por dos vías (autovalores y Nyquist de impedancia) y mostrar el
+    <li><b>Hallar</b> el SCR crítico por dos vías (<a class="cref" href="../00%20-%20Repositorio/index.html#analisis-modal">autovalores</a> y Nyquist de impedancia) y mostrar el
     papel del ancho de banda de la PLL.</li>
     <li><b>Comparar</b> con el GFM (proyecto 01) para cerrar la dualidad GFM↔GFL.</li>
   </ol>
@@ -272,7 +273,7 @@
   máquinas síncronas): el GFL empieza a oscilar. Entender ese límite es el objeto de este proyecto.</p>
   <div class="grid2">
     <div class="card"><h3>El grid-following</h3>
-      <p>La PLL alinea el marco dq con la tensión de red (lleva \( v_{Cq}\to 0 \)) y el lazo de corriente
+      <p>La PLL alinea el <a class="cref" href="../00%20-%20Repositorio/index.html#marco-dq">marco dq</a> con la tensión de red (lleva \( v_{Cq}\to 0 \)) y el lazo de corriente
       impone \( i_{L1} \) para entregar \( P^*,Q^* \). Se comporta como fuente de corriente.</p></div>
     <div class="card"><h3>El mecanismo de inestabilidad</h3>
       <p>En red débil (alta \( L_g \)), la corriente inyectada perturba la tensión del PCC que la PLL
@@ -335,7 +336,7 @@
   <h3>2.4 Impedancia y criterio de Nyquist generalizado</h3>
   <p>Del modelo lineal, \( \mathbf{Y}_\text{inv}=-(\mathbf{C}(s\mathbf{I}-A)^{-1}\mathbf{B}+\mathbf{D}) \).
   La estabilidad de la conexión la decide \( \mathbf{L}(s)=\mathbf{Z}_\text{red}\mathbf{Y}_\text{inv} \)
-  (MIMO 2×2): los autovalores de \( \mathbf{L}(j\omega) \) no deben rodear \( -1 \), o equivalentemente
+  (<a class="cref" href="../00%20-%20Repositorio/index.html#valores-singulares-mimo">MIMO</a> 2×2): los autovalores de \( \mathbf{L}(j\omega) \) no deben rodear \( -1 \), o equivalentemente
   \( \det(\mathbf{I}+\mathbf{L})\neq 0\ \forall\omega \). El mínimo de
   \( |\det(\mathbf{I}+\mathbf{L})| \) marca la frontera (SCR crítico). Es el mismo criterio del
   proyecto 01, lo que evidencia su generalidad.</p>
@@ -376,13 +377,13 @@
   para llevar \( v_{Cq}\to 0 \). Es un PI sobre \( v_{Cq} \). Cuando bloquea, el ángulo del marco sigue
   al de la red.</p>
   <p><b>El lazo de corriente.</b> Con la PLL alineando \( v_C \) al eje d, la potencia activa la fija
-  \( i_{L1d} \) y la reactiva \( i_{L1q} \). Es un PI rápido (~800&nbsp;Hz) con desacoplo dq y
+  \( i_{L1d} \) y la reactiva \( i_{L1q} \). Es un PI rápido (~800&nbsp;Hz) con <a class="cref" href="../00%20-%20Repositorio/index.html#desacoplo-dq">desacoplo dq</a> y
   feedforward de \( v_C \).</p>
   </div>
   <h3>4.3 La diferencia conceptual clave</h3>
   <table>
     <tr><th></th><th>Grid-forming (01)</th><th>Grid-following (02)</th></tr>
-    <tr><td>Quién fija el ángulo</td><td>el droop/VSM (interno)</td><td>la PLL (sigue la red)</td></tr>
+    <tr><td>Quién fija el ángulo</td><td>el <a class="cref" href="../00%20-%20Repositorio/index.html#droop-control">droop</a>/<a class="cref" href="../00%20-%20Repositorio/index.html#vsm-inercia">VSM</a> (interno)</td><td>la PLL (sigue la red)</td></tr>
     <tr><td>Se comporta como</td><td>fuente de tensión</td><td>fuente de corriente</td></tr>
     <tr><td>Variable controlada</td><td>tensión \( v_C \)</td><td>corriente \( i_{L1} \)</td></tr>
     <tr><td>Falla en</td><td>red fuerte</td><td>red débil</td></tr>
@@ -403,7 +404,7 @@
      \omega_\text{pll}=\omega_0+K_p^\text{pll}\,v_{Cq}+K_i^\text{pll}\,\varepsilon,\qquad
      \dot\varepsilon=v_{Cq} \]</div>
   <p>Aquí nace la resistencia negativa: la PLL, al reaccionar a \( v_{Cq} \), introduce una
-  realimentación que en cierta banda se comporta como conductancia negativa vista desde la red.</p>
+  <a class="cref" href="../00%20-%20Repositorio/index.html#realimentacion">realimentación</a> que en cierta banda se comporta como conductancia negativa vista desde la red.</p>
 </section>
 
 <section id="estados">
@@ -419,9 +420,13 @@
     <tr><td>8,9</td><td><code>gd, gq</code></td><td>integradores del PI de corriente</td><td>\( \dot{\boldsymbol{\gamma}}=\mathbf{i}_{L1}^*-\mathbf{i}_{L1} \)</td></tr>
   </table>
   <p>Frente a los 15 del GFM, el GFL tiene 10: comparten los 6 de la planta LCL, pero el GFL sustituye
-  los 9 estados de sincronización del GFM (droop, potencias, impedancia virtual, R transitoria) por solo
+  los 9 estados de sincronización del GFM (droop, potencias, <a class="cref" href="../00%20-%20Repositorio/index.html#impedancia-virtual">impedancia virtual</a>, R transitoria) por solo
   4 (PLL + lazo de corriente). Es la lista real <code class="inl">STATE_NAMES</code> de
   <span class="file">model.py</span>; la Fase&nbsp;1 devuelve 10 autovalores, confirmándolo.</p>
+  <figure style="margin:18px auto;max-width:620px;text-align:center"><img src="results/matriz_A.png" alt="estructura de la matriz de estado A">
+    <figcaption>Estructura de la matriz de estado \( A \) (10×10): el bloque LCL (6 estados), la PLL
+    (\( \delta,\varepsilon \)) y el PI de corriente (\( g_d,g_q \)), con el acoplamiento cruzado d↔q
+    en los sub-bloques 2×2. Generada con <span class="file">figuras_modelo.py</span>.</figcaption></figure>
 </section>
 
 <section id="parametros">
@@ -496,7 +501,7 @@ class SystemParams:
   <p class="lead">El campo vectorial \( f(\mathbf{x},\mathbf{u}) \) del GFL en 10 ecuaciones.</p>
   <p>Se lee de arriba abajo: primero la <b>PLL</b> (frecuencia del marco desde \( v_{Cq} \)), luego las
   <b>referencias de corriente</b> desde \( P^*,Q^* \), el <b>lazo de corriente PI</b> con desacoplo y
-  feedforward, el <b>amortiguamiento activo</b>, la <b>rotación</b> de la tensión de red por \( \delta \),
+  feedforward, el <b><a class="cref" href="../00%20-%20Repositorio/index.html#amortiguamiento-activo-lcl">amortiguamiento activo</a></b>, la <b>rotación</b> de la tensión de red por \( \delta \),
   y la <b>planta LCL</b>. Las referencias \( i^*_{L1d}=2P^*/(3v_{Cd}) \),
   \( i^*_{L1q}=-2Q^*/(3v_{Cd}) \) son las que convierten al inversor en fuente de corriente.</p>
 <div class="codefile"><div class="h"><span>📄 model.py</span><span>113 líneas · código real del proyecto</span></div><pre>&quot;&quot;&quot;Modelo no lineal del inversor grid-following (GFL) en dq, equilibrio y linealizacion.
@@ -611,7 +616,7 @@ class GFLInverter:
             B[:, j] = (self.f(x_eq, up) - self.f(x_eq, um)) / (2 * du)
             D[:, j] = (self.output(x_eq, up) - self.output(x_eq, um)) / (2 * du)
         return A, B, C, D
-</pre></div><div class="cap">GFLInverter: f(x,u), output (rota i_L2 al marco s), equilibrium (fsolve) y linearize (diferencias centradas). La PLL fija w; el lazo de corriente impone i_L1.</div>
+</pre></div><div class="cap">GFLInverter: f(x,u), output (rota i_L2 al marco s), equilibrium (<a class="cref" href="../00%20-%20Repositorio/index.html#equilibrio-fsolve">fsolve</a>) y linearize (diferencias centradas). La PLL fija w; el lazo de corriente impone i_L1.</div>
   <div class="note"><b>Detalle clave:</b> <code class="inl">w = w0 + Kp_pll*vcq + Ki_pll*eps</code> es la
   PLL; <code class="inl">vmag = max(vcd, 1.0)</code> evita dividir por cero en las referencias. La planta
   LCL es idéntica a la del GFM (mismo hardware).</div>
@@ -756,7 +761,7 @@ Nota: el modo a ~21 Hz, zeta 0.71, es el de la PLL (f_pll=30 Hz).</div>
       <p><span class="pill ok">ESTABLE</span> \( \max\mathrm{Re}=-50.0 \). El polo dominante es el
       <b>modo de la PLL</b> a <b>21.3 Hz con \( \zeta=0.708 \)</b> (diseñada a 30 Hz, \( \zeta=0.707 \);
       la diferencia refleja la interacción con la planta). Equilibrio: \( P=5000 \) W,
-      \( v_{Cq}\approx 0 \) (la PLL alinea), \( \delta=0.54° \). La resonancia LCL aparece a ~950–1073 Hz.</p>
+      \( v_{Cq}\approx 0 \) (la PLL alinea), \( \delta=0.54° \). La <a class="cref" href="../00%20-%20Repositorio/index.html#resonancia-lcl">resonancia LCL</a> aparece a ~950–1073 Hz.</p>
       <div class="note">El amplio margen \( -50 \) en red rígida es engañoso: se evapora al debilitar la
       red, porque la red débil cierra el lazo PLL↔red que aquí está casi abierto. La Fase&nbsp;3 lo
       cuantifica.</div>
@@ -870,7 +875,7 @@ def grid_impedance_dq(Rg, Lg, w0, freqs_hz):
         Z[k] = np.array([[Rg + s * Lg, -w0 * Lg],
                          [w0 * Lg,      Rg + s * Lg]])
     return Z
-</pre></div><div class="cap">Compartido con el proyecto 01. SCR y X/R -> (Rg, Lg); impedancia dq 2x2 con acoplamiento cruzado.</div>
+</pre></div><div class="cap">Compartido con el proyecto 01. SCR y X/R -> (Rg, Lg); <a class="cref" href="../00%20-%20Repositorio/index.html#impedancia-dq-vs-secuencia">impedancia dq</a> 2x2 con acoplamiento cruzado.</div>
   <h3>3.2 El driver</h3>
 <div class="codefile"><div class="h"><span>📄 main_phase3.py</span><span>85 líneas · código real del proyecto</span></div><pre>&quot;&quot;&quot;Fase 3: inestabilidad del GFL en red debil.
 
@@ -1109,8 +1114,8 @@ SCR critico GFL (inestable por DEBAJO) ~ 3.48</div>
   </ul>
   <h3>10.3 Limitaciones</h3>
   <ul class="tight">
-    <li>Modelo promediado y condiciones equilibradas (sin conmutación ni faltas asimétricas).</li>
-    <li>PLL SRF básica; no se modelan PLL avanzadas (DSOGI, SOGI-FLL) que alteran la resistencia negativa.</li>
+    <li><a class="cref" href="../00%20-%20Repositorio/index.html#modelo-promediado">Modelo promediado</a> y condiciones equilibradas (sin conmutación ni faltas asimétricas).</li>
+    <li>PLL SRF básica; no se modelan PLL avanzadas (<a class="cref" href="../00%20-%20Repositorio/index.html#dsogi-pll">DSOGI</a>, SOGI-FLL) que alteran la resistencia negativa.</li>
     <li>Linealización en un punto de operación nominal; sin análisis de incertidumbre paramétrica.</li>
   </ul>
 </section>
@@ -1377,10 +1382,15 @@ SCR critico GFL (inestable por DEBAJO) ~ 3.48</div>
 
 <section id="apE">
   <h2 class="sec">Apéndice E · Cómo reproducir</h2>
+  <figure style="margin:18px auto;max-width:860px;text-align:center"><img src="results/flujo_codigo.png" alt="flujo de datos del codigo">
+    <figcaption>Flujo de datos del código: <span class="file">params.py</span> → modelo no lineal \( f(x,u) \) →
+    equilibrio (fsolve) → <a class="cref" href="../00%20-%20Repositorio/index.html#linealizacion-numerica">linealización numérica</a> \( (A,B,C,D) \) → los análisis (polos, impedancia/resistencia
+    negativa, estabilidad en red débil, validación) de las fases.</figcaption></figure>
   <pre>python main_phase1.py    # equilibrio, polos (red rigida)   -> results/polos_fase1.png
 python main_phase2.py    # impedancia, resistencia negativa -> results/impedancia_fase2.png
 python main_phase3.py    # SCR critico, barrido de PLL      -> results/estabilidad_fase3.png
 python main_compare.py   # GFM vs GFL (carga modelo del 01) -> results/comparacion_gfm_gfl.png
+python figuras_modelo.py # estructura de A + flujo          -> results/matriz_A.png, flujo_codigo.png
 python gen_informe.py    # regenera este informe.html</pre>
   <p class="small">Requiere Python 3.13 con NumPy, SciPy y Matplotlib.</p>
 </section>

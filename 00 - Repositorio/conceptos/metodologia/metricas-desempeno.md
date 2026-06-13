@@ -31,6 +31,8 @@ tiempo y de la frecuencia. Son los criterios de aceptación frente a las especif
 Para sistemas de orden alto (un convertidor), las fórmulas de 2º orden son orientativas; lo
 riguroso es mirar polos dominantes + simulación.
 
+<div class="cfig"><img src="figuras/metricas-desempeno-escalon.png" alt="respuesta a escalon con metricas temporales anotadas"><div class="cap">Sobre la respuesta a escalón se leen las métricas temporales: el sobreimpulso $M_p$ (ligado a $\zeta$), el tiempo de establecimiento $t_s\approx4/(\zeta\omega_n)$ dentro de la banda del 2 %, el tiempo de subida y el error en régimen $e_{ss}$. Son los criterios de aceptación frente a las especificaciones; en sistemas de orden alto se complementan con polos dominantes y simulación.</div></div>
+
 ## Cuándo y por qué se usa
 En la fase de evaluación, para comprobar objetivamente contra las [[especificaciones-control]].
 También guían el rediseño (qué métrica falla → qué tocar).

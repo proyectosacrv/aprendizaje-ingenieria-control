@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [medir P y Q para el droop y el reparto de carga]
 tags: [potencia, activa, reactiva, dq, medida]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [marco-dq, droop-control]
 referencias:
   - "Akagi et al., Instantaneous Power Theory, Wiley-IEEE 2007"
@@ -24,6 +24,8 @@ $$ P=\tfrac{3}{2}(v_d i_d + v_q i_q), \qquad Q=\tfrac{3}{2}(v_q i_d - v_d i_q) $
 (Con convención de potencia invariante el factor 3/2 desaparece.) Si el eje d se alinea con la
 tensión (\( v_q=0 \)): \( P=\tfrac{3}{2}v_d i_d \), \( Q=-\tfrac{3}{2}v_d i_q \) → P↔\( i_d \),
 Q↔\( i_q \).
+
+<div class="cfig"><img src="figuras/potencia-instantanea-dq-fasor.png" alt="diagrama fasorial de potencia en dq"><div class="cap">Con el eje d alineado con la tensión, P es proporcional a la proyección id de la corriente y Q a su proyección iq. El ángulo φ entre V e I fija el reparto activa/reactiva.</div></div>
 
 ## Cuándo y por qué se usa
 Para el droop (que reacciona a P y Q), el reparto de carga y la supervisión. Se suele **filtrar**

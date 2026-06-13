@@ -42,6 +42,8 @@ La conexión formal con el VSM: tomando \( J_{v}=C/k_{match}^2 \) se recupera la
 equivalente del condensador. El matching es el camino más corto desde la física del convertidor
 hasta la dinámica del generador.
 
+<div class="cfig"><img src="figuras/matching-control-swing.png" alt="tension del bus DC oscilando como un swing tras un escalon de potencia"><div class="cap">Al asignar $\dot\theta=k\,v_{dc}$, la tensión del bus DC hace de frecuencia: ante un escalón de potencia oscila y se asienta igual que el ángulo de un generador síncrono (ecuación de swing), con la inercia del condensador real. La sincronización emerge de la física del almacenamiento, sin PLL ni lazo de frecuencia.</div></div>
+
 ## Cuándo y por qué se usa
 Convertidores con fuente de energía en el bus DC (BESS, supercondensadores) donde el rizado de
 tensión DC es aceptable, y donde se quiere la máxima simplicidad de control con inercia genuina.

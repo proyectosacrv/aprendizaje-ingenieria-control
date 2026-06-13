@@ -32,6 +32,8 @@ El **nº de cambios de signo en la primera columna = nº de polos en el SPD**. S
 Casos especiales: un cero en la primera columna se sustituye por \( \varepsilon\to0^+ \); una
 fila entera nula indica raíces simétricas (polinomio auxiliar) → al menos marginalmente inestable.
 
+<div class="cfig"><img src="figuras/routh-hurwitz-locus.png" alt="raices del polinomio al variar Kp"><div class="cap">Raíces de $s^3+3s^2+2s+K_p$ al variar $K_p$ (color). El par complejo cruza el eje imaginario en $s=\pm j\sqrt{2}$ exactamente en $K_p=6$: por debajo el sistema es estable, por encima inestable. Routh entrega ese límite ($0<K_p<6$) sin resolver el polinomio.</div></div>
+
 ## Cuándo y por qué se usa
 Para hallar **rangos de un parámetro** (p.ej. la ganancia \( K \)) que mantienen la estabilidad,
 en sistemas de orden bajo-medio y sin retardos. Complementa a [[criterio-nyquist]] (que sí maneja

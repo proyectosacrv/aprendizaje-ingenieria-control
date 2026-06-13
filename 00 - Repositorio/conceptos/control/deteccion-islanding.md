@@ -48,6 +48,8 @@ Compromiso: los métodos activos reducen la NDZ pero degradan la calidad de pote
 **grid-forming** la detección es más difícil porque el convertidor sostiene tensión/frecuencia
 incluso en isla.
 
+<div class="cfig"><img src="figuras/deteccion-islanding-ndz.png" alt="zona de no deteccion en el plano de desbalance de potencia"><div class="cap">Zona de no detección (NDZ): si al quedar en isla la generación casi iguala a la carga ($\Delta P\approx0$, $\Delta Q\approx0$), la tensión y la frecuencia permanecen dentro de umbrales y los métodos pasivos OUF/OUV no disparan. Los métodos activos perturban la salida para empujar el punto fuera de esta caja.</div></div>
+
 ## Cuándo y por qué se usa
 Obligatorio por normativa (IEEE 1547, IEC 62116, VDE-AR-N 4105) para toda generación distribuida
 conectada a red pública. Especialmente crítico en instalaciones con [[servicios-red-soporte|FRT y

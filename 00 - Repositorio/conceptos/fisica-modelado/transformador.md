@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [adaptar niveles de tensión y entender la impedancia de cortocircuito]
 tags: [transformador, relacion-espiras, impedancia-cortocircuito, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-12
 relacionados: [sistema-por-unidad, red-thevenin-scr, sistema-trifasico, generador-sincrono, impedancia-reactancia]
 referencias:
   - "Fitzgerald, Electric Machinery, McGraw-Hill"
@@ -30,6 +30,8 @@ El transformador real añade resistencia y reactancia de dispersión (la **imped
 cortocircuito** \( Z_{cc}=R_{cc}+jX_{cc} \)) y una rama de magnetización. \( X_{cc} \) (típicamente
 4–12 % en pu) determina la caída de tensión con carga y **contribuye a la impedancia de red** (afecta
 al SCR visto por un convertidor).
+
+<div class="cfig"><img src="figuras/transformador-simbolo.png" alt="simbolo del transformador"><div class="cap">Transformador ideal: dos devanados acoplados por el núcleo; las tensiones siguen la relación de espiras V1/V2=N1/N2=a, y una impedancia del secundario se ve desde el primario multiplicada por a².</div></div>
 
 ## Cuándo y por qué se usa
 Para adaptar tensiones (conexión de un convertidor de BT a una red de MT), aislar, y modelar la

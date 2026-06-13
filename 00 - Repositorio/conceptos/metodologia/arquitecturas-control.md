@@ -30,6 +30,8 @@ Patrones principales:
 - **Específicos de convertidores**: impedancia virtual, amortiguamiento activo, que dan forma a
   la dinámica sin un lazo clásico adicional.
 
+<div class="cfig"><img src="figuras/arquitecturas-control-cascada.png" alt="diagrama de arquitectura en cascada con feedforward"><div class="cap">Arquitectura en cascada: el lazo interno rápido (corriente) se anida dentro del externo lento (tensión), lo que mejora el rechazo de perturbaciones internas y protege el equipo, exigiendo separación de escalas. El feedforward/desacoplo cancela perturbaciones y acoplamientos medibles ($v_{red}$, $\pm\omega L$) sin tocar la estabilidad del lazo, solo el desempeño.</div></div>
+
 ## Cuándo y por qué se usa
 Elegir bien la arquitectura simplifica la sintonía y mejora robustez. La cascada es estándar en
 convertidores con control de tensión; el feedforward/desacoplo es casi obligatorio en dq.

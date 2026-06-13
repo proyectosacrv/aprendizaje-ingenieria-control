@@ -30,6 +30,8 @@ $$ X_k=\sum_{n=0}^{N-1} x_n\,e^{-j2\pi kn/N},\qquad f_k=\frac{k f_s}{N} $$
 La distorsión armónica total se calcula sobre el espectro:
 $$ \text{THD}=\frac{\sqrt{\sum_{h\ge2} X_h^2}}{X_1} $$
 
+<div class="cfig"><img src="figuras/fft-analisis-espectral-fuga.png" alt="fuga espectral con ventana rectangular frente a ventana Hann"><div class="cap">Si la ventana no contiene un número entero de periodos de la señal, la energía del tono se reparte entre frecuencias vecinas (fuga espectral), ensanchando el pico y falseando la THD. Aplicar una ventana (Hann) o muestreo coherente concentra la energía y limpia el espectro. Es imprescindible al medir armónicos.</div></div>
+
 ## Cuándo y por qué se usa
 Para verificar calidad de onda (armónicos de [[modulacion-pwm|PWM]]), validar modelos contra
 simulación y extraer la **impedancia/respuesta en frecuencia** por inyección (FFT del estímulo y

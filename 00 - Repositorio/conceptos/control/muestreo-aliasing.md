@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance]
 objetivos: [elegir la frecuencia de muestreo y evitar el solapamiento espectral]
 tags: [muestreo, aliasing, nyquist-shannon, adc, control-digital, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-12
 relacionados: [transformada-z, fft-analisis-espectral, discretizacion-controladores, modulacion-pwm, series-fourier]
 referencias:
   - "Oppenheim & Willsky, Señales y Sistemas, Prentice Hall"
@@ -28,6 +28,8 @@ Si una componente de frecuencia \( f > f_s/2 \) se muestrea, aparece como un **a
 $$ f_{\text{alias}} = \lvert\, f - k\,f_s \,\rvert,\quad k\in\mathbb{Z} $$
 indistinguible de una señal real de esa frecuencia baja. Por eso, antes del conversor A/D se pone un
 **filtro antialiasing** (paso-bajo analógico) que corta por encima de \( f_s/2 \).
+
+<div class="cfig"><img src="figuras/muestreo-aliasing-alias.png" alt="aliasing de una senoide"><div class="cap">Una señal de 900 Hz muestreada a 1 kHz (puntos) es indistinguible de una de 100 Hz (alias): el contenido por encima de fs/2 se "pliega" a baja frecuencia. De ahí el filtro antialiasing antes del A/D.</div></div>
 
 ## Cuándo y por qué se usa
 En todo control digital (elegir \( f_s \) del lazo), en la FFT (la malla temporal fija qué

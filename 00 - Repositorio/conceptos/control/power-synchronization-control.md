@@ -49,6 +49,8 @@ En red débil (bajo [[red-thevenin-scr|SCR]]), la PLL de un GFL desestabiliza
 ([[interaccion-pll-red-debil]]), mientras PSC opera estable porque no depende de medir la fase de
 la red; fue propuesto originalmente para **HVDC** en red débil.
 
+<div class="cfig"><img src="figuras/power-synchronization-control-sync.png" alt="sincronizacion de primer orden del PSC ante un escalon de potencia"><div class="cap">El PSC genera el ángulo integrando el error de potencia ($\dot\delta=K_{psc}(P^*-P)$), sin PLL. Linealizado en el punto de operación da un sistema de primer orden con polo en $s=-K_{psc}K_s$: la potencia sigue a $P^*$ sin oscilación. Por no medir la fase de la red, opera estable donde la PLL de un GFL fallaría (red muy débil).</div></div>
+
 ## Cuándo y por qué se usa
 Convertidores HVDC, almacenamiento y renovables en redes muy débiles (SCR < 1.5) donde la PLL
 falla. Alternativa más simple que el VSM (sin ecuación de oscilación explícita) cuando no se

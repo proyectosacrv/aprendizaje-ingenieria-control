@@ -24,6 +24,8 @@ linealización.
 estimación inicial \( \mathbf{x}_0 \). La calidad del resultado se mide por el **residuo**
 \( \lVert\mathbf{f}(\mathbf{x}_e)\rVert \), que debe ser ~0 (p.ej. <1e-9).
 
+<div class="cfig"><img src="figuras/equilibrio-fsolve-convergencia.png" alt="convergencia del residuo de fsolve con buen y mal guess inicial"><div class="cap">Convergencia de fsolve: partiendo de una estimación inicial física (corrientes desde la potencia, tensión nominal) el residuo $\|f(x)\|$ cae hasta ~$10^{-11}$ en pocas iteraciones; con un guess pobre el método se estanca en una raíz espuria sin sentido físico. Por eso el paso crítico es construir un buen $x_0$ y verificar siempre el residuo.</div></div>
+
 ## Cuándo y por qué se usa
 Siempre que se quiera linealizar o analizar alrededor de un punto de operación concreto
 (potencia, tensión dadas). Un buen equilibrio garantiza que \( A,B,C,D \) tienen sentido físico.

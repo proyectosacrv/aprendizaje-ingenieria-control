@@ -34,6 +34,8 @@ libremente mediante \( L \) **si y solo si el par \( (A,C) \) es observable** (p
 combinado. La versión **óptima** ante ruido es el filtro de Kalman (\( L \) de la ecuación de
 Riccati). Existe el observador de **orden reducido** (estima solo los estados no medidos).
 
+<div class="cfig"><img src="figuras/observador-estados-convergencia.png" alt="estado estimado convergiendo y error decayendo"><div class="cap">Izquierda: el observador arranca con $\hat x\neq x$ y su estimación del estado no medido $x_2$ alcanza a la real. Derecha: la norma del error $\|x-\hat x\|$ cae varios órdenes de magnitud porque los polos de $A-LC$ son estables y más rápidos que la planta.</div></div>
+
 ## Cuándo y por qué se usa
 Cuando faltan sensores (estimar flujo, tensión de condensador, par de carga), para filtrar ruido,
 o en control "sensorless". Imprescindible junto a realimentación de estado/LQR cuando el estado no

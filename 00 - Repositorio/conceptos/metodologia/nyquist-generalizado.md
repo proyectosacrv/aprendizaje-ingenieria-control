@@ -46,6 +46,8 @@ robusto; alternativas:
 - **G-norm / pasividad**: índices de pasividad de la impedancia (ver [[no-pasividad-resistencia-negativa]]).
 - Valores singulares estructurados (μ) para incertidumbre (ver [[valores-singulares-mimo]]).
 
+<div class="cfig"><img src="figuras/nyquist-generalizado-eigenloci.png" alt="eigenloci del minor loop gain frente al punto -1"><div class="cap">En un sistema MIMO la estabilidad la deciden los autovalores (eigenloci) de la matriz de ganancia de lazo $L=Z_sY_l$, no una sola función escalar. La suma de sus rodeos netos del punto $-1$ debe ser $-P_{ol}$; aquí ninguno rodea $-1$, así que el conjunto fuente-carga es estable. Es la base formal del criterio por impedancia en dq.</div></div>
+
 ## Cuándo y por qué se usa
 Estabilidad de convertidor conectado a red (GFL/GFM), interacción entre subsistemas (fuente–carga,
 convertidor–convertidor) y microrredes, donde el modelo natural es MIMO y el acoplamiento d-q no es

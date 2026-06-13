@@ -30,6 +30,8 @@ El muestreo añade un **retardo equivalente** de \( \approx T_s/2 \) (ZOH) más 
 **resta margen de fase**: \( \Delta\phi\approx-\omega_c(T_s/2+T_{calc}) \). El **prewarping** de
 Tustin fuerza coincidencia exacta a una frecuencia crítica \( \omega_0 \).
 
+<div class="cfig"><img src="figuras/discretizacion-controladores-fase.png" alt="fase del PI continuo frente al discretizado por Tustin"><div class="cap">La discretización por Tustin conserva la fase del controlador continuo a baja frecuencia (diferencia $<1°$ en la banda de control), pero el retardo equivalente del muestreo añade fase negativa cerca de $f_s/2$. Por eso el ancho de banda de control debe quedar por debajo de $\sim f_s/10$ para que el margen de fase sobreviva al muestreo y el cómputo.</div></div>
+
 ## Cuándo y por qué se usa
 En toda implementación digital (DSP/FPGA/micro) de PI, PR, filtros y observadores. Decide el
 \( T_s \) y verifica que los márgenes sobreviven al retardo de muestreo.

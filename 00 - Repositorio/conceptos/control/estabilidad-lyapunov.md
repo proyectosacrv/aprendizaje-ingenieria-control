@@ -33,6 +33,8 @@ $$ A^\top P + P A = -Q, \qquad Q>0 $$
 La existencia de tal \( P \) equivale a que todos los autovalores de \( A \) tengan parte real
 negativa: conecta el método con el análisis modal.
 
+<div class="cfig"><img src="figuras/estabilidad-lyapunov-V.png" alt="trayectoria descendiendo por V y V(t) decreciente"><div class="cap">Izquierda: la trayectoria atraviesa curvas de nivel de $V$ cada vez menores hasta el equilibrio. Derecha: $V(x(t))$ decrece de forma monótona ($\dot V<0$), lo que prueba estabilidad asintótica sin integrar las ecuaciones del sistema.</div></div>
+
 ## Cuándo y por qué se usa
 Cuando el sistema es **no lineal** y los autovalores no bastan: ecuación de oscilación del VSM,
 estabilidad de gran señal, buses DC con carga de potencia constante, limitación de corriente. También

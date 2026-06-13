@@ -7,6 +7,8 @@ detallada y de los resultados de consola reales. Reejecutar regenera informe.htm
 import os, html, datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+import sys; sys.path.insert(0, os.path.join(HERE, "..", "00 - Repositorio"))
+from conceptos_link import link_concepts
 
 
 def embed(fname, caption=None):
@@ -91,6 +93,7 @@ HEAD = """<!DOCTYPE html>
   body{margin:0;background:var(--bg);color:var(--ink);
     font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
   a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
+  .cref{color:var(--acc);border-bottom:1px dotted rgba(78,163,255,.55)} .cref:hover{border-bottom-style:solid;text-decoration:none}
   .wrap{display:flex;max-width:1560px;margin:0 auto}
   nav{position:sticky;top:0;align-self:flex-start;height:100vh;width:320px;flex:0 0 320px;
     overflow-y:auto;padding:24px 18px;border-right:1px solid var(--line);background:var(--panel)}
@@ -512,6 +515,10 @@ S.append(r"""<div class="part">Parte II · Modelado</div>
   los 9 estados de sincronización del GFM (droop, potencias, impedancia virtual, R transitoria) por solo
   4 (PLL + lazo de corriente). Es la lista real <code class="inl">STATE_NAMES</code> de
   <span class="file">model.py</span>; la Fase&nbsp;1 devuelve 10 autovalores, confirmándolo.</p>
+  <figure style="margin:18px auto;max-width:620px;text-align:center"><img src="results/matriz_A.png" alt="estructura de la matriz de estado A">
+    <figcaption>Estructura de la matriz de estado \( A \) (10×10): el bloque LCL (6 estados), la PLL
+    (\( \delta,\varepsilon \)) y el PI de corriente (\( g_d,g_q \)), con el acoplamiento cruzado d↔q
+    en los sub-bloques 2×2. Generada con <span class="file">figuras_modelo.py</span>.</figcaption></figure>
 </section>
 
 <section id="parametros">
@@ -836,10 +843,15 @@ S.append(r"""<div class="part">Apéndices</div>
 
 <section id="apE">
   <h2 class="sec">Apéndice E · Cómo reproducir</h2>
+  <figure style="margin:18px auto;max-width:860px;text-align:center"><img src="results/flujo_codigo.png" alt="flujo de datos del codigo">
+    <figcaption>Flujo de datos del código: <span class="file">params.py</span> → modelo no lineal \( f(x,u) \) →
+    equilibrio (fsolve) → linealización numérica \( (A,B,C,D) \) → los análisis (polos, impedancia/resistencia
+    negativa, estabilidad en red débil, validación) de las fases.</figcaption></figure>
   <pre>python main_phase1.py    # equilibrio, polos (red rigida)   -> results/polos_fase1.png
 python main_phase2.py    # impedancia, resistencia negativa -> results/impedancia_fase2.png
 python main_phase3.py    # SCR critico, barrido de PLL      -> results/estabilidad_fase3.png
 python main_compare.py   # GFM vs GFL (carga modelo del 01) -> results/comparacion_gfm_gfl.png
+python figuras_modelo.py # estructura de A + flujo          -> results/matriz_A.png, flujo_codigo.png
 python gen_informe.py    # regenera este informe.html</pre>
   <p class="small">Requiere Python 3.13 con NumPy, SciPy y Matplotlib.</p>
 </section>
@@ -873,7 +885,7 @@ FOOT = """</main>
 </body>
 </html>"""
 
-html_out = HEAD + NAV + HERO + "".join(S) + FOOT
+html_out = HEAD + NAV + HERO + link_concepts("".join(S)) + FOOT
 with open(os.path.join(HERE, "informe.html"), "w", encoding="utf-8") as fh:
     fh.write(html_out)
 print(f"informe.html generado: {html_out.count(chr(10))+1} lineas, {len(html_out)} bytes")

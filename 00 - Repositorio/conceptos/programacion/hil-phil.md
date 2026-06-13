@@ -38,6 +38,8 @@ intercambiando potencia con la planta simulada.
 
 Encaja en la pirámide de [[niveles-validacion]]: modelo offline → HIL de control → PHIL → campo.
 
+<div class="cfig"><img src="figuras/hil-phil-lazo.png" alt="lazo de HIL y PHIL contra simulador en tiempo real"><div class="cap">El modelo de planta corre en un simulador de tiempo real que debe completar cada paso antes del siguiente tick (sin overruns). En HIL se cierra el lazo de señal con el controlador real (sensores→control→PWM) para validar firmware y protecciones; en PHIL se cierra además un lazo de potencia real con un amplificador, cuya estabilidad depende del cociente de impedancias real/simulada.</div></div>
+
 ## Cuándo y por qué se usa
 Para validar el control diseñado (sobre [[simulacion-conmutada|modelo conmutado]]) en condiciones
 realistas y peligrosas (faltas, huecos, pérdida de red) antes de hardware; certificación de grid

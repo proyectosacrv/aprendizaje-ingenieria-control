@@ -37,6 +37,8 @@ El efecto clave: la ganancia del lazo de potencia de un grid-forming es
 \( X_v \) **reduce esa ganancia** y, por tanto, el riesgo de inestabilidad del lazo de
 potencia, sin añadir un polo de planta lento (es algebraica sobre la referencia).
 
+<div class="cfig"><img src="figuras/impedancia-virtual-pd.png" alt="curva P-delta con y sin impedancia virtual"><div class="cap">Curva $P(\delta)=1.5\,V^2/X\,\sin\delta$. Sumar reactancia virtual $X_v$ (azul) aplana la curva: la pendiente en el punto de operación $\partial P/\partial\delta$ —la ganancia del lazo de potencia— se reduce, amortiguando el lazo sin introducir un polo lento de planta.</div></div>
+
 ## Cuándo y por qué se usa
 - Cuando la reactancia de acoplamiento real es pequeña → \( \partial P/\partial\delta \)
   enorme → el lazo de potencia tiene poco margen de fase y oscila o se inestabiliza.

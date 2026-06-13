@@ -28,6 +28,8 @@ Si inversor y red son estables por separado, el conjunto es estable **si y solo 
 autovalores de \( \mathbf{L}(j\omega) \) **no rodean −1** (Nyquist generalizado). Equivale a
 exigir que \( \det(\mathbf{I}+\mathbf{L}(s)) \) no tenga ceros en el semiplano derecho.
 
+<div class="cfig"><img src="figuras/impedancia-salida-estabilidad-cruce.png" alt="cruce de magnitudes de impedancia inversor y red"><div class="cap">Criterio de impedancia visto en magnitud: la estabilidad se juega en la frecuencia donde $|Z_{red}|$ corta a $|Z_{inv}|$. Una red débil (SCR bajo) sube $|Z_{red}|$ y mueve el cruce a frecuencias donde el margen de fase del cociente $Z_{red}/Z_{inv}$ puede ser insuficiente; el criterio exacto es el Nyquist generalizado de sus autovalores.</div></div>
+
 ## Cuándo y por qué se usa
 Integración masiva de inversores, oscilaciones subsíncronas, redes débiles. Permite barrer la
 fortaleza de red (SCR) y hallar el **SCR crítico** de inestabilidad de forma modular.

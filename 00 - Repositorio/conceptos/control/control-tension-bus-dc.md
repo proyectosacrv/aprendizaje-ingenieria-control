@@ -35,6 +35,8 @@ de tensión produce \( i_d^* \). El **feedforward** de la potencia de carga \( P
 rechazo. La **separación de bandas** es crítica: el lazo de tensión debe ser bastante más lento que
 el de corriente (factor ~5–10) y, en monofásico, más lento que el rizado de \( 2\omega \).
 
+<div class="cfig"><img src="figuras/control-tension-bus-dc-escalon.png" alt="tension del bus DC ante un escalon de carga con y sin feedforward"><div class="cap">Tras un escalón de carga, el PI solo deja caer $V_{dc}$ hasta que su integrador rehace el balance de potencia; el feedforward de la potencia de carga aporta esa potencia de inmediato y la caída casi desaparece. El lazo se controla sobre $v_{dc}^2$ (energía) para que la planta sea lineal exacta.</div></div>
+
 ## Cuándo y por qué se usa
 En el lado red de cualquier rectificador activo / convertidor back-to-back (el del usuario), en
 STATCOM con almacenamiento, y en general cuando el bus DC alimenta una carga y hay que mantener su

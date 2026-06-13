@@ -25,6 +25,8 @@ Para cada frecuencia se resuelve un sistema lineal en vez de invertir explícita
 \( \mathbf{G}(j\omega) \) es una matriz; la admitancia de salida del convertidor es \( Y=-G \) y
 la impedancia \( Z=Y^{-1} \).
 
+<div class="cfig"><img src="figuras/respuesta-frecuencia-ss-bode.png" alt="Bode de magnitud y fase calculado desde el espacio de estados"><div class="cap">Bode obtenido directamente del modelo en espacio de estados: para cada frecuencia se resuelve $G(j\omega)=C(j\omega I-A)^{-1}B+D$ con <code>np.linalg.solve</code> (más estable que invertir). De aquí salen la impedancia analítica $Y=-G$, $Z=Y^{-1}$ y el minor loop gain del criterio por impedancia. La malla logarítmica debe ser fina para no perder resonancias agudas.</div></div>
+
 ## Cuándo y por qué se usa
 Para obtener la impedancia analítica del inversor (Fase 2), trazar Bode de lazos, o construir el
 *minor loop gain* del criterio de estabilidad por impedancia.

@@ -37,6 +37,8 @@ Modos: **conectado a red** (la red AC fija \( \omega,V \); el ILC regula \( V_{d
 [[carga-pulsante-datacenter-ia|carga pulsante]] y el dimensionado del bus ([[dinamica-bus-dc]]) y la
 estabilidad CPL son críticos.
 
+<div class="cfig"><img src="figuras/microrred-hibrida-ac-dc-arquitectura.png" alt="arquitectura de microrred hibrida AC/DC con convertidor de interconexion"><div class="cap">Dos subredes —una AC (bus de frecuencia/tensión, con red y cargas rotativas) y una DC (bus de tensión, con PV, baterías y cargas electrónicas)— unidas por un convertidor de interconexión (ILC) bidireccional. El ILC iguala los droops normalizados de cada subred y transfiere potencia desde la menos cargada hacia la más cargada, repartiendo el estrés sin comunicaciones.</div></div>
+
 ## Cuándo y por qué se usa
 En instalaciones con fuerte componente DC (PV, baterías, cargas electrónicas) y necesidad de
 conexión AC: data centers, edificios, buques, microrredes rurales. Reduce etapas de conversión y

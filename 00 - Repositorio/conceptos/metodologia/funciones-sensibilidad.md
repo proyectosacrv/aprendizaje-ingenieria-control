@@ -30,6 +30,8 @@ $$ S=\frac{1}{1+L}, \qquad T=\frac{L}{1+L}, \qquad S+T=1 $$
   además \( \int \ln|S|\,d\omega = 0 \) (área de "waterbed"): reducir \( S \) en una banda la
   aumenta en otra. \( M_s=\max|S| \) es el [[margenes-estabilidad|margen de módulo]].
 
+<div class="cfig"><img src="figuras/funciones-sensibilidad-st.png" alt="funciones de sensibilidad S y T frente a la frecuencia"><div class="cap">$S$ pequeña a baja frecuencia da buen rechazo y seguimiento; $T$ pequeña a alta frecuencia atenúa el ruido de medida. Como $S+T=1$ no pueden ser ambas pequeñas en la misma banda (compromiso de Bode): el pico $M_s=\max|S|$ resume la robustez (objetivo $<2$).</div></div>
+
 ## Cuándo y por qué se usa
 Para evaluar de un vistazo rechazo (S), atenuación de ruido (T) y robustez (\( M_s \)), y para
 diseñar por [[loop-shaping]] o \(H_\infty\) (los pesos dan forma a S y T).

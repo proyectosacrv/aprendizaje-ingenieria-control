@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [seguir y rechazar senoides y armónicos sin error en marco estacionario]
 tags: [resonante, pr, modelo-interno, armonicos, alfa-beta, intermedio, control]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [controlador-pid, transformada-clarke, marco-dq, amortiguamiento-activo-lcl, error-regimen-permanente]
 referencias:
   - "Teodorescu et al., Proportional-resonant controllers and filters for grid-connected converters, IET 2006"
@@ -33,6 +33,8 @@ $$ G_{PR}(s)=K_p+\frac{2K_r\,\omega_c\,s}{s^2+2\omega_c s+\omega_0^2} $$
 La ganancia de pico es \( K_p+K_r \) y el ancho de banda \( \approx 2\omega_c \). Para corregir
 varios armónicos se suman **compensadores armónicos (HC)** en \( h\omega_0 \) (típico 5, 7, 11, 13):
 $$ G(s)=K_p+\sum_{h}\frac{2K_{rh}\,\omega_c\,s}{s^2+2\omega_c s+(h\omega_0)^2} $$
+
+<div class="cfig"><img src="figuras/controlador-resonante-respuesta.png" alt="respuesta del controlador PR"><div class="cap">El controlador PR tiene una ganancia altísima justo en f0: por el principio del modelo interno, eso anula el error ante una senoide de esa frecuencia trabajando en marco estacionario (sin dq).</div></div>
 
 ## Cuándo y por qué se usa
 Control de corriente/tensión de convertidores de red en αβ (evita los dos marcos dq y el desacoplo),

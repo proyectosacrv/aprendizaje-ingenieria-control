@@ -27,6 +27,8 @@ Objetivos de forma de \( L(j\omega) \):
 Compromiso fundamental (Bode): no se puede tener S y T pequeñas a la vez en la misma banda
 (\( S+T=1 \)); ver [[funciones-sensibilidad]]. El margen de fase y \( M_s \) se leen directo de \( L \).
 
+<div class="cfig"><img src="figuras/loop-shaping-ganancia.png" alt="forma deseada de la ganancia de lazo en frecuencia"><div class="cap">Forma objetivo de la ganancia de lazo $|L|$: alta a baja frecuencia (buen seguimiento y rechazo, $S$ pequeña), baja a alta frecuencia (atenúa ruido y dinámica no modelada, $T$ pequeña) y con pendiente $-20$ dB/dec en el cruce $f_c$ para un buen margen de fase. El diseño consiste en moldear esta curva con el controlador.</div></div>
+
 ## Cuándo y por qué se usa
 Cuando se quiere control explícito del compromiso desempeño/robustez/ruido, o la planta tiene
 resonancias/retardos que conviene modelar en frecuencia. Es el lenguaje natural del análisis de

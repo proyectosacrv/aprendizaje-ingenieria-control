@@ -15,6 +15,7 @@
   body{margin:0;background:var(--bg);color:var(--ink);
     font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
   a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
+  .cref{color:var(--acc);border-bottom:1px dotted rgba(78,163,255,.55)} .cref:hover{border-bottom-style:solid;text-decoration:none}
   .wrap{display:flex;max-width:1560px;margin:0 auto}
   nav{position:sticky;top:0;align-self:flex-start;height:100vh;width:320px;flex:0 0 320px;
     overflow-y:auto;padding:24px 18px;border-right:1px solid var(--line);background:var(--panel)}
@@ -160,26 +161,26 @@
 
 <section id="resumen">
   <h2 class="sec">Resumen ejecutivo</h2>
-  <p class="lead">Dos dominios acoplados: estabilidad del bus DC (CPL) y soporte de frecuencia (AC).</p>
+  <p class="lead">Dos dominios acoplados: <a class="cref" href="../00%20-%20Repositorio/index.html#estabilidad-bus-dc-cpl">estabilidad del bus DC</a> (<a class="cref" href="../00%20-%20Repositorio/index.html#carga-potencia-constante-cpl">CPL</a>) y soporte de frecuencia (AC).</p>
   <p>La energía de un data center de IA es un caso de control exigente y actual. La carga —miles de
   GPUs— es <b>pulsante</b> y, vista desde el bus de continua, se comporta como <b>carga de potencia
   constante</b> (CPL): su resistencia incremental es negativa, lo que desamortigua el bus DC y puede
-  inestabilizarlo. Este proyecto modela la microrred híbrida AC+DC, halla la potencia crítica por dos
+  inestabilizarlo. Este proyecto modela la <a class="cref" href="../00%20-%20Repositorio/index.html#microrred-hibrida-ac-dc">microrred híbrida</a> AC+DC, halla la potencia crítica por dos
   vías independientes, simula el pico de carga en ambos dominios y deriva las reglas de dimensionado.
   Como en los proyectos 01–02, todo el código mostrado es real y todos los números son la salida de
   consola real de ejecutarlo.</p>
   <div class="kpi">
     <div class="b"><div class="n">128 kW</div><div class="l">potencia CPL crítica</div></div>
-    <div class="b"><div class="n">128 / 134</div><div class="l">autovalores / Middlebrook</div></div>
+    <div class="b"><div class="n">128 / 134</div><div class="l"><a class="cref" href="../00%20-%20Repositorio/index.html#analisis-modal">autovalores</a> / <a class="cref" href="../00%20-%20Repositorio/index.html#criterio-middlebrook">Middlebrook</a></div></div>
     <div class="b"><div class="n">−1.78 → −0.34</div><div class="l">RoCoF [Hz/s] con H=1→6 s</div></div>
     <div class="b"><div class="n">2 / 4</div><div class="l">estados (DC / híbrido)</div></div>
     <div class="b"><div class="n">AC + DC</div><div class="l">microrred híbrida</div></div>
   </div>
   <div class="def"><b>Idea central:</b> los servidores son cargas de potencia constante; su resistencia
   incremental negativa \( -V_{dc}^2/P \) desamortigua el bus DC y lo inestabiliza por encima de
-  \( P_\text{crit} \) (el análogo DC de la inestabilidad por impedancia del grid-following). El pico de
+  \( P_\text{crit} \) (el análogo DC de la inestabilidad por impedancia del <a class="cref" href="../00%20-%20Repositorio/index.html#grid-forming-vs-following">grid-following</a>). El pico de
   carga de IA exige dimensionar <b>dos cosas independientes</b>: el condensador de bus (DC, estabilidad)
-  y la inercia del BESS (AC, RoCoF).</div>
+  y la inercia del <a class="cref" href="../00%20-%20Repositorio/index.html#modelo-bateria-bess">BESS</a> (AC, RoCoF).</div>
 
   <h3>Resumen</h3>
   <p>Se presenta el modelado y análisis de estabilidad del sistema de energía de un data center de IA,
@@ -192,7 +193,7 @@
   RoCoF en el lado AC en función de la inercia y el hundimiento de tensión en el lado DC en función del
   condensador, y se derivan las reglas de dimensionado de ambos elementos, que resultan desacopladas.</p>
   <p><b>Palabras clave:</b> data center de IA; bus DC; carga de potencia constante; criterio de
-  Middlebrook; estabilidad por impedancia; máquina síncrona virtual; RoCoF; dimensionado.</p>
+  Middlebrook; <a class="cref" href="../00%20-%20Repositorio/index.html#impedancia-salida-estabilidad">estabilidad por impedancia</a>; <a class="cref" href="../00%20-%20Repositorio/index.html#vsm-inercia">máquina síncrona virtual</a>; RoCoF; dimensionado.</p>
 
   <h3>Abstract</h3>
   <p>This work presents the modelling and stability analysis of the power system of an AI data centre,
@@ -308,7 +309,7 @@
   ampliamente estudiado en distribución DC y microrredes [12],[13]: la carga regulada presenta una
   resistencia incremental negativa que desamortigua el filtro L-C. En paralelo, el soporte de frecuencia
   mediante inercia virtual (VSM) en sistemas con almacenamiento es una técnica consolidada [2],[10]. La
-  novedad del caso es el <b>data center de IA</b>, cuya carga pulsante y de gran amplitud somete a la vez
+  novedad del caso es el <b>data center de IA</b>, cuya <a class="cref" href="../00%20-%20Repositorio/index.html#carga-pulsante-datacenter-ia">carga pulsante</a> y de gran amplitud somete a la vez
   al bus DC (estabilidad CPL) y al lado AC (RoCoF). Este trabajo aborda ambos dominios de forma unificada
   y conecta la inestabilidad CPL con el mismo formalismo de impedancia de los proyectos 01–02.</p>
 
@@ -328,7 +329,7 @@
   con</p>
   <div class="eq">\[ \mathrm{tr}(A)=-\frac{R_t}{L_f}+\frac{1}{C_{dc}}\frac{P}{V_{dc}^2},\qquad
      \det(A)=\frac{1}{L_fC_{dc}}\Big(1-\frac{R_t P}{V_{dc}^2}\Big) \]</div>
-  <p>El criterio de Routh-Hurwitz para segundo orden exige \( -\mathrm{tr}(A)>0 \) y \( \det(A)>0 \). La
+  <p>El criterio de <a class="cref" href="../00%20-%20Repositorio/index.html#routh-hurwitz">Routh-Hurwitz</a> para segundo orden exige \( -\mathrm{tr}(A)>0 \) y \( \det(A)>0 \). La
   segunda da \( P<V_{dc}^2/R_t \) (cota muy holgada, no vinculante). La primera es la condición
   <b>binding</b>:</p>
   <div class="eq">\[ -\mathrm{tr}(A)>0 \;\Longleftrightarrow\; \frac{R_t}{L_f}>\frac{1}{C_{dc}}\frac{P}{V_{dc}^2}
@@ -369,7 +370,7 @@
   (¿cómo responde al pico?) se integra el modelo no lineal completo (gran señal). El hilo metodológico
   es la <b>doble validación</b>, como en los proyectos 01–02: la potencia crítica se obtiene por
   autovalores y por Middlebrook, y se comparan (~5 %). El método de impedancia conecta este problema DC
-  con los problemas AC anteriores: en los tres, una resistencia negativa desestabiliza por interacción
+  con los problemas AC anteriores: en los tres, una <a class="cref" href="../00%20-%20Repositorio/index.html#no-pasividad-resistencia-negativa">resistencia negativa</a> desestabiliza por interacción
   de impedancias.</p>
   <div class="repolinks"><b>📚 En el repositorio:</b>
     <a href="../00%20-%20Repositorio/index.html#linealizacion-numerica">Linealización numérica</a> ·
@@ -427,7 +428,7 @@
   <p>Nótese la <code class="inl">@property Pcrit</code>: codifica la potencia crítica analítica
   \( P_\text{crit}=V_\text{bus}^2(R_f+R_d)C_{dc}/L_f \), que la Fase&nbsp;1 confirma numéricamente. Los
   parámetros del VSM (\( J_\text{vsm}, D_\text{vsm} \)) se derivan de la constante de inercia \( H \) y
-  del droop, igual que en el proyecto 01.</p>
+  del <a class="cref" href="../00%20-%20Repositorio/index.html#droop-control">droop</a>, igual que en el proyecto 01.</p>
 <div class="codefile"><div class="h"><span>📄 params.py</span><span>52 líneas · código real del proyecto</span></div><pre>&quot;&quot;&quot;Parametros del sistema de energia de un data center de IA (bus DC + lado AC).
 
 Escenario DC: el AFE regula el bus principal (rigido, V_bus). La carga llega por un tramo de
@@ -667,7 +668,7 @@ P_critica numerica (maxRe=0)     = 129 kW
       <p><span class="pill bad">INESTABLE</span> por encima de \( P_\text{crit} \). Teórica <b>128 kW</b>,
       numérica (autovalores) <b>129 kW</b> (&lt;1 % de acuerdo). Más \( C_{dc} \) o más amortiguamiento
       \( R_d \) suben \( P_\text{crit} \).</p>
-      <div class="def"><b>El análogo DC:</b> igual que la PLL del GFL (proyecto 02) creaba una resistencia
+      <div class="def"><b>El análogo DC:</b> igual que la <a class="cref" href="../00%20-%20Repositorio/index.html#pll-srf">PLL</a> del GFL (proyecto 02) creaba una resistencia
       negativa que resonaba con la inductancia de la red, aquí la CPL crea una resistencia negativa que
       resuena con el circuito LC del bus. Mismo principio, otro dominio.</div>
     </div>
@@ -935,7 +936,7 @@ Regla: el lado DC fija C_dc por estabilidad CPL; el lado AC fija H por RoCoF.</d
     grid-following (proyecto 02), lo que unifica los tres proyectos bajo una misma idea.</li>
     <li>El RoCoF medido (−1.78 a −0.34&nbsp;Hz/s para H de 1 a 6&nbsp;s) sigue la ley
     \( \Delta P f_0/(2HS) \) con buena fidelidad, validando el modelo de swing.</li>
-    <li>El <b>desacoplo</b> de los dos requisitos de dimensionado (\( C_{dc} \) por CPL, \( H \) por
+    <li>El <b><a class="cref" href="../00%20-%20Repositorio/index.html#desacoplo-dq">desacoplo</a></b> de los dos requisitos de dimensionado (\( C_{dc} \) por CPL, \( H \) por
     RoCoF) es un resultado de diseño relevante: pertenecen a dominios físicos distintos.</li>
   </ul>
   <h3>9.3 Limitaciones</h3>
@@ -997,7 +998,7 @@ Regla: el lado DC fija C_dc por estabilidad CPL; el lado AC fija H por RoCoF.</d
   un solo convertidor.</p>
   <h3>11.4 Líneas futuras</h3>
   <ul class="tight">
-    <li>Amortiguamiento activo del bus DC (resistencia virtual DC) para subir \( P_\text{crit} \) sin
+    <li><a class="cref" href="../00%20-%20Repositorio/index.html#amortiguamiento-activo-lcl">Amortiguamiento activo</a> del bus DC (resistencia virtual DC) para subir \( P_\text{crit} \) sin
     pérdidas.</li>
     <li>Reparto de carga entre varios BESS/AFE y estabilidad del conjunto en paralelo.</li>
     <li>Perfiles reales de carga de IA (estadística de picos) y dimensionado probabilístico.</li>

@@ -8,7 +8,7 @@ proyectos: [03-DataCenter-IA]
 objetivos: [entender la célula básica de conversión DC y el origen de la carga CPL]
 tags: [dc-dc, buck, boost, duty, conmutado, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-12
 relacionados: [dinamica-bus-dc, carga-potencia-constante-cpl, control-tension-bus-dc, fotovoltaica-mppt, modelo-promediado]
 referencias:
   - "Erickson & Maksimovic, Fundamentals of Power Electronics"
@@ -26,6 +26,8 @@ La corriente de entrada/salida cumple el balance de potencia \( V_{in}I_{in}=V_o
 inductor y el condensador filtran el rizado; si la corriente del inductor llega a cero aparece la
 **conducción discontinua** (DCM), con otras relaciones. El control regula \( V_o \) ajustando \( D \)
 con un lazo (a menudo en cascada: tensión externa, corriente interna).
+
+<div class="cfig"><img src="figuras/convertidor-dc-dc-ratio.png" alt="relacion de conversion buck y boost"><div class="cap">Relación de conversión en CCM: el buck reduce la tensión (Vo/Vin=D) y el boost la eleva (1/(1−D)). El control ajusta D para regular Vo.</div></div>
 
 ## Cuándo y por qué se usa
 Es la base de las fuentes conmutadas, del MPPT fotovoltaico, y de los **POL** (point-of-load) que

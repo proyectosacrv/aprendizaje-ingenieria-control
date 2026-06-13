@@ -28,6 +28,8 @@ especificación, su prueba**.
 - **Arranque / black-start, cambio de modo**: prueba transitorios de puesta en marcha.
 - **Variación paramétrica** (cambiar SCR, potencia): liga con [[robustez-parametrica]].
 
+<div class="cfig"><img src="figuras/pruebas-validacion-ensayos.png" alt="cuatro ensayos tipicos de validacion de control"><div class="cap">A cada especificación, su ensayo: el escalón de referencia mide el seguimiento ($M_p,t_s$); el escalón de carga mide el rechazo de perturbación; la inyección de pequeña señal mide la respuesta en frecuencia / impedancia; y el hueco de tensión prueba la supervivencia en falta y el current limiting. Cada uno con su criterio de aceptación numérico.</div></div>
+
 ## Cuándo y por qué se usa
 En la fase de validación, en cada nivel de fidelidad. Cada ensayo debe tener un **criterio de
 aceptación** derivado de las [[especificaciones-control]].

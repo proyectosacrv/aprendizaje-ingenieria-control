@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [interpretar la dinamica y la estabilidad a partir de los polos y ceros]
 tags: [polos, ceros, estabilidad, plano-s, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [funcion-transferencia, sistema-primer-orden, respuesta-segundo-orden, estabilidad-bibo, analisis-modal]
 referencias:
   - "Franklin, Powell, Feedback Control of Dynamic Systems"
@@ -28,6 +28,8 @@ La distancia al origen marca la rapidez; el ángulo respecto al eje real, el amo
 \( \zeta=-\sigma/|p| \). Un sistema lineal es **estable** si y solo si **todos** sus polos están
 en el semiplano izquierdo. Los ceros no afectan a la estabilidad, pero un **cero en el semiplano
 derecho** (fase no mínima) produce respuesta inicial en sentido contrario y limita el control.
+
+<div class="cfig"><img src="figuras/polos-ceros-splano.png" alt="mapa de polos y ceros en el plano s"><div class="cap">Mapa polo-cero: todos los polos en el semiplano izquierdo ⇒ estable. La distancia al origen da la rapidez y el ángulo θ el amortiguamiento (ζ=cos θ). Los ceros (○) no afectan a la estabilidad.</div></div>
 
 ## Cuándo y por qué se usa
 Es la lectura básica de cualquier diseño: mirar el mapa de polos dice de un vistazo si es estable,

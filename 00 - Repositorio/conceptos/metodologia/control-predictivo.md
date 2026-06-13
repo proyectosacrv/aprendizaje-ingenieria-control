@@ -28,6 +28,8 @@ que evalúa directamente los estados de conmutación posibles.
   → frecuencia de conmutación variable.
 - Maneja de forma natural el [[current-limiting]] (la restricción va en el coste).
 
+<div class="cfig"><img src="figuras/control-predictivo-horizonte.png" alt="horizonte deslizante del control predictivo"><div class="cap">En cada paso el MPC usa el modelo para predecir la salida sobre un horizonte y optimiza la secuencia de control que minimiza el coste respetando las restricciones (corriente, tensión); aplica solo el primer movimiento $u[0]$ y repite (horizonte deslizante). El FCS-MPC enumera directamente los estados de conmutación del convertidor.</div></div>
+
 ## Cuándo y por qué se usa
 Cuando hay **restricciones duras** (corriente, tensión) que deben respetarse, sistemas MIMO con
 acoplamiento, o no linealidades. Muy usado en accionamientos y convertidores modernos.

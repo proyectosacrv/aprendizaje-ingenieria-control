@@ -9,6 +9,8 @@ de la ejecucion real de cada script. Reejecutar este generador regenera informe.
 import os, html, datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+import sys; sys.path.insert(0, os.path.join(HERE, "..", "00 - Repositorio"))
+from conceptos_link import link_concepts
 
 
 def embed(fname, caption=None):
@@ -133,6 +135,7 @@ HEAD = """<!DOCTYPE html>
   body{margin:0;background:var(--bg);color:var(--ink);
     font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
   a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
+  .cref{color:var(--acc);border-bottom:1px dotted rgba(78,163,255,.55)} .cref:hover{border-bottom-style:solid;text-decoration:none}
   .wrap{display:flex;max-width:1560px;margin:0 auto}
   nav{position:sticky;top:0;align-self:flex-start;height:100vh;width:320px;flex:0 0 320px;
     overflow-y:auto;padding:24px 18px;border-right:1px solid var(--line);background:var(--panel)}
@@ -765,6 +768,10 @@ S.append(r"""<div class="part">Parte II · Modelado</div>
   tiene <b>15</b> entradas (se añadieron los dos estados del filtro de la R virtual transitoria) y
   <code class="inl">NX = len(STATE_NAMES) = 15</code>. La verdad la fija el código, no el comentario: la
   Fase&nbsp;1 devuelve 15 autovalores, confirmándolo.</div>
+  <figure style="margin:18px auto;max-width:660px;text-align:center"><img src="results/matriz_A.png" alt="estructura de la matriz de estado A">
+    <figcaption>Estructura de la matriz de estado \( A \) (15×15): se ven los bloques acoplados —el LCL (6 estados),
+    el droop/VSM, los integradores PI de tensión y corriente, y el filtro de la \( R \) virtual— y el
+    acoplamiento cruzado d↔q (sub-bloques 2×2 antidiagonales). Generada con <span class="file">figuras_modelo.py</span>.</figcaption></figure>
 </section>
 
 <section id="parametros">
@@ -1378,6 +1385,10 @@ S.append(r"""<div class="part">Apéndices</div>
 
 <section id="apE">
   <h2 class="sec">Apéndice E · Cómo reproducir</h2>
+  <figure style="margin:18px auto;max-width:860px;text-align:center"><img src="results/flujo_codigo.png" alt="flujo de datos del codigo">
+    <figcaption>Flujo de datos del código: <span class="file">params.py</span> → modelo no lineal \( f(x,u) \) →
+    equilibrio (fsolve) → linealización numérica \( (A,B,C,D) \) → los cuatro análisis (polos, impedancia,
+    Nyquist, simulación) de las fases.</figcaption></figure>
   <pre>python main_phase1.py    # equilibrio, polos          -> results/polos_fase1.png
 python main_phase2.py    # impedancia dq Z(jw)        -> results/impedancia_fase2.png
 python main_phase3.py    # estabilidad red debil      -> results/nyquist_fase3.png
@@ -1385,6 +1396,7 @@ python main_phase4.py    # validacion por inyeccion   -> results/fase4_validacio
 python switched.py       # promediado vs conmutado    -> results/fase4b_averaging.png
 python main_phase5.py    # droop vs VSM, limiting     -> results/fase5_*.png
 python diag_sweep.py     # barrido de diagnostico
+python figuras_modelo.py # estructura de A + flujo      -> results/matriz_A.png, flujo_codigo.png
 python gen_informe.py    # regenera este informe.html</pre>
   <p class="small">Requiere Python 3.13 con NumPy, SciPy y Matplotlib. Todas las figuras se escriben en
   <code class="inl">results/</code>.</p>
@@ -1425,7 +1437,7 @@ FOOT = """</main>
 </body>
 </html>"""
 
-html_out = HEAD + NAV + HERO + "".join(S) + FOOT
+html_out = HEAD + NAV + HERO + link_concepts("".join(S)) + FOOT
 out_path = os.path.join(HERE, "informe.html")
 with open(out_path, "w", encoding="utf-8") as fh:
     fh.write(html_out)

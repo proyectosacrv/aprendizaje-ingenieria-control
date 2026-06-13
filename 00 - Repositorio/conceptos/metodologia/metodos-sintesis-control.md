@@ -30,6 +30,8 @@ especificaciones, con sus compromisos. Sirve para **elegir** el método antes de
 - **Específicos de convertidores** — separación de escalas, impedancia virtual, amortiguamiento
   activo: dan forma a la dinámica aprovechando la estructura física.
 
+<div class="cfig"><img src="figuras/metodos-sintesis-control-escalera.png" alt="escalera de familias de metodos de sintesis de control"><div class="cap">Las familias de síntesis forman una escalera de complejidad: se empieza por el control clásico SISO (Bode, lugar de raíces, PI/PID) y se sube a espacio de estados (LQR/LQG), robusto ($H_\infty$/μ) o predictivo (MPC) a medida que el problema exige manejar acoplamiento MIMO, restricciones duras o incertidumbre con garantías.</div></div>
+
 ## Cuándo elegir cada uno (guía rápida)
 | Situación | Método recomendado |
 |---|---|

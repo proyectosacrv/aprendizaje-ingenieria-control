@@ -31,6 +31,8 @@ estados como un convertidor.
 - **LQG**: LQR + **observador** (filtro de Kalman) cuando no se miden todos los estados.
 - Requiere un modelo de estado fiable (ver [[linealizacion-numerica]]).
 
+<div class="cfig"><img src="figuras/asignacion-polos-lqr-polos.png" alt="polos de lazo cerrado del LQR al variar Q/R"><div class="cap">Polos de lazo cerrado del LQR al barrer la relación $Q/R$: subir $Q/R$ (más peso al desempeño frente al esfuerzo de control) desplaza los autovalores de $A-BK$ hacia la izquierda, acelerando la respuesta a costa de más actuación. Las ponderaciones $Q,R$ son la palanca de diseño (regla de Bryson).</div></div>
+
 ## Cuándo y por qué se usa
 Cuando el sistema es MIMO y acoplado (varios estados que interactúan), o cuando se quiere un
 diseño sistemático que pondere desempeño y esfuerzo. En convertidores: control de estado del

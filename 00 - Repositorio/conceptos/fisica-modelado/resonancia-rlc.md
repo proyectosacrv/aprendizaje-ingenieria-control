@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [entender la resonancia del filtro LCL y por qué hay que amortiguarla]
 tags: [resonancia, rlc, factor-calidad, filtro, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-11
 relacionados: [filtro-lcl, amortiguamiento-activo-lcl, impedancia-reactancia, diagrama-bode, respuesta-segundo-orden]
 referencias:
   - "Sedra & Smith, Microelectronic Circuits"
@@ -31,6 +31,8 @@ $$ Q = \frac{\omega_0 L}{R} = \frac{1}{R}\sqrt{\frac{L}{C}}, \qquad \zeta = \fra
 con \( \zeta \) el amortiguamiento. \( Q \) alto (R pequeña) \( \Rightarrow \) pico agudo y poco
 amortiguado. El filtro **LCL** tiene su resonancia en
 $$ f_{res} = \frac{1}{2\pi}\sqrt{\frac{L_1+L_2}{L_1 L_2 C_f}} $$
+
+<div class="cfig"><img src="figuras/resonancia-rlc-zf.png" alt="impedancia de un RLC serie con la frecuencia"><div class="cap">Impedancia de un RLC serie: cae a un mínimo (=R) en la resonancia f0. Con R baja (Q alto) el valle es profundo y agudo; con R alta (Q bajo) es suave.</div></div>
 
 ## Cuándo y por qué se usa
 Aparece en todo filtro LC/LCL de convertidor. Su resonancia, si no se amortigua, hace **inestable**

@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance, 03-DataCenter-IA]
 objetivos: [base del análisis fasorial y del enfoque de impedancia]
 tags: [impedancia, reactancia, admitancia, fasores, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-11
 relacionados: [potencia-ac-fasores, resonancia-rlc, impedancia-salida-estabilidad, red-thevenin-scr, filtro-lcl]
 referencias:
   - "Sedra & Smith, Microelectronic Circuits"
@@ -29,6 +29,8 @@ La reactancia inductiva \( X_L=\omega L \) es positiva (la corriente atrasa); la
 ángulo \( \angle Z = \arctan(X/R) \). Se combinan como las resistencias: **serie** suma \( Z \),
 **paralelo** suma \( Y \). En sistemas trifásicos en el marco dq, la impedancia ya **no es un escalar
 sino una matriz 2×2** por el acoplamiento entre ejes.
+
+<div class="cfig"><img src="figuras/impedancia-reactancia-zf.png" alt="impedancia de R, L y C con la frecuencia"><div class="cap">Las reactancias dependen de la frecuencia: R es plana, la inductiva XL=ωL sube y la capacitiva XC=1/ωC baja. Donde se cruzan L y C aparece la resonancia.</div></div>
 
 ## Cuándo y por qué se usa
 Es el lenguaje de todo el análisis AC: filtros, red Thévenin (\( Z_{red}=R_g+j\omega L_g \)),

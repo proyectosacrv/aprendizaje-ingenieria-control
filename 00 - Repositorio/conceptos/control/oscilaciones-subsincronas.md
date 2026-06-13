@@ -37,6 +37,8 @@ fuertemente del nivel de compensación y del [[red-thevenin-scr|SCR]]. Se analiz
 [[impedancia-salida-estabilidad|impedancia]]: la inestabilidad aparece donde
 \( \mathrm{Re}\{Z_{conv}+Z_{red}\}<0 \) cerca de \( f_n \).
 
+<div class="cfig"><img src="figuras/oscilaciones-subsincronas-resonancia.png" alt="frecuencia de resonancia serie y oscilacion subsincrona creciente"><div class="cap">Izquierda: una línea con compensación serie resuena a $f_n=f_1\sqrt{X_{Cs}/X_L}$, que cae en la banda subsíncrona (≈10–45 Hz). Derecha: si el convertidor presenta resistencia negativa cerca de $f_n$, el amortiguamiento neto es negativo y la oscilación (SSCI) crece en pocos ciclos, sin necesidad de modos mecánicos.</div></div>
+
 ## Cuándo y por qué se usa
 En parques eólicos conectados por líneas compensadas serie (causa de eventos reales, p.ej. ERCOT
 2009), en HVDC y en redes débiles con alta penetración de convertidores. Es una subclase

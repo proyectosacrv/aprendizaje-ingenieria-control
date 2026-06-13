@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [definir que significa que un sistema sea estable]
 tags: [estabilidad, BIBO, polos, equilibrio, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-12
 relacionados: [polos-ceros, margenes-estabilidad, analisis-modal, linealizacion-teoria]
 referencias:
   - "Khalil, Nonlinear Systems, Prentice Hall 2002"
@@ -29,6 +29,8 @@ $$ \text{estable} \iff \text{todos los polos tienen parte real negativa} $$
 En sistemas **no lineales**, la estabilidad es **local** (depende del punto de operación) y se
 estudia por linealización (ver [[linealizacion-teoria]]) o por métodos de Lyapunov. No basta con
 ser estable: interesa el **margen** (cuánto se puede variar antes de inestabilizar).
+
+<div class="cfig"><img src="figuras/estabilidad-bibo-respuestas.png" alt="respuesta estable vs inestable"><div class="cap">Con todos los polos en Re<0 la respuesta decae y queda acotada (izq.); si algún polo tiene Re>0, crece sin límite (der.). Esa es la frontera de la estabilidad.</div></div>
 
 ## Cuándo y por qué se usa
 Es el primer requisito de cualquier diseño de control: un sistema inestable es inutilizable o

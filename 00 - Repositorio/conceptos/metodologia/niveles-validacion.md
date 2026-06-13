@@ -32,6 +32,8 @@ está validado.
 
 Cada salto añade riesgo de descubrir algo nuevo; el coste y el tiempo también crecen.
 
+<div class="cfig"><img src="figuras/niveles-validacion-escalera.png" alt="escalera de niveles de validacion de fidelidad creciente"><div class="cap">Escalera de validación de realismo creciente: del modelo lineal (donde se diseña) al no lineal (gran señal, faltas), al conmutado (PWM, retardo, rizado), al HIL (control real contra planta en tiempo real) y al hardware. Cada salto añade física, coste y riesgo de descubrir algo nuevo; se sube solo cuando el nivel previo está validado.</div></div>
+
 ## Cuándo y por qué se usa
 Para no llevar a hardware un diseño que falla por algo que un nivel intermedio habría detectado
 barato. Estructura el "de la teoría a la realidad".

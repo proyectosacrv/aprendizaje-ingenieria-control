@@ -35,6 +35,8 @@ red, \( L \), \( C \), ganancia, retardo):
 Para muchos parámetros a la vez, el barrido en rejilla escala mal (maldición de la dimensión) → se
 usa muestreo (Latin Hypercube, Monte Carlo) o análisis de sensibilidad global (Sobol).
 
+<div class="cfig"><img src="figuras/barrido-parametrico-mapa.png" alt="mapa de calor 2D de max Re lambda frente a SCR y ancho de banda de PLL"><div class="cap">Barrido 2-D: para cada combinación de SCR y ancho de banda de la PLL se recalcula $\max\mathrm{Re}(\lambda)$ del modelo. El mapa de calor revela la región inestable (rojo) y la línea negra $\max\mathrm{Re}(\lambda)=0$ es la frontera de estabilidad. Una PLL más rápida desplaza la frontera hacia SCR mayores, reduciendo el margen en red débil.</div></div>
+
 ## Cuándo y por qué se usa
 Para hallar el **margen de robustez** ante variación de red/planta (p.ej. estabilidad vs
 [[red-thevenin-scr|SCR]]), identificar el parámetro crítico, validar el diseño en el peor caso y

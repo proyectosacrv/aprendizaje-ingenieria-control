@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance, 03-DataCenter-IA]
 objetivos: [escribir el modelo como x'=Ax+Bu y analizar sus propiedades]
 tags: [espacio-estados, A-B-C-D, controlabilidad, observabilidad, MIMO]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [variables-estado, modelado-sistemas, asignacion-polos-lqr, respuesta-frecuencia-ss, linealizacion-teoria]
 referencias:
   - "Kailath, Linear Systems, Prentice Hall 1980"
@@ -18,6 +18,8 @@ referencias:
 Forma estándar de escribir un sistema dinámico lineal mediante sus variables de estado:
 $$ \dot{\mathbf{x}} = A\,\mathbf{x} + B\,\mathbf{u}, \qquad \mathbf{y} = C\,\mathbf{x} + D\,\mathbf{u} $$
 Es la base del análisis y diseño modernos, natural para sistemas MIMO y de orden alto.
+
+<div class="cfig"><img src="figuras/representacion-espacio-estados-bloques.png" alt="diagrama de bloques del espacio de estados"><div class="cap">Diagrama del espacio de estados: B inyecta la entrada, el integrador produce x a partir de ẋ, A realimenta el estado y C lo proyecta a la salida (más D·u directo, omitido).</div></div>
 
 ## Fundamento teórico
 Significado de las matrices:

@@ -30,6 +30,8 @@ región, se forma una resonancia mal amortiguada → oscilación.
 Relación con [[impedancia-salida-estabilidad]]: la pasividad es una condición **suficiente** y
 local en frecuencia; el Nyquist generalizado de \( Z_{red}Y_{inv} \) es el criterio exacto.
 
+<div class="cfig"><img src="figuras/no-pasividad-resistencia-negativa-rez.png" alt="parte real de la impedancia negativa en la banda de la PLL"><div class="cap">La parte real de la impedancia de salida (eje q) del grid-following se vuelve negativa —no pasiva— en la banda de la PLL. Una PLL más rápida ensancha esa banda hacia frecuencias mayores; si la red inductiva resuena ahí, aparece la oscilación. La pasividad ($\mathrm{Re}\{Z\}\ge0$) es condición suficiente, no exacta.</div></div>
+
 ## Cuándo y por qué se usa
 Para **explicar y prevenir** inestabilidades de convertidores: dar forma a la impedancia
 (impedance shaping) de modo que sea pasiva en el rango de interés evita la inestabilidad sin

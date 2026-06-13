@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [descomponer señales en armónicos y razonar en el dominio de la frecuencia]
 tags: [fourier, armonicos, espectro, frecuencia, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-12
 relacionados: [fft-analisis-espectral, transformada-laplace, diagrama-bode, calidad-potencia, muestreo-aliasing]
 referencias:
   - "Oppenheim & Willsky, Señales y Sistemas, Prentice Hall"
@@ -30,6 +30,8 @@ $$ X(j\omega) = \int_{-\infty}^{\infty} x(t)\,e^{-j\omega t}\,dt $$
 Es el caso particular de la transformada de Laplace evaluada en el eje imaginario \( s = j\omega \):
 por eso la respuesta en frecuencia (Bode) es \( G(j\omega) \). El teorema de Parseval relaciona la
 energía en tiempo y en frecuencia.
+
+<div class="cfig"><img src="figuras/series-fourier-cuadrada.png" alt="reconstruccion de una onda cuadrada con armonicos"><div class="cap">Una onda cuadrada es la suma de sus armónicos impares (amplitud ∝1/k): con más términos la aproximación mejora; el rizado de los flancos es el fenómeno de Gibbs.</div></div>
 
 ## Cuándo y por qué se usa
 Para cuantificar **armónicos** y distorsión (THD), para entender el espectro de una señal medida,

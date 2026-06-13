@@ -31,6 +31,8 @@ las relaciones de transformación desaparecen y el modelo es **escalable** a cua
 Para cambiar de base: \( Z_{pu}^{nuevo}=Z_{pu}^{viejo}\frac{S_{base}^{nuevo}}{S_{base}^{viejo}}
 \left(\frac{V_{base}^{viejo}}{V_{base}^{nuevo}}\right)^2 \).
 
+<div class="cfig"><img src="figuras/sistema-por-unidad-impedancias.png" alt="impedancias del sistema en por unidad sumandose"><div class="cap">En por unidad, las impedancias de equipos muy distintos (transformador, filtro, red) quedan todas en el rango ~0.05–0.15 y se suman directamente una vez referidas a la misma base. Aquí $Z_{tot}=0.25$ pu; sin pu, cada componente estaría en ohmios de su base propia y sumarlos sería un error.</div></div>
+
 ## Cuándo y por qué se usa
 En modelado de convertidores y redes: facilita comparar equipos de distinta potencia, fija
 condiciones de diseño (corriente nominal = 1 p.u.) y mejora el **condicionamiento numérico** de

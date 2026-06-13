@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [atenuar una resonancia estrecha en el lazo sin perder ancho de banda]
 tags: [notch, rechazo-banda, resonancia, lcl, filtro, intermedio, control]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [amortiguamiento-activo-lcl, filtro-lcl, diagrama-bode, loop-shaping]
 referencias:
   - "Yepes et al., Analysis and design of resonant current controllers, IEEE TIE 2011"
@@ -34,6 +34,8 @@ $$ N(s)=\frac{s^2+2\zeta_z\,\omega_n s+\omega_n^2}{s^2+2\zeta_p\,\omega_n s+\ome
 Frente al **amortiguamiento activo** ([[amortiguamiento-activo-lcl]]): el notch es más simple (no
 necesita sensar la corriente del condensador) pero menos robusto a la deriva de \( \omega_{res} \)
 (con \( L \), \( C \) variando con el punto de operación o tolerancias).
+
+<div class="cfig"><img src="figuras/filtro-notch-respuesta.png" alt="respuesta en frecuencia de un filtro notch"><div class="cap">El notch atenúa profundamente una banda estrecha en fn (la resonancia LCL) dejando el resto casi intacto; el precio es algo de fase restada por debajo de fn.</div></div>
 
 ## Cuándo y por qué se usa
 Para estabilizar el lazo de corriente con filtro LCL sin recurrir a sensores extra de

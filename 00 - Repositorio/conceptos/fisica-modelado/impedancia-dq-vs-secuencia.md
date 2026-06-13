@@ -52,6 +52,8 @@ espejo en secuencia. No son fenómenos distintos, son **el mismo** visto en dos 
 | Medida | inyección en dq (necesita ángulo) | inyección de secuencia (frecuencia real) |
 | Intuición | acoplamiento de control | resonancia/espejo físico |
 
+<div class="cfig"><img src="figuras/impedancia-dq-vs-secuencia-espejo.png" alt="acoplamiento de frecuencia espejo entre dq y secuencia"><div class="cap">Al inyectar una perturbación de secuencia a frecuencia $f_p$, la asimetría que introducen PLL/control hace que el convertidor responda también a la frecuencia espejo $f_p-2f_1$. Ese acoplamiento de frecuencia espejo en el marco de secuencia es exactamente el mismo fenómeno que el acoplamiento d-q en el marco dq, relacionados por $s_{dq}=s\mp j\omega_1$.</div></div>
+
 ## Cuándo y por qué se usa
 **dq** cuando el modelo analítico del control está en dq (tus proyectos GFM/GFL) y para casar con
 el [[nyquist-generalizado|GNC]]. **Secuencia** cuando mides experimentalmente con inyección de

@@ -30,6 +30,8 @@ Equivale a una **resistencia incremental negativa** \( -V^2/P \). Esta resistenc
 disiparla, lo que puede inestabilizar el bus (ver [[estabilidad-bus-dc-cpl]]). Es un caso
 concreto de [[no-pasividad-resistencia-negativa]].
 
+<div class="cfig"><img src="figuras/carga-potencia-constante-cpl-iv.png" alt="curva i-V de una CPL con pendiente incremental negativa"><div class="cap">La CPL sigue $i=P/V$: si la tensión cae, la corriente sube para mantener la potencia. Su pendiente incremental $\partial i/\partial V=-P/V^2$ es negativa (resistencia incremental $-V^2/P$), al revés que una resistencia. Esa pendiente negativa desamortigua los filtros LC aguas arriba y puede inestabilizar el bus.</div></div>
+
 ## Cuándo y por qué se usa
 Aparece siempre que la carga es un convertidor regulado: microrredes DC, data centers,
 electrificación de transporte, accionamientos. Modelarla como CPL (y no como resistencia) es

@@ -32,6 +32,8 @@ El circuito equivalente por fase tiene \( R_1, X_1 \) (estátor), \( X_m \) (mag
 \( R_2/s, X_2 \) (rotor referido): el término \( R_2/s \) concentra la dependencia con la carga. El
 par es máximo a un cierto deslizamiento y cae a cero en sincronismo.
 
+<div class="cfig"><img src="figuras/maquina-induccion-par.png" alt="curva par-velocidad de la maquina de induccion"><div class="cap">Curva par–velocidad: por debajo del sincronismo ($n<n_s$, $0<s<1$) la máquina funciona como motor; por encima ($n>n_s$, $s<0$) como generador. El par se anula exactamente en sincronismo porque sin deslizamiento no se inducen corrientes en el rotor. La DFIG opera ±30 % alrededor del sincronismo con un convertidor de potencia parcial.</div></div>
+
 ## Cuándo y por qué se usa
 En accionamientos de velocidad variable (con control vectorial) y en generación eólica: la **DFIG**
 (doblemente alimentada) alimenta el rotor por un convertidor para operar a velocidad variable en torno

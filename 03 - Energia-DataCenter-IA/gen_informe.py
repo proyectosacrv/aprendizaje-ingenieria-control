@@ -7,6 +7,8 @@ resultados de consola reales. Reejecutar regenera informe.html.
 import os, html, datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+import sys; sys.path.insert(0, os.path.join(HERE, "..", "00 - Repositorio"))
+from conceptos_link import link_concepts
 
 
 def embed(fname, caption=None):
@@ -69,6 +71,7 @@ HEAD = """<!DOCTYPE html>
   body{margin:0;background:var(--bg);color:var(--ink);
     font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
   a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
+  .cref{color:var(--acc);border-bottom:1px dotted rgba(78,163,255,.55)} .cref:hover{border-bottom-style:solid;text-decoration:none}
   .wrap{display:flex;max-width:1560px;margin:0 auto}
   nav{position:sticky;top:0;align-self:flex-start;height:100vh;width:320px;flex:0 0 320px;
     overflow-y:auto;padding:24px 18px;border-right:1px solid var(--line);background:var(--panel)}
@@ -851,7 +854,7 @@ FOOT = """</main>
 </body>
 </html>"""
 
-html_out = HEAD + NAV + HERO + "".join(S) + FOOT
+html_out = HEAD + NAV + HERO + link_concepts("".join(S)) + FOOT
 with open(os.path.join(HERE, "informe.html"), "w", encoding="utf-8") as fh:
     fh.write(html_out)
 print(f"informe.html generado: {html_out.count(chr(10))+1} lineas, {len(html_out)} bytes")

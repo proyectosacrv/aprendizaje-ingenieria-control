@@ -44,6 +44,8 @@ estable no linealmente, mientras el droop solo es local. En red **fuerte** (cone
 dinámica del oscilador aún tiene que coordinarse con la impedancia de red (análisis por
 [[impedancia-salida-estabilidad|impedancia]]).
 
+<div class="cfig"><img src="figuras/virtual-oscillator-control-ciclo.png" alt="ciclo limite de Van der Pol como atractor global"><div class="cap">El VOC emula un oscilador de Van der Pol: cualquier condición inicial (dentro o fuera) converge al mismo ciclo límite de amplitud y frecuencia fijas. Al acoplar varios convertidores por sus impedancias, la interacción eléctrica los sincroniza globalmente sin comunicaciones (sincronización tipo Kuramoto).</div></div>
+
 ## Cuándo y por qué se usa
 Redes islandinas con múltiples convertidores (microrredes) donde se quiere sincronización robusta y
 global sin comunicaciones, y donde las garantías formales de estabilidad no lineal son valiosas.

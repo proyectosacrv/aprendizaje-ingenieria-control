@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [evitar la sobrecarga del término integral cuando el actuador satura]
 tags: [anti-windup, saturacion, integrador, back-calculation, basico, control]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [controlador-pid, current-limiting, sintonia-pi-pid, error-regimen-permanente]
 referencias:
   - "Aström, Hägglund, PID Controllers, ISA 1995"
@@ -29,6 +29,8 @@ $$ \dot I = K_i e + \frac{1}{T_t}\,(u_{sat}-u) $$
 Con \( u=K_p e + I \). Cuando no hay saturación, \( u_{sat}=u \) y el término extra desaparece.
 Alternativas: **clamping** (congelar \( I \) si satura y el error empuja más a la saturación) o
 forma **velocidad** (incremental), que es intrínsecamente anti-windup.
+
+<div class="cfig"><img src="figuras/anti-windup-respuesta.png" alt="recuperacion con y sin anti-windup"><div class="cap">Tras una saturación prolongada y un cambio de referencia, sin anti-windup (rojo) el integrador "cargado" retrasa mucho la recuperación; con anti-windup (azul) la salida sigue la nueva referencia de inmediato.</div></div>
 
 ## Cuándo y por qué se usa
 En todo lazo PI con límites físicos: corriente, tensión de modulación, par. Imprescindible junto

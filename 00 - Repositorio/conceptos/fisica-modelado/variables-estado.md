@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance, 03-DataCenter-IA]
 objetivos: [elegir el conjunto minimo de variables que describen el sistema]
 tags: [estado, orden, energia, independencia, modelado]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-12
 relacionados: [modelado-sistemas, representacion-espacio-estados, filtro-lcl, linealizacion-teoria]
 referencias:
   - "Franklin, Powell, Feedback Control of Dynamic Systems"
@@ -33,6 +33,8 @@ otro conjunto válido), pero conviene que sean:
 - **Físicas / medibles** (facilitan observador y validación).
 - **Independientes**: si un lazo solo de condensadores o un corte solo de inductores crea una
   dependencia, esos almacenadores **no** son independientes y el orden baja.
+
+<div class="cfig"><img src="figuras/variables-estado-circuito.png" alt="estados de un circuito LC"><div class="cap">Los estados son las variables de energía de los elementos independientes: la corriente del inductor iL y la tensión del condensador vC. Dos almacenadores independientes → sistema de orden 2.</div></div>
 
 ## Cuándo y por qué se usa
 Es el paso que fija la estructura del modelo de estado. Elegir bien evita estados redundantes

@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [moldear fase y ganancia del lazo para fijar margen y ancho de banda]
 tags: [lead-lag, adelanto, atraso, compensador, frecuencia, intermedio, control]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [loop-shaping, lugar-raices, diagrama-bode, margenes-estabilidad, controlador-pid]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -34,6 +34,8 @@ que se coloca lejos del cruce. Análogo a un PI aproximado.
 
 **Lead-lag** combina ambos: el lag mejora el error estacionario y el lead recupera el margen y la
 velocidad.
+
+<div class="cfig"><img src="figuras/compensador-adelanto-atraso-bode.png" alt="Bode de un compensador de adelanto"><div class="cap">El compensador de adelanto inyecta un máximo de fase φmax en ωm=1/(T√α); colocándolo en el cruce de ganancia sube el margen de fase, a costa de más ganancia (y ruido) en alta frecuencia.</div></div>
 
 ## Cuándo y por qué se usa
 Cuando un P/PI no basta para cumplir simultáneamente margen, ancho de banda y error, o cuando se

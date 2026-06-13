@@ -31,6 +31,8 @@ Especificaciones típicas y su forma medible:
 En convertidores hay además restricciones físicas: \( \omega_c < \) (1/5–1/10) de \( f_{sw} \),
 y separación de escalas entre lazos en cascada.
 
+<div class="cfig"><img src="figuras/especificaciones-control-mp-zeta.png" alt="relacion entre sobreimpulso y amortiguamiento"><div class="cap">Ejemplo de traducción de un requisito a una métrica: el sobreimpulso de un sistema de 2º orden $M_p=e^{-\pi\zeta/\sqrt{1-\zeta^2}}$ depende solo del amortiguamiento. Fijar $M_p\le10\%$ se convierte en una especificación medible sobre el diseño: $\zeta\ge0.59$. Así cada requisito cualitativo pasa a número objetivo y criterio de aceptación.</div></div>
+
 ## Cuándo y por qué se usa
 Antes de elegir cualquier método. Sin especificaciones medibles no hay forma de saber si el
 diseño "está bien" ni de validarlo objetivamente.

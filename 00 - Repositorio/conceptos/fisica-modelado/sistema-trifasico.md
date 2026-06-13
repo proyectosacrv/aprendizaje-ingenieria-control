@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [manejar tensiones y corrientes trifásicas y sus relaciones línea-fase]
 tags: [trifasico, equilibrado, fasores, linea-fase, basico, modelado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [potencia-ac-fasores, marco-dq, transformada-clarke, sistema-por-unidad, componentes-simetricas]
 referencias:
   - "Chapman, Máquinas Eléctricas, McGraw-Hill"
@@ -31,6 +31,8 @@ Potencia trifásica total (constante en equilibrio):
 $$ P=\sqrt3\,V_{LL}I_L\cos\varphi,\qquad S=\sqrt3\,V_{LL}I_L $$
 La potencia instantánea total es **constante** (no pulsa a \( 2\omega \) como la monofásica), lo
 que motiva el control en [[marco-dq|dq]].
+
+<div class="cfig"><img src="figuras/sistema-trifasico-ondas.png" alt="tensiones trifasicas y sus fasores"><div class="cap">Tres senoides de igual amplitud desfasadas 120°; sus fasores forman una estrella simétrica cuya suma instantánea es cero. Por eso la potencia trifásica total (en equilibrio) no pulsa.</div></div>
 
 ## Cuándo y por qué se usa
 Es el marco de todo el sistema eléctrico de potencia y de los convertidores de red. Las tensiones

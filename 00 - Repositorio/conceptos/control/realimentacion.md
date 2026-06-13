@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [entender por que se realimenta y que aporta el lazo cerrado]
 tags: [realimentacion, lazo-cerrado, feedback, error, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-12
 relacionados: [funcion-transferencia, controlador-pid, funciones-sensibilidad, margenes-estabilidad]
 referencias:
   - "Aström, Murray, Feedback Systems, Princeton 2008"
@@ -30,6 +30,8 @@ y el error responde según la **sensibilidad** \( S(s)=1/(1+CG) \). Lo que aport
 - **Riesgo**: una ganancia mal puesta puede **inestabilizar** (de ahí los márgenes).
 
 El lazo abierto es simple pero no corrige perturbaciones ni errores de modelo.
+
+<div class="cfig"><img src="figuras/realimentacion-lazo.png" alt="lazo de control realimentado"><div class="cap">Lazo cerrado: el error e=r−y entra al controlador C(s), que actúa sobre la planta G(s); la salida se mide y realimenta (signo −). Es lo que permite corregir perturbaciones y errores de modelo.</div></div>
 
 ## Cuándo y por qué se usa
 Siempre que se quiera precisión y robustez ante incertidumbre: regular tensión, corriente,

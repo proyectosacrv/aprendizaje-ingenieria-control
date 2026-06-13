@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [describir la relacion entrada-salida de un sistema lineal]
 tags: [funcion-transferencia, dominio-s, ganancia, basico, control]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-11
 relacionados: [transformada-laplace, polos-ceros, respuesta-frecuencia-ss, diagrama-bode, realimentacion]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -28,6 +28,8 @@ $$ G(s) = \frac{Y(s)}{U(s)} = \frac{b_m s^m + \dots + b_0}{a_n s^n + \dots + a_0
 - Evaluando en \( s=j\omega \) se obtiene la **respuesta en frecuencia** \( G(j\omega) \) (Bode).
 
 El orden \( n \) del denominador es el número de estados/almacenadores de energía.
+
+<div class="cfig"><img src="figuras/funcion-transferencia-polos-step.png" alt="polos de G(s) y la respuesta al escalon que implican"><div class="cap">Los polos de G(s) (raíces del denominador) determinan la forma de la respuesta: este par complejo subamortiguado produce el escalón con sobreimpulso de la derecha.</div></div>
 
 ## Cuándo y por qué se usa
 Es la representación básica del control clásico: permite combinar bloques (serie, paralelo,

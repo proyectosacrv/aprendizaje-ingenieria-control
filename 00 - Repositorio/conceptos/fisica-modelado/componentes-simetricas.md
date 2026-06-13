@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [descomponer un sistema trifásico desequilibrado en secuencias tratables]
 tags: [componentes-simetricas, secuencia, desequilibrio, fortescue, intermedio, modelado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-12
 relacionados: [sistema-trifasico, potencia-ac-fasores, marco-dq, transformada-clarke]
 referencias:
   - "Kundur, Power System Stability and Control, McGraw-Hill 1994"
@@ -32,6 +32,8 @@ $$ \begin{bmatrix}V_0\\V_+\\V_-\end{bmatrix}=
 
 Relación con dq: en marco dq a \( +\omega \), la secuencia positiva es **continua** y la negativa
 aparece como rizado de **\( 2\omega \)** (100 Hz), motivo de los controles de doble secuencia.
+
+<div class="cfig"><img src="figuras/componentes-simetricas-fasores.png" alt="fasores de secuencia positiva, negativa y homopolar"><div class="cap">Cualquier terna desequilibrada se descompone en tres equilibradas: positiva (gira +ω), negativa (secuencia invertida, −ω) y homopolar (tres fasores en fase).</div></div>
 
 ## Cuándo y por qué se usa
 Análisis de faltas asimétricas, requisitos de **fault ride-through**, control bajo desequilibrio

@@ -31,6 +31,8 @@ El escalón de potencia \( \Delta P \) impacta:
 - En **tensión de bus DC**: hundimiento transitorio que el condensador de bus amortigua, y riesgo
   de inestabilidad si la potencia supera la crítica del filtro ([[estabilidad-bus-dc-cpl]]).
 
+<div class="cfig"><img src="figuras/carga-pulsante-datacenter-ia-impacto.png" alt="escalon de potencia de un data center de IA y su impacto en frecuencia"><div class="cap">La carga de IA salta como un escalón sincronizado (miles de GPUs entran a un job a la vez). Ese $\Delta P$ impone un RoCoF inicial $\approx\Delta P f_0/(2HS)$ y una caída de frecuencia que el soporte inercial del BESS debe limitar; en el bus DC produce un hundimiento que amortigua el condensador. Es el caso de diseño más exigente.</div></div>
+
 ## Cuándo y por qué se usa
 Para dimensionar la generación/almacenamiento y el control de la microrred del data center: la
 carga pulsante es el caso de diseño más exigente (peor que una carga suave de igual potencia media).

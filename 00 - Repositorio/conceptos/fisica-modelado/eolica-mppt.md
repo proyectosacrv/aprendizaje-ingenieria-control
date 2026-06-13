@@ -52,6 +52,8 @@ de cortocircuito natural, pero el convertidor puede proveer [[fault-ride-through
 **Regulación de paso (pitch).** Por encima de velocidad nominal se reduce \( \beta \) para limitar
 \( P \) a la potencia nominal (control de \( \beta \) con PI sobre \( P \) o \( \omega_r \)).
 
+<div class="cfig"><img src="figuras/eolica-mppt-cp.png" alt="curvas de potencia de la turbina por viento y locus MPPT"><div class="cap">Para cada velocidad de viento, la potencia de la turbina tiene un máximo a una velocidad de rotor distinta (donde $\lambda=\lambda^*$). El MPPT mantiene ese óptimo: la curva de par $T^*=k\,\omega_r^2$ (locus $\propto\omega^3$) pasa justo por los picos, así que basta seguirla —sin medir el viento— para extraer la máxima potencia.</div></div>
+
 ## Cuándo y por qué se usa
 Para modelar el comportamiento de un parque eólico en estudios de estabilidad, diseño de control
 de parque, servicios de frecuencia ([[servicios-red-soporte]]) y análisis de interacción con la red.

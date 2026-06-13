@@ -32,6 +32,8 @@ Con una [[carga-potencia-constante-cpl|CPL]], \( Z_{carga}=-V^2/P \) (resistenci
 resonancia de \( |Z_{fuente}| \), el sistema se inestabiliza. Existen criterios menos
 conservadores (GMPM, banda prohibida, ESAC) que relajan el de Middlebrook.
 
+<div class="cfig"><img src="figuras/criterio-middlebrook-impedancias.png" alt="impedancia de fuente con pico de resonancia frente a impedancia de carga CPL"><div class="cap">La fuente (filtro LC) tiene un pico de impedancia en su resonancia; la carga CPL presenta $|Z_{carga}|=V^2/P$, una línea horizontal que baja al subir la potencia. Mientras $|Z_{carga}|$ quede por encima del pico hay margen; cuando la potencia la hace cortar el pico, se viola el criterio y el bus se inestabiliza. Da la potencia límite de forma modular.</div></div>
+
 ## Cuándo y por qué se usa
 En sistemas DC en cascada (microrredes DC, data centers, alimentación distribuida) y en filtros
 de entrada de convertidores. Permite diseñar de forma modular: caracterizar fuente y carga por
