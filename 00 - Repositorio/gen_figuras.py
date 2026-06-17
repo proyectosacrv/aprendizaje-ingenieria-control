@@ -469,18 +469,29 @@ def _impedancia():
 # ===================================================================== #
 @figura("resonancia-rlc")
 def _rlc():
-    f = np.logspace(1.5, 4, 800); w = 2*np.pi*f
+    f = np.logspace(1.5, 4, 1200); w = 2*np.pi*f
     L, C = 2e-3, 20e-6
-    f0 = 1/(2*np.pi*np.sqrt(L*C))
-    fig, ax = plt.subplots(figsize=(6.6, 3.8))
+    f0 = 1/(2*np.pi*np.sqrt(L*C)); Z0 = np.sqrt(L/C)   # impedancia caracteristica
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(8.8, 3.6))
+
+    # (a) |Z| del RLC serie: minimo (=R) en f0, mas agudo si R baja
     for R, c, lbl in [(0.3, ACC, "Q alto (R=0.3 Ω)"), (3.0, ACC2, "Q bajo (R=3 Ω)")]:
-        ax.loglog(f, np.abs(R + 1j*w*L + 1/(1j*w*C)), color=c, lw=2, label=lbl)
-    ax.axvline(f0, color="#888", ls="--", lw=1)
-    ax.annotate(f"$f_0$≈{f0:.0f} Hz", xy=(f0, 0.4), xytext=(f0*1.15, 0.6),
-                fontsize=9, color="#555")
-    ax.set_xlabel("frecuencia [Hz]"); ax.set_ylabel("|Z| RLC serie [Ω]")
-    ax.set_title("RLC serie: mínimo de |Z| en resonancia (más agudo si R baja)")
-    ax.legend(fontsize=9); ax.grid(True, which="both", alpha=0.4)
+        a1.loglog(f, np.abs(R + 1j*w*L + 1/(1j*w*C)), color=c, lw=2, label=lbl)
+    a1.axvline(f0, color="#888", ls="--", lw=1)
+    a1.annotate(f"$f_0$≈{f0:.0f} Hz", xy=(f0, 0.4), xytext=(f0*1.18, 0.55), fontsize=9, color="#555")
+    a1.set_xlabel("frecuencia [Hz]"); a1.set_ylabel("|Z| RLC serie [Ω]")
+    a1.set_title("RLC serie: |Z| mínima (=R) en $f_0$", fontsize=10)
+    a1.legend(fontsize=8.5); a1.grid(True, which="both", alpha=0.4)
+
+    # (b) pico de resonancia (tension en C, 2o orden) para varios Q: altura ~ Q
+    fn = f/f0
+    for Q, c in [(10, BAD), (3, ACC), (1, OK), (0.5, ACC2)]:
+        H = 1.0/np.abs(1 - fn**2 + 1j*fn/Q)
+        a2.semilogx(f, 20*np.log10(H), color=c, lw=2, label=f"Q={Q}")
+    a2.axvline(f0, color="#888", ls="--", lw=1)
+    a2.set_xlabel("frecuencia [Hz]"); a2.set_ylabel("ganancia [dB]")
+    a2.set_title("Pico de resonancia: altura ≈ Q, ancho ≈ $f_0/Q$", fontsize=10)
+    a2.legend(fontsize=8.5, loc="upper right"); a2.set_ylim(-30, 26)
     fig.tight_layout()
     _savefig(fig, "resonancia-rlc-zf.png")
 
