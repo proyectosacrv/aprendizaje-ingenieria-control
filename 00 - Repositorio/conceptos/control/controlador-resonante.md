@@ -9,7 +9,7 @@ objetivos: [seguir y rechazar senoides y armónicos sin error en marco estaciona
 tags: [resonante, pr, modelo-interno, armonicos, alfa-beta, intermedio, control]
 fecha_creacion: 2026-06-09
 fecha_actualizacion: 2026-06-12
-relacionados: [controlador-pid, transformada-clarke, marco-dq, amortiguamiento-activo-lcl, error-regimen-permanente]
+relacionados: [controlador-pid, marco-dq, filtro-lcl, error-regimen-permanente]
 referencias:
   - "Teodorescu et al., Proportional-resonant controllers and filters for grid-connected converters, IET 2006"
   - "Yepes et al., Effects of discretization methods on the performance of resonant controllers, IEEE TPEL 2010"
@@ -78,7 +78,7 @@ ganancia 40–80 dB sobre \( K_p \). HC hasta el 13º armónico en filtros activ
 - Olvidar el límite/anti-windup del actuador (también aplica a resonantes).
 
 ## Conceptos relacionados
-- [[controlador-pid]] · [[transformada-clarke]] · [[marco-dq]] · [[amortiguamiento-activo-lcl]] · [[discretizacion-controladores]]
+- [[controlador-pid]] · [[marco-dq|transformada de Clarke]] · [[filtro-lcl|amortiguamiento activo]] · [[discretizacion-controladores]]
 
 ## Referencias
 - Teodorescu et al., *PR controllers and filters for grid-connected converters*, IET 2006.

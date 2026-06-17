@@ -25,8 +25,6 @@
     - sistema-trifasico
     - potencia-ac-fasores
     - convertidor-vsc
-    - modulacion-pwm
-    - transformada-clarke
     - marco-dq
     - potencia-instantanea-dq
     - sistema-por-unidad
@@ -54,6 +52,8 @@
     - clasificacion-estabilidad
     - especificaciones-control
     - criterio-middlebrook
+    - impedancia-salida-estabilidad
+    - fenomenos-oscilatorios-red
     - robustez-parametrica
     - funciones-sensibilidad
     - nyquist-generalizado
@@ -79,9 +79,9 @@
   conceptos:
     - componentes-simetricas
     - pll-srf
-    - dsogi-pll
     - red-thevenin-scr
     - interaccion-pll-red-debil
+    - impedancia-salida-estabilidad
     - fault-ride-through
     - grid-forming-vs-following
 

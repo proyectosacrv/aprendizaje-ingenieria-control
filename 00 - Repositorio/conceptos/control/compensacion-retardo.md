@@ -9,7 +9,7 @@ objetivos: [recuperar margen y desempeño perdidos por el retardo de cómputo y 
 tags: [retardo, smith-predictor, computo, pwm, prediccion, fase, intermedio, control]
 fecha_creacion: 2026-06-09
 fecha_actualizacion: 2026-06-09
-relacionados: [discretizacion-controladores, margenes-estabilidad, desacoplo-dq, estabilidad-armonica, controlador-pid]
+relacionados: [discretizacion-controladores, margenes-estabilidad, desacoplo-dq, fenomenos-oscilatorios-red, controlador-pid]
 referencias:
   - "Buso, Mattavelli, Digital Control in Power Electronics, Morgan & Claypool 2006"
   - "Åström, Hägglund, Advanced PID Control, ISA 2006"
@@ -25,7 +25,7 @@ En un convertidor digital el retardo total es típicamente \( T_d\approx1.5\,T_s
 cómputo + medio de PWM/ZOH). Su efecto en frecuencia es fase pura:
 $$ e^{-sT_d}\ \Rightarrow\ \Delta\phi(\omega)=-\omega T_d $$
 que **resta margen de fase** proporcional a \( \omega_c \) y empuja la impedancia hacia la
-no-pasividad ([[estabilidad-armonica]]). Compensaciones:
+no-pasividad ([[fenomenos-oscilatorios-red|estabilidad armónica]]). Compensaciones:
 - **Predicción de estados / corriente:** estimar el valor de la variable \( T_d \) por delante
   (modelo del filtro, observador) y controlar sobre la predicción → cancela el retardo dentro de la
   banda del modelo.
@@ -72,7 +72,7 @@ errores de modelo > 10–20 %.
 - Sobre-predecir (compensar de más) → adelanto excesivo y ruido amplificado.
 
 ## Conceptos relacionados
-- [[discretizacion-controladores]] · [[margenes-estabilidad]] · [[desacoplo-dq]] · [[estabilidad-armonica]] · [[controlador-pid]]
+- [[discretizacion-controladores]] · [[margenes-estabilidad]] · [[desacoplo-dq]] · [[fenomenos-oscilatorios-red|estabilidad armónica]] · [[controlador-pid]]
 
 ## Referencias
 - Buso, Mattavelli, *Digital Control in Power Electronics*, 2006.

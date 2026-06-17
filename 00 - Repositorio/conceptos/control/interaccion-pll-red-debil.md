@@ -9,7 +9,7 @@ objetivos: [entender y evitar la inestabilidad del GFL en red debil]
 tags: [pll, red-debil, SCR, grid-following, oscilaciones, estabilidad]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-06-08
-relacionados: [pll-srf, no-pasividad-resistencia-negativa, impedancia-salida-estabilidad, grid-forming-vs-following, red-thevenin-scr]
+relacionados: [pll-srf, impedancia-salida-estabilidad, grid-forming-vs-following, red-thevenin-scr]
 referencias:
   - "Dong et al., Analysis of Phase-Locked Loop Low-Frequency Stability in DG, IEEE TIE 2015"
 ---
@@ -24,7 +24,7 @@ La PLL mide la tensión en el PCC para estimar el ángulo. En red débil (alta \
 **corriente inyectada perturba esa tensión**: al inyectar, cae/gira la tensión del PCC, la PLL
 malinterpreta el ángulo y corrige la corriente, que vuelve a perturbar la tensión. Si la PLL es
 rápida, esta realimentación se cierra con fase desfavorable → inestable. En términos de
-impedancia, la PLL hace \( \mathrm{Re}\{Z\}<0 \) (ver [[no-pasividad-resistencia-negativa]]) y al
+impedancia, la PLL hace \( \mathrm{Re}\{Z\}<0 \) (ver [[impedancia-salida-estabilidad|resistencia negativa]]) y al
 cruzarse con la red inductiva se viola el Nyquist (ver [[impedancia-salida-estabilidad]]).
 
 Es el **espejo** del grid-forming: el GFL se inestabiliza en red DÉBIL; el GFM (con control
@@ -64,7 +64,7 @@ SCR≈3.5. PLL muy rápida (≈170 Hz): inestable hasta SCR≈8 (casi cualquier 
   amplía la región débil inestable. Comparación directa con el GFM en `main_compare.py`.
 
 ## Conceptos relacionados
-- [[pll-srf]] · [[no-pasividad-resistencia-negativa]] · [[impedancia-salida-estabilidad]] · [[grid-forming-vs-following]] · [[red-thevenin-scr]]
+- [[pll-srf]] · [[impedancia-salida-estabilidad|resistencia negativa]] · [[grid-forming-vs-following]] · [[red-thevenin-scr]]
 
 ## Referencias
 - Dong et al., *Analysis of PLL Low-Frequency Stability in DG*, IEEE TIE 2015.

@@ -9,7 +9,7 @@ objetivos: [obtener un modelo matematico util de un sistema fisico]
 tags: [modelado, ecuaciones, caja-blanca, identificacion, dominios]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-06-08
-relacionados: [variables-estado, representacion-espacio-estados, linealizacion-teoria, marco-dq, modelo-promediado]
+relacionados: [variables-estado, representacion-espacio-estados, linealizacion-teoria, marco-dq, convertidor-vsc]
 referencias:
   - "Ljung, System Identification, Prentice Hall 1999"
   - "Khalil, Nonlinear Systems, Prentice Hall 2002"
@@ -72,7 +72,7 @@ El orden del modelo = nº de almacenadores independientes. Para un filtro LCL po
   contra inyección de impedancia y promediado-vs-conmutado.
 
 ## Conceptos relacionados
-- [[variables-estado]] · [[representacion-espacio-estados]] · [[linealizacion-teoria]] · [[modelo-promediado]]
+- [[variables-estado]] · [[representacion-espacio-estados]] · [[linealizacion-teoria]] · [[convertidor-vsc|modelo promediado]]
 
 ## Referencias
 - Khalil, *Nonlinear Systems*, 2002 · Ljung, *System Identification*, 1999.

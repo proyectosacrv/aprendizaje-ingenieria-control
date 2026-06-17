@@ -9,7 +9,7 @@ objetivos: [entender la resonancia del filtro LCL y por qué hay que amortiguarl
 tags: [resonancia, rlc, factor-calidad, filtro, basico]
 fecha_creacion: 2026-06-10
 fecha_actualizacion: 2026-06-11
-relacionados: [filtro-lcl, amortiguamiento-activo-lcl, impedancia-reactancia, diagrama-bode, respuesta-segundo-orden]
+relacionados: [filtro-lcl, impedancia-reactancia, diagrama-bode, respuesta-segundo-orden]
 referencias:
   - "Sedra & Smith, Microelectronic Circuits"
   - "Erickson & Maksimovic, Fundamentals of Power Electronics"
@@ -68,7 +68,7 @@ nulo; tras amortiguamiento activo se lleva a \( \zeta \approx 0.1\text{–}0.3 \
   se trata con amortiguamiento activo (realimentación de la corriente del condensador).
 
 ## Conceptos relacionados
-- [[filtro-lcl]] · [[amortiguamiento-activo-lcl]] · [[impedancia-reactancia]] · [[diagrama-bode]] · [[respuesta-segundo-orden]]
+- [[filtro-lcl]] · [[impedancia-reactancia]] · [[diagrama-bode]] · [[respuesta-segundo-orden]]
 
 ## Referencias
 - Erickson & Maksimovic, *Fundamentals of Power Electronics*.

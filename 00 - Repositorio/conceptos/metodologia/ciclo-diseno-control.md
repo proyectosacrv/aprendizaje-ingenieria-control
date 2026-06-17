@@ -30,14 +30,14 @@ confirme en un nivel de fidelidad adecuado.
 <div class="cfig"><img src="figuras/ciclo-diseno-control-ciclo.png" alt="ciclo Diseñar Evaluar Validar con realimentacion"><div class="cap">El diseño de control se organiza en tres fases con realimentación: Diseñar (de la especificación al controlador), Evaluar (¿cumple márgenes y robustez?) y Validar (¿funciona subiendo niveles de fidelidad?); si una fase falla, se rediseña. El hilo conductor es la trazabilidad requisito → especificación → diseño → métrica → prueba.</div></div>
 
 ## Las tres fases (mapa)
-**1 · Diseñar** — [[especificaciones-control]] · [[arquitecturas-control]] ·
+**1 · Diseñar** — [[especificaciones-control]] · [[arquitecturas-control]]
 [[metodos-sintesis-control]] (clásico: [[sintonia-pi-pid]], [[loop-shaping]]; estado:
 [[asignacion-polos-lqr]]; avanzado: [[control-predictivo]], [[control-robusto-hinf]]).
 
-**2 · Evaluar** — estabilidad ([[analisis-modal]], Nyquist) · [[margenes-estabilidad]] ·
+**2 · Evaluar** — estabilidad ([[analisis-modal]], Nyquist) · [[margenes-estabilidad]]
 [[funciones-sensibilidad]] · [[metricas-desempeno]] · [[robustez-parametrica]].
 
-**3 · Validar** — [[niveles-validacion]] (lineal → no lineal → conmutado → HIL → real) ·
+**3 · Validar** — [[niveles-validacion]] (lineal → no lineal → conmutado → HIL → real)
 [[pruebas-validacion]] · [[validacion-cruzada]].
 
 ## Cuándo y por qué se usa

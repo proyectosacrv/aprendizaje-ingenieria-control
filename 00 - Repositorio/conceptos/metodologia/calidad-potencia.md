@@ -9,7 +9,7 @@ objetivos: [cuantificar y cumplir los límites de distorsión armónica, desequi
 tags: [calidad-potencia, thd, armonicos, flicker, ieee519, iec61000, desequilibrio, intermedio]
 fecha_creacion: 2026-06-09
 fecha_actualizacion: 2026-06-09
-relacionados: [fft-analisis-espectral, modulacion-pwm, filtro-lcl, estabilidad-armonica, deteccion-islanding]
+relacionados: [fft-analisis-espectral, convertidor-vsc, filtro-lcl, fenomenos-oscilatorios-red, deteccion-islanding]
 referencias:
   - "IEEE Std 519-2022, Harmonic Control in Electric Power Systems"
   - "IEC 61000-3-2/3-12, Limits for Harmonic Current Emissions"
@@ -41,9 +41,9 @@ gran amplitud a 0.5–25 Hz. Límites: \( P_{st}<1 \), \( P_{lt}<0.65 \).
 **Medición normativa (IEC 61000-4-30 clase A):** ventanas sincronizadas de 10/12 ciclos (200/166,7 ms);
 agrupación en 3 s, 10 min, 2 h para estadísticas.
 
-**Origen en convertidores:** la [[modulacion-pwm|conmutación PWM]] genera armónicos en torno a
+**Origen en convertidores:** la [[convertidor-vsc|conmutación PWM]] genera armónicos en torno a
 \( f_{sw} \) y bandas laterales; el [[filtro-lcl]] los atenúa; la resonancia del LCL y la
-[[estabilidad-armonica]] pueden amplificarlos. Las cargas pulsantes de data center (GPU en rafaga)
+[[fenomenos-oscilatorios-red|estabilidad armónica]] pueden amplificarlos. Las cargas pulsantes de data center (GPU en rafaga)
 generan flicker e interarmónicos.
 
 <div class="cfig"><img src="figuras/calidad-potencia-armonicos.png" alt="armonicos medidos frente al limite IEEE 519"><div class="cap">Comprobación de cumplimiento: cada armónico de corriente medido en el PCC se compara con el límite individual de IEEE 519 (que depende de la relación $I_{sc}/I_L$). Aquí todos cumplen salvo el 5º, que supera su límite; cumplir el THD global no basta si un armónico individual lo viola. La mitigación es más atenuación de filtro, filtro activo o resonantes.</div></div>
@@ -82,7 +82,7 @@ desequilibrio < 2 %; \( P_{st}<1 \). Armónicos dominantes de VSC 2-niveles: \( 
 - Ignorar el flicker en cargas pulsantes de data center (GPU workloads).
 
 ## Conceptos relacionados
-- [[fft-analisis-espectral]] · [[modulacion-pwm]] · [[filtro-lcl]] · [[estabilidad-armonica]] · [[deteccion-islanding]]
+- [[fft-analisis-espectral]] · [[convertidor-vsc|modulación PWM]] · [[filtro-lcl]] · [[fenomenos-oscilatorios-red|estabilidad armónica]] · [[deteccion-islanding]]
 
 ## Referencias
 - IEEE Std 519-2022, *Harmonic Control in Electric Power Systems*.

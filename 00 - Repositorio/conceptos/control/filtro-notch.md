@@ -9,7 +9,7 @@ objetivos: [atenuar una resonancia estrecha en el lazo sin perder ancho de banda
 tags: [notch, rechazo-banda, resonancia, lcl, filtro, intermedio, control]
 fecha_creacion: 2026-06-09
 fecha_actualizacion: 2026-06-12
-relacionados: [amortiguamiento-activo-lcl, filtro-lcl, diagrama-bode, loop-shaping]
+relacionados: [filtro-lcl, diagrama-bode, loop-shaping]
 referencias:
   - "Yepes et al., Analysis and design of resonant current controllers, IEEE TIE 2011"
   - "Peña-Alzola et al., LCL-filter design for grid converters, IEEE TPEL 2014"
@@ -31,7 +31,7 @@ $$ N(s)=\frac{s^2+2\zeta_z\,\omega_n s+\omega_n^2}{s^2+2\zeta_p\,\omega_n s+\ome
 - Penalización clave: el notch **resta fase** por debajo de \( \omega_n \), reduciendo el margen del
   lazo si \( \omega_n \) está cerca del cruce de ganancia.
 
-Frente al **amortiguamiento activo** ([[amortiguamiento-activo-lcl]]): el notch es más simple (no
+Frente al **amortiguamiento activo** ([[filtro-lcl|amortiguamiento activo]]): el notch es más simple (no
 necesita sensar la corriente del condensador) pero menos robusto a la deriva de \( \omega_{res} \)
 (con \( L \), \( C \) variando con el punto de operación o tolerancias).
 
@@ -72,7 +72,7 @@ notch = ct.tf([1, 2*zz*wn, wn**2], [1, 2*zp*wn, wn**2])
 - Ignorar la deriva de la resonancia con el punto de operación/tolerancias.
 
 ## Conceptos relacionados
-- [[amortiguamiento-activo-lcl]] · [[filtro-lcl]] · [[loop-shaping]] · [[diagrama-bode]] · [[barrido-parametrico]]
+- [[filtro-lcl|amortiguamiento activo]] · [[loop-shaping]] · [[diagrama-bode]] · [[barrido-parametrico]]
 
 ## Referencias
 - Yepes et al., *Resonant current controllers*, IEEE TIE 2011.

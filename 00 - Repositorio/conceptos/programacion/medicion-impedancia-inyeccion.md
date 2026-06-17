@@ -9,7 +9,7 @@ objetivos: [medir Z_dq en simulacion/hardware y validar el modelo]
 tags: [impedancia, inyeccion, demodulacion, MIMO, validacion, PLECS]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-06-08
-relacionados: [impedancia-salida-estabilidad, respuesta-frecuencia-ss, modelo-promediado]
+relacionados: [impedancia-salida-estabilidad, respuesta-frecuencia-ss, convertidor-vsc]
 referencias:
   - "Roinila et al., Frequency-Response Measurement of Converters, IEEE TPEL"
 ---
@@ -68,7 +68,7 @@ mientras no haya saturación (si entra el current limiting, deja de ser lineal).
   procesa datos exportados de PLECS.
 
 ## Conceptos relacionados
-- [[impedancia-salida-estabilidad]] · [[respuesta-frecuencia-ss]] · [[modelo-promediado]]
+- [[impedancia-salida-estabilidad]] · [[respuesta-frecuencia-ss]] · [[convertidor-vsc|modelo promediado]]
 
 ## Referencias
 - Roinila et al., medición de respuesta en frecuencia de convertidores.

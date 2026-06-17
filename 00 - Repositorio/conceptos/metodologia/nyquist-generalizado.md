@@ -9,7 +9,7 @@ objetivos: [decidir estabilidad de sistemas multivariable y del cociente de impe
 tags: [nyquist-generalizado, gnc, mimo, eigenloci, impedancia, minor-loop-gain, avanzado]
 fecha_creacion: 2026-06-09
 fecha_actualizacion: 2026-06-09
-relacionados: [criterio-nyquist, impedancia-salida-estabilidad, valores-singulares-mimo, criterio-middlebrook, impedancia-dq-vs-secuencia]
+relacionados: [criterio-nyquist, impedancia-salida-estabilidad, valores-singulares-mimo, criterio-middlebrook]
 referencias:
   - "Skogestad, Postlethwaite, Multivariable Feedback Control, Wiley 2005"
   - "Sun, Impedance-Based Stability Criterion for Grid-Connected Inverters, IEEE TPEL 2011"
@@ -43,7 +43,7 @@ círculo unidad como condición suficiente).
 **Criterios suficientes (menos conservadores que la norma).** Calcular eigenloci es costoso y poco
 robusto; alternativas:
 - Norma: si \( \bar\sigma(\mathbf{Z}_s\mathbf{Y}_l)<1\ \forall\omega \) → estable (muy conservador).
-- **G-norm / pasividad**: índices de pasividad de la impedancia (ver [[no-pasividad-resistencia-negativa]]).
+- **G-norm / pasividad**: índices de pasividad de la impedancia (ver [[impedancia-salida-estabilidad|resistencia negativa]]).
 - Valores singulares estructurados (μ) para incertidumbre (ver [[valores-singulares-mimo]]).
 
 <div class="cfig"><img src="figuras/nyquist-generalizado-eigenloci.png" alt="eigenloci del minor loop gain frente al punto -1"><div class="cap">En un sistema MIMO la estabilidad la deciden los autovalores (eigenloci) de la matriz de ganancia de lazo $L=Z_sY_l$, no una sola función escalar. La suma de sus rodeos netos del punto $-1$ debe ser $-P_{ol}$; aquí ninguno rodea $-1$, así que el conjunto fuente-carga es estable. Es la base formal del criterio por impedancia en dq.</div></div>
@@ -81,7 +81,7 @@ fina alrededor de las resonancias de \( \mathbf{Z}_s,\mathbf{Z}_l \).
 - Confundir el determinante \( \det(\mathbf{I}+\mathbf{L}) \) con uno solo de los eigenloci.
 
 ## Conceptos relacionados
-- [[criterio-nyquist]] · [[impedancia-salida-estabilidad]] · [[criterio-middlebrook]] · [[valores-singulares-mimo]] · [[impedancia-dq-vs-secuencia]]
+- [[criterio-nyquist]] · [[impedancia-salida-estabilidad]] · [[criterio-middlebrook]] · [[valores-singulares-mimo]]
 
 ## Referencias
 - Skogestad, Postlethwaite, *Multivariable Feedback Control*, 2005.

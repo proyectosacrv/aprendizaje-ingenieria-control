@@ -9,7 +9,7 @@ objetivos: [modelar la demanda electrica caracteristica de la computacion de IA]
 tags: [datacenter, IA, carga-pulsante, RoCoF, microrred, GPU]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-06-08
-relacionados: [carga-potencia-constante-cpl, vsm-inercia, estabilidad-bus-dc-cpl]
+relacionados: [dinamica-bus-dc, vsm-inercia]
 referencias:
   - "Informes de operadores de red sobre integracion de cargas de data center (2024-2025)"
 ---
@@ -24,12 +24,12 @@ Dos rasgos clave para el sistema de energía:
 - **Pulsos sincronizados**: el paralelismo de un entrenamiento hace que las GPUs cambien de estado
   coordinadamente → la demanda agregada salta como un escalón, no de forma suave.
 - **Comportamiento de potencia constante**: cada servidor, vía su POL, es una
-  [[carga-potencia-constante-cpl|CPL]] en el bus DC.
+  [[dinamica-bus-dc|CPL]] en el bus DC.
 El escalón de potencia \( \Delta P \) impacta:
 - En **frecuencia** (lado AC): impone un RoCoF inicial \( \dfrac{df}{dt}\approx \dfrac{\Delta P\,f_0}{2HS} \),
   que el soporte inercial del BESS ([[vsm-inercia]]) debe limitar.
 - En **tensión de bus DC**: hundimiento transitorio que el condensador de bus amortigua, y riesgo
-  de inestabilidad si la potencia supera la crítica del filtro ([[estabilidad-bus-dc-cpl]]).
+  de inestabilidad si la potencia supera la crítica del filtro ([[dinamica-bus-dc|estabilidad del bus DC con CPL]]).
 
 <div class="cfig"><img src="figuras/carga-pulsante-datacenter-ia-impacto.png" alt="escalon de potencia de un data center de IA y su impacto en frecuencia"><div class="cap">La carga de IA salta como un escalón sincronizado (miles de GPUs entran a un job a la vez). Ese $\Delta P$ impone un RoCoF inicial $\approx\Delta P f_0/(2HS)$ y una caída de frecuencia que el soporte inercial del BESS debe limitar; en el bus DC produce un hundimiento que amortigua el condensador. Es el caso de diseño más exigente.</div></div>
 
@@ -62,7 +62,7 @@ admisible de red típico ≈ 0.5–1 Hz/s.
   del BESS limita el RoCoF y el condensador de bus el hundimiento de \( V_{dc} \).
 
 ## Conceptos relacionados
-- [[carga-potencia-constante-cpl]] · [[vsm-inercia]] · [[estabilidad-bus-dc-cpl]]
+- [[dinamica-bus-dc|carga de potencia constante (CPL)]] · [[vsm-inercia]]
 
 ## Referencias
 - Informes de operadores de red sobre integración de data centers (2024-2025).

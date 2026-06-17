@@ -9,7 +9,7 @@ objetivos: [regular la tension del condensador con lazos anidados]
 tags: [cascada, PI, desacoplo, dq, ancho-de-banda]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-06-11
-relacionados: [filtro-lcl, amortiguamiento-activo-lcl, marco-dq, droop-control]
+relacionados: [filtro-lcl, marco-dq, droop-control]
 referencias:
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
 ---
@@ -40,7 +40,7 @@ protección y rechazo rápido; el de tensión fija el punto de operación.
 2. **Lazo de tensión** (\( f_{cv}\sim f_{ci}/3 \) a /5): \( K_{p,v}=C_f\omega_{cv} \), \( K_{i,v} \)
    por el cero deseado.
 3. Añade **desacoplo** \( \pm\omega L,\ \pm\omega C \) y feedforward de \( v_C \).
-4. Si la resonancia LCL limita \( f_{cv} \), añade [[amortiguamiento-activo-lcl]] primero.
+4. Si la resonancia LCL limita \( f_{cv} \), añade [[filtro-lcl|amortiguamiento activo]] primero.
 
 ## Ejemplo de código
 ```python
@@ -64,7 +64,7 @@ vid = Kp_i*ei_d + Ki_i*xid - w*L1*iL1q + vcd
   con desacoplo. El feedforward de carga inicial se eliminó por desestabilizar.
 
 ## Conceptos relacionados
-- [[filtro-lcl]] · [[amortiguamiento-activo-lcl]] · [[marco-dq]] · [[droop-control]]
+- [[filtro-lcl]] · [[marco-dq]] · [[droop-control]]
 
 ## Referencias
 - Yazdani, Iravani, *Voltage-Sourced Converters in Power Systems*, 2010.

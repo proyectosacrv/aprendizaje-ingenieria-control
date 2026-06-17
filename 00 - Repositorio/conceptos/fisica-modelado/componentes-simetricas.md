@@ -9,7 +9,7 @@ objetivos: [descomponer un sistema trifásico desequilibrado en secuencias trata
 tags: [componentes-simetricas, secuencia, desequilibrio, fortescue, intermedio, modelado]
 fecha_creacion: 2026-06-09
 fecha_actualizacion: 2026-06-12
-relacionados: [sistema-trifasico, potencia-ac-fasores, marco-dq, transformada-clarke]
+relacionados: [sistema-trifasico, potencia-ac-fasores, marco-dq]
 referencias:
   - "Kundur, Power System Stability and Control, McGraw-Hill 1994"
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
@@ -38,7 +38,7 @@ aparece como rizado de **\( 2\omega \)** (100 Hz), motivo de los controles de do
 ## Cuándo y por qué se usa
 Análisis de faltas asimétricas, requisitos de **fault ride-through**, control bajo desequilibrio
 de red y diseño de lazos de secuencia negativa en convertidores. Complementa a [[marco-dq]] y
-[[transformada-clarke]].
+[[marco-dq|transformada de Clarke]].
 
 ## Procedimiento (genérico)
 1. Mide los fasores de fase \( V_a,V_b,V_c \).
@@ -69,7 +69,7 @@ Límite de desequilibrio en red (factor \( V_-/V_+ \)) típicamente < 2 %. En fa
 - Ignorar el rizado de \( 2\omega \) que la secuencia negativa induce en dq.
 
 ## Conceptos relacionados
-- [[sistema-trifasico]] · [[potencia-ac-fasores]] · [[marco-dq]] · [[transformada-clarke]]
+- [[sistema-trifasico]] · [[potencia-ac-fasores]] · [[marco-dq]]
 
 ## Referencias
 - Kundur, *Power System Stability and Control*, 1994.

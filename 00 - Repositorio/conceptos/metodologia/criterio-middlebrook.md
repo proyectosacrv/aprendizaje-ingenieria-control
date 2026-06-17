@@ -9,7 +9,7 @@ objetivos: [evaluar la estabilidad de una cascada fuente-carga por sus impedanci
 tags: [middlebrook, impedancia, cascada, bus-dc, estabilidad]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-06-08
-relacionados: [estabilidad-bus-dc-cpl, carga-potencia-constante-cpl, impedancia-salida-estabilidad, no-pasividad-resistencia-negativa]
+relacionados: [dinamica-bus-dc, impedancia-salida-estabilidad]
 referencias:
   - "Middlebrook, Input Filter Considerations in Design of Switching Regulators, IEEE 1976"
 ---
@@ -27,7 +27,7 @@ $$ T_m(s) = \frac{Z_{fuente}(s)}{Z_{carga}(s)} $$
 El **criterio de Middlebrook** (condición suficiente y conservadora) exige:
 $$ |Z_{fuente}(j\omega)| \ll |Z_{carga}(j\omega)| \quad \forall \omega $$
 es decir, que la impedancia de salida de la fuente sea mucho menor que la de entrada de la carga.
-Con una [[carga-potencia-constante-cpl|CPL]], \( Z_{carga}=-V^2/P \) (resistencia negativa,
+Con una [[dinamica-bus-dc|CPL]], \( Z_{carga}=-V^2/P \) (resistencia negativa,
 \( |Z|=V^2/P \)): al subir \( P \), \( |Z_{carga}| \) baja y, cuando cae por debajo del pico de
 resonancia de \( |Z_{fuente}| \), el sistema se inestabiliza. Existen criterios menos
 conservadores (GMPM, banda prohibida, ESAC) que relajan el de Middlebrook.
@@ -65,7 +65,7 @@ Criterio conservador (deja margen de diseño).
   kW, coincide con la \( P_{crit} \) por autovalores (128 kW). Validación cruzada de la Fase 2.
 
 ## Conceptos relacionados
-- [[estabilidad-bus-dc-cpl]] · [[carga-potencia-constante-cpl]] · [[impedancia-salida-estabilidad]]
+- [[dinamica-bus-dc|estabilidad del bus DC con CPL]] · [[impedancia-salida-estabilidad]]
 
 ## Referencias
 - Middlebrook, *Input Filter Considerations...*, IEEE 1976.

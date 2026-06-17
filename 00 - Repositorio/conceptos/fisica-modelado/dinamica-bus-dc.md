@@ -1,86 +1,134 @@
 ---
-titulo: Dinámica y dimensionado del bus DC
+titulo: Bus DC — dinámica, dimensionado, CPL y estabilidad
 slug: dinamica-bus-dc
 categoria: fisica-modelado
 tipo: concepto
 nivel: intermedio
-proyectos: []
-objetivos: [modelar y dimensionar el condensador del bus DC y su tensión]
-tags: [bus-dc, condensador, balance-energia, rizado, hold-up, intermedio, modelado]
+proyectos: [03-DataCenter-IA]
+objetivos: [modelar y dimensionar el condensador del bus DC, modelar la carga de potencia constante y analizar la estabilidad del bus]
+tags: [bus-dc, condensador, balance-energia, rizado, hold-up, CPL, resistencia-negativa, estabilidad, microrred-dc, datacenter]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-12
-relacionados: [convertidor-vsc, control-tension-bus-dc, estabilidad-bus-dc-cpl, carga-potencia-constante-cpl, potencia-instantanea-dq]
+fecha_actualizacion: 2026-06-16
+relacionados: [control-tension-bus-dc, criterio-middlebrook, impedancia-salida-estabilidad, potencia-instantanea-dq, robustez-parametrica]
 referencias:
   - "Mohan, Undeland, Robbins, Power Electronics, Wiley"
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
+  - "Emadi et al., Constant Power Loads and Negative Impedance Instability, IEEE TVT 2006"
+  - "Riccobono, Santi, Comprehensive Review of Stability Criteria for DC Power Systems, IEEE TIA 2014"
 ---
 
 ## Definición
-Modelo del **condensador del bus DC** como elemento que integra el desbalance de corriente/potencia
-entre las dos etapas del convertidor, y reglas para **dimensionarlo** según rizado admisible y
-autonomía (*hold-up*).
+El bus DC es el nudo de continua que une dos etapas de electrónica de potencia y absorbe el desbalance instantáneo de potencia entre ellas mediante un condensador. Esta ficha reúne tres cosas inseparables en cualquier estudio del bus: su dinámica y dimensionado (condensador, rizado, autonomía), el modelo de la carga característica que cuelga de él (la CPL, carga de potencia constante) y el análisis de estabilidad del conjunto, porque la CPL es precisamente lo que puede desestabilizar el bus.
 
-## Fundamento teórico
+## Qué hay a cada lado del bus (contexto genérico)
+El condensador del bus no distingue qué etapas alimenta. Aguas arriba hay una fuente que entrega potencia Pin al bus: puede ser un rectificador activo, la etapa de red de un back-to-back, un convertidor DC-DC elevador desde un generador o una batería, un panel PV. Aguas abajo hay una o varias cargas que extraen Pout: un inversor que vierte a una red AC, un convertidor punto-de-carga (POL) que alimenta servidores, un motor con su accionamiento. Para el bus, cada lado es simplemente una corriente inyectada o extraída; lo único que importa de cada etapa es su potencia y, para la estabilidad, cómo varía esa potencia cuando cambia la tensión del bus (de ahí el papel central de la CPL).
+
+## Parte 1 — dinámica y dimensionado
 Por la corriente del condensador:
-$$ C\frac{dv_{dc}}{dt}=i_{in}-i_{out} $$
-o en energía \( E=\tfrac12 C v_{dc}^2 \):
-$$ \frac{dE}{dt}=P_{in}-P_{out} $$
-La planta hacia la tensión es un **integrador no lineal** (de ahí controlar \( v_{dc}^2 \); ver
-[[control-tension-bus-dc]]).
 
-**Fuentes de rizado:**
-- Monofásico: la potencia instantánea pulsa a \( 2\omega \) → rizado de \( v_{dc} \) a 100/120 Hz
-  $$ \Delta v_{dc}\approx\frac{P}{2\omega\,C\,V_{dc}} $$
-- Trifásico equilibrado: la potencia es constante ([[potencia-instantanea-dq]]); el rizado dominante
-  viene de la **conmutación** (6·\( f \) en rectificadores, \( f_{sw} \) en VSC).
+C·dvdc/dt = i_in − i_out
 
-**Dimensionado por autonomía (hold-up):** ante pérdida de entrada, mantener \( v_{dc}>V_{min} \)
-durante \( t_h \):
-$$ C\ge\frac{2 P\, t_h}{V_{dc0}^2-V_{min}^2} $$
+o en energía E = (1/2)·C·vdc²:
 
-**Estabilidad:** una carga de potencia constante presenta **impedancia incremental negativa**
-\( \partial v/\partial i<0 \), que puede desestabilizar el bus (ver
-[[carga-potencia-constante-cpl]], [[estabilidad-bus-dc-cpl]]).
+dE/dt = P_in − P_out
+
+La planta hacia la tensión es un integrador no lineal (de ahí controlar vdc²; ver [[control-tension-bus-dc]]).
+
+Fuentes de rizado:
+- Monofásico: la potencia instantánea pulsa a 2·omega → rizado de vdc a 100/120 Hz, delta_vdc ≈ P / (2·omega·C·Vdc).
+- Trifásico equilibrado: la potencia es constante (ver [[potencia-instantanea-dq]]); el rizado dominante viene de la conmutación (6·f en rectificadores, fsw en VSC).
+
+Dimensionado por autonomía (hold-up): ante pérdida de entrada, mantener vdc > Vmin durante un tiempo th:
+
+C ≥ 2·P·th / (Vdc0² − Vmin²)
 
 <div class="cfig"><img src="figuras/dinamica-bus-dc-respuesta.png" alt="respuesta del bus DC a un escalon de carga"><div class="cap">El condensador integra el desbalance: sin control (rojo) Vdc cae linealmente ante un exceso de carga; el lazo de tensión (azul) ajusta la potencia de entrada y lo recupera.</div></div>
 
+## Parte 2 — carga de potencia constante (CPL)
+Una CPL consume una potencia fija P independientemente de su tensión de alimentación. Es el comportamiento típico de un convertidor con su salida bien regulada (un POL de servidor, un motor con control de velocidad): aunque caiga la tensión de entrada, mantiene su potencia subiendo la corriente. Su corriente en función de la tensión del bus es:
+
+i_cpl = P / V
+
+Su conductancia incremental (pendiente di/dV) es negativa:
+
+di_cpl/dV = −P / V² < 0
+
+Equivale a una resistencia incremental negativa −V²/P. Esta resistencia negativa desamortigua los filtros LC aguas arriba: aporta energía a la resonancia en lugar de disiparla, lo que puede inestabilizar el bus. Es un caso concreto de no pasividad / resistencia negativa (ver [[impedancia-salida-estabilidad]]).
+
+<div class="cfig"><img src="figuras/carga-potencia-constante-cpl-iv.png" alt="curva i-V de una CPL con pendiente incremental negativa"><div class="cap">La CPL sigue i=P/V: si la tensión cae, la corriente sube para mantener la potencia. Su pendiente incremental ∂i/∂V=−P/V² es negativa (resistencia incremental −V²/P), al revés que una resistencia. Esa pendiente negativa desamortigua los filtros LC aguas arriba.</div></div>
+
+## Parte 3 — estabilidad del bus con CPL
+Para un filtro Lf, Rf que alimenta un condensador Cdc con una CPL de potencia P, el modelo linealizado tiene matriz:
+
+A = [[ −Rf/Lf, −1/Lf ],[ 1/Cdc, P/(V²· Cdc) ]]
+
+El término P/(V²·Cdc) de la CPL es positivo en la diagonal: reduce el amortiguamiento. La traza se hace positiva (inestable) cuando:
+
+P > P_crit = V²·Rf·Cdc / Lf
+
+Es decir: más potencia, menos resistencia o menos condensador → inestable. Soluciones:
+- Amortiguamiento pasivo: aumentar R (disipa) o rama R-C de damping.
+- Más capacidad de bus Cdc (sube P_crit).
+- Amortiguamiento activo: el convertidor fuente emula resistencia sin pérdidas.
+- Impedance shaping y verificación por [[criterio-middlebrook]] / criterio de impedancia.
+
+Es el análogo DC de la inestabilidad por impedancia que en AC aparece en el grid-following.
+
+<div class="cfig"><img src="figuras/estabilidad-bus-dc-cpl-polos.png" alt="polos del bus DC con CPL al subir la potencia"><div class="cap">Al aumentar la potencia de la CPL, el término P/(V²Cdc) resta amortiguamiento y el par de polos del filtro L-C se desplaza a la derecha, cruzando el eje imaginario en P_crit=V²RfCdc/Lf. Por encima de esa potencia el bus oscila: hay que dejar margen o subir Cdc.</div></div>
+
 ## Cuándo y por qué se usa
-Para elegir \( C \) (rizado, autonomía, vida útil), modelar el lazo de tensión y analizar la
-estabilidad del bus frente a cargas CPL en microrredes DC y data centers.
+Para elegir C (rizado, autonomía, vida útil), modelar el lazo de tensión, y analizar la estabilidad del bus frente a cargas CPL en microrredes DC, data centers, vehículos eléctricos, naval y aeronáutica.
 
 ## Procedimiento de diseño (genérico)
-1. Calcula el rizado dominante (\( 2\omega \) en 1φ, conmutación en 3φ).
-2. Dimensiona \( C \) por el criterio más exigente (rizado **o** hold-up).
-3. Verifica corriente eficaz por el condensador (vida útil/térmica), no solo capacidad.
-4. Modela \( v_{dc} \) (o \( v_{dc}^2 \)) para el [[control-tension-bus-dc|lazo de tensión]].
-5. Comprueba estabilidad con la carga real (CPL → criterio de impedancia).
+1. Calcula el rizado dominante (2·omega en 1φ, conmutación en 3φ).
+2. Dimensiona C por el criterio más exigente (rizado o hold-up).
+3. Verifica la corriente eficaz por el condensador (vida útil/térmica), no solo la capacidad.
+4. Modela vdc (o vdc²) para el lazo de tensión.
+5. Modela la carga real como CPL (resistencia incremental −V²/P), calcula P_crit = V²·R·C/L y compáralo con el rango de carga.
+6. Verifica la estabilidad por autovalores y por impedancia ([[criterio-middlebrook]]); si P_op se acerca a P_crit, sube Cdc o añade amortiguamiento.
 
 ## Ejemplo de aplicación real
-**Problema:** Bus DC de \( V_{dc0}=700\,\text{V} \), potencia 100 kW, rizado admisible <1 %. Dimensionar \( C \) por rizado (sistema monofásico) y por hold-up de 20 ms (\( V_{min}=600\,\text{V} \)).
-
-Por rizado monofásico: \( \Delta v_{dc}=P/(2\omega C V_{dc0})=100000/(2\times314\times C\times700) \). Para \( \Delta v_{dc}/V_{dc0}<0.01 \): \( C\ge100000/(2\times314\times0.01\times700^2)\approx3.27\,\text{mF} \). Por hold-up: \( C\ge2P\,t_h/(V_{dc0}^2-V_{min}^2)=2\times100000\times0.02/(700^2-600^2)=4000/130000\approx30.8\,\text{mF} \). El criterio de hold-up es casi 10× más exigente. Se elige \( C=33\,\text{mF} \) con margen. La corriente RMS del condensador a 100 Hz se verifica con la hoja de datos (límite térmico del electrolítico): \( I_{rms}=P/(2V_{dc0})\approx71\,\text{A} \) — seleccionar un componente con margen de corriente adecuado.
+Bus DC de Vdc0 = 700 V, 100 kW, rizado admisible < 1 %. Por rizado monofásico: C ≥ 100000/(2·314·0.01·700²) ≈ 3.27 mF. Por hold-up de 20 ms (Vmin = 600 V): C ≥ 2·100000·0.02/(700²−600²) ≈ 30.8 mF. El hold-up es casi 10× más exigente; se elige C = 33 mF con margen. La corriente RMS del condensador a 100 Hz (≈ 71 A) se verifica contra la hoja de datos (límite térmico del electrolítico).
 
 ## Ejemplo de código
 ```python
+import numpy as np
+
+# Dimensionado
 P, Vdc0, Vmin, th = 100e3, 700.0, 600.0, 20e-3
 C_holdup = 2*P*th/(Vdc0**2 - Vmin**2)          # autonomia
-w = 2*3.1416*50; dV = 0.01*Vdc0
+w = 2*np.pi*50; dV = 0.01*Vdc0
 C_ripple = P/(2*w*dV*Vdc0)                      # rizado 1-fase (<1%)
 C = max(C_holdup, C_ripple)
+
+# CPL + estabilidad
+i_cpl  = P / Vdc0                               # no lineal
+g_incr = -P / Vdc0**2                           # conductancia incremental negativa
+A = np.array([[-Rf/Lf, -1/Lf],
+              [ 1/Cdc,  P/(Vdc0**2*Cdc)]])      # el termino CPL resta amortiguamiento
+estable = np.all(np.linalg.eigvals(A).real < 0)
+P_crit  = Vdc0**2 * Rf * Cdc / Lf
 ```
 
 ## Parámetros y valores típicos
-Rizado \( \Delta v_{dc} \) 1–2 % de \( V_{dc} \). Hold-up 10–20 ms (fuentes con PFC). Electrolíticos
-limitados por corriente RMS y temperatura; film para alta fiabilidad.
+- Rizado delta_vdc 1–2 % de Vdc. Hold-up 10–20 ms (fuentes con PFC). Electrolíticos limitados por corriente RMS y temperatura; film para alta fiabilidad.
+- En un rack de IA, P de la CPL de decenas a cientos de kW a Vdc = 400–800 V; resistencia incremental −V²/P de fracciones de ohmio.
+- Margen recomendado: operar con P_op bastante por debajo de P_crit (factor 2 o más), porque P_crit depende de parámetros inciertos (resistencia de cable, longitud, temperatura).
 
 ## Errores comunes
-- Dimensionar solo por capacidad e ignorar la **corriente eficaz** (sobrecalienta el condensador).
-- Olvidar el rizado de \( 2\omega \) en sistemas monofásicos/desequilibrados.
-- Asumir bus DC "rígido" cuando una carga CPL lo desestabiliza.
+- Dimensionar solo por capacidad e ignorar la corriente eficaz (sobrecalienta el condensador).
+- Olvidar el rizado de 2·omega en sistemas monofásicos/desequilibrados.
+- Modelar la carga como resistencia constante (estable) cuando es CPL (puede inestabilizar); olvidar que el efecto desestabilizante crece con P y con tensión de bus baja.
+- Asumir bus DC "rígido" cuando una CPL lo desestabiliza; confiar solo en el amortiguamiento resistivo natural del cable (pequeño); no dejar margen frente a P_crit.
+
+## Uso en proyectos
+- 03 - DataCenter-IA: los servidores/GPUs (vía sus POL) son la CPL del bus DC; su resistencia incremental negativa fija la potencia crítica de estabilidad. P_crit ≈ 128 kW para el filtro de distribución, validado por autovalores y por Middlebrook (134 kW). El condensador del rack se dimensiona por el pico de carga.
 
 ## Conceptos relacionados
-- [[convertidor-vsc]] · [[control-tension-bus-dc]] · [[estabilidad-bus-dc-cpl]] · [[carga-potencia-constante-cpl]] · [[potencia-instantanea-dq]]
+- [[control-tension-bus-dc]] · [[criterio-middlebrook]] · [[impedancia-salida-estabilidad]] · [[potencia-instantanea-dq]] · [[robustez-parametrica]]
 
 ## Referencias
-- Mohan, Undeland, Robbins, *Power Electronics*.
-- Yazdani, Iravani, 2010.
+- Mohan, Undeland, Robbins, Power Electronics, Wiley.
+- Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010.
+- Emadi et al., Constant Power Loads and Negative Impedance Instability, IEEE TVT 2006.
+- Riccobono, Santi, Review of Stability Criteria for DC Power Systems, IEEE TIA 2014.

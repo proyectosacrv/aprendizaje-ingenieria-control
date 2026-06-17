@@ -52,7 +52,7 @@ es accesible.
 ## Ejemplo de aplicación real
 **Problema:** Filtro LCL con estados \( [i_{L1},\,v_C,\,i_{L2}] \). Solo se mide \( i_{L2} \). Diseñar un observador de Luenberger que estime \( v_C \) e \( i_{L1} \) para implementar amortiguamiento activo sin sensor en el condensador.
 
-El par \( (A,C) \) con \( C=[0,0,1] \) es observable (verificar \( \text{rank}(\mathcal{O})=3 \)). Se colocan los polos del observador a \( 3\times\omega_{res,LCL}\approx3\times2\pi\times2050\approx38\,700\,\text{rad/s} \) (3× más rápidos que la resonancia del filtro), dando convergencia del error de estimación en \( <3/(3\omega_{res})\approx75\,\mu\text{s} \). \( L \) se calcula con `ct.place(A.T, C.T, obs_poles).T`. El \( v_C \) estimado se usa en el lazo de amortiguamiento activo ([[amortiguamiento-activo-lcl]]): en simulación, el pico de resonancia del filtro a 2 kHz cae >20 dB respecto al caso sin observador.
+El par \( (A,C) \) con \( C=[0,0,1] \) es observable (verificar \( \text{rank}(\mathcal{O})=3 \)). Se colocan los polos del observador a \( 3\times\omega_{res,LCL}\approx3\times2\pi\times2050\approx38\,700\,\text{rad/s} \) (3× más rápidos que la resonancia del filtro), dando convergencia del error de estimación en \( <3/(3\omega_{res})\approx75\,\mu\text{s} \). \( L \) se calcula con `ct.place(A.T, C.T, obs_poles).T`. El \( v_C \) estimado se usa en el lazo de amortiguamiento activo ([[filtro-lcl|amortiguamiento activo]]): en simulación, el pico de resonancia del filtro a 2 kHz cae >20 dB respecto al caso sin observador.
 
 ## Ejemplo de código
 ```python

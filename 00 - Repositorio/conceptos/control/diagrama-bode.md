@@ -45,7 +45,7 @@ frecuencias pasan o se atenúan). Es el lenguaje del análisis de impedancia.
 ## Ejemplo de aplicación real
 **Problema:** Filtro LCL con \( L_1=2\,\text{mH} \), \( L_2=0.5\,\text{mH} \), \( C_f=15\,\mu\text{F} \). Identificar la resonancia en el Bode y determinar la zona válida para cruzar con el lazo de corriente.
 
-Frecuencia de resonancia: \( f_{res}=\tfrac{1}{2\pi}\sqrt{(L_1+L_2)/(L_1 L_2 C_f)}\approx2.05\,\text{kHz} \). En el Bode, por debajo de \( f_{res} \) la pendiente es \( -40\,\text{dB/dec} \) (dos inductores en serie); en \( f_{res} \) la ganancia sube >40 dB y la fase cae \( -180° \). El lazo de corriente debe cruzar **por debajo de \( f_{res} \)**: con objetivo \( f_c\approx1\,\text{kHz} \) hay un margen de factor 2× frente a la resonancia. El amortiguamiento activo ([[amortiguamiento-activo-lcl]]) neutraliza el pico para permitir \( f_c \) más alto si se requiere.
+Frecuencia de resonancia: \( f_{res}=\tfrac{1}{2\pi}\sqrt{(L_1+L_2)/(L_1 L_2 C_f)}\approx2.05\,\text{kHz} \). En el Bode, por debajo de \( f_{res} \) la pendiente es \( -40\,\text{dB/dec} \) (dos inductores en serie); en \( f_{res} \) la ganancia sube >40 dB y la fase cae \( -180° \). El lazo de corriente debe cruzar **por debajo de \( f_{res} \)**: con objetivo \( f_c\approx1\,\text{kHz} \) hay un margen de factor 2× frente a la resonancia. El amortiguamiento activo ([[filtro-lcl|amortiguamiento activo]]) neutraliza el pico para permitir \( f_c \) más alto si se requiere.
 
 ## Ejemplo de código
 ```python

@@ -9,7 +9,7 @@ objetivos: [elegir la topologia de convertidor segun tension, potencia y calidad
 tags: [multinivel, NPC, T-type, flying-capacitor, MMC, CHB]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-06-08
-relacionados: [modelo-promediado, marco-dq, control-vectorial]
+relacionados: [convertidor-vsc, marco-dq, control-vectorial]
 referencias:
   - "Rodriguez, Lai, Peng, Multilevel Inverters: Survey of Topologies, IEEE TIE 2002"
   - "Akagi, Classification and Terminology of MMC, IEEE TPEL 2011"
@@ -76,7 +76,7 @@ HVDC. Tensión de bloqueo repartida \( V_{dc}/(n-1) \).
   niveles (modelo promediado).
 
 ## Conceptos relacionados
-- [[modelo-promediado]] · [[marco-dq]] · [[control-vectorial]]
+- [[convertidor-vsc|modelo promediado]] · [[marco-dq]] · [[control-vectorial]]
 
 ## Referencias
 - Rodriguez et al., *Multilevel Inverters: Survey of Topologies*, IEEE TIE 2002.

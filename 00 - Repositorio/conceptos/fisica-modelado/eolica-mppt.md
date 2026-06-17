@@ -37,7 +37,7 @@ Control): la curva óptima \( T^*=k_{opt}\omega_r^2 \) (par ∝ cuadrado de velo
 **Drivetrain (tren de transmisión).** Modelo de dos masas (rotor aerodinámico + generador):
 $$ 2H_t\dot\omega_t=T_{aero}-K_{dt}\theta_{tw}-D_{dt}(\omega_t-\omega_g)/\omega_0 $$
 $$ 2H_g\dot\omega_g=K_{dt}\theta_{tw}+D_{dt}(\omega_t-\omega_g)/\omega_0-T_e $$
-El modo de torsión del eje (1–3 Hz) puede excitar SSR con compensación serie (ver [[oscilaciones-subsincronas]]).
+El modo de torsión del eje (1–3 Hz) puede excitar SSR con compensación serie (ver [[fenomenos-oscilatorios-red|oscilaciones subsíncronas]]).
 
 **DFIG (Tipo-3).** El rotor se alimenta por un convertidor back-to-back de potencia parcial
 (\(\sim30\,\%\)). Control vectorial del rotor: eje d alineado con el flujo de estátor → desacopla

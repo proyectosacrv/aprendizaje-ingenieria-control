@@ -9,7 +9,7 @@ objetivos: [manejar tensiones y corrientes trifásicas y sus relaciones línea-f
 tags: [trifasico, equilibrado, fasores, linea-fase, basico, modelado]
 fecha_creacion: 2026-06-09
 fecha_actualizacion: 2026-06-12
-relacionados: [potencia-ac-fasores, marco-dq, transformada-clarke, sistema-por-unidad, componentes-simetricas]
+relacionados: [potencia-ac-fasores, marco-dq, sistema-por-unidad, componentes-simetricas]
 referencias:
   - "Chapman, Máquinas Eléctricas, McGraw-Hill"
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
@@ -67,7 +67,7 @@ amplitud de fase: \( \hat V_{fase}=V_{LL}\sqrt{2/3} \).
 - Suponer suma nula con cargas o red desequilibradas (entonces circula homopolar).
 
 ## Conceptos relacionados
-- [[potencia-ac-fasores]] · [[marco-dq]] · [[transformada-clarke]] · [[sistema-por-unidad]]
+- [[potencia-ac-fasores]] · [[marco-dq]] · [[sistema-por-unidad]]
 
 ## Referencias
 - Chapman, *Máquinas Eléctricas*.

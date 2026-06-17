@@ -9,7 +9,7 @@ objetivos: [validar el control subiendo niveles de realismo hasta el hardware]
 tags: [validacion, fidelidad, conmutado, HIL, hardware, PLECS]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-06-08
-relacionados: [validacion-cruzada, pruebas-validacion, modelo-promediado, medicion-impedancia-inyeccion]
+relacionados: [validacion-cruzada, pruebas-validacion, convertidor-vsc, medicion-impedancia-inyeccion]
 referencias:
   - "Lauss et al., Characteristics and Design of Power-HIL Simulations, IEEE TIE 2016"
 ---
@@ -23,7 +23,7 @@ está validado.
 1. **Modelo lineal** (análisis): polos, impedancia, márgenes. Donde se **diseña**. Rápido pero
    solo pequeña señal alrededor de un punto.
 2. **Modelo no lineal / promediado** (simulación temporal): gran señal, saturaciones, faltas,
-   escalones grandes. Captura no linealidades pero no la conmutación. Ver [[modelo-promediado]].
+   escalones grandes. Captura no linealidades pero no la conmutación. Ver [[convertidor-vsc|modelo promediado]].
 3. **Modelo conmutado** (PLECS/Spice): IGBTs, PWM, rizado, retardo de cómputo, muestreo,
    cuantización. La "verdad" de simulación.
 4. **HIL** (Hardware-in-the-Loop): el control **real** (DSP/FPGA) contra la planta simulada en
@@ -59,7 +59,7 @@ Validez del promediado: \( f_{sw}/f_{control}\gtrsim 10 \). HIL: paso de tiempo 
   3 (conmutado/PLECS) se valida con [[medicion-impedancia-inyeccion]]; HIL y hardware, pendientes.
 
 ## Conceptos relacionados
-- [[validacion-cruzada]] · [[pruebas-validacion]] · [[modelo-promediado]] · [[medicion-impedancia-inyeccion]]
+- [[validacion-cruzada]] · [[pruebas-validacion]] · [[convertidor-vsc|modelo promediado]] · [[medicion-impedancia-inyeccion]]
 
 ## Referencias
 - Lauss et al., *Power-HIL Simulations*, IEEE TIE 2016.

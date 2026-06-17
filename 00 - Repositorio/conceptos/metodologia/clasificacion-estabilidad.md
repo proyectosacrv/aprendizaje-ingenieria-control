@@ -9,7 +9,7 @@ objetivos: [ubicar cada fenómeno de estabilidad en un marco común y elegir la 
 tags: [estabilidad, clasificacion, converter-driven, frecuencia, tension, angulo, intermedio]
 fecha_creacion: 2026-06-09
 fecha_actualizacion: 2026-06-09
-relacionados: [estabilidad-armonica, oscilaciones-subsincronas, ecuacion-oscilacion, interaccion-pll-red-debil, grid-forming-vs-following]
+relacionados: [fenomenos-oscilatorios-red, ecuacion-oscilacion, interaccion-pll-red-debil, grid-forming-vs-following]
 referencias:
   - "Hatziargyriou et al., Definition and Classification of Power System Stability Revisited & Extended, IEEE TPWRS 2021"
   - "Kundur, Power System Stability and Control, McGraw-Hill 1994"
@@ -30,12 +30,12 @@ Categorías principales:
 - **Estabilidad de tensión:** capacidad de mantener tensiones aceptables; *pequeña* y *gran*
   perturbación; ligada a límites de reactiva y colapso de tensión.
 - **Estabilidad de resonancia:** intercambio de energía oscilatorio — *eléctrica* (serie, SSR) y
-  *electromecánica* (torsional); ver [[oscilaciones-subsincronas]].
+  *electromecánica* (torsional); ver [[fenomenos-oscilatorios-red|oscilaciones subsíncronas]].
 - **Estabilidad impulsada por convertidor (converter-driven):** la categoría **nueva** de 2021,
   por la dinámica rápida de la electrónica de potencia. Dos bandas:
   - *Interacción lenta* (< ~10 Hz): PLL en red débil, lazo de potencia/sincronización
     ([[interaccion-pll-red-debil]], GFM vs GFL).
-  - *Interacción rápida* (decenas de Hz–kHz): resonancia/[[estabilidad-armonica|estabilidad armónica]].
+  - *Interacción rápida* (decenas de Hz–kHz): resonancia/[[fenomenos-oscilatorios-red|estabilidad armónica]].
 
 Eje transversal: **pequeña señal** (linealización, autovalores/impedancia) vs **gran perturbación**
 (simulación no lineal en el tiempo).
@@ -71,7 +71,7 @@ Modo electromecánico 0.1–2 Hz; interárea 0.1–0.8 Hz; converter-driven lent
 - Olvidar que en sistemas dominados por convertidores la inercia ya no garantiza estabilidad.
 
 ## Conceptos relacionados
-- [[estabilidad-armonica]] · [[oscilaciones-subsincronas]] · [[ecuacion-oscilacion]] · [[interaccion-pll-red-debil]] · [[grid-forming-vs-following]]
+- [[fenomenos-oscilatorios-red|estabilidad armónica]] · [[ecuacion-oscilacion]] · [[interaccion-pll-red-debil]] · [[grid-forming-vs-following]]
 
 ## Referencias
 - Hatziargyriou et al., *Definition and Classification of Power System Stability Revisited & Extended*, IEEE TPWRS 2021.

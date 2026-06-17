@@ -9,7 +9,7 @@ objetivos: [mantener constante la tensión del bus DC regulando el intercambio d
 tags: [bus-dc, lazo-externo, balance-energia, rectificador-activo, back-to-back, intermedio]
 fecha_creacion: 2026-06-09
 fecha_actualizacion: 2026-06-09
-relacionados: [control-cascada, dinamica-bus-dc, convertidor-vsc, controlador-pid, estabilidad-bus-dc-cpl]
+relacionados: [control-cascada, dinamica-bus-dc, convertidor-vsc, controlador-pid]
 referencias:
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
   - "Blaabjerg et al., Overview of Control and Grid Synchronization, IEEE TIE 2006"
@@ -73,10 +73,10 @@ Ancho de banda del lazo de tensión: 10–50 Hz (muy por debajo del de corriente
 - Lazo de tensión demasiado rápido → realimenta el rizado de \( 2\omega \) y distorsiona la corriente.
 - Tratar la planta como lineal lejos de \( V_{dc0} \) sin usar \( v_{dc}^2 \).
 - Olvidar anti-windup en el límite de \( i_d^* \) (saturación durante arranques/huecos).
-- Ignorar que una carga CPL añade impedancia negativa ([[estabilidad-bus-dc-cpl]]).
+- Ignorar que una carga CPL añade impedancia negativa ([[dinamica-bus-dc|estabilidad del bus DC con CPL]]).
 
 ## Conceptos relacionados
-- [[dinamica-bus-dc]] · [[control-cascada]] · [[convertidor-vsc]] · [[desacoplo-dq]] · [[estabilidad-bus-dc-cpl]]
+- [[dinamica-bus-dc]] · [[control-cascada]] · [[convertidor-vsc]] · [[desacoplo-dq]]
 
 ## Referencias
 - Yazdani, Iravani, 2010.

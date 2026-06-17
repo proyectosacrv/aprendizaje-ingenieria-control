@@ -9,7 +9,7 @@ objetivos: [probar estabilidad de sistemas no lineales sin resolver sus ecuacion
 tags: [lyapunov, estabilidad, no-lineal, energia, basico]
 fecha_creacion: 2026-06-10
 fecha_actualizacion: 2026-06-10
-relacionados: [analisis-modal, estabilidad-bibo, clasificacion-estabilidad, no-pasividad-resistencia-negativa, ecuacion-oscilacion]
+relacionados: [analisis-modal, estabilidad-bibo, clasificacion-estabilidad, impedancia-salida-estabilidad, ecuacion-oscilacion]
 referencias:
   - "Khalil, Nonlinear Systems, Prentice Hall"
   - "Slotine & Li, Applied Nonlinear Control"
@@ -66,7 +66,7 @@ funcionar (función de energía transitoria).
 - Confundir \( V>0 \) (sobre el estado) con \( \dot V<0 \) (la condición que realmente importa).
 
 ## Conceptos relacionados
-- [[analisis-modal]] · [[estabilidad-bibo]] · [[clasificacion-estabilidad]] · [[no-pasividad-resistencia-negativa]] · [[ecuacion-oscilacion]]
+- [[analisis-modal]] · [[estabilidad-bibo]] · [[clasificacion-estabilidad]] · [[impedancia-salida-estabilidad|resistencia negativa]] · [[ecuacion-oscilacion]]
 
 ## Referencias
 - Khalil, *Nonlinear Systems*.

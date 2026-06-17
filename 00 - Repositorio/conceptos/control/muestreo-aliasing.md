@@ -9,7 +9,7 @@ objetivos: [elegir la frecuencia de muestreo y evitar el solapamiento espectral]
 tags: [muestreo, aliasing, nyquist-shannon, adc, control-digital, basico]
 fecha_creacion: 2026-06-10
 fecha_actualizacion: 2026-06-12
-relacionados: [transformada-z, fft-analisis-espectral, discretizacion-controladores, modulacion-pwm, series-fourier]
+relacionados: [transformada-z, fft-analisis-espectral, discretizacion-controladores, convertidor-vsc, series-fourier]
 referencias:
   - "Oppenheim & Willsky, Señales y Sistemas, Prentice Hall"
 ---
@@ -66,7 +66,7 @@ rizado de conmutación de forma natural.
   ajusta a un número entero de periodos de la perturbación para extraer el fasor sin fuga.
 
 ## Conceptos relacionados
-- [[transformada-z]] · [[fft-analisis-espectral]] · [[discretizacion-controladores]] · [[modulacion-pwm]] · [[series-fourier]]
+- [[transformada-z]] · [[fft-analisis-espectral]] · [[discretizacion-controladores]] · [[convertidor-vsc|modulación PWM]] · [[series-fourier]]
 
 ## Referencias
 - Oppenheim & Willsky, *Señales y Sistemas*.

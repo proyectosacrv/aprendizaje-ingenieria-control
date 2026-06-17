@@ -9,7 +9,7 @@ objetivos: [entender la célula básica de conversión DC y el origen de la carg
 tags: [dc-dc, buck, boost, duty, conmutado, basico]
 fecha_creacion: 2026-06-10
 fecha_actualizacion: 2026-06-12
-relacionados: [dinamica-bus-dc, carga-potencia-constante-cpl, control-tension-bus-dc, fotovoltaica-mppt, modelo-promediado]
+relacionados: [dinamica-bus-dc, control-tension-bus-dc, fotovoltaica-mppt, convertidor-vsc]
 referencias:
   - "Erickson & Maksimovic, Fundamentals of Power Electronics"
 ---
@@ -62,7 +62,7 @@ potencia. Rizado de corriente del inductor objetivo ≈ 20–40 % de la nominal.
   resistencia negativa es la causa de la inestabilidad estudiada.
 
 ## Conceptos relacionados
-- [[dinamica-bus-dc]] · [[carga-potencia-constante-cpl]] · [[control-tension-bus-dc]] · [[fotovoltaica-mppt]] · [[modelo-promediado]]
+- [[dinamica-bus-dc]] · [[control-tension-bus-dc]] · [[fotovoltaica-mppt]] · [[convertidor-vsc|modelo promediado]]
 
 ## Referencias
 - Erickson & Maksimovic, *Fundamentals of Power Electronics*.

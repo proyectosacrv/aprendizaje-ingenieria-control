@@ -9,7 +9,7 @@ objetivos: [cuantificar la distorsión que inyecta el convertidor y cumplir cód
 tags: [armonicos, thd, pwm, calidad-potencia, ieee-519, tiempo-muerto, conmutacion, modelado]
 fecha_creacion: 2026-06-10
 fecha_actualizacion: 2026-06-10
-relacionados: [modulacion-pwm, calidad-potencia, fft-analisis-espectral, filtro-lcl, controlador-resonante, estabilidad-armonica, valor-rms-factor-potencia]
+relacionados: [convertidor-vsc, calidad-potencia, fft-analisis-espectral, filtro-lcl, controlador-resonante, fenomenos-oscilatorios-red, valor-rms-factor-potencia]
 referencias:
   - "Mohan, Undeland, Robbins, Power Electronics, Wiley"
   - "IEEE Std 519-2014, Harmonic Control in Electric Power Systems"
@@ -24,7 +24,7 @@ relativo frente a la fundamental y es la métrica que fijan los códigos de red.
 Para una señal con fundamental \( X_1 \) y armónicos \( X_h \):
 $$ \text{THD}=\frac{\sqrt{\sum_{h\ge2}X_h^2}}{X_1}\times100\% $$
 Dos familias de armónicos:
-- **De conmutación (alta frecuencia):** la [[modulacion-pwm|PWM]] sinusoidal genera bandas laterales
+- **De conmutación (alta frecuencia):** la [[convertidor-vsc|PWM]] sinusoidal genera bandas laterales
   centradas en \( m_f f_1 \) y sus múltiplos, con \( m_f=f_{sw}/f_1 \). Aparecen en \( m_f\pm2,\,m_f\pm4,\dots \)
   y \( 2m_f\pm1,\dots \). Los atenúa el [[filtro-lcl|filtro LCL]].
 - **De baja frecuencia (5º, 7º, 11º, 13º…):** vienen de **no idealidades**: tiempo muerto, caída en los
@@ -42,7 +42,7 @@ conexión, y la tensión a \( \le5\% \) THD en BT/MT.
 ## Cuándo y por qué se usa
 Para **dimensionar el filtro** de salida (qué atenuación hace falta en \( f_{sw} \)), **cumplir el código
 de red**, y diagnosticar resonancias: si un armónico coincide con la resonancia LCL o de la red puede
-amplificarse ([[estabilidad-armonica]]). También guía el uso de [[controlador-resonante|controladores resonantes]]
+amplificarse ([[fenomenos-oscilatorios-red|estabilidad armónica]]). También guía el uso de [[controlador-resonante|controladores resonantes]]
 para cancelar 5º/7º.
 
 ## Procedimiento de diseño (genérico)
@@ -85,7 +85,7 @@ THD de corriente objetivo en red: < 5 % (TDD por IEEE 519). \( m_f=f_{sw}/f_1 \)
 - Despreciar el tiempo muerto en el modelo: la THD simulada sale mucho mejor que la real.
 
 ## Conceptos relacionados
-- [[modulacion-pwm]] · [[calidad-potencia]] · [[fft-analisis-espectral]] · [[filtro-lcl]] · [[controlador-resonante]] · [[estabilidad-armonica]]
+- [[convertidor-vsc|modulación PWM]] · [[calidad-potencia]] · [[fft-analisis-espectral]] · [[filtro-lcl]] · [[controlador-resonante]] · [[fenomenos-oscilatorios-red|estabilidad armónica]]
 
 ## Referencias
 - Mohan, Undeland, Robbins, *Power Electronics*.

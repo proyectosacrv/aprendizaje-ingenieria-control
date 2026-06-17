@@ -9,7 +9,7 @@ objetivos: [adaptar el controlador al punto de operación en plantas no lineales
 tags: [gain-scheduling, no-lineal, punto-operacion, lpv, adaptacion, scr-variable, control]
 fecha_creacion: 2026-06-10
 fecha_actualizacion: 2026-06-10
-relacionados: [linealizacion-teoria, asignacion-polos-lqr, sintonia-pi-pid, robustez-parametrica, interaccion-pll-red-debil, control-robusto-hinf]
+relacionados: [linealizacion-teoria, asignacion-polos-lqr, sintonia-pi-pid, robustez-parametrica, interaccion-pll-red-debil, control-robusto-hinf, medicion-impedancia-inyeccion, red-thevenin-scr]
 referencias:
   - "Rugh, Shamma, Research on gain scheduling, Automatica 2000"
   - "Åström, Wittenmark, Adaptive Control, Addison-Wesley 1995"
@@ -67,13 +67,36 @@ estimada): se baja \( K_p \) proporcionalmente a la SCR de modo que \( K_p X_g\a
 margen de fase en todo el rango. La SCR cambia en segundos (mucho más lento que el lazo de ms) → la hipótesis
 cuasi-estacionaria se cumple y la interpolación es segura.
 
-## Ejemplo de código
+## Estimación online de SCR para el scheduling
+
+Para que el scheduling funcione en tiempo real, la variable \(\rho = \text{SCR}\) debe estimarse
+en línea. Tres métodos según el nivel de invasividad:
+
+**1. Estimación pasiva por tensión en PCC** (sin inyección):
+Midiendo la variación de tensión \(\Delta V_{PCC}\) ante un cambio de potencia \(\Delta P\):
+$$ X_g \approx \frac{|\Delta V_{PCC}|}{|\Delta I|}, \quad \text{SCR} \approx \frac{V_{nom}^2/S_n}{X_g} $$
+Solo válido en transitorios; error alto si la variación es pequeña.
+
+**2. Inyección de perturbación** ([[medicion-impedancia-inyeccion]]):
+Se inyecta un tono sinusoidal pequeño a baja frecuencia (1–10 Hz) y se mide la respuesta de
+tensión. \(Z_g(j\omega_p) = \Delta V_{PCC}/\Delta I\); en baja frecuencia \(|Z_g| \approx X_g\).
+Exacto pero añade una pequeña perturbación continua y requiere demodulación.
+
+**3. Filtro de Kalman / observador de parámetros**:
+Trata \(X_g\) (o \(L_g\)) como estado aumentado del sistema; se estima continuamente con el
+modelo de la planta. Sin perturbación extra, pero requiere buen modelo inicial.
+
 ```python
 import numpy as np
 def scheduled_kp(scr, scr_grid, kp_grid):
     # interpola Kp en funcion de la SCR estimada (variable de scheduling)
     return float(np.interp(scr, scr_grid, kp_grid))
 # scr_grid=[2,5,10], kp_grid=[0.2,0.5,1.0] -> Kp baja en red debil
+
+def estimate_scr_passive(dV_pcc, dI, V_nom, S_n):
+    """Estimacion gruesa de SCR a partir de una variacion de carga."""
+    Xg = abs(dV_pcc) / abs(dI) if abs(dI) > 1e-6 else np.inf
+    return (V_nom**2 / S_n) / Xg if Xg > 0 else np.inf
 ```
 
 ## Parámetros y valores típicos

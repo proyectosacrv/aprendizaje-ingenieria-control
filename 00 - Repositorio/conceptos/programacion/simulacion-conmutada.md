@@ -9,7 +9,7 @@ objetivos: [validar el modelo promediado frente a la conmutación real del conve
 tags: [conmutada, promediado, switching, paso-fijo, validacion, intermedio, programacion]
 fecha_creacion: 2026-06-09
 fecha_actualizacion: 2026-06-09
-relacionados: [modelo-promediado, modulacion-pwm, convertidor-vsc, integracion-edos-stiff, fft-analisis-espectral]
+relacionados: [convertidor-vsc, integracion-edos-stiff, fft-analisis-espectral]
 referencias:
   - "Mohan, Undeland, Robbins, Power Electronics, Wiley"
   - "Maksimovic et al., Modeling and Simulation of Power Electronic Converters, Proc. IEEE 2001"
@@ -72,7 +72,7 @@ diferencia de baja frecuencia entre ambas debe ser < 1–2 %.
 - Comparar con controles o condiciones iniciales distintas entre ambos modelos.
 
 ## Conceptos relacionados
-- [[modelo-promediado]] · [[modulacion-pwm]] · [[convertidor-vsc]] · [[integracion-edos-stiff]] · [[fft-analisis-espectral]]
+- [[convertidor-vsc|modelo promediado]] · [[integracion-edos-stiff]] · [[fft-analisis-espectral]]
 
 ## Referencias
 - Mohan, Undeland, Robbins, *Power Electronics*.

@@ -9,7 +9,7 @@ objetivos: [mantener el convertidor conectado durante huecos y dar soporte de te
 tags: [frt, lvrt, hvrt, hueco-tension, reactiva, grid-code, desequilibrio, avanzado]
 fecha_creacion: 2026-06-09
 fecha_actualizacion: 2026-06-09
-relacionados: [current-limiting, componentes-simetricas, dsogi-pll, servicios-red-soporte, droop-control]
+relacionados: [current-limiting, componentes-simetricas, pll-srf, servicios-red-soporte, droop-control]
 referencias:
   - "ENTSO-E, Requirements for Generators (RfG) / Network Codes"
   - "Teodorescu, Liserre, Rodríguez, Grid Converters for PV and Wind Power Systems, Wiley 2011"
@@ -33,7 +33,7 @@ con \( I_q \) saturada a \( I_{max} \). La activa se recorta para respetar el l�
 
 **Faltas asimétricas.** La mayoría de huecos son desequilibrados → aparece **secuencia negativa**
 ([[componentes-simetricas]]). Hay que:
-- Detectar secuencias rápido y limpio (PLL de doble secuencia, [[dsogi-pll]]).
+- Detectar secuencias rápido y limpio (PLL de doble secuencia, [[pll-srf|DSOGI-PLL]]).
 - Decidir estrategia de referencia de corriente: inyectar solo secuencia positiva (tensión
   equilibrada del convertidor), o también negativa para soportar/equilibrar, controlando la
   oscilación de potencia de \( 2\omega \) que el desequilibrio induce en el bus DC.
@@ -49,7 +49,7 @@ hay que limitar corriente sin perder la fuente de tensión (transición a modo l
 
 ## Procedimiento de diseño (genérico)
 1. Toma la curva LVRT/HVRT y la pendiente \( k \) del grid code aplicable.
-2. Implementa detección rápida de secuencias ([[dsogi-pll]]).
+2. Implementa detección rápida de secuencias ([[pll-srf|DSOGI-PLL]]).
 3. Genera referencias \( i_{dq}^{\pm*} \) priorizando reactiva, con la estrategia de rizado elegida.
 4. Aplica [[current-limiting]] con prioridad a \( I_q \) y anti-windup.
 5. Gestiona el bus DC durante la falta (chopper/recorte de activa) y la **recuperación** post-falta.
@@ -75,7 +75,7 @@ reactiva < 30–60 ms. Límite de corriente 1.0–1.2 p.u.
 - No gestionar la **recuperación** (sobretensión/sobrecorriente al despejar la falta).
 
 ## Conceptos relacionados
-- [[current-limiting]] · [[componentes-simetricas]] · [[dsogi-pll]] · [[servicios-red-soporte]] · [[droop-control]]
+- [[current-limiting]] · [[componentes-simetricas]] · [[pll-srf|DSOGI-PLL]] · [[servicios-red-soporte]] · [[droop-control]]
 
 ## Referencias
 - ENTSO-E, *Requirements for Generators (RfG)*.

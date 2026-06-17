@@ -9,7 +9,7 @@ objetivos: [obtener el contenido en frecuencia de señales medidas o simuladas]
 tags: [fft, espectro, thd, ventana, muestreo, basico, programacion]
 fecha_creacion: 2026-06-09
 fecha_actualizacion: 2026-06-09
-relacionados: [medicion-impedancia-inyeccion, modulacion-pwm, diagrama-bode, respuesta-frecuencia-ss]
+relacionados: [medicion-impedancia-inyeccion, convertidor-vsc, diagrama-bode, respuesta-frecuencia-ss]
 referencias:
   - "Oppenheim, Schafer, Discrete-Time Signal Processing, Prentice Hall"
   - "Harris, On the Use of Windows for Harmonic Analysis with the DFT, IEEE 1978"
@@ -33,7 +33,7 @@ $$ \text{THD}=\frac{\sqrt{\sum_{h\ge2} X_h^2}}{X_1} $$
 <div class="cfig"><img src="figuras/fft-analisis-espectral-fuga.png" alt="fuga espectral con ventana rectangular frente a ventana Hann"><div class="cap">Si la ventana no contiene un número entero de periodos de la señal, la energía del tono se reparte entre frecuencias vecinas (fuga espectral), ensanchando el pico y falseando la THD. Aplicar una ventana (Hann) o muestreo coherente concentra la energía y limpia el espectro. Es imprescindible al medir armónicos.</div></div>
 
 ## Cuándo y por qué se usa
-Para verificar calidad de onda (armónicos de [[modulacion-pwm|PWM]]), validar modelos contra
+Para verificar calidad de onda (armónicos de [[convertidor-vsc|PWM]]), validar modelos contra
 simulación y extraer la **impedancia/respuesta en frecuencia** por inyección (FFT del estímulo y
 la respuesta → cociente), enlazando con [[medicion-impedancia-inyeccion]].
 
@@ -66,7 +66,7 @@ mag = 2*np.abs(X)/np.sum(np.hanning(len(x)))   # amplitud corregida por ventana
 - Resolución insuficiente (\( \Delta f \) grande) para separar componentes próximas.
 
 ## Conceptos relacionados
-- [[medicion-impedancia-inyeccion]] · [[modulacion-pwm]] · [[respuesta-frecuencia-ss]] · [[diagrama-bode]]
+- [[medicion-impedancia-inyeccion]] · [[convertidor-vsc|modulación PWM]] · [[respuesta-frecuencia-ss]] · [[diagrama-bode]]
 
 ## Referencias
 - Oppenheim, Schafer, *Discrete-Time Signal Processing*.

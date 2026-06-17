@@ -9,7 +9,7 @@ objetivos: [desacoplar dos sistemas AC con flujo de potencia bidireccional, mode
 tags: [back-to-back, vsc, bus-dc, hvdc, eolica, full-converter, bidireccional, modelado]
 fecha_creacion: 2026-06-10
 fecha_actualizacion: 2026-06-10
-relacionados: [convertidor-vsc, dinamica-bus-dc, control-tension-bus-dc, carga-potencia-constante-cpl, eolica-mppt, modelo-bateria-bess]
+relacionados: [convertidor-vsc, dinamica-bus-dc, control-tension-bus-dc, eolica-mppt, modelo-bateria-bess]
 referencias:
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
   - "Teodorescu, Liserre, Rodríguez, Grid Converters for PV and Wind Power Systems, Wiley 2011"
@@ -35,7 +35,7 @@ Reparto típico de tareas (un convertidor fija la tensión del bus, el otro la p
 - **Lado-máquina/fuente (VSC-1):** impone par/velocidad o sigue MPPT ([[eolica-mppt]]). Inyecta o
   extrae \( P_1 \), que el lado-red debe evacuar para mantener \( V_{dc} \).
 
-Visto desde el bus DC, **el convertidor que controla potencia se comporta como una [[carga-potencia-constante-cpl|CPL]]**
+Visto desde el bus DC, **el convertidor que controla potencia se comporta como una [[dinamica-bus-dc|CPL]]**
 (impedancia incremental negativa) → puede desestabilizar el lazo de tensión si el condensador es pequeño.
 
 <div class="cfig"><img src="figuras/convertidor-back-to-back-topologia.png" alt="topologia back-to-back de dos VSC con bus DC comun"><div class="cap">Dos VSC comparten un único condensador de bus DC: el acoplamiento entre ambos lados es solo energético ($C\,\dot V_{dc}=(P_1-P_2)/V_{dc}$). Uno regula la tensión del bus y el otro controla la potencia/par; cada lado ve al otro como una simple fuente o sumidero de potencia, lo que desacopla dos redes AC distintas en frecuencia y fase.</div></div>
@@ -55,7 +55,7 @@ permite que cada lado vea al otro como una simple fuente/sumidero de potencia.
    (lento, \( \sim\!1/10 \) del de corriente).
 4. Añade **feedforward de la potencia del otro lado** ([[control-feedforward]]): mide \( P_1 \) y úsala
    como referencia anticipada en el lazo de \( V_{dc} \) para que el escalón no lo vea como perturbación.
-5. Verifica margen del lazo DC frente al efecto CPL ([[carga-potencia-constante-cpl]]).
+5. Verifica margen del lazo DC frente al efecto CPL ([[dinamica-bus-dc|carga de potencia constante (CPL)]]).
 
 ## Ejemplo de aplicación real
 **Problema:** aerogenerador Tipo 4 de 2 MW, \( V_{dc}=1100\,\text{V} \). Una ráfaga sube \( P_1 \) de 1 a
@@ -89,7 +89,7 @@ def bus_dc_dynamics(vdc, P1, P2, C, Ploss=0.0):
 - Chopper de frenado ausente: ante hueco de red el lado-red no evacúa y \( V_{dc} \) se dispara.
 
 ## Conceptos relacionados
-- [[convertidor-vsc]] · [[dinamica-bus-dc]] · [[control-tension-bus-dc]] · [[carga-potencia-constante-cpl]] · [[eolica-mppt]]
+- [[convertidor-vsc]] · [[dinamica-bus-dc]] · [[control-tension-bus-dc]] · [[eolica-mppt]]
 
 ## Referencias
 - Yazdani, Iravani, 2010.
