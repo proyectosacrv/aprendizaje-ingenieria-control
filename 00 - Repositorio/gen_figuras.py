@@ -53,7 +53,7 @@ def _lcl():
     # 1) circuito (schemdraw)
     d = schemdraw.Drawing()
     d.config(unit=2.0, fontsize=12)
-    d += elm.RBox(w=2.0, h=2.4).label("VSC\nPWM\n$V_{dc}$")
+    d += elm.RBox(w=2.0, h=2.4).label("fuente de\ntensión\nconmutada\n$v_i$")
     d += elm.Line().right(0.4)
     d += elm.Inductor2().right().label("$L_1,R_1$")
     d += (vc := elm.Dot().label("$v_C$", loc="top"))
@@ -64,7 +64,7 @@ def _lcl():
     d += elm.Line().right(0.3)
     d += elm.Inductor2().right().label("$L_2,R_2$")
     d += elm.Dot().label("PCC", loc="top")
-    d += elm.SourceSin().down().label("red", loc="bottom")
+    d += elm.SourceSin().down().label("red / carga", loc="bottom")
     d += elm.Ground()
     d.save(os.path.join(OUT, "filtro-lcl-circuito.png"), dpi=150)
     print("filtro-lcl-circuito.png")
@@ -93,6 +93,111 @@ def _lcl():
     ax.set_title("Respuesta del LCL: pico de resonancia y caída a −60 dB/dec", fontsize=11)
     ax.set_ylim(-120, 60); ax.legend(loc="upper right", fontsize=9)
     _savefig(fig, "filtro-lcl-bode.png")
+
+
+@figura("filtro-lcl")
+def _lcl_factorQ():
+    """Efecto del factor de calidad Q (amortiguamiento) sobre el pico de resonancia."""
+    L1, L2, Cf = 2e-3, 1e-3, 20e-6
+    w_res = np.sqrt((L1 + L2) / (L1 * L2 * Cf)); f_res = w_res / (2*np.pi)
+    f = np.logspace(2, 4.0, 2000); w = 2*np.pi*f
+
+    def mag_db(Rd):
+        A = np.array([[-Rd/L1,  Rd/L1, -1/L1],
+                      [ Rd/L2, -Rd/L2,  1/L2],
+                      [ 1/Cf,  -1/Cf,   0  ]])
+        B = np.array([[1/L1], [0], [0]]); C = np.array([[0, 1, 0]]); D = np.array([[0]])
+        _, mag, _ = signal.bode(signal.StateSpace(A, B, C, D), w)
+        return mag
+
+    Rd_opt = 1/(3*w_res*Cf)
+    casos = [(0.0,        "Q→∞ (sin amortiguar)",      BAD,  2.4),
+             (0.3*Rd_opt, "Q alto (poco amortiguado)", ACC2, 1.8),
+             (Rd_opt,     "Q≈3 ($R_d$ óptimo)",         ACC,  2.0),
+             (3*Rd_opt,   "Q bajo (sobre-amortiguado)", OK,   1.8)]
+    fig, ax = plt.subplots(figsize=(6.6, 3.6))
+    for Rd, lab, col, lw in casos:
+        ax.semilogx(f, mag_db(Rd), color=col, lw=lw, label=lab)
+    ax.axvline(f_res, color="#888", ls="--", lw=1.1)
+    ax.text(f_res*1.05, -52, f"$f_{{res}}\\approx{f_res:.0f}$ Hz", color="#555", fontsize=9)
+    ax.set_xlabel("frecuencia [Hz]"); ax.set_ylabel("$|i_2/v_i|$ [dB]")
+    ax.set_title("Efecto del factor Q: a más amortiguamiento, pico más bajo y ancho", fontsize=10.5)
+    ax.set_ylim(-60, 50); ax.legend(loc="upper right", fontsize=8.5)
+    fig.tight_layout()
+    _savefig(fig, "filtro-lcl-factorQ.png")
+
+
+@figura("filtro-lcl")
+def _lcl_rizado():
+    """Diseño del rizado: forma d(1-d) en el ciclo y rizado p-p vs L1."""
+    Vdc, fsw = 700.0, 10e3
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.6, 3.5))
+
+    # (a) rizado a lo largo del ciclo de red, para dos valores de L1
+    wt = np.linspace(0, np.pi, 400)            # medio ciclo
+    m = 0.9
+    d = (1 + m*np.sin(wt))/2
+    for L1, col, lab in [(1.0e-3, ACC2, "$L_1=1$ mH"), (2.0e-3, ACC, "$L_1=2$ mH")]:
+        dipp = (Vdc/(fsw*L1))*d*(1 - d)        # pico-pico instantaneo
+        ax1.plot(np.degrees(wt), dipp, color=col, label=lab)
+    ax1.set_xlabel("fase del ciclo de red [°]"); ax1.set_ylabel("rizado p-p $\\Delta i_{1,pp}$ [A]")
+    ax1.set_title("Rizado $\\propto d(1-d)$: máximo en el paso por cero", fontsize=10)
+    ax1.legend(fontsize=9, loc="upper right")
+
+    # (b) rizado p-p maximo vs L1 (caso peor d=0.5 -> Vdc/(4 fsw L1))
+    L1v = np.linspace(0.3e-3, 4e-3, 300)
+    dipp_max = Vdc/(4*fsw*L1v)
+    In = 20.0                                   # corriente nominal de pico de ejemplo
+    ax2.plot(L1v*1e3, dipp_max, color=ACC, lw=2.2)
+    for frac, col in [(0.20, ACC2), (0.10, OK)]:
+        ax2.axhline(frac*In, color=col, ls="--", lw=1.3)
+        L1_req = Vdc/(4*fsw*frac*In)
+        ax2.text(3.4, frac*In+0.4, f"{int(frac*100)}% de $I_n$ → $L_1$≈{L1_req*1e3:.2f} mH",
+                 color=col, fontsize=8.5, ha="right")
+    ax2.set_xlabel("$L_1$ [mH]"); ax2.set_ylabel("rizado p-p máximo [A]")
+    ax2.set_title("Más $L_1$ → menos rizado (caso peor $d$=0.5)", fontsize=10)
+    ax2.set_ylim(0, 12)
+    fig.tight_layout()
+    _savefig(fig, "filtro-lcl-rizado.png")
+
+
+@figura("filtro-lcl")
+def _lcl_damping_polos():
+    """Amortiguamiento activo: lugar de los polos resonantes al barrer Kad."""
+    L1, L2, Cf = 2e-3, 1e-3, 20e-6
+    w_res = np.sqrt((L1 + L2) / (L1 * L2 * Cf))
+    Kads = np.linspace(0, 12, 40)              # ohmios de resistencia virtual
+    fig, ax = plt.subplots(figsize=(5.4, 4.4))
+
+    pts = []
+    for Kad in Kads:
+        A = np.array([[-Kad/L1, Kad/L1, -1/L1],
+                      [ 0,       0,      1/L2],
+                      [ 1/Cf,   -1/Cf,   0  ]])
+        ev = np.linalg.eigvals(A)
+        pts.append(ev[np.argsort(ev.imag)])    # ordenar por parte imaginaria
+    pts = np.array(pts)
+    # colorear el barrido del par superior (imag > 0)
+    sup = pts[:, 2]
+    sc = ax.scatter(sup.real, sup.imag, c=Kads, cmap="viridis", s=22, zorder=3)
+    ax.scatter(sup.real[0], sup.imag[0], color=BAD, s=70, zorder=4,
+               label="$K_{ad}=0$ (sobre el eje, $\\zeta\\approx0$)")
+    ax.scatter(sup.real[-1], sup.imag[-1], color=OK, s=70, marker="s", zorder=4,
+               label=f"$K_{{ad}}={Kads[-1]:.0f}$ Ω (amortiguado)")
+    # lineas de zeta constante
+    for z in [0.1, 0.3, 0.7]:
+        th = np.arccos(z)
+        r = np.linspace(0, w_res*1.1, 10)
+        ax.plot(-r*np.cos(th), r*np.sin(th), color="#bbb", ls=":", lw=1)
+        ax.text(-w_res*1.05*np.cos(th), w_res*1.05*np.sin(th), f"ζ={z}",
+                color="#999", fontsize=8)
+    ax.axhline(0, color="#888", lw=0.8); ax.axvline(0, color="#888", lw=0.8)
+    ax.set_xlabel("Re(s) [1/s]"); ax.set_ylabel("Im(s) [rad/s]")
+    ax.set_title("Amortiguamiento activo: $K_{ad}$ mueve\nel par resonante hacia la izquierda", fontsize=10)
+    ax.set_ylim(0, w_res*1.25); ax.legend(fontsize=8, loc="lower left")
+    cb = fig.colorbar(sc, ax=ax); cb.set_label("$K_{ad}$ [Ω]", fontsize=9)
+    fig.tight_layout()
+    _savefig(fig, "filtro-lcl-damping-polos.png")
 
 
 # ===================================================================== #
@@ -1220,38 +1325,6 @@ def _swing():
     ax.grid(True, alpha=0.4)
     fig.tight_layout()
     _savefig(fig, "ecuacion-oscilacion-swing.png")
-
-
-# ===================================================================== #
-#  amortiguamiento-activo-lcl
-# ===================================================================== #
-@figura("amortiguamiento-activo-lcl")
-def _amort_ad():
-    # Polos de resonancia del LCL al barrer la ganancia de amortiguamiento Kad
-    # (realimentacion de la corriente del condensador = resistencia virtual en serie con L1)
-    L1, L2, Cf = 2e-3, 0.5e-3, 10e-6
-    Kads = np.linspace(0, 15, 16)
-    reals, imags = [], []
-    for Kad in Kads:
-        A = np.array([[-Kad/L1, -1/L1,  Kad/L1],
-                      [   1/Cf,    0.0,  -1/Cf ],
-                      [    0.0,  1/L2,    0.0  ]])
-        ev = np.linalg.eigvals(A)
-        res = ev[np.argmax(ev.imag)]          # par de resonancia (Im>0)
-        reals.append(res.real); imags.append(res.imag)
-    fig, ax = plt.subplots(figsize=(6.6, 4.2))
-    sc = ax.scatter(reals, imags, c=Kads, cmap="viridis", s=60, zorder=3, edgecolor="#333")
-    fig.colorbar(sc, label="$K_{ad}$ [Ω]")
-    ax.axvline(0, color=BAD, ls="--", lw=1.2)
-    ax.annotate("", xy=(reals[-1], imags[-1]), xytext=(reals[0], imags[0]),
-                arrowprops=dict(arrowstyle="->", color="#888", lw=1.4))
-    ax.text(0.97, 0.06, "$K_{ad}=0$: ζ≈0 (sobre el eje)\nKad↑ → polos a la izquierda (ζ↑)",
-            transform=ax.transAxes, ha="right", va="bottom", fontsize=8,
-            bbox=dict(fc="white", ec="#ccc", alpha=0.9))
-    ax.set_xlabel("Re(s) [1/s]"); ax.set_ylabel("Im(s) [rad/s]")
-    ax.set_title("Amortiguamiento activo: polos de resonancia LCL al barrer $K_{ad}$")
-    fig.tight_layout()
-    _savefig(fig, "amortiguamiento-activo-lcl-polos.png")
 
 
 # ===================================================================== #

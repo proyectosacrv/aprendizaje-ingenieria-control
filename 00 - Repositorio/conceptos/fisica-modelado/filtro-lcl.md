@@ -98,16 +98,68 @@ es decir, a mayor Rd más amortiguado, a costa de pérdidas y de peor atenuació
 
 <div class="cfig"><img src="figuras/filtro-lcl-bode.png" alt="Respuesta en frecuencia del LCL: i2/vi con resonancia, i1/vi con antiresonancia, con y sin amortiguamiento"><div class="cap">Magnitud de i₂/vᵢ y i₁/vᵢ: i₂ presenta el pico de resonancia afilado (rojo, ζ≈0) en f_res; i₁ añade el cero de antiresonancia en f_ar que aporta +180° de fase antes del pico (por eso se realimenta i₁). Al amortiguar (azul) el pico se acota. Por debajo el filtro deja pasar la fundamental; por encima cae a −60 dB/dec.</div></div>
 
-## Desarrollo 2 — frecuencia de resonancia
-La frecuencia de resonancia es la de las dos bobinas en paralelo con Cf. La forma exacta usa la inductancia equivalente paralelo Leq = L1·L2/(L1+L2):
+## Desarrollo 2 — frecuencia de resonancia (derivación completa)
+La frecuencia de resonancia son los modos propios del filtro: las frecuencias a las que la red oscila por sí sola sin excitación externa. Para hallarlos se anulan las dos fuentes de tensión que actúan sobre el filtro (vi = 0 y vpcc = 0 en pequeña señal): lo que queda son los modos naturales del circuito L1–Cf–L2. Se presenta primero la versión reducida (sin resistencias parásitas), que da la fórmula limpia, y después la versión completa (con R1, R2 y la Rd de amortiguamiento), que muestra cómo esa resonancia ideal se convierte en un par de polos amortiguados.
+
+### Versión reducida (R1 = R2 = 0)
+**Paso 1 — anular las fuentes y plantear las ecuaciones en Laplace.** Con vi = 0 y vpcc = 0, las tres ecuaciones de partida quedan:
+
+- s·L1·I1 = −Vc          ⟹  I1 = −Vc / (s·L1)
+- s·Cf·Vc = I1 − I2
+- s·L2·I2 = Vc           ⟹  I2 = +Vc / (s·L2)
+
+**Paso 2 — sustituir I1 e I2 en la ecuación del condensador.** Llevando las dos corrientes a s·Cf·Vc = I1 − I2:
+
+s·Cf·Vc = −Vc/(s·L1) − Vc/(s·L2)
+
+**Paso 3 — dividir por Vc (modo no trivial, Vc ≠ 0).** El condensador oscila, así que su tensión no es nula y se puede dividir:
+
+s·Cf = −1/(s·L1) − 1/(s·L2)
+
+**Paso 4 — reordenar a la ecuación característica.** Multiplicando por s y pasando todo a un lado:
+
+s²·Cf + 1/L1 + 1/L2 = 0   ⟹   s²·Cf = −(1/L1 + 1/L2) = −(L1 + L2)/(L1·L2)
+
+**Paso 5 — despejar s y leer la frecuencia.** Queda:
+
+s² = −(L1 + L2)/(L1·L2·Cf)   ⟹   s = ±j·omega_res
+
+con un par de raíces puramente imaginarias (sin parte real → amortiguamiento nulo). De ahí:
+
+omega_res = raiz( (L1 + L2)/(L1·L2·Cf) )   y   fres = (1/(2·pi))·raiz( (L1 + L2)/(L1·L2·Cf) )
+
+**Paso 6 — interpretación física (las dos bobinas en paralelo).** El término 1/L1 + 1/L2 es la suma de inversos típica de un paralelo. Al anular las fuentes, L1 y L2 quedan colgando del nudo vC hacia masa (cada fuente cortocircuitada es un camino a masa), así que están en paralelo. Definiendo la inductancia equivalente paralelo:
+
+Leq = L1·L2 / (L1 + L2)
+
+la expresión se compacta en la de un tanque LC simple, Leq resonando con Cf:
 
 fres = 1 / (2·pi·raiz(Leq·Cf))
 
-que es idéntica a la expresión habitual fres = (1/2pi)·raiz((L1+L2)/(L1·L2·Cf)). Una aproximación que aparece en algunos textos usa L1+L2 (suma serie) en lugar de Leq (paralelo) en el denominador:
+que es idéntica a la del paso 5 (resonancia de Cf contra L1 paralelo L2). Esto coincide con el denominador de las funciones de transferencia del Desarrollo 1: s³·L1·L2·Cf + s·(L1 + L2) = s·L1·L2·Cf·(s² + omega_res²), cuyos ceros no nulos son justo s = ±j·omega_res.
 
-fres_aprox = 1 / (2·pi·raiz((L1+L2)·Cf))
+> Aviso sobre una aproximación habitual: algunos textos usan L1+L2 (suma serie) en lugar de Leq (paralelo) en el denominador, fres_aprox = 1/(2·pi·raiz((L1+L2)·Cf)). Subestima fres porque L1+L2 > Leq siempre. La diferencia es pequeña cuando L2 << L1 (relación r = L2/L1 pequeña) pero crece al acercarse L2 a L1. Usar siempre la forma exacta con Leq.
 
-Esa aproximación subestima fres porque L1+L2 > Leq siempre. La diferencia es pequeña cuando L2 << L1 (relación r = L2/L1 pequeña) pero crece cuando L2 se acerca a L1. Usar siempre la fórmula exacta con Leq.
+### Versión completa (con R1, R2 y Rd)
+Sin despreciar nada, las ecuaciones con fuentes anuladas y resistencias incluidas (R1 en serie con L1, R2 en serie con L2; la Rd de amortiguamiento se añade luego en serie con Cf) son:
+
+- s·L1·I1 = −Vc − R1·I1   ⟹  I1 = −Vc / (R1 + s·L1)
+- s·Cf·Vc = I1 − I2
+- s·L2·I2 = Vc − R2·I2    ⟹  I2 = +Vc / (R2 + s·L2)
+
+**Sustituyendo en la ecuación del condensador y dividiendo por Vc:**
+
+s·Cf = −1/(R1 + s·L1) − 1/(R2 + s·L2)
+
+**Multiplicando por (R1 + s·L1)·(R2 + s·L2)** se obtiene la ecuación característica exacta (cúbica en s):
+
+s³·(Cf·L1·L2) + s²·Cf·(R1·L2 + R2·L1) + s·[Cf·R1·R2 + (L1 + L2)] + (R1 + R2) = 0
+
+Es el polinomio completo del filtro. Comprobación: con R1 = R2 = 0 se reduce a s³·Cf·L1·L2 + s·(L1+L2) = 0, es decir s·(s²·Cf·L1·L2 + L1 + L2) = 0, que devuelve la versión reducida. Las dos raíces complejas de la cúbica son el par resonante; ahora tienen parte real negativa (las resistencias amortiguan). Para R pequeñas la frecuencia amortiguada apenas se mueve de omega_res, y el amortiguamiento del par resonante introducido por una Rd en serie con Cf es:
+
+zeta = (1/2)·Rd·raiz( Cf·(L1 + L2)/(L1·L2) )
+
+es decir, sin resistencias zeta = 0 (la versión reducida) y crece linealmente con Rd. Por eso la versión reducida da la frecuencia (dónde está el pico) y la versión completa da el amortiguamiento (cómo de afilado es y por qué hay que amortiguarlo).
 
 > A resaltar: sin amortiguar, cualquier lazo rápido o impedancia de red que excite fres provoca oscilación sostenida. Es uno de los mecanismos típicos de inestabilidad armónica y de oscilaciones de alta frecuencia entre convertidor y red.
 
@@ -125,19 +177,61 @@ Ejemplo con valores del proyecto 04 (L1=40 µH, Cf=85 µF, L2=8 µH, Lt=64 µH):
 
 La resonancia baja unos 400 Hz al pasar de SCR 5 a SCR 2. El amortiguamiento debe funcionar en todo ese rango.
 
-## Desarrollo 4 — factor de calidad Q
-El factor Q mide cuántas veces amplifica el filtro una excitación en fres. Sin resistencias (R1=R2=0) Q tiende a infinito y el pico es teóricamente infinito. Con resistencias reales pequeñas Q sigue siendo alto (típico 10–50 en LCLs de potencia), lo que hace imprescindible el amortiguamiento. La resistencia de amortiguamiento pasivo óptima en serie con Cf es:
+## Desarrollo 4 — factor de calidad Q (derivación y efecto en la respuesta)
+El factor de calidad Q mide cuántas veces amplifica el filtro una excitación justo en fres (la altura del pico de resonancia).
+
+**De dónde sale.** Para un par de polos de segundo orden con amortiguamiento zeta, la ganancia en el pico respecto a la banda de paso es Q = 1/(2·zeta). Combinándolo con el amortiguamiento que introduce una Rd en serie con Cf (Desarrollo 2), zeta = (1/2)·Rd·raiz(Cf·(L1+L2)/(L1·L2)), queda:
+
+Q = 1/(2·zeta) = 1 / ( Rd·raiz( Cf·(L1+L2)/(L1·L2) ) ) = (1/Rd)·raiz( L1·L2/(Cf·(L1+L2)) ) = (1/Rd)·raiz(Leq/Cf)
+
+es decir, Q es la relación entre la impedancia característica del tanque raiz(Leq/Cf) y la resistencia de amortiguamiento Rd. Sin resistencias (Rd→0, R1=R2=0) Q→infinito y el pico es teóricamente infinito; con resistencias reales pequeñas Q sigue siendo alto (típico 10–50 en LCLs de potencia), lo que hace imprescindible amortiguar.
+
+**Caso de estudio: efecto de Q sobre la respuesta.** Al subir el amortiguamiento (bajar Q) el pico de resonancia baja y se ensancha, mientras la banda de paso y la caída de −60 dB/dec por encima quedan casi intactas. La resistencia de amortiguamiento pasivo óptima en serie con Cf es:
 
 Rd = 1 / (3·omega_res·Cf)
 
-Con Rd bien elegido Q baja a valores manejables (Q < 3) y el pico queda acotado. El inconveniente es que Rd disipa potencia P_Rd = Rd·iCf_rms². Por eso en inversores de potencia media-alta se prefiere el amortiguamiento activo por software (ver más abajo), que no tiene pérdidas.
+que deja Q ≈ 3 (un compromiso entre acotar el pico y no degradar la atenuación a fsw). Por debajo de eso el pico sigue siendo peligroso; muy por encima se sobre-amortigua y se pierde atenuación.
 
-## Desarrollo 5 — rizado de corriente y dimensionado de L1
-La bobina de lado fuente se dimensiona por el rizado de conmutación que deja pasar. La base es vL = L·di/dt: mientras el puente aplica una tensión del orden de ±Vdc/2 sobre L1 durante una fracción del periodo Tsw = 1/fsw, la corriente sube/baja con pendiente vL/L1. El rizado pico-pico crece con Tsw (menos conmutaciones) y baja con L1. El caso peor con PWM senoidal de dos niveles da la regla de diseño habitual:
+<div class="cfig"><img src="figuras/filtro-lcl-factorQ.png" alt="Bode de |i2/vi| para varios valores de Q mostrando el pico de resonancia cada vez más bajo"><div class="cap">Efecto del factor Q sobre |i₂/vᵢ|: sin amortiguar (Q→∞) el pico es enorme; al añadir R_d el pico baja y se ensancha. Con R_d óptimo (Q≈3) queda acotado sin estropear la atenuación a fsw; sobre-amortiguar (Q bajo) no aporta y empeora el filtrado.</div></div>
 
-delta_i1pp ≈ Vdc / (8·fsw·L1)   ⟹   L1 = Vdc / (8·fsw·delta_i1pp)
+El inconveniente del amortiguamiento pasivo es que Rd disipa potencia, P_Rd = Rd·iCf_rms². Por eso en inversores de potencia media-alta se prefiere el amortiguamiento activo por software (ver más abajo), que consigue el mismo zeta sin pérdidas.
 
-con delta_i1pp típico del 10–20 % de la corriente nominal de pico In. Más inductancia = menos rizado pero más caída y volumen. (Si la etapa de entrada es de tres niveles, el escalón de tensión sobre L1 se reduce a la mitad y para el mismo rizado L1 baja; ver [[convertidor-vsc|modulación PWM]].)
+## Desarrollo 5 — rizado de corriente y dimensionado de L1 (derivación completa)
+La bobina de lado fuente se dimensiona por el rizado de conmutación que deja pasar. Se deriva primero la versión reducida (tensión de salida constante dentro de un periodo de conmutación, que da la regla de diseño) y después el detalle (dependencia con el ciclo de trabajo y convención pico vs pico-pico).
+
+### Versión reducida (tensión de salida ≈ constante en un periodo Tsw)
+**Paso 1 — punto de partida.** La ley de la bobina es vL = L1·di1/dt, luego la corriente cambia con pendiente di1/dt = vL/L1 mientras se le aplica una tensión vL. En un periodo de conmutación Tsw = 1/fsw el nudo vC apenas se mueve (fsw >> frecuencia de red), así que se trata como constante e igual a la salida instantánea vo.
+
+**Paso 2 — tensión sobre L1 en cada subintervalo.** El polo conmuta entre +Vdc/2 y −Vdc/2. La tensión sobre L1 es la del polo menos vo:
+- subintervalo "alto" (duración d·Tsw): vL+ = +Vdc/2 − vo
+- subintervalo "bajo" (duración (1−d)·Tsw): vL− = −Vdc/2 − vo
+
+donde d es el ciclo de trabajo. Como el valor medio del polo debe igualar a vo, se cumple vo = (2d − 1)·Vdc/2, de donde Vdc/2 − vo = Vdc·(1 − d).
+
+**Paso 3 — subida de corriente en el subintervalo alto.** La corriente sube con pendiente vL+/L1 durante d·Tsw, así que el rizado pico-pico es:
+
+delta_i1pp = (vL+/L1)·(d·Tsw) = [Vdc·(1 − d)/L1]·d·Tsw = (Vdc·Tsw/L1)·d·(1 − d)
+
+es decir, sustituyendo Tsw = 1/fsw:
+
+delta_i1pp = (Vdc/(fsw·L1))·d·(1 − d)
+
+**Paso 4 — caso peor (máximo rizado).** El producto d·(1 − d) es máximo en d = 0.5 (salida instantánea nula, paso por cero de la senoide), donde vale 1/4. El rizado pico-pico máximo es:
+
+delta_i1pp,max = Vdc / (4·fsw·L1)
+
+**Paso 5 — convención de la especificación y regla de diseño.** Si la especificación se da como amplitud del rizado (desviación de pico respecto a la media, que es la mitad del pico-pico), aparece el factor 8 habitual en la literatura de diseño de LCL:
+
+delta_i1,amp = delta_i1pp/2 = Vdc / (8·fsw·L1)   ⟹   L1 = Vdc / (8·fsw·delta_i1,amp)
+
+(con pico-pico el factor es 4; con amplitud, 8 — conviene fijar cuál se usa). El valor objetivo típico es 10–20 % de la corriente nominal de pico In. Más inductancia = menos rizado pero más caída y volumen.
+
+<div class="cfig"><img src="figuras/filtro-lcl-rizado.png" alt="Izquierda: rizado a lo largo del ciclo de red para dos L1. Derecha: rizado pico-pico máximo frente a L1 con las líneas de 10% y 20% de In"><div class="cap">Izquierda: el rizado sigue d(1−d), máximo en el paso por cero de la senoide y mínimo en los picos; doblar L₁ lo reduce a la mitad. Derecha: rizado p-p máximo frente a L₁; fijar el objetivo (10–20 % de Iₙ) determina el L₁ mínimo — diseñar para menos rizado exige más inductancia.</div></div>
+
+### Detalle (lo que la versión reducida obvia)
+- La dependencia d·(1 − d) significa que el rizado no es constante a lo largo del ciclo de red: es máximo en el paso por cero (d ≈ 0.5) y mínimo en los picos de la senoide (d → 0 o 1). Dimensionar por d = 0.5 es el caso peor.
+- Se ha supuesto vo constante en el periodo Tsw; es exacto en el límite fsw >> f0 y solo introduce un error de segundo orden.
+- Si la etapa de entrada es de tres niveles, el escalón de tensión sobre L1 se reduce a la mitad (±Vdc/4 efectivo por nivel), de modo que para el mismo rizado L1 baja a la mitad; ver [[convertidor-vsc|modulación PWM]]. Con modulación vectorial (SVPWM) o inyección de tercer armónico el caso peor cambia ligeramente respecto al SPWM senoidal puro.
 
 ## Desarrollo 6 — dimensionado de Cf (reactiva)
 El condensador absorbe reactiva a la frecuencia de red: corriente Ic = omega0·Cf·V, luego Qc = V·Ic = omega0·Cf·V². Se limita a un ≤5 % de la potencia base para no cargar la fuente con reactiva inútil:
@@ -155,18 +249,28 @@ L2 ≈ 1 / (k·Cf·omega_sw²)
 
 Relación práctica L2/L1 entre 0.2 y 1. Conviene definir r = L2/L1 y comprobar después que fres cae en banda.
 
-## Amortiguamiento activo (sin pérdidas)
+## Amortiguamiento activo (derivación, estudio de polos y diseño)
 En vez de disipar en una Rd física, se emula una resistencia de amortiguamiento por software. La técnica habitual realimenta la corriente del condensador iCf = i1 − i2 a la tensión de la fuente con ganancia Kad:
 
 vi = vi_PI − Kad·(i1 − i2)
 
-Esto añade un término disipativo en la dinámica de i1 que mueve los polos de resonancia desde el eje imaginario (zeta ≈ 0) hacia la izquierda (zeta útil), equivaliendo a una resistencia en serie con L1 pero sin pérdidas. Funciona en dq componente a componente.
+**Por qué equivale a una resistencia sin pérdidas (desarrollo).** La dinámica de i1 sin amortiguar es L1·di1/dt = vi − vC − R1·i1. Sustituyendo la ley de control vi = vi_PI − Kad·(i1 − i2):
 
-<div class="cfig"><img src="figuras/amortiguamiento-activo-lcl-polos.png" alt="polos de resonancia LCL al barrer Kad"><div class="cap">Barrido de la ganancia K_ad: el par de polos de resonancia parte casi sobre el eje imaginario (ζ≈0) y, al subir K_ad, se desplaza a la izquierda (más amortiguado). Equivale a una resistencia en serie con L1 sin pérdidas.</div></div>
+L1·di1/dt = vi_PI − vC − R1·i1 − Kad·(i1 − i2)
 
-Procedimiento: identificar fres, medir o estimar iCf como i1 − i2, elegir Kad (del orden de unos pocos ohmios) para el zeta objetivo de la resonancia (0.3–0.7) barriendo Kad y observando los polos, y verificar que no degrada el margen de los lazos de corriente y tensión. Variantes: realimentación de i2 o de la derivada de vC en lugar de iCf.
+El término −Kad·i1 actúa exactamente como una resistencia en serie con L1 (su caída es proporcional a i1), y el −Kad·(−i2) recupera que la corriente que pasa por el condensador es i1 − i2: el conjunto emula una Rd vista por la rama del condensador. La diferencia con una resistencia física es que Kad no disipa potencia real: es una consigna de tensión, no una caída óhmica. Por eso da el mismo amortiguamiento que Rd pero sin las pérdidas P_Rd.
 
-Errores del amortiguamiento activo: ganancia excesiva amplifica ruido y puede provocar inestabilidad de alta frecuencia; estimar iCf con retardo de muestreo significativo le quita eficacia al damping.
+**Estudio de polos: cómo influye Kad en el diseño.** Anulando las fuentes y reescribiendo el modelo con la realimentación activa, la matriz de estado del filtro (estados i1, i2, vC; R1 = R2 = 0 para aislar el efecto) es:
+
+A(Kad) = [[ −Kad/L1, +Kad/L1, −1/L1 ], [ 0, 0, 1/L2 ], [ 1/Cf, −1/Cf, 0 ]]
+
+Los autovalores de A(Kad) son el par resonante. En Kad = 0 están sobre el eje imaginario en ±j·omega_res (zeta = 0). Al subir Kad, el par se desplaza hacia la izquierda (parte real negativa creciente): el amortiguamiento sube de forma casi proporcional a Kad mientras la frecuencia del par apenas cambia. Esto convierte el diseño en directo: se barre Kad hasta cruzar la línea de zeta objetivo.
+
+<div class="cfig"><img src="figuras/filtro-lcl-damping-polos.png" alt="lugar de los polos resonantes del LCL al barrer Kad, con lineas de zeta constante"><div class="cap">Lugar de los polos resonantes al barrer K_ad de 0 a 12 Ω: parten sobre el eje imaginario (ζ≈0, rojo) y se mueven a la izquierda al subir K_ad (color), cruzando las líneas de ζ constante. El diseño consiste en elegir el K_ad que lleva el par al ζ objetivo (0.3–0.7) sin pasarse.</div></div>
+
+**Procedimiento de diseño.** Identificar fres; medir o estimar iCf como i1 − i2; barrer Kad (del orden de unos pocos ohmios) observando el lugar de polos hasta el zeta objetivo de la resonancia (0.3–0.7); verificar que no degrada el margen de los lazos de corriente y tensión. Variantes: realimentar i2 o la derivada de vC en lugar de iCf.
+
+**Límites y errores.** Ganancia Kad excesiva amplifica el ruido de medida y puede provocar inestabilidad de alta frecuencia; estimar iCf con retardo de muestreo significativo (1.5·Ts) le quita eficacia e incluso puede volver el damping negativo a frecuencias altas — por eso el retardo de cómputo acota el Kad útil y, con él, el zeta máximo alcanzable. En digital conviene compensar ese retardo (ver [[compensacion-retardo]]).
 
 ## Cuándo y por qué se usa
 Estándar a la salida de cualquier convertidor conectado a red (PV, eólica, baterías, STATCOM) por la normativa de inyección de armónicos, y también alimentando cargas sensibles en isla. Se prefiere al filtro L cuando se busca menos inductancia total / menor caída para la misma atenuación. La resonancia aparece en cuanto un lazo rápido o la impedancia de red excita la zona de fres; es crítica en red débil, donde Lg baja fres y la mete en la banda de control.
