@@ -3141,6 +3141,43 @@ def _margenes_pm_respuesta():
     _savefig(fig, "margenes-estabilidad-pm-respuesta.png")
 
 
+@figura("amortiguamiento-pasivo-vs-activo")
+def _amort_pasivo_activo():
+    """Comparativa amortiguamiento pasivo (Rd, disipa) vs activo (Kad, sin perdidas)."""
+    L1, L2, Cf = 2e-3, 1e-3, 20e-6
+    w_res = np.sqrt((L1 + L2) / (L1 * L2 * Cf)); f_res = w_res/(2*np.pi)
+    f = np.logspace(1, 4.3, 3000); w = 2*np.pi*f
+    Rd = 1/(3*w_res*Cf); Kad = Rd
+
+    def mag_passive(Rd):
+        A = np.array([[-Rd/L1, Rd/L1, -1/L1],[Rd/L2,-Rd/L2,1/L2],[1/Cf,-1/Cf,0]])
+        _, m, _ = signal.bode(signal.StateSpace(A, np.array([[1/L1],[0],[0]]),
+                                                np.array([[0,1,0]]), [[0]]), w); return m
+    def mag_active(Kad):
+        A = np.array([[-Kad/L1, Kad/L1, -1/L1],[0,0,1/L2],[1/Cf,-1/Cf,0]])
+        _, m, _ = signal.bode(signal.StateSpace(A, np.array([[1/L1],[0],[0]]),
+                                                np.array([[0,1,0]]), [[0]]), w); return m
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(9.2, 3.8))
+    a1.semilogx(f, mag_passive(2e-3), color=BAD,  lw=1.6, label="sin amortiguar")
+    a1.semilogx(f, mag_passive(Rd),   color=ACC2, lw=1.9, label="pasivo ($R_d$ serie $C_f$)")
+    a1.semilogx(f, mag_active(Kad),   color=ACC,  lw=1.9, label="activo ($K_{ad}$ software)")
+    a1.axvline(f_res, color="#888", ls="--", lw=1)
+    a1.set_xlabel("frecuencia [Hz]"); a1.set_ylabel("$|i_2/v_i|$ [dB]"); a1.set_ylim(-120, 55)
+    a1.set_title("Ambos doman el pico; el pasivo pierde algo\nde atenuación a alta f", fontsize=9.5)
+    a1.legend(fontsize=8, loc="upper right")
+
+    zt = np.linspace(0.05, 0.7, 120)
+    Rdz = 2*zt/np.sqrt(Cf*(L1+L2)/(L1*L2)); Icf = 5.0
+    a2.plot(zt, Rdz*Icf**2, color=ACC2, lw=2.2, label="pasivo: $P=R_d\\,I_{Cf}^2$")
+    a2.plot(zt, np.full_like(zt, 0.5), color=ACC, lw=2.2, ls="--", label="activo: ~0 (solo cómputo)")
+    a2.set_xlabel("amortiguamiento objetivo ζ"); a2.set_ylabel("pérdidas de amortiguamiento [W]")
+    a2.set_title("El pasivo disipa; el activo no", fontsize=9.5)
+    a2.legend(fontsize=8.5, loc="upper left")
+    fig.tight_layout()
+    _savefig(fig, "amortiguamiento-pasivo-vs-activo.png")
+
+
 # ===================================================================== #
 def main():
     pref = sys.argv[1] if len(sys.argv) > 1 else None
