@@ -108,11 +108,19 @@ El término constante que queda dentro del paréntesis es lo que se nombra
 
 $$ \omega_{res}^2 \equiv \frac{L_1+L_2}{L_1 L_2 C_f} $$
 
-de modo que
+**Por qué ese constante es \( \omega_{res}^2 \) (y no un nombre arbitrario).** Cualquier factor cuadrático con coeficiente líder unidad se escribe en su forma canónica de segundo orden
+
+$$ s^2 + 2\zeta\omega_0\,s + \omega_0^2 $$
+
+donde, por definición, \( \omega_0 \) es la frecuencia natural y \( \zeta \) el amortiguamiento. Comparando término a término con nuestro paréntesis \( s^2 + \dfrac{L_1+L_2}{L_1 L_2 C_f} \):
+- el coeficiente de \( s \) es cero \( \Rightarrow 2\zeta\omega_0=0 \Rightarrow \zeta=0 \) (sin amortiguar);
+- el término independiente es \( \omega_0^2 \Rightarrow \omega_0^2=\dfrac{L_1+L_2}{L_1 L_2 C_f} \).
+
+Es decir, el constante que acompaña a \( s^2 \) es **por definición** el cuadrado de la frecuencia natural de ese modo. Otra forma de verlo: el factor \( s^2+\omega_{res}^2=0 \) tiene raíces \( s=\pm j\,\omega_{res} \), que en el dominio del tiempo son una oscilación sostenida \( e^{\pm j\omega_{res} t} \) de pulsación \( \omega_{res} \); la frecuencia de esa oscilación libre es justamente lo que llamamos resonancia. (Comprobación dimensional: \( 1/(L\,C) \) tiene unidades de \( \text{rad}^2/\text{s}^2 \), así que su raíz es una pulsación.) Por eso
 
 $$ G_{i_2}(s)=\frac{1}{s\,L_1 L_2 C_f\,(s^2+\omega_{res}^2)} $$
 
-No es una suposición: \( \omega_{res}^2 \) es, literalmente, el coeficiente que aparece al factorizar el denominador. El denominador se anula en \( s=0 \) y en \( s=\pm j\omega_{res} \): hay un par de polos sin parte real (\( \zeta\approx0 \)). Eso es la resonancia. El **porqué físico** de que esa cantidad sea la frecuencia de los modos propios (anulando las dos fuentes y resolviendo el circuito libre) se deriva paso a paso en el Desarrollo 2; aquí solo ha aparecido como consecuencia algebraica de la planta.
+No es una suposición: \( \omega_{res}^2 \) es, literalmente, el coeficiente que aparece al factorizar, y se identifica con la frecuencia natural por la forma canónica de segundo orden. El denominador se anula en \( s=0 \) y en \( s=\pm j\omega_{res} \): un par de polos sin parte real (\( \zeta\approx0 \)). Eso es la resonancia. El **porqué físico** (anular las dos fuentes y resolver el circuito libre) se deriva paso a paso en el Desarrollo 2; aquí ha aparecido como consecuencia algebraica de la planta.
 
 **Paso 4b — respuesta a la perturbación de red (admitancia de salida).** De la misma expresión del paso 4, anulando ahora \( v_i \) en vez de \( v_{pcc} \), sale la otra mitad de la superposición:
 
