@@ -224,6 +224,40 @@ def _lcl_rizado():
 
 
 @figura("filtro-lcl")
+def _lcl_rizado_onda():
+    """Formas de onda del rizado: tension de polo (subintervalos) y rampa de corriente."""
+    Vdc, fsw, L1 = 700.0, 10e3, 2e-3
+    Tsw = 1/fsw; d = 0.6; vo = (2*d - 1)*Vdc/2
+    N = 4000; t = np.linspace(0, 2*Tsw, N); dt = t[1]-t[0]
+    vpole = np.where((t % Tsw) < d*Tsw, Vdc/2, -Vdc/2)
+    i = np.zeros(N)
+    for k in range(1, N):
+        i[k] = i[k-1] + (vpole[k-1]-vo)/L1*dt
+    i = i - (i.max()+i.min())/2                       # centrar el rizado en 0 (A)
+    tus = t*1e6                                       # microsegundos
+    fig, (a1, a2) = plt.subplots(2, 1, figsize=(7.2, 4.8), sharex=True)
+    a1.plot(tus, vpole, color=ACC, lw=1.9)
+    a1.axhline(vo, color=BAD, ls="--", lw=1.5, label=f"media $v_o$={vo:.0f} V")
+    a1.axvspan(0, d*Tsw*1e6, color=ACC, alpha=0.08)
+    a1.text(d*Tsw*1e6/2, Vdc*0.60, "$d\\,T_{sw}$", ha="center", fontsize=9, color="#333")
+    a1.text((d+ (1-d)/2)*Tsw*1e6, -Vdc*0.62, "$(1-d)T_{sw}$", ha="center", fontsize=9, color="#333")
+    a1.set_ylabel("tensión de polo [V]"); a1.set_ylim(-Vdc*0.8, Vdc*0.8)
+    a1.legend(fontsize=8, loc="upper right")
+    a1.set_title("Forma de onda del rizado en $L_1$ durante un periodo de conmutación", fontsize=10)
+    a2.plot(tus, i, color=ACC2, lw=1.9)
+    ipp = i.max()-i.min()
+    a2.annotate("", xy=(d*Tsw*1e6, i.max()), xytext=(d*Tsw*1e6, i.min()),
+                arrowprops=dict(arrowstyle="<->", color="#333", lw=1.3))
+    a2.text(d*Tsw*1e6+3, 0, f"$\\Delta i_{{1,pp}}$≈{ipp:.0f} A", fontsize=9, color="#333")
+    a2.axhline(0, color="#aaa", lw=0.7)
+    a2.set_ylabel("rizado de $i_1$ [A]"); a2.set_xlabel("t [µs]")
+    a2.text(d*Tsw*1e6*0.5, i.max()*0.6, "sube\n(pendiente $v_{L+}/L_1$)", ha="center", fontsize=8, color="#555")
+    a2.text((d+(1-d)/2)*Tsw*1e6, i.min()*0.6, "baja\n($v_{L-}/L_1$)", ha="center", fontsize=8, color="#555")
+    fig.tight_layout()
+    _savefig(fig, "filtro-lcl-rizado-onda.png")
+
+
+@figura("filtro-lcl")
 def _lcl_damping_polos():
     """Amortiguamiento activo: lugar de los polos resonantes al barrer Kad."""
     L1, L2, Cf = 2e-3, 1e-3, 20e-6
