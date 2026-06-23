@@ -16,7 +16,7 @@ referencias:
 ---
 
 ## Definición
-La antiresonancia es lo contrario de la resonancia: en lugar de un pico de ganancia (que produce un par de polos), es un valle profundo en la respuesta en frecuencia, producido por un par de ceros de la función de transferencia. A la frecuencia de antiresonancia la salida medida casi no responde a la entrada: algo "bloquea" la señal. Si la resonancia es donde un par L–C deja pasar mucho (impedancia mínima en serie), la antiresonancia es donde un par L–C bloquea (impedancia máxima en paralelo).
+La antiresonancia es lo contrario de la resonancia: en lugar de un pico de ganancia (que produce un par de polos), es un valle profundo en la respuesta en frecuencia, producido por un par de ceros de la función de transferencia. A la frecuencia de antiresonancia la salida medida casi no responde a la entrada: algo "bloquea" la señal. Si la resonancia es donde un par \( L\!-\!C \) deja pasar mucho (impedancia mínima en serie), la antiresonancia es donde un par \( L\!-\!C \) bloquea (impedancia máxima en paralelo).
 
 ## Dónde aparece (contexto genérico)
 Aparece siempre que, entre la entrada y la variable que medimos, existe una rama resonante en paralelo que a cierta frecuencia presenta impedancia muy alta y desvía o bloquea la señal. No es de ningún circuito concreto: el mismo fenómeno es el amortiguador de masa sintonizado en mecánica (una masa-muelle auxiliar que "absorbe" la vibración a una frecuencia), el filtro notch en electrónica (ceros colocados a propósito para rechazar una frecuencia), y el valle de la corriente de lado fuente en un filtro LCL. Lo que las une: un par de ceros en la función de transferencia de la salida medida.
@@ -33,20 +33,20 @@ Esa suma de fase de los ceros es justo lo que hace valiosa la antiresonancia par
 Se toma como ejemplo la corriente de lado fuente i1 frente a la tensión vi del filtro LCL (la derivación completa de las funciones de transferencia está en [[filtro-lcl]]).
 
 ### Versión reducida (sin resistencias)
-La función de transferencia de la corriente de lado fuente es i1/vi = (1 + s²·L2·Cf) / (denominador común). El valle de antiresonancia está donde el numerador se anula:
+La función de transferencia de la corriente de lado fuente es \( i_1/v_i=(1+s^2 L_2 C_f)/D(s) \), con \( D(s) \) el denominador común. El valle de antiresonancia está donde el numerador se anula:
 
-1 + s²·L2·Cf = 0   ⟹   s = ±j·omega_ar   con   omega_ar = 1/raiz(L2·Cf)   ⟹   f_ar = 1/(2·pi·raiz(L2·Cf))
+$$ 1 + s^2 L_2 C_f = 0 \;\Rightarrow\; s=\pm j\,\omega_{ar} \;\;\text{con}\;\; \omega_{ar}=\frac{1}{\sqrt{L_2 C_f}} \;\Rightarrow\; f_{ar}=\frac{1}{2\pi\sqrt{L_2 C_f}} $$
 
-**Interpretación física.** Anulando la fuente de red (pcc a masa en pequeña señal), desde el nudo del condensador se ve Cf en paralelo con L2. Ese paralelo L2–Cf tiene una resonancia paralelo a omega_ar donde su impedancia tiende a infinito: el nudo queda "flotando" para esa frecuencia y la corriente i1 que entra por L1 cae a un mínimo. Por eso i1 tiene un valle (ceros) justo ahí. La corriente i2 (lado red), en cambio, sale por L2 sin ver ese bloqueo, y no tiene antiresonancia.
+**Interpretación física.** Anulando la fuente de red (\( v_{pcc} \) a masa en pequeña señal), desde el nudo del condensador se ve \( C_f \) en paralelo con \( L_2 \). Ese paralelo \( L_2\!-\!C_f \) tiene una resonancia paralelo a \( \omega_{ar} \) donde su impedancia tiende a infinito: el nudo queda "flotando" para esa frecuencia y la corriente \( i_1 \) que entra por \( L_1 \) cae a un mínimo. Por eso \( i_1 \) tiene un valle (ceros) justo ahí. La corriente \( i_2 \) (lado red), en cambio, sale por \( L_2 \) sin ver ese bloqueo, y no tiene antiresonancia.
 
-Como omega_ar = 1/raiz(L2·Cf) y la resonancia del LCL es omega_res = raiz((L1+L2)/(L1·L2·Cf)), siempre se cumple omega_ar < omega_res (el valle va antes que el pico).
+Como \( \omega_{ar}=1/\sqrt{L_2 C_f} \) y la resonancia del LCL es \( \omega_{res}=\sqrt{(L_1+L_2)/(L_1 L_2 C_f)} \), siempre se cumple \( \omega_{ar}<\omega_{res} \) (el valle va antes que el pico).
 
-### Versión completa (con la resistencia R2 en serie con L2)
-Sin despreciar R2, el numerador de i1/vi pasa a ser 1 + s·Cf·R2 + s²·L2·Cf, cuyos ceros ya no están sobre el eje imaginario sino amortiguados:
+### Versión completa (con la resistencia \( R_2 \) en serie con \( L_2 \))
+Sin despreciar \( R_2 \), el numerador de \( i_1/v_i \) pasa a ser \( 1+sC_f R_2+s^2 L_2 C_f \), cuyos ceros ya no están sobre el eje imaginario sino amortiguados:
 
-zeta_ar = (R2/2)·raiz(Cf/L2)
+$$ \zeta_{ar}=\frac{R_2}{2}\sqrt{\frac{C_f}{L_2}} $$
 
-Comparación: sin R2 el valle es infinitamente profundo y los ceros están sobre el eje (la fase salta +180° de golpe). Con R2 el valle se suaviza y el salto de fase se reparte, pero la frecuencia f_ar apenas cambia. Para los valores parásitos reales R2 es pequeña, así que el valle sigue siendo marcado y la ventaja de fase se mantiene.
+Comparación: sin \( R_2 \) el valle es infinitamente profundo y los ceros están sobre el eje (la fase salta \( +180^\circ \) de golpe). Con \( R_2 \) el valle se suaviza y el salto de fase se reparte, pero la frecuencia \( f_{ar} \) apenas cambia. Para los valores parásitos reales \( R_2 \) es pequeña, así que el valle sigue siendo marcado y la ventaja de fase se mantiene.
 
 ## Por qué es buena para realimentar (lo importante)
 Cerrar un lazo de corriente significa realimentar una corriente medida y subir la ganancia hasta el ancho de banda deseado. Si la planta tiene un par de polos de resonancia poco amortiguados, al subir la ganancia esos polos tienden a acercarse al eje imaginario o cruzarlo: el lazo oscila o se inestabiliza. La antiresonancia lo evita por dos razones equivalentes:
@@ -81,7 +81,7 @@ f_res = 1/(2*np.pi)*np.sqrt((L1+L2)/(L1*L2*Cf))  # resonancia (pico)
 ```
 
 ## Parámetros y valores típicos
-f_ar siempre por debajo de f_res. En el LCL del proyecto, f_ar ≈ 1.1 kHz y f_res ≈ 1.4 kHz (LCL aislado). zeta_ar con resistencias parásitas: muy pequeño (valle marcado).
+\( f_{ar} \) siempre por debajo de \( f_{res} \). En el LCL del proyecto, \( f_{ar}\approx1.1 \) kHz y \( f_{res}\approx1.4 \) kHz (LCL aislado). \( \zeta_{ar} \) con resistencias parásitas: muy pequeño (valle marcado).
 
 ## Errores comunes
 - Realimentar la variable sin antiresonancia (i2 en el LCL) por parecer "la importante": la fase se hunde en la resonancia y el lazo se inestabiliza al subir la ganancia.
