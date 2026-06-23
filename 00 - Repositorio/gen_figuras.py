@@ -3112,6 +3112,35 @@ def _antires_rlocus():
     _savefig(fig, "antiresonancia-rlocus.png")
 
 
+@figura("margenes-estabilidad")
+def _margenes_pm_respuesta():
+    """Relacion margen de fase -> respuesta en lazo cerrado (mas PM, menos sobreoscilacion)."""
+    wp = 2*np.pi*100.0
+    w = np.logspace(0, 4, 4000)
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(9.0, 3.8))
+    casos = [(0.45*wp, OK, "PM alto"), (1.0*wp, ACC, "PM medio"), (2.2*wp, BAD, "PM bajo")]
+    for K, col, lab in casos:
+        num = [K]; den = [1/wp, 1, 0]                 # L(s)=K/(s(s/wp+1))
+        _, mag, ph = signal.bode(signal.TransferFunction(num, den), w)
+        ic = int(np.argmin(np.abs(mag)))              # cruce de ganancia |L|=0 dB
+        pm = 180 + ph[ic]; fc = w[ic]/(2*np.pi)
+        a1.semilogx(w/(2*np.pi), mag, color=col, lw=1.8, label=f"{lab} (PM≈{pm:.0f}°)")
+        a1.plot(fc, 0, "o", color=col, ms=5)
+        den_cl = np.polyadd(den, num)                 # lazo cerrado T=L/(1+L)
+        t, y = signal.step(signal.TransferFunction(num, den_cl))
+        a2.plot(t*1e3, y, color=col, lw=1.8, label=f"{lab}")
+    a1.axhline(0, color="#aaa", lw=0.8); a1.set_ylim(-60, 45)
+    a1.set_xlabel("frecuencia [Hz]"); a1.set_ylabel("$|L|$ [dB]")
+    a1.set_title("Bode de lazo: PM en el cruce de ganancia", fontsize=10)
+    a1.legend(fontsize=8, loc="upper right")
+    a2.axhline(1, color="#aaa", lw=0.8)
+    a2.set_xlabel("t [ms]"); a2.set_ylabel("salida (lazo cerrado)")
+    a2.set_title("Menos PM → más sobreoscilación", fontsize=10)
+    a2.legend(fontsize=8, loc="lower right")
+    fig.tight_layout()
+    _savefig(fig, "margenes-estabilidad-pm-respuesta.png")
+
+
 # ===================================================================== #
 def main():
     pref = sys.argv[1] if len(sys.argv) > 1 else None
