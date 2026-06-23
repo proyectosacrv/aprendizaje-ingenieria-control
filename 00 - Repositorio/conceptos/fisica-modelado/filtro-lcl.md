@@ -9,7 +9,7 @@ objetivos: [atenuar armonicos de conmutacion, modelar la planta de potencia, ges
 tags: [filtro, resonancia, antiresonancia, amortiguamiento-activo, factor-Q, rizado, dimensionado, funcion-transferencia, LCL, dq]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-06-16
-relacionados: [convertidor-vsc, marco-dq, impedancia-salida-estabilidad, control-cascada, diagrama-bode]
+relacionados: [convertidor-vsc, marco-dq, impedancia-salida-estabilidad, control-cascada, diagrama-bode, antiresonancia, resonancia-rlc]
 referencias:
   - "Reznik et al., LCL Filter Design and Performance Analysis for Grid-Interconnected Systems, IEEE TIA 2014"
   - "Dannehl et al., Investigation of Active Damping Approaches for LCL Filters, IEEE TIA 2010"

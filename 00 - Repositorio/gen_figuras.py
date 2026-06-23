@@ -3044,6 +3044,75 @@ def _conmut():
 
 
 # ===================================================================== #
+#  antiresonancia
+# ===================================================================== #
+def _antires_model():
+    L1, L2, Cf = 2e-3, 1e-3, 20e-6
+    R1, R2 = 0.05, 0.05
+    A = np.array([[-R1/L1, 0,     -1/L1],
+                  [ 0,     -R2/L2, 1/L2],
+                  [ 1/Cf,  -1/Cf,  0  ]])
+    B = np.array([[1/L1], [0], [0]])
+    f_ar  = 1/(2*np.pi*np.sqrt(L2*Cf))
+    f_res = (1/(2*np.pi))*np.sqrt((L1+L2)/(L1*L2*Cf))
+    return A, B, f_ar, f_res
+
+@figura("antiresonancia")
+def _antires_bode():
+    """Bode de i1/vi (con antiresonancia) vs i2/vi (sin): ventaja de fase."""
+    A, B, f_ar, f_res = _antires_model()
+    f = np.logspace(1, 4, 2500); w = 2*np.pi*f
+    fig, (a1, a2) = plt.subplots(2, 1, figsize=(6.8, 5.4), sharex=True)
+    for C, col, lab in [([1,0,0], ACC2, "$i_1/v_i$ (con antiresonancia)"),
+                        ([0,1,0], ACC,  "$i_2/v_i$ (solo resonancia)")]:
+        _, mag, ph = signal.bode(signal.StateSpace(A, B, np.array([C]), [[0]]), w)
+        a1.semilogx(f, mag, color=col, lw=2, label=lab)
+        a2.semilogx(f, ph, color=col, lw=2)
+    for ax in (a1, a2):
+        ax.axvline(f_ar, color=ACC2, ls=":", lw=1.2)
+        ax.axvline(f_res, color="#888", ls="--", lw=1.1)
+    a1.text(f_ar*0.97, -52, f"$f_{{ar}}$≈{f_ar:.0f}", color=ACC2, fontsize=8.5, ha="right")
+    a1.text(f_res*1.05, 25, f"$f_{{res}}$≈{f_res:.0f}", color="#555", fontsize=8.5)
+    a1.set_ylabel("magnitud [dB]"); a1.legend(fontsize=8.5, loc="lower left"); a1.set_ylim(-90, 45)
+    a2.set_ylabel("fase [°]"); a2.set_xlabel("frecuencia [Hz]")
+    a2.annotate("el cero sube la fase\nantes del pico", xy=(f_ar, 60), xytext=(f_ar*0.18, 70),
+                fontsize=8, color=ACC2, arrowprops=dict(arrowstyle="->", color=ACC2))
+    a1.set_title("Antiresonancia (valle en $i_1$) antes de la resonancia: ventaja de fase", fontsize=10)
+    fig.tight_layout()
+    _savefig(fig, "antiresonancia-bode.png")
+
+@figura("antiresonancia")
+def _antires_rlocus():
+    """Lugar de raices: realimentar i1 (con cero) lleva polos a la izquierda;
+    realimentar i2 (sin cero) los empuja a la derecha (inestable)."""
+    A, B, f_ar, f_res = _antires_model()
+    w_res = 2*np.pi*f_res
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.8, 4.4), sharey=True)
+    sc = None
+    for ax, C, titulo, kmax in [(ax1, [1,0,0], "Realimentar $i_1$ (con antiresonancia)", 60.0),
+                                (ax2, [0,1,0], "Realimentar $i_2$ (sin antiresonancia)", 60.0)]:
+        num, den = signal.ss2tf(A, B, np.array([C]), [[0]]); num = num[0]
+        num = num/den[0]; den = den/den[0]            # normalizar (condicionamiento)
+        zeros = np.roots(num); poles = np.roots(den)
+        ks = np.linspace(0, kmax, 500)
+        loc = np.array([np.sort_complex(np.roots(np.polyadd(den, k*num))) for k in ks])
+        kcol = np.repeat(ks[:, None], loc.shape[1], axis=1)
+        sc = ax.scatter(loc.real, loc.imag, c=kcol, cmap="viridis", s=5, zorder=2)
+        ax.scatter(poles.real, poles.imag, marker="x", color=BAD, s=90, lw=2, zorder=4, label="polos (k=0)")
+        if len(zeros):
+            ax.scatter(zeros.real, zeros.imag, marker="o", facecolors="none",
+                       edgecolors="#111", s=80, lw=1.6, zorder=4, label="ceros")
+        ax.axvline(0, color="#888", lw=1.0)
+        ax.set_xlabel("Re(s) [1/s]"); ax.set_title(titulo, fontsize=9.5)
+        ax.legend(fontsize=8, loc="upper left")
+        ax.set_xlim(-1600, 600); ax.set_ylim(0, w_res*1.3)
+    ax1.set_ylabel("Im(s) [rad/s]")
+    fig.colorbar(sc, ax=[ax1, ax2], label="ganancia k", shrink=0.85)
+    fig.suptitle("Lazo de corriente: el cero de antiresonancia atrae los polos a la izquierda (i1); sin él van a la derecha (i2)", fontsize=9.5)
+    _savefig(fig, "antiresonancia-rlocus.png")
+
+
+# ===================================================================== #
 def main():
     pref = sys.argv[1] if len(sys.argv) > 1 else None
     n = 0

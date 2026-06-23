@@ -46,6 +46,7 @@ CONCEPTS = {
     "carga-pulsante-datacenter-ia": ["carga pulsante"],
     "topologias-multinivel": ["multinivel"],
     # --- control ---
+    "antiresonancia":        ["antiresonancia", "antirresonancia"],
     "impedancia-virtual":    ["impedancia virtual"],
     "current-limiting":      ["limitación de corriente", "current limiting"],
     "control-cascada":       ["control en cascada", "lazos anidados"],

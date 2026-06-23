@@ -39,6 +39,7 @@
     - control-cascada
     - controlador-resonante
     - compensador-adelanto-atraso
+    - antiresonancia
     - filtro-notch
     - observador-estados
     - compensacion-retardo
