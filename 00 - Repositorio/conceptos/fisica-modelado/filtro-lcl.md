@@ -49,12 +49,35 @@ Estas tres ecuaciones son el modelo del LCL. En el marco dq (girando a omega) ca
 ## Desarrollo 1 — funciones de transferencia (derivación completa)
 El objetivo de esta sección es deducir, paso a paso, las funciones de transferencia que relacionan las dos corrientes del filtro (i1 lado fuente, i2 lado red) con las dos tensiones que actúan sobre él (vi tensión de la fuente conmutada, vpcc tensión en el PCC). Estas funciones son la planta que ve el control de corriente, así que de aquí salen la resonancia, la antiresonancia y la elección de qué corriente realimentar.
 
-**Por qué la función de transferencia de interés es i2/vi.** Antes de derivar conviene justificar qué entrada y qué salida se eligen, porque un sistema de tres almacenes de energía (L1, Cf, L2) tiene varias funciones de transferencia posibles y solo una es la planta natural del control. El razonamiento tiene dos patas:
+### El LCL como cuadripolo: dos entradas, varias salidas
+El filtro tiene dos tensiones que actúan sobre él, y conviene verlo como un cuadripolo (dos puertos):
+- vi = V1: la tensión de la fuente conmutada, en el puerto de entrada. Es la única variable que el control manipula (el modulador la sintetiza a partir de la consigna del lazo).
+- vpcc = V2: la tensión en el PCC, en el puerto de salida. No la decide el convertidor sino la red/carga, así que es una perturbación, no una entrada de control.
 
-- La salida es i2 (corriente de lado red) porque es la magnitud que físicamente se entrega a la red o a la carga: es la que transporta la potencia activa y reactiva útil, la que fija el factor de potencia en el PCC y la que la normativa de inyección de armónicos limita. El control de un convertidor conectado a red existe, en el fondo, para gobernar esa corriente i2 (o las potencias P y Q, que son i2 proyectada sobre la tensión). La corriente de lado fuente i1 y la tensión del condensador vC son estados internos del filtro, no el objetivo final.
-- La entrada es vi (tensión de la fuente conmutada) porque es la única variable que el control puede manipular directamente: el modulador sintetiza vi a partir de la consigna del lazo. La otra tensión que actúa sobre el filtro, vpcc, no la decide el convertidor sino la red, así que es una perturbación, no una entrada de control. Por eso la planta del lazo se escribe como salida-controlada entre entrada-manipulable: i2 frente a vi.
+Las salidas que interesan son las dos corrientes (i1 lado fuente, i2 lado red) y la tensión del condensador vC. Como el filtro es lineal, cada salida es la superposición de la respuesta a las dos entradas. Para la corriente de lado red, por ejemplo:
 
-En consecuencia, la función de transferencia de diseño es Gi2(s) = i2(s)/vi(s) evaluada con la red rígida (vpcc tratada como perturbación independiente, vpcc = 0 para la planta). La respuesta de i2 a la perturbación vpcc se calcula por separado (mismo denominador, distinto numerador) y entra como rechazo de perturbación. La derivación de abajo obtiene primero i2 en función de las dos entradas (paso 4) y de ahí aísla Gi2; como complemento se obtiene i1/vi (paso 5), que no es el objetivo de control pero explica por qué se realimenta i1 en el lazo interno (paso 6).
+i2 = G_i2,vi(s)·V1 + G_i2,vpcc(s)·V2
+
+### Por qué se asume vpcc = 0 (V2 = 0) al calcular i2/vi
+Esto es el principio de superposición de los sistemas lineales: la función de transferencia de una salida respecto a una entrada se define como la respuesta a esa entrada con todas las demás entradas anuladas. Por eso, para obtener G_i2,vi = i2/vi se pone vpcc = 0; y para obtener la respuesta a la red, G_i2,vpcc = i2/vpcc, se pondría vi = 0. La respuesta total es la suma de ambas. Anular vpcc no significa que la red no exista, sino que su efecto se contabiliza aparte, en su propia función de transferencia.
+
+Tiene además un sentido físico directo: anular vpcc en pequeña señal equivale a suponer la red rígida (un nudo de tensión fija, una fuente de tensión ideal cuya tensión no se mueve ante la corriente que le inyecta el convertidor). Para diseñar el lazo de control nos interesa primero cómo responde i2 a lo que el control mueve (vi); el efecto de las variaciones de vpcc entra después como rechazo de perturbación. De hecho la respuesta a vpcc con vi = 0 es justamente la admitancia de salida del conjunto, la magnitud central del análisis de estabilidad por impedancia (ver [[impedancia-salida-estabilidad]]).
+
+### Objetivo de cada función de transferencia (para qué se calcula cada una)
+Del mismo cuadripolo salen varias funciones de transferencia, y cada una sirve para una cosa distinta. Por eso se calculan i2/vi, i1/vi, vC/vi (y la cruzada i2/vpcc):
+
+| Función | Se calcula con | Para qué sirve |
+|---|---|---|
+| i2/vi (transadmitancia directa) | vpcc = 0 | Planta del lazo de corriente de red. Es lo que el control gobierna; de su denominador sale la resonancia. |
+| i1/vi | vpcc = 0 | Planta del lazo interno (corriente de lado fuente). Tiene un cero de antiresonancia que la hace fácil de estabilizar; es la corriente que se realimenta y la base del amortiguamiento activo. |
+| vC/vi | vpcc = 0 | Tensión del condensador. Necesaria si se controla la tensión (modo grid-forming) y para sensar/estimar la corriente del condensador en el amortiguamiento. |
+| i2/vpcc (admitancia de salida) | vi = 0 | Respuesta a la perturbación de red; es la admitancia de salida Yo que entra en el criterio de estabilidad por impedancia frente a la red. |
+
+La V2/V1 (relación de tensiones vpcc/vi, o vC/vi como su versión interna) es la lectura clásica del filtro como "filtro de tensión": cuánto pasa de la tensión de entrada a la de salida en función de la frecuencia, y dónde está la resonancia. En el contexto de control de corriente la planta principal es i2/vi, pero las demás se necesitan para el lazo interno, el amortiguamiento y la estabilidad frente a la red.
+
+La derivación de abajo obtiene primero i2 en función de las dos entradas (paso 4), de ahí aísla i2/vi anulando vpcc, y como complemento obtiene i1/vi (paso 5), que explica por qué se realimenta i1 en el lazo interno (paso 6).
+
+<div class="cfig"><img src="figuras/filtro-lcl-familia.png" alt="Magnitud de las tres FDT del LCL frente a vi: i2/vi, i1/vi y vC/vi"><div class="cap">Las tres FDT frente a vᵢ (con v_pcc=0): i₂/vᵢ (planta de red) solo tiene el pico de resonancia; i₁/vᵢ añade el valle de antiresonancia en f_ar antes del pico (por eso es fácil de realimentar); v_C/vᵢ es la tensión del condensador. Comparten denominador (misma resonancia), difieren en los ceros.</div></div>
 
 **Paso 1 — pasar las tres ecuaciones a Laplace.** Con R1 y R2 despreciables para ver la estructura (se reintroducen luego como amortiguamiento), las tres ecuaciones de partida en el dominio de Laplace son:
 
@@ -79,6 +102,12 @@ De aquí, con red rígida (Vpcc = 0), la transferencia planta principal del cont
 Gi2(s) = I2 / Vi = 1 / [ s³·L1·L2·Cf + s·(L1 + L2) ] = 1 / [ s·L1·L2·Cf·(s² + omega_res²) ]
 
 con omega_res² = (L1 + L2)/(L1·L2·Cf). El denominador se anula en s = 0 y en s = ±j·omega_res: hay un par de polos sin parte real (zeta ≈ 0). Eso es la resonancia.
+
+**Paso 4b — respuesta a la perturbación de red (admitancia de salida).** De la misma expresión del paso 4, anulando ahora vi en vez de vpcc, sale la otra mitad de la superposición:
+
+Yo(s) = i2 / vpcc | vi=0 = −(1 + s²·L1·Cf) / [ s·L1·L2·Cf·(s² + omega_res²) ]
+
+Es la admitancia de salida del filtro: cómo responde la corriente de red a un movimiento de la tensión de red. Tiene el mismo denominador (misma resonancia) pero distinto numerador, y es la que se compara con la impedancia de la red en el criterio de estabilidad por impedancia (ver [[impedancia-salida-estabilidad]]). Confirma que anular una entrada u otra solo cambia el numerador: la resonancia (el denominador) es común a todas las FDT del filtro.
 
 **Paso 5 — corriente de lado fuente i1.** Sustituyendo la I2 recién hallada en I1 = I2·(1 + s²·L2·Cf) + s·Cf·Vpcc, y tomando de nuevo Vpcc = 0:
 

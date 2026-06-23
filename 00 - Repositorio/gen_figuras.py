@@ -96,6 +96,37 @@ def _lcl():
 
 
 @figura("filtro-lcl")
+def _lcl_familia():
+    """Familia de FDT del LCL frente a vi (con vpcc=0): i2/vi, i1/vi, vC/vi."""
+    L1, L2, Cf = 2e-3, 1e-3, 20e-6
+    w_res = np.sqrt((L1 + L2) / (L1 * L2 * Cf)); f_res = w_res/(2*np.pi)
+    f_ar = 1/(2*np.pi*np.sqrt(L2*Cf))
+    f = np.logspace(1, 4.0, 2000); w = 2*np.pi*f
+    Rd = 0.3*(1/(3*w_res*Cf))                  # ligero amortiguamiento para que se vea
+
+    A = np.array([[-Rd/L1,  Rd/L1, -1/L1],
+                  [ Rd/L2, -Rd/L2,  1/L2],
+                  [ 1/Cf,  -1/Cf,   0  ]])
+    B = np.array([[1/L1], [0], [0]])
+    def magdb(C):
+        _, mag, _ = signal.bode(signal.StateSpace(A, B, np.array([C]), [[0]]), w)
+        return mag
+    fig, ax = plt.subplots(figsize=(6.8, 3.8))
+    ax.semilogx(f, magdb([0, 1, 0]), color=ACC,  lw=2.2, label="$i_2/v_i$  (planta del lazo de red)")
+    ax.semilogx(f, magdb([1, 0, 0]), color=ACC2, lw=2.0, label="$i_1/v_i$  (lazo interno, antiresonancia)")
+    ax.semilogx(f, magdb([0, 0, 1]), color=OK,   lw=2.0, label="$v_C/v_i$  (tensión de condensador)")
+    ax.axvline(f_res, color="#888", ls="--", lw=1)
+    ax.axvline(f_ar, color="#bbb", ls=":", lw=1)
+    ax.text(f_res*1.05, 38, f"$f_{{res}}$≈{f_res:.0f}", color="#555", fontsize=8.5)
+    ax.text(f_ar*0.6, -70, f"$f_{{ar}}$≈{f_ar:.0f}", color="#999", fontsize=8.5)
+    ax.set_xlabel("frecuencia [Hz]"); ax.set_ylabel("magnitud [dB]")
+    ax.set_title("Familia de FDT del LCL frente a $v_i$ (con $v_{pcc}=0$)", fontsize=10.5)
+    ax.set_ylim(-100, 55); ax.legend(loc="lower left", fontsize=8.5)
+    fig.tight_layout()
+    _savefig(fig, "filtro-lcl-familia.png")
+
+
+@figura("filtro-lcl")
 def _lcl_factorQ():
     """Efecto del factor de calidad Q (amortiguamiento) sobre el pico de resonancia."""
     L1, L2, Cf = 2e-3, 1e-3, 20e-6
