@@ -98,9 +98,21 @@ $$ I_2 = \frac{V_i - V_{pcc}(1 + s^2 L_1 C_f)}{s^3 L_1 L_2 C_f + s(L_1 + L_2)} $
 
 De aquí, con red rígida (\( V_{pcc}=0 \)), la transferencia planta principal del control:
 
-$$ G_{i_2}(s)=\frac{I_2}{V_i}=\frac{1}{s^3 L_1 L_2 C_f + s(L_1+L_2)}=\frac{1}{s\,L_1 L_2 C_f\,(s^2+\omega_{res}^2)} $$
+$$ G_{i_2}(s)=\frac{I_2}{V_i}=\frac{1}{s^3 L_1 L_2 C_f + s(L_1+L_2)} $$
 
-con \( \omega_{res}^2=(L_1+L_2)/(L_1 L_2 C_f) \). El denominador se anula en \( s=0 \) y en \( s=\pm j\omega_{res} \): hay un par de polos sin parte real (\( \zeta\approx0 \)). Eso es la resonancia.
+**De dónde sale \( \omega_{res}^2 \) (no se asume, se factoriza).** El denominador es \( s^3 L_1 L_2 C_f + s(L_1+L_2) \). Sacando \( s\,L_1 L_2 C_f \) como factor común:
+
+$$ s^3 L_1 L_2 C_f + s(L_1+L_2) = s\,L_1 L_2 C_f\left(s^2 + \frac{L_1+L_2}{L_1 L_2 C_f}\right) $$
+
+El término constante que queda dentro del paréntesis es lo que se nombra
+
+$$ \omega_{res}^2 \equiv \frac{L_1+L_2}{L_1 L_2 C_f} $$
+
+de modo que
+
+$$ G_{i_2}(s)=\frac{1}{s\,L_1 L_2 C_f\,(s^2+\omega_{res}^2)} $$
+
+No es una suposición: \( \omega_{res}^2 \) es, literalmente, el coeficiente que aparece al factorizar el denominador. El denominador se anula en \( s=0 \) y en \( s=\pm j\omega_{res} \): hay un par de polos sin parte real (\( \zeta\approx0 \)). Eso es la resonancia. El **porqué físico** de que esa cantidad sea la frecuencia de los modos propios (anulando las dos fuentes y resolviendo el circuito libre) se deriva paso a paso en el Desarrollo 2; aquí solo ha aparecido como consecuencia algebraica de la planta.
 
 **Paso 4b — respuesta a la perturbación de red (admitancia de salida).** De la misma expresión del paso 4, anulando ahora \( v_i \) en vez de \( v_{pcc} \), sale la otra mitad de la superposición:
 
