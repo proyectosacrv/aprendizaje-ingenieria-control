@@ -79,7 +79,8 @@ La derivación de abajo obtiene primero i2 en función de las dos entradas (paso
 
 <div class="cfig"><img src="figuras/filtro-lcl-familia.png" alt="Magnitud de las tres FDT del LCL frente a vi: i2/vi, i1/vi y vC/vi"><div class="cap">Las tres FDT frente a vᵢ (con v_pcc=0): i₂/vᵢ (planta de red) solo tiene el pico de resonancia; i₁/vᵢ añade el valle de antiresonancia en f_ar antes del pico (por eso es fácil de realimentar); v_C/vᵢ es la tensión del condensador. Comparten denominador (misma resonancia), difieren en los ceros.</div></div>
 
-**Paso 1 — pasar las tres ecuaciones a Laplace.** Con R1 y R2 despreciables para ver la estructura (se reintroducen luego como amortiguamiento), las tres ecuaciones de partida en el dominio de Laplace son:
+### Versión reducida (sin resistencias, R1 = R2 = 0)
+**Paso 1 — pasar las tres ecuaciones a Laplace.** Con R1 y R2 despreciables para ver la estructura (se reintroducen en la versión completa de más abajo), las tres ecuaciones de partida en el dominio de Laplace son:
 
 - s·L1·I1 = Vi − Vc
 - s·Cf·Vc = I1 − I2
@@ -119,11 +120,30 @@ omega_ar = 1 / raiz(L2·Cf)     (antiresonancia)
 
 **Paso 6 — interpretar resonancia vs antiresonancia.** Gi2 (lado red) tiene solo el pico de resonancia: la fase cae 180° de golpe al cruzarla, lo que hunde el margen de fase si se realimenta i2. Gi1 (lado fuente) tiene un cero de antiresonancia en omega_ar < omega_res que aporta +180° de fase justo antes del pico, de modo que la fase no se desploma tanto. Conclusión práctica que se usa en todo el repositorio: realimentar i1 (lado fuente) es mucho más fácil de estabilizar que realimentar i2 (lado red). Esta es la razón de fondo por la que el lazo de corriente rápido se cierra sobre i1.
 
-**Paso 7 — efecto de las resistencias (amortiguamiento real).** Reintroduciendo R1 y R2, o una Rd en serie con Cf, los polos resonantes dejan de estar sobre el eje imaginario y adquieren parte real negativa. Con Rd en serie con el condensador el amortiguamiento del par resonante es:
+### Versión completa (con R1 y R2 en serie con las bobinas)
+Ahora sin despreciar nada. Conviene usar las impedancias de cada rama: Z1 = R1 + s·L1 (rama de lado fuente) y Z2 = R2 + s·L2 (rama de lado red). Las ecuaciones de Laplace pasan a ser Z1·I1 = Vi − Vc, sCf·Vc = I1 − I2, Z2·I2 = Vc − Vpcc. Repitiendo los mismos pasos (eliminar Vc, anular vpcc) se llega a forma cerrada:
 
-zeta = (1/2)·Rd·raiz( Cf·(L1 + L2)/(L1·L2) )
+i2/vi = 1 / (Z1 + Z2 + sCf·Z1·Z2)
+i1/vi = (1 + sCf·Z2) / (Z1 + Z2 + sCf·Z1·Z2)
 
-es decir, a mayor Rd más amortiguado, a costa de pérdidas y de peor atenuación a fsw.
+Las dos comparten el denominador D(s) = Z1 + Z2 + sCf·Z1·Z2, que desarrollado es el polinomio característico completo (el mismo que el del Desarrollo 2):
+
+D(s) = s³·Cf·L1·L2 + s²·Cf·(R1·L2 + R2·L1) + s·(L1 + L2 + Cf·R1·R2) + (R1 + R2)
+
+**Comprobación de coherencia:** con R1 = R2 = 0 se tiene Z1 = sL1, Z2 = sL2, y D(s) → s·L1·L2·Cf·(s² + omega_res²); i2/vi e i1/vi recuperan exactamente las formas reducidas de los pasos 4 y 5. La versión reducida es el caso particular de la completa.
+
+**Comparación de resultados (reducida vs completa).**
+
+| Aspecto | Reducida (R1=R2=0) | Completa (con R1, R2) |
+|---|---|---|
+| Ganancia en baja frecuencia de i2/vi | infinita (polo en s=0, integrador puro) | finita: i2/vi(0) = 1/(R1+R2). El polo del origen se convierte en un polo real de baja frecuencia en p_lf = (R1+R2)/(L1+L2) |
+| Par resonante | s = ±j·omega_res (zeta = 0, pico infinito) | desplazado al semiplano izquierdo, zeta_res ≈ [R1/L1 + R2/L2 − (R1+R2)/(L1+L2)] / (2·omega_res) |
+| Ceros de antiresonancia de i1 (en omega_ar) | sobre el eje imaginario (1 + s²·L2·Cf) | amortiguados: 1 + s·Cf·R2 + s²·L2·Cf, con zeta_ar = (R2/2)·raiz(Cf/L2) |
+| Frecuencias omega_res y omega_ar | exactas | casi idénticas (R desplaza poco la frecuencia, sí el amortiguamiento) |
+
+La lectura práctica: las resistencias serie reales (parásitas) **sí** amortiguan algo —vuelven finitos el pico y la ganancia de continua— pero sus valores son tan pequeños que el zeta_res resultante sigue siendo muy bajo y el pico, alto. Por eso no bastan: hace falta añadir amortiguamiento pasivo (Rd) o activo (Kad). La versión reducida es útil para ver la estructura (frecuencias, ceros, pendientes); la completa, para cuantificar el amortiguamiento real y la ganancia de continua.
+
+<div class="cfig"><img src="figuras/filtro-lcl-RvsnoR.png" alt="Comparacion de i2/vi sin R (pico infinito, integrador en baja frecuencia) vs con R1,R2 en serie (pico finito, meseta en baja frecuencia)"><div class="cap">i₂/vᵢ sin R (rojo) vs con R1,R2 en serie (azul). Sin R: pico infinito en f_res y pendiente de integrador en baja frecuencia. Con R: el pico se vuelve finito (aunque sigue alto con valores parásitos) y la baja frecuencia se aplana a una meseta 1/(R1+R2). La frecuencia de resonancia apenas cambia.</div></div>
 
 <div class="cfig"><img src="figuras/filtro-lcl-bode.png" alt="Respuesta en frecuencia del LCL: i2/vi con resonancia, i1/vi con antiresonancia, con y sin amortiguamiento"><div class="cap">Magnitud de i₂/vᵢ y i₁/vᵢ: i₂ presenta el pico de resonancia afilado (rojo, ζ≈0) en f_res; i₁ añade el cero de antiresonancia en f_ar que aporta +180° de fase antes del pico (por eso se realimenta i₁). Al amortiguar (azul) el pico se acota. Por debajo el filtro deja pasar la fundamental; por encima cae a −60 dB/dec.</div></div>
 
@@ -260,6 +280,7 @@ delta_i1,amp = delta_i1pp/2 = Vdc / (8·fsw·L1)   ⟹   L1 = Vdc / (8·fsw·del
 ### Detalle (lo que la versión reducida obvia)
 - La dependencia d·(1 − d) significa que el rizado no es constante a lo largo del ciclo de red: es máximo en el paso por cero (d ≈ 0.5) y mínimo en los picos de la senoide (d → 0 o 1). Dimensionar por d = 0.5 es el caso peor.
 - Se ha supuesto vo constante en el periodo Tsw; es exacto en el límite fsw >> f0 y solo introduce un error de segundo orden.
+- Efecto de R1 (con vs sin resistencia serie): aquí es despreciable. Durante un subintervalo de conmutación (duración del orden de Tsw, microsegundos) la caída R1·i1 apenas cambia frente a la tensión aplicada Vdc·(1−d), así que la pendiente di1/dt ≈ vL/L1 no la fija R1 sino L1. La resistencia sí importa para la caída de tensión media y las pérdidas en régimen, pero no para el rizado de conmutación; por eso el dimensionado de L1 se hace sin R1.
 - Si la etapa de entrada es de tres niveles, el escalón de tensión sobre L1 se reduce a la mitad (±Vdc/4 efectivo por nivel), de modo que para el mismo rizado L1 baja a la mitad; ver [[convertidor-vsc|modulación PWM]]. Con modulación vectorial (SVPWM) o inyección de tercer armónico el caso peor cambia ligeramente respecto al SPWM senoidal puro.
 
 ## Desarrollo 6 — dimensionado de Cf (reactiva)

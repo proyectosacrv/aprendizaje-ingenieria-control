@@ -127,6 +127,37 @@ def _lcl_familia():
 
 
 @figura("filtro-lcl")
+def _lcl_RvsnoR():
+    """Comparacion de i2/vi sin R (ideal) vs con R1,R2 en serie (real)."""
+    L1, L2, Cf = 2e-3, 1e-3, 20e-6
+    w_res = np.sqrt((L1 + L2) / (L1 * L2 * Cf)); f_res = w_res/(2*np.pi)
+    f = np.logspace(0, 4.0, 3000); w = 2*np.pi*f
+
+    def magdb(R1, R2):
+        A = np.array([[-R1/L1,  0,     -1/L1],
+                      [ 0,      -R2/L2,  1/L2],
+                      [ 1/Cf,  -1/Cf,   0  ]])
+        B = np.array([[1/L1], [0], [0]]); C = np.array([[0, 1, 0]])
+        _, mag, _ = signal.bode(signal.StateSpace(A, B, C, [[0]]), w)
+        return mag
+
+    fig, ax = plt.subplots(figsize=(6.8, 3.8))
+    ax.semilogx(f, magdb(2e-3, 2e-3), color=BAD, lw=2.0,
+                label="sin R (R≈0): pico ∞, pendiente integrador en BF")
+    ax.semilogx(f, magdb(0.3, 0.15), color=ACC, lw=2.0,
+                label="con R1,R2 en serie: pico finito, meseta en BF")
+    ax.axvline(f_res, color="#888", ls="--", lw=1)
+    ax.text(f_res*1.06, 30, f"$f_{{res}}$≈{f_res:.0f} Hz", color="#555", fontsize=9)
+    ax.annotate("BF: 1/(R1+R2) finito\nvs integrador (R=0)", xy=(2, -6), xytext=(2.2, 18),
+                fontsize=8.2, color="#555", arrowprops=dict(arrowstyle="->", color="#999"))
+    ax.set_xlabel("frecuencia [Hz]"); ax.set_ylabel("$|i_2/v_i|$ [dB]")
+    ax.set_title("Efecto de las resistencias serie: con R vs sin R", fontsize=10.5)
+    ax.set_ylim(-90, 55); ax.legend(loc="lower left", fontsize=8.3)
+    fig.tight_layout()
+    _savefig(fig, "filtro-lcl-RvsnoR.png")
+
+
+@figura("filtro-lcl")
 def _lcl_factorQ():
     """Efecto del factor de calidad Q (amortiguamiento) sobre el pico de resonancia."""
     L1, L2, Cf = 2e-3, 1e-3, 20e-6
