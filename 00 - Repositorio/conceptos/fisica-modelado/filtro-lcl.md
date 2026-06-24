@@ -218,7 +218,25 @@ Multiplicando por \( (R_1+sL_1)(R_2+sL_2) \) se obtiene la ecuación caracterís
 
 $$ s^3 C_f L_1 L_2 + s^2 C_f(R_1 L_2 + R_2 L_1) + s\,[C_f R_1 R_2 + (L_1+L_2)] + (R_1+R_2) = 0 $$
 
-Es el polinomio completo del filtro. Comprobación: con \( R_1=R_2=0 \) se reduce a \( s^3 C_f L_1 L_2 + s(L_1+L_2)=0 \), es decir \( s(s^2 C_f L_1 L_2 + L_1 + L_2)=0 \), que devuelve la versión reducida. Las dos raíces complejas de la cúbica son el par resonante; ahora tienen parte real negativa (las resistencias amortiguan). Para R pequeñas la frecuencia amortiguada apenas se mueve de \( \omega_{res} \), y el amortiguamiento del par resonante introducido por una \( R_d \) en serie con \( C_f \) es:
+Es el polinomio completo del filtro. Comprobación: con \( R_1=R_2=0 \) se reduce a \( s^3 C_f L_1 L_2 + s(L_1+L_2)=0 \), es decir \( s(s^2 C_f L_1 L_2 + L_1 + L_2)=0 \), que devuelve la versión reducida.
+
+**Cómo se calcula \( \omega_{res} \) con resistencias.** La cúbica ya no factoriza como \( s(s^2+\omega_{res}^2) \); ahora tiene un polo real (de baja frecuencia) y un par complejo (el resonante, ya amortiguado). Se factoriza como
+
+$$ C_f L_1 L_2\,(s+p_{lf})\,(s^2 + 2\zeta_{res}\omega_n\,s + \omega_n^2) $$
+
+Dividiendo la cúbica por \( C_f L_1 L_2 \) e identificando coeficientes con esa forma (igualando los de \( s^2 \), \( s^1 \) y \( s^0 \)) se obtiene:
+
+$$ p_{lf}=\frac{R_1+R_2}{L_1+L_2} \quad\text{(polo real de baja frecuencia)} $$
+$$ 2\zeta_{res}\,\omega_n = \frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2} \quad\text{(amortiguamiento del par)} $$
+$$ \omega_n^2 = \underbrace{\frac{L_1+L_2}{L_1 L_2 C_f}}_{\omega_{res}^2\ \text{(sin R)}} + \frac{R_1 R_2}{L_1 L_2} - \left(\frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2}\right)\frac{R_1+R_2}{L_1+L_2} $$
+
+\( \omega_n \) es la frecuencia natural del par (la "\( \omega_{res} \) con resistencias"). Las correcciones que añade R son de **segundo orden** (productos de resistencias), así que con valores parásitos \( \omega_n\approx\omega_{res} \): la frecuencia apenas se mueve, lo que cambia de verdad es el amortiguamiento \( \zeta_{res} \). Conviene además distinguir tres frecuencias:
+
+$$ \omega_n\ \text{(natural)}, \qquad \omega_d=\omega_n\sqrt{1-\zeta_{res}^2}\ \text{(oscilación amortiguada real)}, \qquad \omega_{peak}=\omega_n\sqrt{1-2\zeta_{res}^2}\ \text{(pico del Bode)} $$
+
+Para \( \zeta_{res} \) pequeño las tres casi coinciden. Con R no despreciable, lo práctico es resolver la cúbica numéricamente (`numpy.roots`) y leer el par complejo \( s=-\sigma\pm j\omega_d \), de donde \( \omega_n=\sqrt{\sigma^2+\omega_d^2} \) y \( \zeta_{res}=\sigma/\omega_n \).
+
+**Amortiguamiento añadido por una \( R_d \) en serie con \( C_f \).** Cuando el amortiguamiento se introduce a propósito con una \( R_d \) (no solo las parásitas), el del par resonante es
 
 $$ \zeta=\frac{1}{2}R_d\sqrt{\frac{C_f(L_1+L_2)}{L_1 L_2}} $$
 
