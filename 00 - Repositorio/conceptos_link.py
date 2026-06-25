@@ -47,6 +47,7 @@ CONCEPTS = {
     "topologias-multinivel": ["multinivel"],
     # --- control ---
     "antiresonancia":        ["antiresonancia", "antirresonancia"],
+    "frecuencias-segundo-orden": ["frecuencia amortiguada", "frecuencia de pico", "frecuencia natural"],
     "amortiguamiento-pasivo-vs-activo": ["amortiguamiento pasivo", "amortiguamiento activo"],
     "impedancia-virtual":    ["impedancia virtual"],
     "current-limiting":      ["limitación de corriente", "current limiting"],

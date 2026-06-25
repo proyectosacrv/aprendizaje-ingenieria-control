@@ -9,7 +9,7 @@ objetivos: [atenuar armonicos de conmutacion, modelar la planta de potencia, ges
 tags: [filtro, resonancia, antiresonancia, amortiguamiento-activo, factor-Q, rizado, dimensionado, funcion-transferencia, LCL, dq]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-06-17
-relacionados: [convertidor-vsc, marco-dq, impedancia-salida-estabilidad, control-cascada, diagrama-bode, antiresonancia, resonancia-rlc, amortiguamiento-pasivo-vs-activo]
+relacionados: [convertidor-vsc, marco-dq, impedancia-salida-estabilidad, control-cascada, diagrama-bode, antiresonancia, resonancia-rlc, amortiguamiento-pasivo-vs-activo, frecuencias-segundo-orden]
 referencias:
   - "Reznik et al., LCL Filter Design and Performance Analysis for Grid-Interconnected Systems, IEEE TIA 2014"
   - "Dannehl et al., Investigation of Active Damping Approaches for LCL Filters, IEEE TIA 2010"
@@ -313,7 +313,7 @@ $$ \omega_n^2 = \underbrace{\frac{L_1+L_2}{L_1 L_2 C_f}}_{\omega_{res}^2\ \text{
 
 $$ \omega_n\ \text{(natural)}, \qquad \omega_d=\omega_n\sqrt{1-\zeta_{res}^2}\ \text{(oscilación amortiguada real)}, \qquad \omega_{peak}=\omega_n\sqrt{1-2\zeta_{res}^2}\ \text{(pico del Bode)} $$
 
-Para \( \zeta_{res} \) pequeño las tres casi coinciden. Con R no despreciable, lo práctico es resolver la cúbica numéricamente (`numpy.roots`) y leer el par complejo \( s=-\sigma\pm j\omega_d \), de donde \( \omega_n=\sqrt{\sigma^2+\omega_d^2} \) y \( \zeta_{res}=\sigma/\omega_n \).
+Para \( \zeta_{res} \) pequeño las tres casi coinciden. La deducción de estas tres frecuencias y cuándo se separan está en [[frecuencias-segundo-orden]]. Con R no despreciable, lo práctico es resolver la cúbica numéricamente (`numpy.roots`) y leer el par complejo \( s=-\sigma\pm j\omega_d \), de donde \( \omega_n=\sqrt{\sigma^2+\omega_d^2} \) y \( \zeta_{res}=\sigma/\omega_n \).
 
 **Ejemplo numérico** (\( L_1=2 \) mH, \( L_2=1 \) mH, \( C_f=20\,\mu\text{F} \), \( R_1=R_2=0.1\,\Omega \)):
 
@@ -338,9 +338,13 @@ El resultado confirma lo anterior: \( \omega_n\approx\omega_{res} \) (1378 Hz, i
 
 **Amortiguamiento añadido por una \( R_d \) en serie con \( C_f \).** Cuando el amortiguamiento se introduce a propósito con una \( R_d \) (no solo las parásitas), el del par resonante es
 
-$$ \zeta=\frac{1}{2}R_d\sqrt{\frac{C_f(L_1+L_2)}{L_1 L_2}} $$
+$$ \zeta_{Rd}=\frac{1}{2}R_d\sqrt{\frac{C_f(L_1+L_2)}{L_1 L_2}} $$
 
-es decir, sin resistencias \( \zeta=0 \) (la versión reducida) y crece linealmente con \( R_d \). Por eso la versión reducida da la frecuencia (dónde está el pico) y la versión completa da el amortiguamiento (cómo de afilado es y por qué hay que amortiguarlo).
+es decir, sin \( R_d \) ese término vale 0 y crece linealmente con \( R_d \).
+
+> **¿Por qué \( \zeta_{res} \) (de \( R_1,R_2 \)) y \( \zeta_{Rd} \) (de \( R_d \)) son fórmulas distintas, y por qué poner \( R_1=R_2=0 \) no reproduce la de \( R_d \)?** Porque son **tres resistencias distintas en ramas distintas**: \( R_1 \) y \( R_2 \) van en serie con las bobinas \( L_1 \) y \( L_2 \); \( R_d \) va en serie con el condensador \( C_f \). Cada una amortigua por un camino diferente (las de las bobinas, por la caída proporcional a la corriente de bobina; la del condensador, por la caída proporcional a \( i_1-i_2 \)), así que cada una tiene su propia fórmula. Son contribuciones **independientes** que se suman a primer orden: \( \zeta_{total}\approx\zeta_{res}(R_1,R_2)+\zeta_{Rd}(R_d) \). Por eso anular \( R_1,R_2 \) en \( \zeta_{res} \) da 0 (has quitado esas resistencias), no la fórmula de \( R_d \), que es otro componente situado en otro sitio. Y con **todas** a cero, \( \zeta=0 \) exacto: sin ninguna resistencia no hay disipación (las bobinas y \( C_f \) solo almacenan energía), así que **no existe ningún amortiguamiento "solo con inductancias"** — el amortiguamiento siempre lo aporta una resistencia o el amortiguamiento activo.
+
+Por eso la versión reducida da la frecuencia (dónde está el pico) y la versión completa da el amortiguamiento (cómo de afilado es y por qué hay que amortiguarlo).
 
 > A resaltar: sin amortiguar, cualquier lazo rápido o impedancia de red que excite \( f_{res} \) provoca oscilación sostenida. Es uno de los mecanismos típicos de inestabilidad armónica y de oscilaciones de alta frecuencia entre convertidor y red.
 

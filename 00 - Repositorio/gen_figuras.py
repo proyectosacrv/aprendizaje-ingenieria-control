@@ -3213,6 +3213,61 @@ def _amort_pasivo_activo():
 
 
 # ===================================================================== #
+#  frecuencias-segundo-orden
+# ===================================================================== #
+@figura("frecuencias-segundo-orden")
+def _freq2o_splano():
+    zeta, wn = 0.4, 1.0
+    sigma = zeta*wn; wd = wn*np.sqrt(1-zeta**2)
+    px, py = -sigma, wd
+    fig, ax = plt.subplots(figsize=(5.6, 4.8))
+    ax.plot([px], [py], "x", color=BAD, ms=13, mew=3, label="polo")
+    ax.plot([px], [-py], "x", color=BAD, ms=13, mew=3)
+    ax.annotate("", xy=(px, py), xytext=(0, 0), arrowprops=dict(arrowstyle="->", color=ACC, lw=2.2))
+    ax.text(px*0.55-0.05, py*0.55+0.05, r"$\omega_n$", color=ACC, fontsize=14)
+    ax.plot([px, px], [0, py], ls="--", color=OK, lw=1.6)
+    ax.text(px-0.18, py*0.5, r"$\omega_d$", color=OK, fontsize=13)
+    ax.annotate("", xy=(px, 0), xytext=(0, 0), arrowprops=dict(arrowstyle="->", color=ACC2, lw=1.4))
+    ax.text(px*0.5, 0.07, r"$\sigma=\zeta\omega_n$", color=ACC2, fontsize=11, ha="center")
+    th = np.linspace(np.pi - np.arccos(zeta), np.pi, 40)
+    ax.plot(0.32*np.cos(th), 0.32*np.sin(th), color="#666", lw=1.2)
+    ax.text(-0.52, 0.13, r"$\cos\theta=\zeta$", color="#666", fontsize=10)
+    ax.axhline(0, color="#999", lw=0.8); ax.axvline(0, color="#999", lw=0.8)
+    ax.set_xlim(-1.25, 0.5); ax.set_ylim(-1.25, 1.25); ax.set_aspect("equal")
+    ax.set_xlabel("Re(s)"); ax.set_ylabel("Im(s)")
+    ax.set_title("Geometría del polo de 2º orden:\n$\\omega_n$=módulo, $\\omega_d$=Im, $\\sigma=\\zeta\\omega_n$=Re", fontsize=10)
+    ax.legend(fontsize=8, loc="upper left")
+    fig.tight_layout()
+    _savefig(fig, "frecuencias-segundo-orden-splano.png")
+
+@figura("frecuencias-segundo-orden")
+def _freq2o_resp():
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(9.2, 3.8))
+    r = np.logspace(-1, 1, 1500)
+    for zeta, col in [(0.1, BAD), (0.3, ACC2), (0.5, ACC), (0.707, OK), (1.0, "#777")]:
+        H = 1/np.sqrt((1 - r**2)**2 + (2*zeta*r)**2)
+        a1.semilogx(r, 20*np.log10(H), color=col, lw=1.8, label=f"ζ={zeta}")
+        if zeta < 1/np.sqrt(2) and np.sqrt(1 - 2*zeta**2) > 0.1:
+            rp = np.sqrt(1 - 2*zeta**2); Hp = 1/(2*zeta*np.sqrt(1 - zeta**2))
+            a1.plot(rp, 20*np.log10(Hp), "o", color=col, ms=5)
+    a1.axvline(1, color="#bbb", ls=":", lw=1)
+    a1.set_xlabel("$\\omega/\\omega_n$"); a1.set_ylabel("$|H|$ [dB]")
+    a1.set_title("Pico de magnitud en $\\omega_{peak}$ (solo si ζ<0.707)", fontsize=9.5)
+    a1.legend(fontsize=8); a1.set_ylim(-30, 18)
+    z = np.linspace(0, 1, 500)
+    a2.plot(z, np.sqrt(1 - z**2), color=OK, lw=2.2, label="$\\omega_d/\\omega_n=\\sqrt{1-\\zeta^2}$")
+    zp = z[z < 1/np.sqrt(2)]
+    a2.plot(zp, np.sqrt(1 - 2*zp**2), color=ACC2, lw=2.2, label="$\\omega_{peak}/\\omega_n=\\sqrt{1-2\\zeta^2}$")
+    a2.axhline(1, color="#bbb", ls=":", lw=1); a2.text(0.02, 1.02, "$\\omega_n$", fontsize=8, color="#888")
+    a2.axvline(1/np.sqrt(2), color="#bbb", ls="--", lw=1)
+    a2.text(0.69, 0.45, "ζ=0.707", fontsize=8, color="#888", rotation=90)
+    a2.set_xlabel("ζ"); a2.set_ylabel("frecuencia / $\\omega_n$"); a2.set_ylim(0, 1.1)
+    a2.set_title("Las tres frecuencias al variar ζ", fontsize=9.5); a2.legend(fontsize=8, loc="lower left")
+    fig.tight_layout()
+    _savefig(fig, "frecuencias-segundo-orden-resp.png")
+
+
+# ===================================================================== #
 def main():
     pref = sys.argv[1] if len(sys.argv) > 1 else None
     n = 0
