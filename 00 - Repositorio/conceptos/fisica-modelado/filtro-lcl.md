@@ -269,7 +269,11 @@ $$ 2\zeta_{res}\omega_n = b_2-p_{lf} = \frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1
 
 $$ \omega_n^2 = b_1 - 2\zeta_{res}\omega_n\,p_{lf} = \omega_{res}^2 + \frac{R_1 R_2}{L_1 L_2} - \left(\frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2}\right)\frac{R_1+R_2}{L_1+L_2} $$
 
-**El amortiguamiento como número.** El paso anterior da el producto \( 2\zeta_{res}\omega_n \), no \( \zeta_{res} \) suelto. Para despejar el amortiguamiento hay que dividir por \( 2\omega_n \).
+**El amortiguamiento como número.** Atención al orden lógico: el amortiguamiento **no sale del Orden 2** (que refina la frecuencia), sino del **Orden 1**. Allí se obtuvo el *producto* \( 2\zeta_{res}\omega_n \) (no \( \zeta_{res} \) suelto):
+
+$$ 2\zeta_{res}\omega_n = \frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2} \quad\text{(del Orden 1)} $$
+
+Para despejar \( \zeta_{res} \) solo falta dividir ese producto por \( 2\omega_n \); el valor de \( \omega_n \) que se usa es el del **Orden 0** (\( \omega_n\approx\omega_{res} \)). El Orden 2 (la corrección de \( \omega_n^2 \)) no interviene en el amortiguamiento, como se justifica a continuación.
 
 **Por qué se puede usar \( \omega_n\approx\omega_{res} \).** \( \zeta_{res} \) ya es de orden \( R \) (la cantidad \( 2\zeta_{res}\omega_n \) es lineal en las resistencias). Y \( \omega_n=\omega_{res}+\mathcal{O}(R^2) \) (la frecuencia solo se corrige en segundo orden, Paso d). Al dividir, sustituir \( \omega_n \) por \( \omega_{res} \) introduce un error relativo de orden \( R^2 \), que sobre una cantidad ya de orden \( R \) da una corrección de orden \( R^3 \): despreciable. Por eso es lícito poner \( \omega_n\approx\omega_{res} \) sin perder precisión al primer orden:
 
