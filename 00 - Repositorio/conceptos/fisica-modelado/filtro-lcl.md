@@ -393,6 +393,54 @@ Las tres contribuciones se suman a primer orden: con las tres a la vez, \( \zeta
 
 > **¿Por qué \( \zeta_{res} \) (de \( R_1,R_2 \)) y \( \zeta_{Rd} \) (de \( R_d \)) son fórmulas distintas, y por qué poner \( R_1=R_2=0 \) no reproduce la de \( R_d \)?** Porque son **tres resistencias distintas en ramas distintas**: \( R_1 \) y \( R_2 \) van en serie con las bobinas \( L_1 \) y \( L_2 \); \( R_d \) va en serie con el condensador \( C_f \). Cada una amortigua por un camino diferente (las de las bobinas, por la caída proporcional a la corriente de bobina; la del condensador, por la caída proporcional a \( i_1-i_2 \)), así que cada una tiene su propia fórmula. Son contribuciones **independientes** que se suman a primer orden: \( \zeta_{total}\approx\zeta_{res}(R_1,R_2)+\zeta_{Rd}(R_d) \). Por eso anular \( R_1,R_2 \) en \( \zeta_{res} \) da 0 (has quitado esas resistencias), no la fórmula de \( R_d \), que es otro componente situado en otro sitio. Y con **todas** a cero, \( \zeta=0 \) exacto: sin ninguna resistencia no hay disipación (las bobinas y \( C_f \) solo almacenan energía), así que **no existe ningún amortiguamiento "solo con inductancias"** — el amortiguamiento siempre lo aporta una resistencia o el amortiguamiento activo.
 
+### Caso general: \( R_1 \), \( R_2 \) y \( R_d \) a la vez (derivación completa)
+Aquí están las tres resistencias presentes: \( R_1 \) en serie con \( L_1 \), \( R_2 \) en serie con \( L_2 \) y \( R_d \) en serie con \( C_f \). Se deriva sin asumir nada y se demuestra que el amortiguamiento total es la **suma** de las dos contribuciones.
+
+**Paso 1 — impedancias de cada rama.** Conviene agrupar cada rama en su impedancia (fuentes anuladas):
+
+$$ Z_1=R_1+sL_1\ \text{(rama de }L_1), \qquad Z_2=R_2+sL_2\ \text{(rama de }L_2), \qquad Z_c=R_d+\frac{1}{sC_f}\ \text{(rama de }C_f) $$
+
+**Paso 2 — ecuaciones de las ramas.** La tensión del nudo \( V_A \) (donde se unen las tres ramas) cae por cada bobina y por la rama del condensador:
+
+$$ I_1=\frac{-V_A}{Z_1}, \qquad I_2=\frac{+V_A}{Z_2}, \qquad V_A=Z_c\,(I_1-I_2) $$
+
+**Paso 3 — formar \( I_1-I_2 \) y sustituir en la del condensador.** Restando las dos corrientes, \( I_1-I_2=-V_A\left(\frac{1}{Z_1}+\frac{1}{Z_2}\right) \). Metiéndolo en \( V_A=Z_c(I_1-I_2) \):
+
+$$ V_A=-V_A\,Z_c\left(\frac{1}{Z_1}+\frac{1}{Z_2}\right) $$
+
+**Paso 4 — dividir por \( V_A \) (modo no trivial) y juntar fracciones.** Con \( 1/Z_1+1/Z_2=(Z_1+Z_2)/(Z_1Z_2) \):
+
+$$ 1=-Z_c\,\frac{Z_1+Z_2}{Z_1 Z_2} \;\Rightarrow\; \boxed{\;Z_1 Z_2 + Z_c\,(Z_1+Z_2)=0\;} $$
+
+Esta es la ecuación característica compacta del filtro (vale para cualquier combinación de resistencias).
+
+**Paso 5 — sustituir \( Z_c=R_d+1/(sC_f) \) y multiplicar por \( sC_f \).**
+
+$$ s C_f\,Z_1 Z_2 + (sC_f R_d + 1)(Z_1+Z_2)=0 \;\Rightarrow\; sC_f Z_1 Z_2 + sC_f R_d(Z_1+Z_2) + (Z_1+Z_2)=0 $$
+
+**Paso 6 — desarrollar con \( Z_1+Z_2=(R_1+R_2)+s(L_1+L_2) \) y \( Z_1 Z_2=R_1R_2+s(R_1L_2+R_2L_1)+s^2 L_1 L_2 \).** Agrupando por potencias de \( s \) se llega a la cúbica completa:
+
+$$ s^3 C_f L_1 L_2 + s^2 C_f\big[R_1L_2+R_2L_1+R_d(L_1+L_2)\big] + s\big[C_f R_1 R_2 + C_f R_d(R_1+R_2)+(L_1+L_2)\big] + (R_1+R_2)=0 $$
+
+**Comprobaciones:** con \( R_d=0 \) se recupera la cúbica de \( R_1,R_2 \) sola; con \( R_1=R_2=0 \) sale \( s\big[s^2 C_f L_1 L_2 + sC_f R_d(L_1+L_2)+(L_1+L_2)\big]=0 \), es decir la cuadrática de \( R_d \) más la raíz \( s=0 \). Todo encaja.
+
+**Paso 7 — hacer mónica (dividir por \( C_f L_1 L_2 \)) e identificar coeficientes.** Los tres coeficientes quedan:
+
+$$ b_2=\underbrace{\frac{R_1}{L_1}+\frac{R_2}{L_2}}_{\text{de }R_1,R_2}+\underbrace{R_d\Big(\frac{1}{L_1}+\frac{1}{L_2}\Big)}_{\text{de }R_d}, \quad b_1=\omega_{res}^2+\underbrace{\frac{R_1R_2+R_d(R_1+R_2)}{L_1 L_2}}_{\mathcal{O}(R^2)}, \quad b_0=\frac{R_1+R_2}{C_f L_1 L_2} $$
+
+**Paso 8 — factorizar \( (s+p_{lf})(s^2+2\zeta\omega_n s+\omega_n^2) \) y resolver por perturbación** (como en el caso de \( R_1,R_2 \): \( p_{lf} \) y \( 2\zeta\omega_n \) de orden \( R \); \( \omega_n^2 \) de orden \( R^0 \)):
+- Orden 0: \( \omega_n^2\approx\omega_{res}^2 \) (los términos de \( b_1 \) con R son \( R^2 \)).
+- Orden 1, de \( p_{lf}\omega_n^2=b_0 \): \( p_{lf}=\dfrac{R_1+R_2}{L_1+L_2} \) — **solo depende de \( R_1,R_2 \)** (\( b_0 \) no tiene \( R_d \): la \( R_d \) no afecta al polo de baja frecuencia a primer orden).
+- Orden 1, de \( p_{lf}+2\zeta\omega_n=b_2 \):
+
+$$ 2\zeta\omega_n=b_2-p_{lf}=\underbrace{\Big(\frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2}\Big)}_{\text{parte de }R_1,R_2} + \underbrace{R_d\,\frac{L_1+L_2}{L_1 L_2}}_{\text{parte de }R_d} $$
+
+**Paso 9 — dividir por \( 2\omega_n\approx2\omega_{res} \) y reconocer las dos fórmulas ya conocidas.** El primer corchete se simplifica a \( (R_1L_2^2+R_2L_1^2)/(L_1L_2(L_1+L_2)) \) (ya hecho antes) y el término de \( R_d \) da \( (R_d/2)\sqrt{C_f(L_1+L_2)/(L_1L_2)} \). Por tanto:
+
+$$ \boxed{\;\zeta_{total}=\underbrace{\frac{R_1 L_2^2+R_2 L_1^2}{2\,\omega_{res} L_1 L_2 (L_1+L_2)}}_{\zeta_{res}(R_1,R_2)}+\underbrace{\frac{R_d}{2}\sqrt{\frac{C_f(L_1+L_2)}{L_1 L_2}}}_{\zeta_{Rd}}\;} $$
+
+Esto **demuestra** la aditividad que antes se afirmaba: con las tres resistencias, el amortiguamiento del par resonante es exactamente (a primer orden) la suma del de las bobinas más el de \( R_d \). Cada resistencia entra por su propio camino y sus efectos no se mezclan a primer orden; los términos cruzados (\( R_d R_1 \), etc.) son de orden \( R^2 \) y solo afectan a la pequeña corrección de \( \omega_n \), no al amortiguamiento. La frecuencia, de nuevo, casi no se mueve: \( \omega_n\approx\omega_{res} \).
+
 Por eso la versión reducida da la frecuencia (dónde está el pico) y la versión completa da el amortiguamiento (cómo de afilado es y por qué hay que amortiguarlo).
 
 > A resaltar: sin amortiguar, cualquier lazo rápido o impedancia de red que excite \( f_{res} \) provoca oscilación sostenida. Es uno de los mecanismos típicos de inestabilidad armónica y de oscilaciones de alta frecuencia entre convertidor y red.
