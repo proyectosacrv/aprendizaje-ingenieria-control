@@ -224,7 +224,28 @@ Es el polinomio completo del filtro. Comprobación: con \( R_1=R_2=0 \) se reduc
 
 $$ C_f L_1 L_2\,(s+p_{lf})\,(s^2 + 2\zeta_{res}\omega_n\,s + \omega_n^2) $$
 
-Dividiendo la cúbica por \( C_f L_1 L_2 \) e identificando coeficientes con esa forma (igualando los de \( s^2 \), \( s^1 \) y \( s^0 \)) se obtiene:
+**Paso a — hacer la cúbica mónica.** Se divide toda la cúbica por su coeficiente líder \( C_f L_1 L_2 \) para que el término en \( s^3 \) quede con coeficiente 1 (así se puede comparar con la forma factorizada, que también es mónica). Cada coeficiente se simplifica:
+
+$$ s^3 + \underbrace{\frac{C_f(R_1 L_2 + R_2 L_1)}{C_f L_1 L_2}}_{=\,R_1/L_1\,+\,R_2/L_2}\,s^2 + \underbrace{\frac{C_f R_1 R_2 + (L_1+L_2)}{C_f L_1 L_2}}_{=\,R_1 R_2/(L_1 L_2)\,+\,\omega_{res}^2}\,s + \underbrace{\frac{R_1+R_2}{C_f L_1 L_2}}_{=\,b_0} = 0 $$
+
+donde se ha usado \( (L_1+L_2)/(L_1 L_2 C_f)=\omega_{res}^2 \). Llamamos a los tres coeficientes \( b_2=R_1/L_1+R_2/L_2 \), \( b_1=\omega_{res}^2+R_1 R_2/(L_1 L_2) \) y \( b_0=(R_1+R_2)/(C_f L_1 L_2) \).
+
+**Paso b — expandir la forma factorizada propuesta.** El producto del polo real por el par de segundo orden, multiplicado término a término, es:
+
+$$ (s+p_{lf})(s^2+2\zeta_{res}\omega_n s+\omega_n^2) = s^3 + (p_{lf}+2\zeta_{res}\omega_n)\,s^2 + (\omega_n^2+2\zeta_{res}\omega_n\,p_{lf})\,s + p_{lf}\,\omega_n^2 $$
+
+**Paso c — igualar coeficiente a coeficiente.** Como los dos polinomios mónicos son el mismo, sus coeficientes de \( s^2 \), \( s^1 \) y \( s^0 \) deben coincidir uno a uno:
+
+$$ \text{(I)}\quad p_{lf}+2\zeta_{res}\omega_n = b_2 = \frac{R_1}{L_1}+\frac{R_2}{L_2} $$
+$$ \text{(II)}\quad \omega_n^2+2\zeta_{res}\omega_n\,p_{lf} = b_1 = \omega_{res}^2+\frac{R_1 R_2}{L_1 L_2} $$
+$$ \text{(III)}\quad p_{lf}\,\omega_n^2 = b_0 = \frac{R_1+R_2}{C_f L_1 L_2} $$
+
+**Paso d — resolver el sistema por perturbación (R pequeñas).** Las tres incógnitas (\( p_{lf} \), \( \zeta_{res} \), \( \omega_n \)) salen ordenando por potencias de R, sabiendo que \( p_{lf} \) y \( \zeta_{res}\omega_n \) son de orden \( R \), y \( \omega_n^2 \) es de orden \( R^0 \):
+- Orden 0: en (II) los términos con R son despreciables, así que \( \omega_n^2\approx\omega_{res}^2 \) (la frecuencia natural es, en primer orden, la misma que sin pérdidas).
+- Orden 1: en (III), \( p_{lf}=b_0/\omega_n^2\approx b_0/\omega_{res}^2 = \dfrac{(R_1+R_2)/(C_f L_1 L_2)}{(L_1+L_2)/(L_1 L_2 C_f)} = \dfrac{R_1+R_2}{L_1+L_2} \). Con ese \( p_{lf} \), de (I) se despeja \( 2\zeta_{res}\omega_n = b_2 - p_{lf} \).
+- Orden 2: se refina \( \omega_n^2 \) volviendo a (II), \( \omega_n^2 = b_1 - 2\zeta_{res}\omega_n\,p_{lf} \).
+
+De aquí se obtiene:
 
 $$ p_{lf}=\frac{R_1+R_2}{L_1+L_2} \quad\text{(polo real de baja frecuencia)} $$
 $$ 2\zeta_{res}\,\omega_n = \frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2} \quad\text{(amortiguamiento del par)} $$
