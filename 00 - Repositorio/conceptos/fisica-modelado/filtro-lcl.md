@@ -240,12 +240,40 @@ $$ \text{(I)}\quad p_{lf}+2\zeta_{res}\omega_n = b_2 = \frac{R_1}{L_1}+\frac{R_2
 $$ \text{(II)}\quad \omega_n^2+2\zeta_{res}\omega_n\,p_{lf} = b_1 = \omega_{res}^2+\frac{R_1 R_2}{L_1 L_2} $$
 $$ \text{(III)}\quad p_{lf}\,\omega_n^2 = b_0 = \frac{R_1+R_2}{C_f L_1 L_2} $$
 
-**Paso d — resolver el sistema por perturbación (R pequeñas).** Las tres incógnitas (\( p_{lf} \), \( \zeta_{res} \), \( \omega_n \)) salen ordenando por potencias de R, sabiendo que \( p_{lf} \) y \( \zeta_{res}\omega_n \) son de orden \( R \), y \( \omega_n^2 \) es de orden \( R^0 \):
-- Orden 0: en (II) los términos con R son despreciables, así que \( \omega_n^2\approx\omega_{res}^2 \) (la frecuencia natural es, en primer orden, la misma que sin pérdidas).
-- Orden 1: en (III), \( p_{lf}=b_0/\omega_n^2\approx b_0/\omega_{res}^2 = \dfrac{(R_1+R_2)/(C_f L_1 L_2)}{(L_1+L_2)/(L_1 L_2 C_f)} = \dfrac{R_1+R_2}{L_1+L_2} \). Con ese \( p_{lf} \), de (I) se despeja \( 2\zeta_{res}\omega_n = b_2 - p_{lf} \).
-- Orden 2: se refina \( \omega_n^2 \) volviendo a (II), \( \omega_n^2 = b_1 - 2\zeta_{res}\omega_n\,p_{lf} \).
+**Paso d — resolver el sistema (I)(II)(III) por perturbación.** El sistema es no lineal (las ecuaciones (II) y (III) tienen productos de las incógnitas), pero las resistencias son pequeñas frente a las reactancias del filtro, así que se resuelve ordenando todo por potencias de R. El método consiste en clasificar cada cantidad por su "tamaño" cuando \( R\to0 \) y luego recorrer cada ecuación quedándose solo con los términos del mismo orden.
 
-De aquí se obtiene:
+**Tamaño de cada incógnita (la idea de fondo).** Con \( R_1=R_2=0 \) el par resonante está sobre el eje imaginario: su parte real es nula. Por tanto, al encender las resistencias:
+- el polo real \( p_{lf} \) y el amortiguamiento \( 2\zeta_{res}\omega_n \) **valen 0 cuando R=0**, así que son de **orden \( R \)** (proporcionales a las resistencias, se anulan con ellas);
+- la frecuencia \( \omega_n^2 \) **vale \( \omega_{res}^2\neq0 \) cuando R=0**, así que es de **orden \( R^0 \)**: existe sin pérdidas y las resistencias solo la corrigen.
+
+Conviene recordar también el tamaño de los coeficientes: \( b_2 \) y \( b_0 \) son de orden \( R \) (lineales en las resistencias), mientras que \( b_1=\omega_{res}^2+R_1R_2/(L_1L_2) \) es \( \omega_{res}^2 \) (orden \( R^0 \)) más una corrección de orden \( R^2 \).
+
+**Orden 0 — términos sin R.** Se mira (II), que es la única con un término de orden \( R^0 \) en el lado izquierdo. El producto \( 2\zeta_{res}\omega_n\,p_{lf} \) es (orden \( R \))·(orden \( R \)) = orden \( R^2 \), despreciable aquí; y en el lado derecho \( R_1R_2/(L_1L_2) \) también es \( R^2 \). Queda solo:
+
+$$ \omega_n^2\big|_{0} = \omega_{res}^2 $$
+
+es decir, en primer orden la frecuencia natural del par es la misma que sin pérdidas.
+
+**Orden 1 — términos lineales en R.**
+- De (III), \( p_{lf}\,\omega_n^2=b_0 \). El lado izquierdo es (orden \( R \))·(orden \( R^0 \)) = orden \( R \), igual que \( b_0 \). Sustituyendo \( \omega_n^2\approx\omega_{res}^2 \) y desarrollando la división (los \( C_f L_1 L_2 \) se cancelan):
+
+$$ p_{lf}=\frac{b_0}{\omega_{res}^2}=\frac{(R_1+R_2)/(C_f L_1 L_2)}{(L_1+L_2)/(L_1 L_2 C_f)} =\frac{R_1+R_2}{C_f L_1 L_2}\cdot\frac{L_1 L_2 C_f}{L_1+L_2}=\frac{R_1+R_2}{L_1+L_2} $$
+
+- De (I), \( p_{lf}+2\zeta_{res}\omega_n=b_2 \), todo de orden \( R \); se despeja el amortiguamiento:
+
+$$ 2\zeta_{res}\omega_n = b_2-p_{lf} = \frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2} $$
+
+- En (II) al orden \( R \): el lado izquierdo no aporta nada lineal (\( \omega_n^2 \) es \( R^0 \) y \( 2\zeta_{res}\omega_n\,p_{lf} \) es \( R^2 \)) y el derecho tampoco (\( R_1R_2 \) es \( R^2 \)). Conclusión importante: **no hay corrección de orden \( R \) a la frecuencia**; el desplazamiento de \( \omega_n \) empieza en \( R^2 \). Por eso "la frecuencia apenas se mueve y lo que cambia es el amortiguamiento".
+
+**Orden 2 — términos cuadráticos en R.** Para afinar \( \omega_n^2 \) se vuelve a (II) conservando ya los términos \( R^2 \), y se sustituyen \( 2\zeta_{res}\omega_n \) y \( p_{lf} \) (ambos de orden \( R \), su producto es el \( R^2 \) buscado):
+
+$$ \omega_n^2 = b_1 - 2\zeta_{res}\omega_n\,p_{lf} = \omega_{res}^2 + \frac{R_1 R_2}{L_1 L_2} - \left(\frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2}\right)\frac{R_1+R_2}{L_1+L_2} $$
+
+**El amortiguamiento como número.** Dividiendo \( 2\zeta_{res}\omega_n \) por \( 2\omega_n\approx2\omega_{res} \):
+
+$$ \zeta_{res}=\frac{1}{2\omega_{res}}\left(\frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2}\right) $$
+
+Resumiendo, el polo real, el amortiguamiento del par y su frecuencia natural son:
 
 $$ p_{lf}=\frac{R_1+R_2}{L_1+L_2} \quad\text{(polo real de baja frecuencia)} $$
 $$ 2\zeta_{res}\,\omega_n = \frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2} \quad\text{(amortiguamiento del par)} $$
