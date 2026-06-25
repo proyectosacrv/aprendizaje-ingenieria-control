@@ -236,6 +236,27 @@ $$ \omega_n\ \text{(natural)}, \qquad \omega_d=\omega_n\sqrt{1-\zeta_{res}^2}\ \
 
 Para \( \zeta_{res} \) pequeño las tres casi coinciden. Con R no despreciable, lo práctico es resolver la cúbica numéricamente (`numpy.roots`) y leer el par complejo \( s=-\sigma\pm j\omega_d \), de donde \( \omega_n=\sqrt{\sigma^2+\omega_d^2} \) y \( \zeta_{res}=\sigma/\omega_n \).
 
+**Ejemplo numérico** (\( L_1=2 \) mH, \( L_2=1 \) mH, \( C_f=20\,\mu\text{F} \), \( R_1=R_2=0.1\,\Omega \)):
+
+```python
+import numpy as np
+L1, L2, Cf, R1, R2 = 2e-3, 1e-3, 20e-6, 0.1, 0.1
+# polinomio caracteristico D(s) = a3 s^3 + a2 s^2 + a1 s + a0
+a3 = Cf*L1*L2
+a2 = Cf*(R1*L2 + R2*L1)
+a1 = Cf*R1*R2 + (L1 + L2)
+a0 = R1 + R2
+raices = np.roots([a3, a2, a1, a0])        # -> -66.7  y  -41.7 +- j8660
+s = raices[raices.imag > 1][0]             # el par complejo (rama Im>0)
+sigma, wd = -s.real, s.imag
+wn   = np.hypot(sigma, wd)                  # 8660 rad/s  (natural, la "wres" con R)
+zeta = sigma/wn                             # 0.0048      (amortiguamiento real)
+wres0 = np.sqrt((L1+L2)/(L1*L2*Cf))         # 8660 rad/s  -> apenas cambia sin R
+print(wn, wn/(2*np.pi), zeta)               # 8660 rad/s, 1378 Hz, 0.0048
+```
+
+El resultado confirma lo anterior: \( \omega_n\approx\omega_{res} \) (1378 Hz, igual que sin R) y \( \zeta_{res}\approx0.0048 \) (las resistencias parásitas amortiguan tan poco que el pico sigue alto; de ahí la necesidad de amortiguamiento pasivo o activo).
+
 **Amortiguamiento añadido por una \( R_d \) en serie con \( C_f \).** Cuando el amortiguamiento se introduce a propósito con una \( R_d \) (no solo las parásitas), el del par resonante es
 
 $$ \zeta=\frac{1}{2}R_d\sqrt{\frac{C_f(L_1+L_2)}{L_1 L_2}} $$
