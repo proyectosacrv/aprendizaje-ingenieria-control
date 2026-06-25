@@ -336,11 +336,60 @@ print(wn, wn/(2*np.pi), zeta)               # 8660 rad/s, 1378 Hz, 0.0048
 
 El resultado confirma lo anterior: \( \omega_n\approx\omega_{res} \) (1378 Hz, igual que sin R) y \( \zeta_{res}\approx0.0048 \) (las resistencias parásitas amortiguan tan poco que el pico sigue alto; de ahí la necesidad de amortiguamiento pasivo o activo).
 
-**Amortiguamiento añadido por una \( R_d \) en serie con \( C_f \).** Cuando el amortiguamiento se introduce a propósito con una \( R_d \) (no solo las parásitas), el del par resonante es
+### Amortiguamiento con una \( R_d \) en serie con \( C_f \) (derivación paso a paso)
+Cuando el amortiguamiento se introduce a propósito con una resistencia \( R_d \) en serie con el condensador, se deriva igual que la frecuencia (modos propios, fuentes anuladas), pero ahora con \( R_d \) en la rama del condensador. Se ponen \( R_1=R_2=0 \) para aislar el efecto de \( R_d \). La novedad es que la tensión del nudo ya no es la del condensador: el nudo está a \( v_{Cf}+R_d\,i_C \), con \( i_C=i_1-i_2 \).
 
-$$ \zeta_{Rd}=\frac{1}{2}R_d\sqrt{\frac{C_f(L_1+L_2)}{L_1 L_2}} $$
+**Paso 1 — ecuaciones de los modos propios.** Con las fuentes anuladas, la caída en cada bobina es la tensión del nudo \( (v_{Cf}+R_d(i_1-i_2)) \), y la del condensador su propia ley:
 
-es decir, sin \( R_d \) ese término vale 0 y crece linealmente con \( R_d \).
+$$ s L_1 I_1 = -\big(V_{Cf}+R_d(I_1-I_2)\big), \qquad s L_2 I_2 = V_{Cf}+R_d(I_1-I_2), \qquad s C_f V_{Cf} = I_1 - I_2 $$
+
+**Paso 2 — despejar \( I_1 \) e \( I_2 \) en función de \( V_{Cf} \).** De la tercera, \( I_1-I_2 = s C_f V_{Cf} \). Sustituyendo este \( R_d(I_1-I_2)=R_d\,sC_f V_{Cf} \) en las dos primeras:
+
+$$ s L_1 I_1 = -V_{Cf}(1+s R_d C_f) \;\Rightarrow\; I_1=\frac{-V_{Cf}(1+sR_dC_f)}{sL_1}, \qquad I_2=\frac{+V_{Cf}(1+sR_dC_f)}{sL_2} $$
+
+**Paso 3 — formar \( I_1-I_2 \) e igualar a \( sC_f V_{Cf} \).** Restando las dos corrientes:
+
+$$ I_1-I_2 = -V_{Cf}(1+sR_dC_f)\left(\frac{1}{sL_1}+\frac{1}{sL_2}\right) = s C_f V_{Cf} $$
+
+**Paso 4 — dividir por \( V_{Cf} \) (modo no trivial) y combinar las fracciones.** Con \( 1/(sL_1)+1/(sL_2)=(L_1+L_2)/(sL_1L_2) \):
+
+$$ s C_f = -(1+sR_dC_f)\,\frac{L_1+L_2}{s L_1 L_2} $$
+
+**Paso 5 — multiplicar por \( sL_1L_2 \) y desarrollar el paréntesis.**
+
+$$ s^2 C_f L_1 L_2 = -(1+sR_dC_f)(L_1+L_2) = -(L_1+L_2) - s R_d C_f (L_1+L_2) $$
+
+Pasando todo a un lado:
+
+$$ s^2 C_f L_1 L_2 + s R_d C_f (L_1+L_2) + (L_1+L_2) = 0 $$
+
+**Paso 6 — dividir por \( C_f L_1 L_2 \) para dejar la cuadrática del par resonante.**
+
+$$ s^2 + s\,\frac{R_d(L_1+L_2)}{L_1 L_2} + \frac{L_1+L_2}{C_f L_1 L_2} = 0 $$
+
+(la tercera raíz, real, se perdió al dividir por \( V_{Cf} \), igual que el \( s=0 \) del caso sin pérdidas.)
+
+**Paso 7 — comparar con la forma canónica \( s^2+2\zeta\omega_n s+\omega_n^2 \).** Término a término:
+
+$$ \omega_n^2 = \frac{L_1+L_2}{C_f L_1 L_2} = \omega_{res}^2 \qquad\Rightarrow\qquad \omega_n=\omega_{res}\ \text{(exacto: } R_d \text{ no cambia la frecuencia)} $$
+$$ 2\zeta_{Rd}\,\omega_n = \frac{R_d(L_1+L_2)}{L_1 L_2} $$
+
+**Paso 8 — despejar \( \zeta_{Rd} \) y sustituir \( \omega_{res}=\sqrt{(L_1+L_2)/(L_1 L_2 C_f)} \).**
+
+$$ \zeta_{Rd}=\frac{R_d(L_1+L_2)}{2 L_1 L_2\,\omega_{res}} = \frac{R_d(L_1+L_2)}{2 L_1 L_2}\sqrt{\frac{L_1 L_2 C_f}{L_1+L_2}} = \boxed{\;\frac{R_d}{2}\sqrt{\frac{C_f(L_1+L_2)}{L_1 L_2}}\;} $$
+
+A diferencia del caso de \( R_1,R_2 \) (que corrigen la frecuencia en orden \( R^2 \)), con \( R_d \) en serie con \( C_f \) la cuadrática es **exacta** y \( \omega_n=\omega_{res} \) sin corrección: \( R_d \) solo añade amortiguamiento, no mueve el pico.
+
+### Comparación de los tres casos
+| Caso | Amortiguamiento \( \zeta \) del par | Frecuencia natural \( \omega_n \) |
+|---|---|---|
+| Sin resistencias (\( R_1=R_2=R_d=0 \)) | \( 0 \) (pico infinito) | \( \omega_{res} \) exacta |
+| Solo \( R_d \) en serie con \( C_f \) | \( \dfrac{R_d}{2}\sqrt{\dfrac{C_f(L_1+L_2)}{L_1 L_2}} \) | \( \omega_{res} \) **exacta** (no se mueve) |
+| Solo \( R_1,R_2 \) en serie con las bobinas | \( \dfrac{R_1 L_2^2 + R_2 L_1^2}{2\,\omega_{res} L_1 L_2 (L_1+L_2)} \) | \( \omega_{res}+\mathcal{O}(R^2) \) (se mueve poco) |
+
+Las tres contribuciones se suman a primer orden: con las tres a la vez, \( \zeta_{total}\approx\zeta_{Rd}+\zeta_{res}(R_1,R_2) \).
+
+**Comparación numérica** (mismos valores, \( \omega_{res}=8660 \) rad/s): con las parásitas \( R_1=R_2=0.1\,\Omega \) sale \( \zeta_{res}\approx0.0048 \) (casi nada). Para llegar a un \( \zeta\approx0.17 \) útil con \( R_d \) hace falta \( R_d=1/(3\omega_{res}C_f)\approx1.93\,\Omega \): \( \zeta_{Rd}=\tfrac{1.93}{2}\sqrt{20\!\times\!10^{-6}\cdot 3\!\times\!10^{-3}/(2\!\times\!10^{-6})}=\tfrac{1.93}{2}\sqrt{0.03}\approx0.167 \). Es decir, una \( R_d \) deliberada de \( \sim2\,\Omega \) amortigua ~35 veces más que las parásitas de \( 0.1\,\Omega \) en las bobinas — porque está colocada donde más amortigua (en serie con \( C_f \)) y es mucho mayor. (Verificado: los autovalores del sistema con \( R_d \) dan \( \zeta=0.1667 \) y \( \omega_n=8660 \) rad/s, idénticos a la fórmula.)
 
 > **¿Por qué \( \zeta_{res} \) (de \( R_1,R_2 \)) y \( \zeta_{Rd} \) (de \( R_d \)) son fórmulas distintas, y por qué poner \( R_1=R_2=0 \) no reproduce la de \( R_d \)?** Porque son **tres resistencias distintas en ramas distintas**: \( R_1 \) y \( R_2 \) van en serie con las bobinas \( L_1 \) y \( L_2 \); \( R_d \) va en serie con el condensador \( C_f \). Cada una amortigua por un camino diferente (las de las bobinas, por la caída proporcional a la corriente de bobina; la del condensador, por la caída proporcional a \( i_1-i_2 \)), así que cada una tiene su propia fórmula. Son contribuciones **independientes** que se suman a primer orden: \( \zeta_{total}\approx\zeta_{res}(R_1,R_2)+\zeta_{Rd}(R_d) \). Por eso anular \( R_1,R_2 \) en \( \zeta_{res} \) da 0 (has quitado esas resistencias), no la fórmula de \( R_d \), que es otro componente situado en otro sitio. Y con **todas** a cero, \( \zeta=0 \) exacto: sin ninguna resistencia no hay disipación (las bobinas y \( C_f \) solo almacenan energía), así que **no existe ningún amortiguamiento "solo con inductancias"** — el amortiguamiento siempre lo aporta una resistencia o el amortiguamiento activo.
 
