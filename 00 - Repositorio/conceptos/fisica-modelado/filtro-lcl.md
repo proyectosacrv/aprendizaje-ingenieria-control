@@ -269,9 +269,35 @@ $$ 2\zeta_{res}\omega_n = b_2-p_{lf} = \frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1
 
 $$ \omega_n^2 = b_1 - 2\zeta_{res}\omega_n\,p_{lf} = \omega_{res}^2 + \frac{R_1 R_2}{L_1 L_2} - \left(\frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2}\right)\frac{R_1+R_2}{L_1+L_2} $$
 
-**El amortiguamiento como número.** Dividiendo \( 2\zeta_{res}\omega_n \) por \( 2\omega_n\approx2\omega_{res} \):
+**El amortiguamiento como número.** El paso anterior da el producto \( 2\zeta_{res}\omega_n \), no \( \zeta_{res} \) suelto. Para despejar el amortiguamiento hay que dividir por \( 2\omega_n \).
 
-$$ \zeta_{res}=\frac{1}{2\omega_{res}}\left(\frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2}\right) $$
+**Por qué se puede usar \( \omega_n\approx\omega_{res} \).** \( \zeta_{res} \) ya es de orden \( R \) (la cantidad \( 2\zeta_{res}\omega_n \) es lineal en las resistencias). Y \( \omega_n=\omega_{res}+\mathcal{O}(R^2) \) (la frecuencia solo se corrige en segundo orden, Paso d). Al dividir, sustituir \( \omega_n \) por \( \omega_{res} \) introduce un error relativo de orden \( R^2 \), que sobre una cantidad ya de orden \( R \) da una corrección de orden \( R^3 \): despreciable. Por eso es lícito poner \( \omega_n\approx\omega_{res} \) sin perder precisión al primer orden:
+
+$$ \zeta_{res}=\frac{2\zeta_{res}\omega_n}{2\omega_n}\approx\frac{1}{2\omega_{res}}\left(\frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2}\right) $$
+
+**Simplificar el corchete a una sola fracción.** Las tres fracciones de dentro se reducen a común denominador \( L_1 L_2 (L_1+L_2) \):
+
+$$ \frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2} = \frac{R_1 L_2(L_1+L_2)+R_2 L_1(L_1+L_2)-(R_1+R_2)L_1 L_2}{L_1 L_2 (L_1+L_2)} $$
+
+Desarrollando el numerador:
+
+$$ \underbrace{R_1 L_1 L_2 + R_1 L_2^2}_{R_1 L_2(L_1+L_2)} + \underbrace{R_2 L_1^2 + R_2 L_1 L_2}_{R_2 L_1(L_1+L_2)} - \underbrace{(R_1 L_1 L_2 + R_2 L_1 L_2)}_{(R_1+R_2)L_1 L_2} = R_1 L_2^2 + R_2 L_1^2 $$
+
+(los términos \( R_1 L_1 L_2 \) y \( R_2 L_1 L_2 \) se cancelan). El corchete queda, limpio:
+
+$$ \frac{R_1}{L_1}+\frac{R_2}{L_2}-\frac{R_1+R_2}{L_1+L_2} = \frac{R_1 L_2^2 + R_2 L_1^2}{L_1 L_2 (L_1+L_2)} $$
+
+**Resultado cerrado del amortiguamiento.** Sustituyendo en la expresión de \( \zeta_{res} \):
+
+$$ \boxed{\;\zeta_{res} = \frac{R_1 L_2^2 + R_2 L_1^2}{2\,\omega_{res}\,L_1 L_2 (L_1+L_2)}\;} $$
+
+**Interpretación.** Las dos resistencias amortiguan, pero con pesos distintos: \( R_1 \) (lado fuente) entra multiplicada por \( L_2^2 \) y \( R_2 \) (lado red) por \( L_1^2 \). La resistencia que está en serie con la bobina **más pequeña** pesa más en el amortiguamiento. Caso simétrico \( R_1=R_2=R \): \( \zeta_{res}=R(L_1^2+L_2^2)/[2\omega_{res}L_1 L_2(L_1+L_2)] \).
+
+**Comprobación numérica** (mismos valores del ejemplo: \( L_1=2 \) mH, \( L_2=1 \) mH, \( C_f=20\,\mu\text{F} \), \( R_1=R_2=0.1\,\Omega \), \( \omega_{res}=8660 \) rad/s):
+
+$$ \zeta_{res}=\frac{0.1\cdot(10^{-3})^2 + 0.1\cdot(2\cdot10^{-3})^2}{2\cdot8660\cdot(2\cdot10^{-3})(10^{-3})(3\cdot10^{-3})} = \frac{5\times10^{-7}}{1.04\times10^{-4}} \approx 0.0048 $$
+
+idéntico al \( \zeta \) que devolvió `numpy.roots` en el ejemplo numérico de arriba, lo que valida toda la cadena de perturbación.
 
 Resumiendo, el polo real, el amortiguamiento del par y su frecuencia natural son:
 
