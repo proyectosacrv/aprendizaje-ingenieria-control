@@ -56,7 +56,17 @@ $$ \frac{\omega_d}{\omega_n}=\sqrt{1-\zeta^2}=1-\frac{\zeta^2}{2}-\frac{\zeta^4}
 
 Es un error de **segundo orden en \( \zeta \)**: para \( \zeta=0.1 \) es del \( 0.5\,\% \); para \( \zeta=0.3 \), del \( 4.6\,\% \). Esta aproximación, sola, es buena incluso para \( \zeta \) no tan pequeño.
 
-*Aproximación (ii) — Taylor de la exponencial.* La cantidad que de verdad hace falta aproximar es \( 1-e^{-4\pi\zeta} \), que no tiene forma cerrada simple. Se usa el desarrollo de \( e^{-x} \) en \( x=0 \):
+*De dónde sale el \( 4\pi\zeta \) — sustituir (i) en el exponente del Paso 3.* El Paso 3 ya tenía el exponente \( 2\zeta\omega_n T_d \) (sin aproximar nada todavía). Metiendo ahí la aproximación (i), \( T_d\approx2\pi/\omega_n \):
+
+$$ 2\zeta\omega_n T_d \;\approx\; 2\zeta\omega_n\cdot\frac{2\pi}{\omega_n} \;=\; 4\pi\zeta $$
+
+el \( \omega_n \) se cancela exactamente (uno multiplica, el otro divide), y lo que queda es un número puro: \( 4\pi\zeta \). No es un valor elegido aparte ni una coincidencia con \( e^{-x} \): es, literalmente, el mismo exponente \( 2\zeta\omega_n T_d \) del Paso 3 después de sustituir \( T_d \) por su aproximación. Por tanto:
+
+$$ \Delta E = E(t)\left[1-e^{-2\zeta\omega_n T_d}\right] \;\approx\; E(t)\left[1-e^{-4\pi\zeta}\right] $$
+
+y es esta cantidad, \( 1-e^{-4\pi\zeta} \), la que todavía hay que simplificar — ahí es donde entra la segunda aproximación.
+
+*Aproximación (ii) — Taylor de la exponencial.* La cantidad que de verdad hace falta aproximar es \( 1-e^{-4\pi\zeta} \) (ya con el \( 4\pi\zeta \) obtenido arriba), que no tiene forma cerrada simple. Se usa el desarrollo de \( e^{-x} \) en \( x=0 \), con \( x=4\pi\zeta \):
 
 $$ e^{-x}=1-x+\frac{x^2}{2}-\frac{x^3}{6}+\dots \;\Rightarrow\; 1-e^{-x}=x-\frac{x^2}{2}+\frac{x^3}{6}-\dots $$
 
