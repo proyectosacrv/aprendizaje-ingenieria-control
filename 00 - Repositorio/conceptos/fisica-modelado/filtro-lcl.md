@@ -471,7 +471,7 @@ es decir, \( Q \) es la relación entre la impedancia característica del tanque
 
 $$ R_d\approx\frac{1}{3\,\omega_{res} C_f} $$
 
-que deja \( Q\approx3 \) (un compromiso entre acotar el pico y no degradar la atenuación a \( f_{sw} \)). Por debajo de eso el pico sigue siendo peligroso; muy por encima se sobre-amortigua y se pierde atenuación.
+que deja \( Q\approx3 \) (un compromiso entre acotar el pico y no degradar la atenuación a \( f_{sw} \)). Por debajo de eso el pico sigue siendo peligroso; muy por encima se sobre-amortigua y se pierde atenuación. De dónde sale exactamente ese "3" (el umbral de margen en dB frente al coste en pérdidas) se desarrolla en [[factor-calidad-q]].
 
 <div class="cfig"><img src="figuras/filtro-lcl-factorQ.png" alt="Bode de |i2/vi| para varios valores de Q mostrando el pico de resonancia cada vez más bajo"><div class="cap">Efecto del factor \(Q\) sobre \(|i_2/v_i|\): sin amortiguar (\(Q\to\infty\)) el pico es enorme; al añadir \(R_d\) el pico baja y se ensancha. Con \(R_d\) óptimo (\(Q\approx3\)) queda acotado sin estropear la atenuación a \(f_{sw}\); sobre-amortiguar (\(Q\) bajo) no aporta y empeora el filtrado.</div></div>
 

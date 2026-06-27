@@ -3285,6 +3285,28 @@ def _calidadq_peak():
     _savefig(fig, "factor-calidad-q-peak.png")
 
 @figura("factor-calidad-q")
+def _calidadq_objetivo():
+    Q = np.linspace(1, 10, 400)
+    peak_db = 20*np.log10(Q)
+    rd_rel = 1/Q
+    fig, ax1 = plt.subplots(figsize=(6.6, 4.4))
+    ax1.plot(Q, peak_db, color=ACC, lw=2.2, label="pico [dB] = 20·log10(Q)")
+    ax1.axhline(10, color=BAD, ls=":", lw=1.2)
+    ax1.text(7.2, 10.6, "margen 10 dB", color=BAD, fontsize=8)
+    ax1.axvline(3, color="#999", ls="--", lw=1)
+    ax1.plot(3, 20*np.log10(3), "o", color=ACC, ms=7)
+    ax1.set_xlabel("Q objetivo"); ax1.set_ylabel("pico de resonancia [dB]", color=ACC)
+    ax1.tick_params(axis='y', labelcolor=ACC)
+    ax2 = ax1.twinx()
+    ax2.plot(Q, rd_rel, color=OK, lw=2.2, ls="--", label="$R_d$ relativo ∝ 1/Q")
+    ax2.plot(3, 1/3, "o", color=OK, ms=7)
+    ax2.set_ylabel("$R_d$ relativo (pérdidas)", color=OK)
+    ax2.tick_params(axis='y', labelcolor=OK)
+    ax1.set_title("Q=3: primer entero bajo el margen de 10 dB,\ncon solo 1/3 de las pérdidas de Q=1", fontsize=10)
+    fig.tight_layout()
+    _savefig(fig, "factor-calidad-q-objetivo.png")
+
+@figura("factor-calidad-q")
 def _calidadq_taylor():
     zeta = np.linspace(0.005, 0.95, 600)
     wd_wn = np.sqrt(1 - zeta**2)

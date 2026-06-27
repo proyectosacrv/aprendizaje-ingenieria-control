@@ -9,7 +9,7 @@ objetivos: [entender Q como concepto universal de cualquier resonador de 2º ord
 tags: [factor-calidad, amortiguamiento, resonancia, ancho-de-banda, segundo-orden, basico]
 fecha_creacion: 2026-06-27
 fecha_actualizacion: 2026-06-27
-relacionados: [resonancia-rlc, filtro-lcl, frecuencias-segundo-orden, respuesta-segundo-orden, diagrama-bode, series-taylor]
+relacionados: [resonancia-rlc, filtro-lcl, frecuencias-segundo-orden, respuesta-segundo-orden, diagrama-bode, series-taylor, margenes-estabilidad]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
   - "Franklin, Powell, Emami-Naeini, Feedback Control of Dynamic Systems"
@@ -133,6 +133,35 @@ usando \( Q=1/(2\zeta) \) del Desarrollo 1. De nuevo, ningún paso depende del t
 
 <div class="cfig"><img src="figuras/factor-calidad-q-peak.png" alt="curvas de magnitud normalizadas para varios Q mostrando que el pico vale Q y el ancho de banda a media potencia es wn/Q"><div class="cap">Para cualquier resonador de 2º orden, el pico en \(\omega_n\) vale \(Q\) y el ancho de banda a media potencia (líneas punteadas, en \(Q/\sqrt2\)) es \(\omega_n/Q\): a más \(Q\), pico más alto y más estrecho — la misma relación, sea el resonador un RLC, un LCL o un sistema mecánico.</div></div>
 
+## Desarrollo 3 — cómo se elige un \( Q \) objetivo de diseño (de dónde sale "\( Q\approx3 \)")
+Cuando hay que amortiguar una resonancia añadiendo una resistencia, surge la pregunta inversa: no "cuánto vale \( Q \)" sino "a qué \( Q \) hay que llevarlo". Es habitual ver en el diseño de un filtro LCL la recomendación \( R_d\approx\dfrac{1}{3\,\omega_{res}C_f} \), que dimensiona \( R_d \) a un tercio de la reactancia del condensador en resonancia y deja \( Q\approx3 \) (ver Desarrollo 4 de [[filtro-lcl]]). El número "3" no sale de una única ecuación que se resuelva y ya está: sale de equilibrar dos efectos que tiran en direcciones opuestas.
+
+**El efecto que empuja a bajar \( Q \) (más \( R_d \)): acotar el pico.** El pico de resonancia, en dB, es \( 20\log_{10}Q \) (Desarrollo 2). Un criterio práctico extendido en control es que un pico de ganancia no comprometa el margen de ganancia del lazo que lo atraviesa; un margen de unos \( 6\text{–}10\,\)dB es la referencia habitual (ver [[margenes-estabilidad]]). Pedir que el pico no supere \( 10\,\)dB equivale a:
+
+$$ 20\log_{10}Q \le 10\,\text{dB} \;\Rightarrow\; Q\le10^{10/20}=10^{0.5}\approx3.16 $$
+
+**El efecto que empuja a subir \( Q \) (menos \( R_d \)): no pagar de más.** \( R_d \) disipa potencia, \( P_{R_d}=R_d I_{C_f,rms}^2 \), y de la propia definición \( Q=(1/R_d)\sqrt{L_{eq}/C_f} \) se ve que \( R_d \) es inversamente proporcional a \( Q \):
+
+$$ R_d=\frac{1}{Q}\sqrt{\frac{L_{eq}}{C_f}} \;\Rightarrow\; P_{R_d}\propto\frac{1}{Q} $$
+
+así que cualquier \( Q \) menor que el mínimo necesario para cumplir el margen es puro derroche: más pérdidas sin ganar nada en estabilidad.
+
+**El cruce de ambos: el mínimo \( R_d \) (máximo \( Q \)) que ya cumple el margen.** Como bajar \( Q \) cuesta pérdidas pero subir \( Q \) por encima de \( 3.16 \) no aporta margen, el punto óptimo es el \( Q \) **más alto que todavía cumple** \( Q\le3.16 \). El valor entero práctico inmediatamente por debajo es \( Q=3 \) — de ahí el "3": no es un óptimo matemático exacto, es el redondeo práctico justo por debajo del umbral de \( 10\,\)dB, elegido porque cualquier \( Q \) menor (2, o 1) ya cumple de sobra el margen pero exige más \( R_d \) y más pérdidas sin necesidad.
+
+| \( Q \) objetivo | pico \( \approx20\log_{10}Q \) | \( R_d \) relativo (pérdidas, \( \propto1/Q \)) |
+|---|---|---|
+| 10 | 20.0 dB | 0.10× |
+| 5 | 14.0 dB | 0.20× |
+| **3** | **9.5 dB** | **0.33×** |
+| 2 | 6.0 dB | 0.50× |
+| 1 | 0.0 dB | 1.00× |
+
+\( Q=3 \) es el primero de la lista, leyendo de arriba a abajo, que ya baja el pico de los peligrosos \( 14\text{–}20\,\)dB a un valor cómodamente por debajo del margen de \( 10\,\)dB — y lo hace con solo un tercio de las pérdidas que exigiría llevarlo a \( Q=1 \) (pico nulo, pero sin necesidad: por debajo de \( Q\approx3.16 \) ya no hay pico que temer).
+
+<div class="cfig"><img src="figuras/factor-calidad-q-objetivo.png" alt="pico en dB y perdidas relativas en Rd frente a Q objetivo, marcando Q=3 como el punto donde el pico ya esta por debajo de 10 dB con las menores perdidas necesarias"><div class="cap">Pico de resonancia (azul, eje izquierdo) y pérdidas relativas en \(R_d\) (rojo, eje derecho) frente al \(Q\) objetivo de diseño. \(Q=3\) es el primer entero por debajo del umbral de \(10\,\)dB (línea punteada): el pico ya queda acotado y las pérdidas son solo un tercio de las que exigiría \(Q=1\).</div></div>
+
+Esta misma lógica — fijar un margen de pico aceptable y elegir el menor \( R_d \) (mayor \( Q \)) que lo cumple — es la que hay detrás de cualquier elección de "\( Q \) de diseño", no solo del LCL: cambia el margen aceptable o el coste de amortiguar, y cambia el \( Q \) objetivo, pero la estructura del argumento (acotar el pico al menor coste) es siempre la misma.
+
 ## Generalización — por qué esto no depende del componente
 \( Q \) y \( \zeta \) describen lo mismo (el amortiguamiento de un par de polos) desde dos ángulos: \( \zeta \) desde la ubicación del polo, \( Q \) desde la energía o la forma del pico. Por eso \( Q=1/(2\zeta) \) y \( \Delta f=f_0/Q \) aparecen idénticos en:
 - Un RLC serie o paralelo ([[resonancia-rlc]]).
@@ -181,7 +210,7 @@ bw_num = (r[mask].max() - r[mask].min())*f0   # ~ f0/Q
 - 01 / 02 (filtro LCL): \( Q \) se usa para dimensionar la \( R_d \) de amortiguamiento pasivo (Desarrollo 4 de [[filtro-lcl]]) y para leer de un vistazo cuánto pico de resonancia queda tras amortiguar.
 
 ## Conceptos relacionados
-- [[resonancia-rlc]] · [[filtro-lcl]] · [[frecuencias-segundo-orden]] · [[respuesta-segundo-orden]] · [[diagrama-bode]] · [[series-taylor]]
+- [[resonancia-rlc]] · [[filtro-lcl]] · [[frecuencias-segundo-orden]] · [[respuesta-segundo-orden]] · [[diagrama-bode]] · [[series-taylor]] · [[margenes-estabilidad]]
 
 ## Referencias
 - Ogata, *Ingeniería de Control Moderna*, Pearson.
