@@ -3284,6 +3284,32 @@ def _calidadq_peak():
     fig.tight_layout()
     _savefig(fig, "factor-calidad-q-peak.png")
 
+@figura("factor-calidad-q")
+def _calidadq_taylor():
+    zeta = np.linspace(0.005, 0.95, 600)
+    wd_wn = np.sqrt(1 - zeta**2)
+    x_exact = 4*np.pi*zeta/wd_wn
+    Q_exact = 2*np.pi/(1 - np.exp(-x_exact))
+    Q_taylor = 1/(2*zeta)
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(9.6, 4.0))
+    a1.plot(zeta, Q_taylor, color=ACC, lw=2.2, label=r"$Q_{Taylor}=1/(2\zeta)$")
+    a1.plot(zeta, Q_exact, color=BAD, lw=2.0, ls="--", label=r"$Q_{exacto}$ (sin Taylor)")
+    a1.axhline(2*np.pi, color="#999", ls=":", lw=1)
+    a1.text(0.6, 2*np.pi+0.3, r"$2\pi$", color="#888", fontsize=9)
+    a1.set_yscale("log")
+    a1.set_xlabel(r"$\zeta$"); a1.set_ylabel("Q")
+    a1.set_title("Q: fórmula cerrada vs energía exacta", fontsize=10)
+    a1.legend(fontsize=8)
+    err = (Q_taylor - Q_exact)/Q_exact*100
+    a2.plot(zeta, err, color=ACC2, lw=2.2)
+    a2.axhline(0, color="#999", lw=0.8)
+    a2.axvline(0.05, color="#bbb", ls=":", lw=1)
+    a2.text(0.055, -10, "ζ=0.05", fontsize=8, color="#888")
+    a2.set_xlabel(r"$\zeta$"); a2.set_ylabel("error relativo de Q [%]")
+    a2.set_title("Error de las aproximaciones del Paso 4", fontsize=10)
+    fig.tight_layout()
+    _savefig(fig, "factor-calidad-q-taylor.png")
+
 
 # ===================================================================== #
 def main():

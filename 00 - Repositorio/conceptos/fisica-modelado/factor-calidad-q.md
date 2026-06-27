@@ -46,13 +46,45 @@ el doble del exponente de la amplitud, porque al elevar al cuadrado el exponente
 
 $$ \Delta E = E(t)-E(t+T_d) = E(t)\left[1-e^{-2\zeta\omega_n T_d}\right] $$
 
-**Paso 4 — aproximar para \( \zeta \) pequeño.** Para \( \zeta\ll1 \) (el régimen en el que \( Q \) es un concepto útil, \( Q\gg1 \)) se tiene \( \omega_d\approx\omega_n \), luego el exponente vale:
+**Paso 4 — aproximar para \( \zeta \) pequeño (son dos aproximaciones, no una).** Este paso suele leerse rápido, pero esconde dos aproximaciones distintas y conviene separarlas para saber qué error comete cada una.
 
-$$ 2\zeta\omega_n T_d \approx 2\zeta\omega_n\cdot\frac{2\pi}{\omega_n}=4\pi\zeta \ll 1 $$
+*Qué son \( \omega_n \) y \( \omega_d \), otra vez.* \( \omega_n \) es la frecuencia natural: la que tendría el oscilador si no perdiera nada de energía (\( \zeta=0 \)), el módulo del polo en el plano \( s \). \( \omega_d=\omega_n\sqrt{1-\zeta^2} \) es la frecuencia amortiguada: la frecuencia a la que realmente oscila el sistema, siempre algo menor que \( \omega_n \) porque cada vuelta se "frena" un poco al perder energía (la derivación completa de ambas está en [[frecuencias-segundo-orden]]). Solo son idénticas si \( \zeta=0 \); para cualquier \( \zeta>0 \), \( \omega_d<\omega_n \).
 
-y por Taylor de primer orden, \( 1-e^{-4\pi\zeta}\approx4\pi\zeta \). Es decir, la fracción de energía que se pierde por ciclo es aproximadamente \( 4\pi\zeta \):
+*Aproximación (i) — usar \( \omega_d\approx\omega_n \) para el periodo.* Se usa para escribir \( T_d=2\pi/\omega_d\approx2\pi/\omega_n \) y así no tener que arrastrar la raíz cuadrada. El error que comete viene de su propio Taylor:
+
+$$ \frac{\omega_d}{\omega_n}=\sqrt{1-\zeta^2}=1-\frac{\zeta^2}{2}-\frac{\zeta^4}{8}-\dots $$
+
+Es un error de **segundo orden en \( \zeta \)**: para \( \zeta=0.1 \) es del \( 0.5\,\% \); para \( \zeta=0.3 \), del \( 4.6\,\% \). Esta aproximación, sola, es buena incluso para \( \zeta \) no tan pequeño.
+
+*Aproximación (ii) — Taylor de la exponencial.* La cantidad que de verdad hace falta aproximar es \( 1-e^{-4\pi\zeta} \), que no tiene forma cerrada simple. Se usa el desarrollo de \( e^{-x} \) en \( x=0 \):
+
+$$ e^{-x}=1-x+\frac{x^2}{2}-\frac{x^3}{6}+\dots \;\Rightarrow\; 1-e^{-x}=x-\frac{x^2}{2}+\frac{x^3}{6}-\dots $$
+
+y se trunca al primer término, \( 1-e^{-x}\approx x \) con \( x=4\pi\zeta \):
 
 $$ \frac{\Delta E}{E}\approx 4\pi\zeta $$
+
+Esto solo es válido si \( x=4\pi\zeta\ll1 \), es decir \( \zeta\ll1/(4\pi)\approx0.08 \). El error relativo de cortar en el primer término es, al orden siguiente, \( \approx x/2=2\pi\zeta \): crece **linealmente** con \( \zeta \) y es el que domina (mucho mayor que el de la aproximación (i)).
+
+*Por qué hace falta \( \zeta \) pequeño y no vale para cualquier \( \zeta \).* El argumento de "energía perdida por ciclo" solo describe bien lo que pasa cuando el sistema oscila varias veces antes de apagarse. Si \( \zeta \) no es pequeño, en un solo periodo ya se pierde casi toda la energía y "fracción perdida por ciclo" deja de tener un significado claro (se acerca a 1 y se queda ahí). El Taylor de la exponencial es, además, lo que permite pasar de la expresión transcendente \( 1-e^{-4\pi\zeta} \) a la fórmula cerrada \( Q=1/(2\zeta) \); sin él habría que dejar \( Q \) en función de una exponencial, mucho menos manejable.
+
+*Cuánto cuesta la aproximación — comparación con el resultado sin aproximar.* Puede calcularse \( Q \) desde la misma definición energética pero sin usar ninguna de las dos aproximaciones, con \( \omega_d \) y la exponencial exactos:
+
+$$ Q_{exacto}(\zeta)=\frac{2\pi}{1-\exp\!\left(-4\pi\zeta/\sqrt{1-\zeta^2}\right)} $$
+
+y compararlo con \( Q_{Taylor}=1/(2\zeta) \):
+
+| \( \zeta \) | \( Q_{Taylor}=1/(2\zeta) \) | \( Q_{exacto} \) | error |
+|---|---|---|---|
+| 0.01 | 50.00 | 53.21 | −6.0 % |
+| 0.05 | 10.00 | 13.46 | −25.7 % |
+| 0.10 | 5.00 | 8.76 | −42.9 % |
+| 0.30 | 1.67 | 6.41 | −74.0 % |
+| 0.707 | 0.71 | 6.28 | −88.7 % |
+
+El error crece deprisa con \( \zeta \): para \( \zeta\lesssim0.02\text{–}0.05 \) (típico de una resonancia LCL sin amortiguar) la aproximación es excelente; en \( \zeta=0.1 \) ya infravalora claramente la energía perdida por ciclo. Para \( \zeta \) grande, \( Q_{exacto} \) ni siquiera tiende a 0: **se satura en \( 2\pi\approx6.28 \)**, porque "toda la energía se pierde en un ciclo" es el límite físico de la definición energética — llegado ese punto, \( Q\equiv1/(2\zeta) \) ya no coincide con "energía almacenada / disipada por ciclo": se usa **por extensión**, como una forma cómoda de seguir hablando de amortiguamiento con un solo número, no porque la cuenta energética literal lo respalde. Por eso el resto del repositorio limita el uso fiable de \( Q\leftrightarrow\zeta \) a \( \zeta\lesssim0.3 \) (ver "Errores comunes").
+
+<div class="cfig"><img src="figuras/factor-calidad-q-taylor.png" alt="comparacion de Q exacto sin aproximar Taylor frente a Q=1/(2 zeta) aproximado, y error relativo entre ambos en funcion de zeta"><div class="cap">Izquierda: \(Q_{Taylor}=1/(2\zeta)\) (la fórmula cerrada) frente a \(Q_{exacto}\) (misma definición energética, sin aproximar \(\omega_d\) ni la exponencial); coinciden para \(\zeta\) pequeño y se separan al crecer \(\zeta\), con \(Q_{exacto}\) saturándose en \(2\pi\). Derecha: error relativo de la aproximación, ya significativo (>25 %) a partir de \(\zeta\approx0.05\).</div></div>
 
 **Paso 5 — aplicar la definición de Q.** Sustituyendo en la definición del Paso 0:
 
