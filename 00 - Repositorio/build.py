@@ -34,6 +34,32 @@ def split_frontmatter(text):
     return {}, text
 
 
+_DEV_HEAD_RE = re.compile(r"^\s*(?:Desarrollo\s+\d+|\d+)\s*[—–-]\s*")
+_H2_RE = re.compile(r"<h2>(.*?)</h2>", re.S)
+
+
+def wrap_dev_sections(html):
+    """Envuelve cada seccion de desarrollo numerada ("## N -" / "## Desarrollo N -")
+    en un <details> plegado por defecto, para que la ficha se vea corta y el lector
+    despliegue solo el desarrollo que le interesa. El resto de secciones (Definicion,
+    Cuando se usa, etc.) no se tocan."""
+    parts = re.split(r"(<h2>.*?</h2>)", html, flags=re.S)
+    out = [parts[0]]
+    i = 1
+    while i < len(parts):
+        h2tag = parts[i]
+        content = parts[i + 1] if i + 1 < len(parts) else ""
+        heading_text = _H2_RE.match(h2tag).group(1)
+        if _DEV_HEAD_RE.match(heading_text):
+            out.append(f'<details class="dev"><summary>{heading_text}</summary>'
+                        f'<div class="dev-body">{content}</div></details>')
+        else:
+            out.append(h2tag)
+            out.append(content)
+        i += 2
+    return "".join(out)
+
+
 def render_body(md_text):
     """Markdown -> HTML protegiendo las ecuaciones de MathJax y los [[wikilinks]]."""
     # 1) proteger matematicas para que markdown no toque $...$ ni \(...\) ni _subindices_
@@ -53,6 +79,8 @@ def render_body(md_text):
     # 4) restaurar matematicas
     for i, s in enumerate(store):
         html = html.replace(f"@@M{i}@@", s)
+    # 5) plegar las secciones de desarrollo numeradas
+    html = wrap_dev_sections(html)
     return html
 
 
@@ -132,6 +160,14 @@ header h1{margin:0;font-size:19px}header .sub{color:var(--muted);font-size:12.5p
 .detail th,.detail td{border:1px solid var(--line);padding:7px 10px;text-align:left}
 .detail th{background:var(--panel2)}
 .detail blockquote{border-left:3px solid var(--acc);margin:12px 0;padding:6px 15px;background:#13202e;color:#cfe1f0}
+.detail details.dev{border:1px solid var(--line);border-radius:9px;margin:24px 0 8px;background:var(--panel)}
+.detail details.dev>summary{cursor:pointer;list-style:none;padding:11px 15px;font-size:18px;color:#cdd9e5}
+.detail details.dev>summary::-webkit-details-marker{display:none}
+.detail details.dev>summary::before{content:"▸";display:inline-block;color:var(--acc);width:14px;transition:transform .15s}
+.detail details.dev[open]>summary::before{transform:rotate(90deg)}
+.detail details.dev>summary:hover{color:var(--ink)}
+.detail details.dev>.dev-body{padding:2px 16px 16px;border-top:1px solid var(--line)}
+.detail details.dev>.dev-body>:first-child{margin-top:14px}
 .metahead{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 6px}
 .metahead .chip{font-size:12px}
 .wl{border-bottom:1px dotted var(--acc)}
