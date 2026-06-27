@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [atenuar armonicos de conmutacion, modelar la planta de potencia, gestionar la resonancia y amortiguarla]
 tags: [filtro, resonancia, antiresonancia, amortiguamiento-activo, factor-Q, rizado, dimensionado, funcion-transferencia, LCL, dq]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-17
+fecha_actualizacion: 2026-06-27
 relacionados: [convertidor-vsc, marco-dq, impedancia-salida-estabilidad, control-cascada, diagrama-bode, antiresonancia, resonancia-rlc, amortiguamiento-pasivo-vs-activo, frecuencias-segundo-orden, factor-calidad-q]
 referencias:
   - "Reznik et al., LCL Filter Design and Performance Analysis for Grid-Interconnected Systems, IEEE TIA 2014"
@@ -26,7 +26,7 @@ Aguas arriba de \( L_1 \) hay una etapa que impone una tensión media controlabl
 - una tensión \( v_i \) con una componente fundamental útil (la consigna) más un espectro de armónicos concentrado alrededor de \( f_{sw} \) y sus múltiplos
 - una resistencia/inductancia de fuente normalmente despreciable frente a \( L_1 \)
 
-Por eso el diseño del LCL no depende de la naturaleza del convertidor, solo de tres datos de esa etapa: la tensión de bus disponible (que fija la amplitud del troceado), la frecuencia de conmutación \( f_{sw} \) (que fija dónde están los armónicos a atenuar) y la ganancia del modulador (que cambia si la etapa es de dos niveles, tres niveles, etc.). Aguas abajo de \( L_2 \) hay un punto de conexión (PCC) detrás del cual puede haber una red, un transformador, otras cargas o una isla; su inductancia se suma a \( L_2 \) y modifica la resonancia (ver Desarrollo 3).
+Por eso el diseño del LCL no depende de la naturaleza del convertidor, solo de tres datos de esa etapa: la tensión de bus disponible (que fija la amplitud del troceado), la frecuencia de conmutación \( f_{sw} \) (que fija dónde están los armónicos a atenuar) y la ganancia del modulador (que cambia si la etapa es de dos niveles, tres niveles, etc.). Aguas abajo de \( L_2 \) hay un punto de conexión (PCC) detrás del cual puede haber una red, un transformador, otras cargas o una isla; su inductancia se suma a \( L_2 \) y modifica la resonancia (ver apartado 8).
 
 ## Topología y diagrama
 La rama serie \( L_1 \) (lado fuente) llega al nudo \( v_C \); del nudo cuelga el condensador \( C_f \) a tierra (opcionalmente con una resistencia \( R_d \) de amortiguamiento pasivo en serie); del nudo sale la rama serie \( L_2 \) (lado red/carga) hacia el PCC. \( R_1 \) y \( R_2 \) son las resistencias parásitas de las dos bobinas.
@@ -46,7 +46,7 @@ $$ L_1\dot{\mathbf{i}}_1=\mathbf{v}_i-\mathbf{v}_C-R_1\mathbf{i}_1+\omega L_1\ma
    C_f\dot{\mathbf{v}}_C=\mathbf{i}_1-\mathbf{i}_2+\omega C_f\mathbf{J}\mathbf{v}_C,\quad
    L_2\dot{\mathbf{i}}_2=\mathbf{v}_C-\mathbf{v}_{pcc}-R_2\mathbf{i}_2+\omega L_2\mathbf{J}\mathbf{i}_2 $$
 
-## Desarrollo 1 — funciones de transferencia (derivación completa)
+## 1 — Funciones de transferencia (derivación completa)
 El objetivo de esta sección es deducir, paso a paso, las funciones de transferencia que relacionan las dos corrientes del filtro (\( i_1 \) lado fuente, \( i_2 \) lado red) con las dos tensiones que actúan sobre él (\( v_i \) tensión de la fuente conmutada, \( v_{pcc} \) tensión en el PCC). Estas funciones son la planta que ve el control de corriente, así que de aquí salen la resonancia, la antiresonancia y la elección de qué corriente realimentar.
 
 ### El LCL como cuadripolo: dos entradas, varias salidas
@@ -120,7 +120,7 @@ Es decir, el constante que acompaña a \( s^2 \) es **por definición** el cuadr
 
 $$ G_{i_2}(s)=\frac{1}{s\,L_1 L_2 C_f\,(s^2+\omega_{res}^2)} $$
 
-No es una suposición: \( \omega_{res}^2 \) es, literalmente, el coeficiente que aparece al factorizar, y se identifica con la frecuencia natural por la forma canónica de segundo orden. El denominador se anula en \( s=0 \) y en \( s=\pm j\omega_{res} \): un par de polos sin parte real (\( \zeta\approx0 \)). Eso es la resonancia. El **porqué físico** (anular las dos fuentes y resolver el circuito libre) se deriva paso a paso en el Desarrollo 2; aquí ha aparecido como consecuencia algebraica de la planta.
+No es una suposición: \( \omega_{res}^2 \) es, literalmente, el coeficiente que aparece al factorizar, y se identifica con la frecuencia natural por la forma canónica de segundo orden. El denominador se anula en \( s=0 \) y en \( s=\pm j\omega_{res} \): un par de polos sin parte real (\( \zeta\approx0 \)). Eso es la resonancia. El **porqué físico** (anular las dos fuentes y resolver el circuito libre) se deriva paso a paso en el apartado 2; aquí ha aparecido como consecuencia algebraica de la planta.
 
 **Paso 4b — respuesta a la perturbación de red (admitancia de salida).** De la misma expresión del paso 4, anulando ahora \( v_i \) en vez de \( v_{pcc} \), sale la otra mitad de la superposición:
 
@@ -144,7 +144,7 @@ Ahora sin despreciar nada. Conviene usar las impedancias de cada rama: \( Z_1=R_
 $$ \frac{i_2}{v_i}=\frac{1}{Z_1+Z_2+sC_f Z_1 Z_2}, \qquad
    \frac{i_1}{v_i}=\frac{1+sC_f Z_2}{Z_1+Z_2+sC_f Z_1 Z_2} $$
 
-Las dos comparten el denominador \( D(s)=Z_1+Z_2+sC_f Z_1 Z_2 \), que desarrollado es el polinomio característico completo (el mismo que el del Desarrollo 2):
+Las dos comparten el denominador \( D(s)=Z_1+Z_2+sC_f Z_1 Z_2 \), que desarrollado es el polinomio característico completo (el mismo que el del apartado 2):
 
 $$ D(s)=s^3 C_f L_1 L_2 + s^2 C_f(R_1 L_2 + R_2 L_1) + s\,(L_1+L_2+C_f R_1 R_2) + (R_1+R_2) $$
 
@@ -165,7 +165,7 @@ La lectura práctica: las resistencias serie reales (parásitas) **sí** amortig
 
 <div class="cfig"><img src="figuras/filtro-lcl-bode.png" alt="Respuesta en frecuencia del LCL: i2/vi con resonancia, i1/vi con antiresonancia, con y sin amortiguamiento"><div class="cap">Magnitud de \(i_2/v_i\) e \(i_1/v_i\): \(i_2\) presenta el pico de resonancia afilado (rojo, \(\zeta\approx0\)) en \(f_{res}\); \(i_1\) añade el cero de antiresonancia en \(f_{ar}\) que aporta \(+180^\circ\) de fase antes del pico. Al amortiguar (azul) el pico se acota. Por debajo el filtro deja pasar la fundamental; por encima cae a \(-60\) dB/dec.</div></div>
 
-## Desarrollo 2 — frecuencia de resonancia (derivación completa)
+## 2 — Frecuencia de resonancia (derivación completa)
 La frecuencia de resonancia son los modos propios del filtro: las frecuencias a las que la red oscila por sí sola sin excitación externa. Para hallarlos se anulan las dos fuentes de tensión que actúan sobre el filtro (\( v_i=0 \) y \( v_{pcc}=0 \) en pequeña señal): lo que queda son los modos naturales del circuito \( L_1\!-\!C_f\!-\!L_2 \). Se presenta primero la versión reducida (sin resistencias parásitas), que da la fórmula limpia, y después la versión completa (con \( R_1,R_2 \) y la \( R_d \) de amortiguamiento), que muestra cómo esa resonancia ideal se convierte en un par de polos amortiguados.
 
 ### Versión reducida (\( R_1=R_2=0 \))
@@ -201,7 +201,7 @@ la expresión se compacta en la de un tanque LC simple, \( L_{eq} \) resonando c
 
 $$ f_{res}=\frac{1}{2\pi\sqrt{L_{eq} C_f}} $$
 
-que es idéntica a la del paso 5 (resonancia de \( C_f \) contra \( L_1 \) paralelo \( L_2 \)). Esto coincide con el denominador de las funciones de transferencia del Desarrollo 1: \( s^3 L_1 L_2 C_f + s(L_1+L_2)=s L_1 L_2 C_f(s^2+\omega_{res}^2) \), cuyos ceros no nulos son justo \( s=\pm j\omega_{res} \).
+que es idéntica a la del paso 5 (resonancia de \( C_f \) contra \( L_1 \) paralelo \( L_2 \)). Esto coincide con el denominador de las funciones de transferencia del apartado 1: \( s^3 L_1 L_2 C_f + s(L_1+L_2)=s L_1 L_2 C_f(s^2+\omega_{res}^2) \), cuyos ceros no nulos son justo \( s=\pm j\omega_{res} \).
 
 > Aviso sobre una aproximación habitual: algunos textos usan \( L_1+L_2 \) (suma serie) en lugar de \( L_{eq} \) (paralelo) en el denominador, \( f_{res,aprox}=1/(2\pi\sqrt{(L_1+L_2)C_f}) \). Subestima \( f_{res} \) porque \( L_1+L_2>L_{eq} \) siempre. La diferencia es pequeña cuando \( L_2\ll L_1 \) (relación \( r=L_2/L_1 \) pequeña) pero crece al acercarse \( L_2 \) a \( L_1 \). Usar siempre la forma exacta con \( L_{eq} \).
 
@@ -445,23 +445,10 @@ Por eso la versión reducida da la frecuencia (dónde está el pico) y la versi�
 
 > A resaltar: sin amortiguar, cualquier lazo rápido o impedancia de red que excite \( f_{res} \) provoca oscilación sostenida. Es uno de los mecanismos típicos de inestabilidad armónica y de oscilaciones de alta frecuencia entre convertidor y red.
 
-## Desarrollo 3 — efecto de la red y el trafo sobre \( f_{res} \)
-Cuando el filtro no trabaja en vacío sino conectado a una red con inductancia \( L_g \) (y a un trafo con \( L_t \)), esas inductancias se suman en serie con \( L_2 \). La frecuencia de resonancia efectiva baja:
-
-$$ L_{2ef}=L_2+L_t+L_g, \qquad f_{res,ef}=\frac{1}{2\pi}\sqrt{\frac{L_1+L_{2ef}}{L_1 L_{2ef} C_f}} $$
-
-Esto es crítico en red débil: un SCR bajo significa \( L_g \) grande, lo que empuja \( f_{res} \) hacia abajo y puede acercarla al ancho de banda del control. Regla de verificación: calcular siempre \( f_{res} \) con el peor caso de \( L_g \) (SCR mínimo esperado).
-
-Ejemplo con valores del proyecto 04 (\( L_1=40\,\mu\text{H},\ C_f=85\,\mu\text{F},\ L_2=8\,\mu\text{H},\ L_t=64\,\mu\text{H} \)):
-- SCR 5 (\( L_g=0 \)): \( L_{2ef}=72\,\mu\text{H} \), \( L_{eq}=25.7\,\mu\text{H} \), \( f_{res}=3406 \) Hz
-- SCR 2 (\( L_g=124\,\mu\text{H} \)): \( L_{2ef}=196\,\mu\text{H} \), \( L_{eq}=33.2\,\mu\text{H} \), \( f_{res}=2997 \) Hz
-
-La resonancia baja unos 400 Hz al pasar de SCR 5 a SCR 2. El amortiguamiento debe funcionar en todo ese rango.
-
-## Desarrollo 4 — factor de calidad Q (derivación y efecto en la respuesta)
+## 3 — Factor de calidad Q (derivación y efecto en la respuesta)
 El factor de calidad \( Q \) mide cuántas veces amplifica el filtro una excitación justo en \( f_{res} \) (la altura del pico de resonancia).
 
-**De dónde sale.** Para un par de polos de segundo orden con amortiguamiento \( \zeta \), la ganancia en el pico respecto a la banda de paso es \( Q=1/(2\zeta) \) (derivación general, energética y de ancho de banda, en [[factor-calidad-q]]). Combinándolo con el amortiguamiento que introduce una \( R_d \) en serie con \( C_f \) (Desarrollo 2):
+**De dónde sale.** Para un par de polos de segundo orden con amortiguamiento \( \zeta \), la ganancia en el pico respecto a la banda de paso es \( Q=1/(2\zeta) \) (derivación general, energética y de ancho de banda, en [[factor-calidad-q]]). Combinándolo con el amortiguamiento que introduce una \( R_d \) en serie con \( C_f \) (apartado 2):
 
 $$ Q=\frac{1}{2\zeta}=\frac{1}{R_d\sqrt{C_f(L_1+L_2)/(L_1 L_2)}}=\frac{1}{R_d}\sqrt{\frac{L_{eq}}{C_f}} $$
 
@@ -475,9 +462,32 @@ que deja \( Q\approx3 \) (un compromiso entre acotar el pico y no degradar la at
 
 <div class="cfig"><img src="figuras/filtro-lcl-factorQ.png" alt="Bode de |i2/vi| para varios valores de Q mostrando el pico de resonancia cada vez más bajo"><div class="cap">Efecto del factor \(Q\) sobre \(|i_2/v_i|\): sin amortiguar (\(Q\to\infty\)) el pico es enorme; al añadir \(R_d\) el pico baja y se ensancha. Con \(R_d\) óptimo (\(Q\approx3\)) queda acotado sin estropear la atenuación a \(f_{sw}\); sobre-amortiguar (\(Q\) bajo) no aporta y empeora el filtrado.</div></div>
 
-El inconveniente del amortiguamiento pasivo es que \( R_d \) disipa potencia, \( P_{R_d}=R_d\,I_{C_f,rms}^2 \). Por eso en inversores de potencia media-alta se prefiere el amortiguamiento activo por software (ver más abajo y [[amortiguamiento-pasivo-vs-activo]]), que consigue el mismo \( \zeta \) sin pérdidas.
+El inconveniente del amortiguamiento pasivo es que \( R_d \) disipa potencia, \( P_{R_d}=R_d\,I_{C_f,rms}^2 \). Por eso en inversores de potencia media-alta se prefiere el amortiguamiento activo por software (ver apartado 4 y [[amortiguamiento-pasivo-vs-activo]]), que consigue el mismo \( \zeta \) sin pérdidas.
 
-## Desarrollo 5 — rizado de corriente y dimensionado de \( L_1 \) (derivación completa)
+## 4 — Amortiguamiento activo (derivación, estudio de polos y diseño)
+En vez de disipar en una \( R_d \) física, se emula una resistencia de amortiguamiento por software. La técnica habitual realimenta la corriente del condensador \( i_{C_f}=i_1-i_2 \) a la tensión de la fuente con ganancia \( K_{ad} \):
+
+$$ v_i = v_{i,PI} - K_{ad}\,(i_1-i_2) $$
+
+**Por qué equivale a una resistencia sin pérdidas (desarrollo).** La dinámica de \( i_1 \) sin amortiguar es \( L_1\,di_1/dt=v_i-v_C-R_1 i_1 \). Sustituyendo la ley de control:
+
+$$ L_1\frac{di_1}{dt}=v_{i,PI}-v_C-R_1 i_1 - K_{ad}(i_1-i_2) $$
+
+El término \( -K_{ad} i_1 \) actúa exactamente como una resistencia en serie con \( L_1 \) (su caída es proporcional a \( i_1 \)), y el \( -K_{ad}(-i_2) \) recupera que la corriente que pasa por el condensador es \( i_1-i_2 \): el conjunto emula una \( R_d \) vista por la rama del condensador. La diferencia con una resistencia física es que \( K_{ad} \) no disipa potencia real: es una consigna de tensión, no una caída óhmica. Por eso da el mismo amortiguamiento que \( R_d \) pero sin las pérdidas \( P_{R_d} \) (comparativa completa en [[amortiguamiento-pasivo-vs-activo]]).
+
+**Estudio de polos: cómo influye \( K_{ad} \) en el diseño.** Anulando las fuentes y reescribiendo el modelo con la realimentación activa, la matriz de estado del filtro (estados \( i_1,i_2,v_C \); \( R_1=R_2=0 \) para aislar el efecto) es:
+
+$$ A(K_{ad})=\begin{bmatrix} -K_{ad}/L_1 & +K_{ad}/L_1 & -1/L_1 \\ 0 & 0 & 1/L_2 \\ 1/C_f & -1/C_f & 0 \end{bmatrix} $$
+
+Los autovalores de \( A(K_{ad}) \) son el par resonante. En \( K_{ad}=0 \) están sobre el eje imaginario en \( \pm j\omega_{res} \) (\( \zeta=0 \)). Al subir \( K_{ad} \), el par se desplaza hacia la izquierda (parte real negativa creciente): el amortiguamiento sube de forma casi proporcional a \( K_{ad} \) mientras la frecuencia del par apenas cambia. Esto convierte el diseño en directo: se barre \( K_{ad} \) hasta cruzar la línea de \( \zeta \) objetivo.
+
+<div class="cfig"><img src="figuras/filtro-lcl-damping-polos.png" alt="lugar de los polos resonantes del LCL al barrer Kad, con lineas de zeta constante"><div class="cap">Lugar de los polos resonantes al barrer \(K_{ad}\) de 0 a 12 Ω: parten sobre el eje imaginario (\(\zeta\approx0\), rojo) y se mueven a la izquierda al subir \(K_{ad}\) (color), cruzando las líneas de \(\zeta\) constante. El diseño consiste en elegir el \(K_{ad}\) que lleva el par al \(\zeta\) objetivo (0.3–0.7) sin pasarse.</div></div>
+
+**Procedimiento de diseño.** Identificar \( f_{res} \); medir o estimar \( i_{C_f} \) como \( i_1-i_2 \); barrer \( K_{ad} \) (del orden de unos pocos ohmios) observando el lugar de polos hasta el \( \zeta \) objetivo de la resonancia (0.3–0.7); verificar que no degrada el margen de los lazos de corriente y tensión. Variantes: realimentar \( i_2 \) o la derivada de \( v_C \) en lugar de \( i_{C_f} \).
+
+**Límites y errores.** Ganancia \( K_{ad} \) excesiva amplifica el ruido de medida y puede provocar inestabilidad de alta frecuencia; estimar \( i_{C_f} \) con retardo de muestreo significativo (\( 1.5\,T_s \)) le quita eficacia e incluso puede volver el damping negativo a frecuencias altas — por eso el retardo de cómputo acota el \( K_{ad} \) útil y, con él, el \( \zeta \) máximo alcanzable. En digital conviene compensar ese retardo (ver [[compensacion-retardo]]).
+
+## 5 — Rizado de corriente y dimensionado de \( L_1 \) (derivación completa)
 La bobina de lado fuente se dimensiona por el rizado de conmutación que deja pasar. Se deriva primero la versión reducida (tensión de salida constante dentro de un periodo de conmutación, que da la regla de diseño) y después el detalle (dependencia con el ciclo de trabajo y convención pico vs pico-pico).
 
 ### Versión reducida (tensión de salida ≈ constante en un periodo \( T_{sw} \))
@@ -517,12 +527,12 @@ $$ \Delta i_{1,amp}=\frac{\Delta i_{1,pp}}{2}=\frac{V_{dc}}{8 f_{sw} L_1} \;\Rig
 - Efecto de \( R_1 \) (con vs sin resistencia serie): aquí es despreciable. Durante un subintervalo de conmutación (duración del orden de \( T_{sw} \), microsegundos) la caída \( R_1 i_1 \) apenas cambia frente a la tensión aplicada \( V_{dc}(1-d) \), así que la pendiente \( di_1/dt\approx v_L/L_1 \) no la fija \( R_1 \) sino \( L_1 \). La resistencia sí importa para la caída de tensión media y las pérdidas en régimen, pero no para el rizado de conmutación; por eso el dimensionado de \( L_1 \) se hace sin \( R_1 \).
 - Si la etapa de entrada es de tres niveles, el escalón de tensión sobre \( L_1 \) se reduce a la mitad (\( \pm V_{dc}/4 \) efectivo por nivel), de modo que para el mismo rizado \( L_1 \) baja a la mitad; ver [[convertidor-vsc|modulación PWM]]. Con modulación vectorial (SVPWM) o inyección de tercer armónico el caso peor cambia ligeramente respecto al SPWM senoidal puro.
 
-## Desarrollo 6 — dimensionado de \( C_f \) (reactiva)
+## 6 — Dimensionado de \( C_f \) (reactiva)
 El condensador absorbe reactiva a la frecuencia de red: corriente \( I_C=\omega_0 C_f V \), luego \( Q_C=V I_C=\omega_0 C_f V^2 \). Se limita a un \( \le5\% \) de la potencia base para no cargar la fuente con reactiva inútil:
 
 $$ Q_C=\omega_0 C_f V^2 \le 0.05\,S_n \;\Rightarrow\; C_f\le\frac{0.05\,S_n}{\omega_0 V^2} $$
 
-## Desarrollo 7 — dimensionado de \( L_2 \) (atenuación a \( f_{sw} \))
+## 7 — Dimensionado de \( L_2 \) (atenuación a \( f_{sw} \))
 Muy por encima de \( f_{res} \), la impedancia del condensador \( 1/(\omega C_f) \) es mucho menor que \( \omega L_2 \), así que casi todo el rizado se deriva por \( C_f \). El divisor de corriente da la atenuación de lado fuente a lado red:
 
 $$ \left|\frac{i_2}{i_1}\right|(\omega_{sw})\approx\frac{1}{|1-\omega_{sw}^2 L_2 C_f|}\approx\frac{1}{\omega_{sw}^2 L_2 C_f} $$
@@ -533,28 +543,30 @@ $$ L_2\approx\frac{1}{k\,C_f\,\omega_{sw}^2} $$
 
 Relación práctica \( L_2/L_1 \) entre 0.2 y 1. Conviene definir \( r=L_2/L_1 \) y comprobar después que \( f_{res} \) cae en banda.
 
-## Amortiguamiento activo (derivación, estudio de polos y diseño)
-En vez de disipar en una \( R_d \) física, se emula una resistencia de amortiguamiento por software. La técnica habitual realimenta la corriente del condensador \( i_{C_f}=i_1-i_2 \) a la tensión de la fuente con ganancia \( K_{ad} \):
+## 8 — Efecto de la red y el trafo sobre el filtro
+Hasta aquí el filtro se ha tratado aislado, con \( L_2 \) terminando en una fuente de tensión ideal. En la práctica, aguas abajo del PCC hay una red con inductancia \( L_g \) (mayor cuanto más débil, es decir cuanto menor el SCR) y casi siempre un transformador con inductancia de dispersión \( L_t \). Ninguna de las dos es opcional en el diseño: ambas se suman en serie con \( L_2 \) y entran en **todo** lo que depende de \( L_2 \), no solo en \( f_{res} \):
 
-$$ v_i = v_{i,PI} - K_{ad}\,(i_1-i_2) $$
+$$ L_{2ef}=L_2+L_t+L_g $$
 
-**Por qué equivale a una resistencia sin pérdidas (desarrollo).** La dinámica de \( i_1 \) sin amortiguar es \( L_1\,di_1/dt=v_i-v_C-R_1 i_1 \). Sustituyendo la ley de control:
+**Efecto sobre la resonancia.** La frecuencia de resonancia efectiva baja al crecer \( L_{2ef} \):
 
-$$ L_1\frac{di_1}{dt}=v_{i,PI}-v_C-R_1 i_1 - K_{ad}(i_1-i_2) $$
+$$ f_{res,ef}=\frac{1}{2\pi}\sqrt{\frac{L_1+L_{2ef}}{L_1 L_{2ef} C_f}} $$
 
-El término \( -K_{ad} i_1 \) actúa exactamente como una resistencia en serie con \( L_1 \) (su caída es proporcional a \( i_1 \)), y el \( -K_{ad}(-i_2) \) recupera que la corriente que pasa por el condensador es \( i_1-i_2 \): el conjunto emula una \( R_d \) vista por la rama del condensador. La diferencia con una resistencia física es que \( K_{ad} \) no disipa potencia real: es una consigna de tensión, no una caída óhmica. Por eso da el mismo amortiguamiento que \( R_d \) pero sin las pérdidas \( P_{R_d} \) (comparativa completa en [[amortiguamiento-pasivo-vs-activo]]).
+Esto es crítico en red débil: un SCR bajo significa \( L_g \) grande, lo que empuja \( f_{res} \) hacia abajo y puede acercarla al ancho de banda del control.
 
-**Estudio de polos: cómo influye \( K_{ad} \) en el diseño.** Anulando las fuentes y reescribiendo el modelo con la realimentación activa, la matriz de estado del filtro (estados \( i_1,i_2,v_C \); \( R_1=R_2=0 \) para aislar el efecto) es:
+Ejemplo con valores del proyecto 04 (\( L_1=40\,\mu\text{H},\ C_f=85\,\mu\text{F},\ L_2=8\,\mu\text{H},\ L_t=64\,\mu\text{H} \)):
+- SCR 5 (\( L_g=0 \)): \( L_{2ef}=72\,\mu\text{H} \), \( L_{eq}=25.7\,\mu\text{H} \), \( f_{res}=3406 \) Hz
+- SCR 2 (\( L_g=124\,\mu\text{H} \)): \( L_{2ef}=196\,\mu\text{H} \), \( L_{eq}=33.2\,\mu\text{H} \), \( f_{res}=2997 \) Hz
 
-$$ A(K_{ad})=\begin{bmatrix} -K_{ad}/L_1 & +K_{ad}/L_1 & -1/L_1 \\ 0 & 0 & 1/L_2 \\ 1/C_f & -1/C_f & 0 \end{bmatrix} $$
+La resonancia baja unos 400 Hz (un 12 %) al pasar de SCR 5 a SCR 2. El amortiguamiento debe funcionar en todo ese rango.
 
-Los autovalores de \( A(K_{ad}) \) son el par resonante. En \( K_{ad}=0 \) están sobre el eje imaginario en \( \pm j\omega_{res} \) (\( \zeta=0 \)). Al subir \( K_{ad} \), el par se desplaza hacia la izquierda (parte real negativa creciente): el amortiguamiento sube de forma casi proporcional a \( K_{ad} \) mientras la frecuencia del par apenas cambia. Esto convierte el diseño en directo: se barre \( K_{ad} \) hasta cruzar la línea de \( \zeta \) objetivo.
+**Efecto sobre la antiresonancia (cero de \( i_1 \)).** El cero que aparece en la función de transferencia de \( i_1 \) (apartado 1, [[antiresonancia]]) está en \( f_{ar}=1/(2\pi\sqrt{L_{2ef} C_f}) \). También baja con \( L_{2ef} \), y más deprisa que \( f_{res} \) porque no está "amortiguada" por el paralelo con \( L_1 \): con los mismos valores cae de 2034 Hz (SCR 5) a 1233 Hz (SCR 2), un -39 %, frente al -12 % de \( f_{res} \). En red débil el margen de fase que aporta ese cero al usar \( i_1 \) como realimentación se estrecha más de lo que sugiere mirar solo \( f_{res} \).
 
-<div class="cfig"><img src="figuras/filtro-lcl-damping-polos.png" alt="lugar de los polos resonantes del LCL al barrer Kad, con lineas de zeta constante"><div class="cap">Lugar de los polos resonantes al barrer \(K_{ad}\) de 0 a 12 Ω: parten sobre el eje imaginario (\(\zeta\approx0\), rojo) y se mueven a la izquierda al subir \(K_{ad}\) (color), cruzando las líneas de \(\zeta\) constante. El diseño consiste en elegir el \(K_{ad}\) que lleva el par al \(\zeta\) objetivo (0.3–0.7) sin pasarse.</div></div>
+**Efecto sobre el amortiguamiento \( \zeta \) y el factor \( Q \).** Tanto \( \zeta_{res} \) (apartado 2) como \( Q \) (apartado 3) dependen de \( L_{eq}=L_1 L_{2ef}/(L_1+L_{2ef}) \), no de \( L_{2ef} \) directamente. Al crecer \( L_{2ef} \), \( L_{eq} \) crece mucho menos (tiende a saturar en \( L_1 \)): en el ejemplo, \( L_{eq} \) sube solo un 29 % (25.7→33.2 µH) mientras \( L_{2ef} \) casi se triplica. Como \( Q\propto\sqrt{L_{eq}} \), un \( R_d \) (o \( K_{ad} \)) dimensionado para SCR 5 da, sin tocarlo, un \( Q \) un 14 % mayor en SCR 2 (\( \sqrt{33.2/25.7}\approx1.14 \)): el pico de resonancia crece ligeramente al debilitarse la red, además de bajar de frecuencia. Por eso el amortiguamiento hay que verificarlo en el peor caso, no solo recalcular \( f_{res} \).
 
-**Procedimiento de diseño.** Identificar \( f_{res} \); medir o estimar \( i_{C_f} \) como \( i_1-i_2 \); barrer \( K_{ad} \) (del orden de unos pocos ohmios) observando el lugar de polos hasta el \( \zeta \) objetivo de la resonancia (0.3–0.7); verificar que no degrada el margen de los lazos de corriente y tensión. Variantes: realimentar \( i_2 \) o la derivada de \( v_C \) en lugar de \( i_{C_f} \).
+**Efecto sobre la atenuación a \( f_{sw} \).** La atenuación de la rama completa (apartado 7) mejora con \( L_{2ef} \) mayor, porque hay más inductancia total de lado red. Esa mejora no es controlable por diseño — depende de cuánta red haya — así que nunca debe contarse como margen: solo es un bonus en el caso de red fuerte, y no puede asumirse en el peor caso (red débil), que es precisamente el que hay que verificar.
 
-**Límites y errores.** Ganancia \( K_{ad} \) excesiva amplifica el ruido de medida y puede provocar inestabilidad de alta frecuencia; estimar \( i_{C_f} \) con retardo de muestreo significativo (\( 1.5\,T_s \)) le quita eficacia e incluso puede volver el damping negativo a frecuencias altas — por eso el retardo de cómputo acota el \( K_{ad} \) útil y, con él, el \( \zeta \) máximo alcanzable. En digital conviene compensar ese retardo (ver [[compensacion-retardo]]).
+**Regla de verificación.** Recalcular siempre \( f_{res} \), \( f_{ar} \), \( \zeta \) y \( Q \) — no solo \( f_{res} \) — con el peor caso de \( L_g \) (SCR mínimo esperado, y \( L_t \) del trafo real si lo hay), y comprobar que el amortiguamiento sigue siendo suficiente en todo el rango.
 
 ## Cuándo y por qué se usa
 Estándar a la salida de cualquier convertidor conectado a red (PV, eólica, baterías, STATCOM) por la normativa de inyección de armónicos, y también alimentando cargas sensibles en isla. Se prefiere al filtro L cuando se busca menos inductancia total / menor caída para la misma atenuación. La resonancia aparece en cuanto un lazo rápido o la impedancia de red excita la zona de \( f_{res} \); es crítica en red débil, donde \( L_g \) baja \( f_{res} \) y la mete en la banda de control.

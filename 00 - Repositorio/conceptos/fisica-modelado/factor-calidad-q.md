@@ -134,7 +134,7 @@ usando \( Q=1/(2\zeta) \) del Desarrollo 1. De nuevo, ningún paso depende del t
 <div class="cfig"><img src="figuras/factor-calidad-q-peak.png" alt="curvas de magnitud normalizadas para varios Q mostrando que el pico vale Q y el ancho de banda a media potencia es wn/Q"><div class="cap">Para cualquier resonador de 2º orden, el pico en \(\omega_n\) vale \(Q\) y el ancho de banda a media potencia (líneas punteadas, en \(Q/\sqrt2\)) es \(\omega_n/Q\): a más \(Q\), pico más alto y más estrecho — la misma relación, sea el resonador un RLC, un LCL o un sistema mecánico.</div></div>
 
 ## Desarrollo 3 — cómo se elige un \( Q \) objetivo de diseño (de dónde sale "\( Q\approx3 \)")
-Cuando hay que amortiguar una resonancia añadiendo una resistencia, surge la pregunta inversa: no "cuánto vale \( Q \)" sino "a qué \( Q \) hay que llevarlo". Es habitual ver en el diseño de un filtro LCL la recomendación \( R_d\approx\dfrac{1}{3\,\omega_{res}C_f} \), que dimensiona \( R_d \) a un tercio de la reactancia del condensador en resonancia y deja \( Q\approx3 \) (ver Desarrollo 4 de [[filtro-lcl]]). El número "3" no sale de una única ecuación que se resuelva y ya está: sale de equilibrar dos efectos que tiran en direcciones opuestas.
+Cuando hay que amortiguar una resonancia añadiendo una resistencia, surge la pregunta inversa: no "cuánto vale \( Q \)" sino "a qué \( Q \) hay que llevarlo". Es habitual ver en el diseño de un filtro LCL la recomendación \( R_d\approx\dfrac{1}{3\,\omega_{res}C_f} \), que dimensiona \( R_d \) a un tercio de la reactancia del condensador en resonancia y deja \( Q\approx3 \) (ver apartado 3 de [[filtro-lcl]]). El número "3" no sale de una única ecuación que se resuelva y ya está: sale de equilibrar dos efectos que tiran en direcciones opuestas.
 
 **El efecto que empuja a bajar \( Q \) (más \( R_d \)): acotar el pico.** El pico de resonancia, en dB, es \( 20\log_{10}Q \) (Desarrollo 2). Un criterio práctico extendido en control es que un pico de ganancia no comprometa el margen de ganancia del lazo que lo atraviesa; un margen de unos \( 6\text{–}10\,\)dB es la referencia habitual (ver [[margenes-estabilidad]]). Pedir que el pico no supere \( 10\,\)dB equivale a:
 
@@ -207,7 +207,7 @@ bw_num = (r[mask].max() - r[mask].min())*f0   # ~ f0/Q
 - Confundir el ancho de banda a media potencia \( f_0/Q \) con el ancho de banda de un lazo de control (son conceptos relacionados pero no iguales).
 
 ## Uso en proyectos
-- 01 / 02 (filtro LCL): \( Q \) se usa para dimensionar la \( R_d \) de amortiguamiento pasivo (Desarrollo 4 de [[filtro-lcl]]) y para leer de un vistazo cuánto pico de resonancia queda tras amortiguar.
+- 01 / 02 (filtro LCL): \( Q \) se usa para dimensionar la \( R_d \) de amortiguamiento pasivo (apartado 3 de [[filtro-lcl]]) y para leer de un vistazo cuánto pico de resonancia queda tras amortiguar.
 
 ## Conceptos relacionados
 - [[resonancia-rlc]] · [[filtro-lcl]] · [[frecuencias-segundo-orden]] · [[respuesta-segundo-orden]] · [[diagrama-bode]] · [[series-taylor]] · [[margenes-estabilidad]]
