@@ -3266,6 +3266,24 @@ def _freq2o_resp():
     fig.tight_layout()
     _savefig(fig, "frecuencias-segundo-orden-resp.png")
 
+@figura("factor-calidad-q")
+def _calidadq_peak():
+    fig, ax = plt.subplots(figsize=(6.2, 4.4))
+    r = np.logspace(-0.6, 0.6, 2000)
+    for Q, col in [(2, BAD), (5, ACC2), (10, ACC), (20, OK)]:
+        zeta = 1/(2*Q)
+        H = 1/np.sqrt((1 - r**2)**2 + (2*zeta*r)**2)
+        ax.semilogx(r, H, color=col, lw=2.0, label=f"Q={Q}")
+        ax.plot(1, Q, "o", color=col, ms=5)
+        half = Q/np.sqrt(2)
+        ax.axhline(half, color=col, ls=":", lw=0.8, alpha=0.5)
+    ax.axvline(1, color="#bbb", ls="--", lw=1)
+    ax.set_xlabel(r"$\omega/\omega_n$"); ax.set_ylabel(r"$|H(j\omega)|$")
+    ax.set_title("Pico ≈ Q en $\\omega_n$; ancho de banda a media potencia $\\approx\\omega_n/Q$", fontsize=10)
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    _savefig(fig, "factor-calidad-q-peak.png")
+
 
 # ===================================================================== #
 def main():

@@ -9,7 +9,7 @@ objetivos: [atenuar armonicos de conmutacion, modelar la planta de potencia, ges
 tags: [filtro, resonancia, antiresonancia, amortiguamiento-activo, factor-Q, rizado, dimensionado, funcion-transferencia, LCL, dq]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-06-17
-relacionados: [convertidor-vsc, marco-dq, impedancia-salida-estabilidad, control-cascada, diagrama-bode, antiresonancia, resonancia-rlc, amortiguamiento-pasivo-vs-activo, frecuencias-segundo-orden]
+relacionados: [convertidor-vsc, marco-dq, impedancia-salida-estabilidad, control-cascada, diagrama-bode, antiresonancia, resonancia-rlc, amortiguamiento-pasivo-vs-activo, frecuencias-segundo-orden, factor-calidad-q]
 referencias:
   - "Reznik et al., LCL Filter Design and Performance Analysis for Grid-Interconnected Systems, IEEE TIA 2014"
   - "Dannehl et al., Investigation of Active Damping Approaches for LCL Filters, IEEE TIA 2010"
@@ -461,7 +461,7 @@ La resonancia baja unos 400 Hz al pasar de SCR 5 a SCR 2. El amortiguamiento deb
 ## Desarrollo 4 — factor de calidad Q (derivación y efecto en la respuesta)
 El factor de calidad \( Q \) mide cuántas veces amplifica el filtro una excitación justo en \( f_{res} \) (la altura del pico de resonancia).
 
-**De dónde sale.** Para un par de polos de segundo orden con amortiguamiento \( \zeta \), la ganancia en el pico respecto a la banda de paso es \( Q=1/(2\zeta) \). Combinándolo con el amortiguamiento que introduce una \( R_d \) en serie con \( C_f \) (Desarrollo 2):
+**De dónde sale.** Para un par de polos de segundo orden con amortiguamiento \( \zeta \), la ganancia en el pico respecto a la banda de paso es \( Q=1/(2\zeta) \) (derivación general, energética y de ancho de banda, en [[factor-calidad-q]]). Combinándolo con el amortiguamiento que introduce una \( R_d \) en serie con \( C_f \) (Desarrollo 2):
 
 $$ Q=\frac{1}{2\zeta}=\frac{1}{R_d\sqrt{C_f(L_1+L_2)/(L_1 L_2)}}=\frac{1}{R_d}\sqrt{\frac{L_{eq}}{C_f}} $$
 
@@ -613,7 +613,7 @@ print(f"L1={L1*1e3:.2f} mH  Cf={Cf*1e6:.1f} uF  L2={L2*1e3:.2f} mH  f_res={f_res
 - 02 - GFL-Impedance (estabilidad en red débil): el mismo LCL obliga a mantener el lazo de corriente / PLL por debajo de \( f_{res} \), que además baja al debilitarse la red.
 
 ## Conceptos relacionados
-- [[convertidor-vsc|modulación PWM]] · [[marco-dq]] · [[antiresonancia]] · [[resonancia-rlc]] · [[amortiguamiento-pasivo-vs-activo]] · [[impedancia-salida-estabilidad]] · [[control-cascada]] · [[diagrama-bode]]
+- [[convertidor-vsc|modulación PWM]] · [[marco-dq]] · [[antiresonancia]] · [[resonancia-rlc]] · [[factor-calidad-q]] · [[amortiguamiento-pasivo-vs-activo]] · [[impedancia-salida-estabilidad]] · [[control-cascada]] · [[diagrama-bode]]
 
 ## Referencias
 - Reznik et al., *LCL Filter Design...*, IEEE TIA 2014.
