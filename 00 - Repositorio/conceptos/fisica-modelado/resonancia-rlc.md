@@ -43,9 +43,19 @@ $$ Q=\frac{\omega_0 L}{R}=\frac{1}{R}\sqrt{\frac{L}{C}} $$
 
 El término \( \sqrt{L/C} \) es la impedancia característica del tanque: \( Q \) es esa impedancia dividida por \( R \). \( Q \) alto (R pequeña) significa poca disipación → pico agudo; \( Q \) bajo (R grande) → pico suave.
 
-**Amortiguamiento \( \zeta \).** Para el par de polos de segundo orden, la relación con \( Q \) es:
+**Amortiguamiento \( \zeta \) y de dónde sale \( Q=1/(2\zeta) \).** \( \zeta \) y \( Q \) miden lo mismo (el amortiguamiento del par de polos) con dos definiciones distintas; al juntarlas, su producto resulta ser exactamente \( 1/2 \). Para verlo se parte del denominador de la respuesta del RLC serie. Dividiendo \( Z(s)=R+sL+1/(sC) \) por \( L \), la ecuación característica es:
 
-$$ \zeta=\frac{1}{2Q} $$
+$$ s^2 + \frac{R}{L}\,s + \frac{1}{LC} = 0 $$
+
+Comparándola término a término con la forma canónica de segundo orden \( s^2+2\zeta\omega_0 s+\omega_0^2=0 \):
+
+$$ \omega_0^2=\frac{1}{LC}\ \checkmark, \qquad 2\zeta\omega_0=\frac{R}{L} \;\Rightarrow\; \zeta=\frac{R}{2L\,\omega_0}=\frac{R}{2L}\sqrt{LC}=\frac{R}{2}\sqrt{\frac{C}{L}} $$
+
+Y como \( Q=(1/R)\sqrt{L/C} \), el producto de ambos da \( 1/2 \):
+
+$$ \zeta\,Q=\frac{R}{2}\sqrt{\frac{C}{L}}\cdot\frac{1}{R}\sqrt{\frac{L}{C}}=\frac{1}{2} \;\Rightarrow\; \boxed{\;\zeta=\frac{1}{2Q}\;} $$
+
+**Lectura energética equivalente.** \( Q=2\pi\,\dfrac{\text{energía almacenada}}{\text{energía disipada por ciclo}} \). La amplitud de la oscilación decae como \( e^{-\zeta\omega_0 t} \), luego la energía (\( \propto \) amplitud\( ^2 \)) como \( e^{-2\zeta\omega_0 t} \); en un ciclo (\( T\approx2\pi/\omega_0 \)) se pierde una fracción \( \approx 2\zeta\omega_0 T=4\pi\zeta \), de donde \( Q=2\pi/(4\pi\zeta)=1/(2\zeta) \), el mismo resultado.
 
 Sin resistencia (\( R\to0 \)) se tiene \( Q\to\infty \) y \( \zeta\to0 \): el pico es teóricamente infinito y la oscilación, no amortiguada. Con \( R \) real el pico es finito.
 
