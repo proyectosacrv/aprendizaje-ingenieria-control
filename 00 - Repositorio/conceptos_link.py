@@ -49,6 +49,7 @@ CONCEPTS = {
     "antiresonancia":        ["antiresonancia", "antirresonancia"],
     "frecuencias-segundo-orden": ["frecuencia amortiguada", "frecuencia de pico", "frecuencia natural"],
     "factor-calidad-q":          ["factor de calidad", "factor Q"],
+    "series-taylor":             ["serie de Taylor", "series de Taylor", "polinomio de Taylor"],
     "amortiguamiento-pasivo-vs-activo": ["amortiguamiento pasivo", "amortiguamiento activo"],
     "impedancia-virtual":    ["impedancia virtual"],
     "current-limiting":      ["limitación de corriente", "current limiting"],

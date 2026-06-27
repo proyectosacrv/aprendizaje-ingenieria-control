@@ -3310,6 +3310,26 @@ def _calidadq_taylor():
     fig.tight_layout()
     _savefig(fig, "factor-calidad-q-taylor.png")
 
+@figura("series-taylor")
+def _taylor_aprox():
+    x = np.linspace(-2.2, 2.2, 600)
+    exact = np.exp(-x)
+    p1 = 1 - x
+    p2 = 1 - x + x**2/2
+    p3 = 1 - x + x**2/2 - x**3/6
+    fig, ax = plt.subplots(figsize=(6.4, 4.6))
+    ax.plot(x, exact, color="#222", lw=2.4, label=r"$e^{-x}$ (exacta)")
+    ax.plot(x, p1, color=BAD, lw=1.8, ls="--", label="orden 1: $1-x$")
+    ax.plot(x, p2, color=ACC2, lw=1.8, ls="--", label="orden 2: $1-x+x^2/2$")
+    ax.plot(x, p3, color=ACC, lw=1.8, ls="--", label="orden 3: $1-x+x^2/2-x^3/6$")
+    ax.axvline(0, color="#bbb", lw=0.8)
+    ax.set_ylim(-1, 6)
+    ax.set_xlabel("x"); ax.set_ylabel("valor")
+    ax.set_title("Polinomios de Taylor de $e^{-x}$ en $a=0$:\nmejor cerca de x=0, todos divergen lejos", fontsize=10)
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    _savefig(fig, "series-taylor-aprox.png")
+
 
 # ===================================================================== #
 def main():

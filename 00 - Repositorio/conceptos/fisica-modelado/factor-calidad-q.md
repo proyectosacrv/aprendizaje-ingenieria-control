@@ -9,7 +9,7 @@ objetivos: [entender Q como concepto universal de cualquier resonador de 2º ord
 tags: [factor-calidad, amortiguamiento, resonancia, ancho-de-banda, segundo-orden, basico]
 fecha_creacion: 2026-06-27
 fecha_actualizacion: 2026-06-27
-relacionados: [resonancia-rlc, filtro-lcl, frecuencias-segundo-orden, respuesta-segundo-orden, diagrama-bode]
+relacionados: [resonancia-rlc, filtro-lcl, frecuencias-segundo-orden, respuesta-segundo-orden, diagrama-bode, series-taylor]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
   - "Franklin, Powell, Emami-Naeini, Feedback Control of Dynamic Systems"
@@ -46,7 +46,7 @@ el doble del exponente de la amplitud, porque al elevar al cuadrado el exponente
 
 $$ \Delta E = E(t)-E(t+T_d) = E(t)\left[1-e^{-2\zeta\omega_n T_d}\right] $$
 
-**Paso 4 — aproximar para \( \zeta \) pequeño (son dos aproximaciones, no una).** Este paso suele leerse rápido, pero esconde dos aproximaciones distintas y conviene separarlas para saber qué error comete cada una.
+**Paso 4 — aproximar para \( \zeta \) pequeño (son dos aproximaciones, no una).** Este paso suele leerse rápido, pero esconde dos aproximaciones distintas y conviene separarlas para saber qué error comete cada una. Ambas son series de Taylor; el procedimiento general para construirlas (y de dónde sale el error al truncarlas) está en [[series-taylor]].
 
 *Qué son \( \omega_n \) y \( \omega_d \), otra vez.* \( \omega_n \) es la frecuencia natural: la que tendría el oscilador si no perdiera nada de energía (\( \zeta=0 \)), el módulo del polo en el plano \( s \). \( \omega_d=\omega_n\sqrt{1-\zeta^2} \) es la frecuencia amortiguada: la frecuencia a la que realmente oscila el sistema, siempre algo menor que \( \omega_n \) porque cada vuelta se "frena" un poco al perder energía (la derivación completa de ambas está en [[frecuencias-segundo-orden]]). Solo son idénticas si \( \zeta=0 \); para cualquier \( \zeta>0 \), \( \omega_d<\omega_n \).
 
@@ -171,7 +171,7 @@ bw_num = (r[mask].max() - r[mask].min())*f0   # ~ f0/Q
 - 01 / 02 (filtro LCL): \( Q \) se usa para dimensionar la \( R_d \) de amortiguamiento pasivo (Desarrollo 4 de [[filtro-lcl]]) y para leer de un vistazo cuánto pico de resonancia queda tras amortiguar.
 
 ## Conceptos relacionados
-- [[resonancia-rlc]] · [[filtro-lcl]] · [[frecuencias-segundo-orden]] · [[respuesta-segundo-orden]] · [[diagrama-bode]]
+- [[resonancia-rlc]] · [[filtro-lcl]] · [[frecuencias-segundo-orden]] · [[respuesta-segundo-orden]] · [[diagrama-bode]] · [[series-taylor]]
 
 ## Referencias
 - Ogata, *Ingeniería de Control Moderna*, Pearson.
