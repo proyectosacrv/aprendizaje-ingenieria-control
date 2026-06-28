@@ -191,34 +191,52 @@ def _lcl_factorQ():
 
 @figura("filtro-lcl")
 def _lcl_rizado():
-    """Diseño del rizado: forma d(1-d) en el ciclo y rizado p-p vs L1."""
-    Vdc, fsw = 700.0, 10e3
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.6, 3.5))
-
-    # (a) rizado a lo largo del ciclo de red, para dos valores de L1
-    wt = np.linspace(0, np.pi, 400)            # medio ciclo
+    """Diseño del rizado: banda real sobre i1 en el ciclo, y curva de diseño L1 vs rizado objetivo."""
+    Vdc, fsw, In = 700.0, 10e3, 20.0
     m = 0.9
-    d = (1 + m*np.sin(wt))/2
-    for L1, col, lab in [(1.0e-3, ACC2, "$L_1=1$ mH"), (2.0e-3, ACC, "$L_1=2$ mH")]:
-        dipp = (Vdc/(fsw*L1))*d*(1 - d)        # pico-pico instantaneo
-        ax1.plot(np.degrees(wt), dipp, color=col, label=lab)
-    ax1.set_xlabel("fase del ciclo de red [°]"); ax1.set_ylabel("rizado p-p $\\Delta i_{1,pp}$ [A]")
-    ax1.set_title("Rizado $\\propto d(1-d)$: máximo en el paso por cero", fontsize=10)
-    ax1.legend(fontsize=9, loc="upper right")
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.8, 3.7))
 
-    # (b) rizado p-p maximo vs L1 (caso peor d=0.5 -> Vdc/(4 fsw L1))
-    L1v = np.linspace(0.3e-3, 4e-3, 300)
-    dipp_max = Vdc/(4*fsw*L1v)
-    In = 20.0                                   # corriente nominal de pico de ejemplo
-    ax2.plot(L1v*1e3, dipp_max, color=ACC, lw=2.2)
-    for frac, col in [(0.20, ACC2), (0.10, OK)]:
-        ax2.axhline(frac*In, color=col, ls="--", lw=1.3)
-        L1_req = Vdc/(4*fsw*frac*In)
-        ax2.text(3.4, frac*In+0.4, f"{int(frac*100)}% de $I_n$ → $L_1$≈{L1_req*1e3:.2f} mH",
-                 color=col, fontsize=8.5, ha="right")
-    ax2.set_xlabel("$L_1$ [mH]"); ax2.set_ylabel("rizado p-p máximo [A]")
-    ax2.set_title("Más $L_1$ → menos rizado (caso peor $d$=0.5)", fontsize=10)
-    ax2.set_ylim(0, 12)
+    # (a) banda de rizado real sobre la fundamental i1(t), un ciclo completo
+    theta = np.linspace(0, 2*np.pi, 600)
+    d = (1 + m*np.sin(theta))/2
+    L1_demo = 2.0e-3
+    dipp = (Vdc/(fsw*L1_demo))*d*(1 - d)           # pico-pico instantaneo (depende de la fase)
+    i_fund = In*np.sin(theta)
+    deg = np.degrees(theta)
+    ax1.fill_between(deg, i_fund - dipp/2, i_fund + dipp/2, color=ACC, alpha=0.30,
+                      label="rizado real sobre $i_1$")
+    ax1.plot(deg, i_fund, color=ACC, lw=1.6, label="fundamental (50 Hz)")
+    for xv in (0, 180, 360):
+        ax1.axvline(xv, color=BAD, ls=":", lw=0.9)
+    for xv in (90, 270):
+        ax1.axvline(xv, color=OK, ls=":", lw=0.9)
+    dipp_max = dipp.max()
+    ax1.annotate("rizado máximo\n($v_o=0$, $d=0.5$)", xy=(360, dipp_max/2), xytext=(220, 9),
+                 fontsize=8.5, color=BAD, arrowprops=dict(arrowstyle="->", color=BAD))
+    ax1.annotate("rizado mínimo\n(pico de $v_o$, $d\\to1$)", xy=(90, In),
+                 xytext=(140, 13), fontsize=8.5, color=OK,
+                 arrowprops=dict(arrowstyle="->", color=OK))
+    ax1.set_xlabel("fase del ciclo de red [°]"); ax1.set_ylabel("$i_1$ [A]")
+    ax1.set_title(f"Banda de rizado sobre $i_1$ ($L_1$={L1_demo*1e3:.0f} mH)", fontsize=10)
+    ax1.set_xlim(0, 360); ax1.set_ylim(-26, 26); ax1.set_xticks([0, 90, 180, 270, 360])
+    ax1.legend(fontsize=8, loc="lower left")
+
+    # (b) curva de diseno directa: L1 minimo en funcion del rizado objetivo (amplitud, factor 8)
+    frac = np.linspace(0.05, 0.30, 300)
+    L1_min = Vdc/(8*fsw*frac*In)
+    ax2.plot(frac*100, L1_min*1e3, color=ACC, lw=2.2)
+    for f0, col in [(0.20, ACC2), (0.10, OK)]:
+        L1_0 = Vdc/(8*fsw*f0*In)
+        ax2.plot([f0*100], [L1_0*1e3], "o", color=col, zorder=5)
+        ax2.vlines(f0*100, 0, L1_0*1e3, color=col, ls=":", lw=1)
+        ax2.hlines(L1_0*1e3, 0, f0*100, color=col, ls=":", lw=1)
+        ax2.annotate(f"{int(f0*100)}% de $I_n$ → $L_1\\approx${L1_0*1e3:.2f} mH",
+                     xy=(f0*100, L1_0*1e3), xytext=(f0*100+1.5, L1_0*1e3+1.3),
+                     fontsize=8.5, color=col)
+    ax2.set_xlabel("rizado objetivo $\\Delta i_{1,amp}$ [% de $I_n$]")
+    ax2.set_ylabel("$L_1$ mínimo [mH]")
+    ax2.set_title("Curva de diseño: cuánta $L_1$ hace falta", fontsize=10)
+    ax2.set_xlim(5, 30); ax2.set_ylim(0, 16)
     fig.tight_layout()
     _savefig(fig, "filtro-lcl-rizado.png")
 
