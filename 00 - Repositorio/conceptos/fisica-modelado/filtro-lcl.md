@@ -505,11 +505,25 @@ $$ A(K_{ad})=\begin{bmatrix} -K_{ad}/L_1 & +K_{ad}/L_1 & -1/L_1 \\ 0 & 0 & 1/L_2
 
 <div class="cfig"><img src="figuras/filtro-lcl-damping-bloques.png" alt="Diagrama de bloques del amortiguamiento activo: vi,PI menos Kad por (i1-i2) da vi, que entra al filtro LCL; i1 e i2 se realimentan y se restan para dar iCf, que multiplicado por Kad vuelve a la suma"><div class="cap">Lazo de amortiguamiento activo: \(i_1\) e \(i_2\) se miden, se resta uno del otro para obtener \(i_{C_f}\), se multiplica por \(K_{ad}\) y se resta a la salida del PI antes de generar \(v_i\). Es exactamente la sustitución del Paso 1: por eso \(K_{ad}\) acopla \(i_1\) e \(i_2\) dentro de \(A\).</div></div>
 
-**Estudio de polos: cómo influye \( K_{ad} \) en el diseño.** Los autovalores de \( A(K_{ad}) \) son el par resonante. En \( K_{ad}=0 \) están sobre el eje imaginario en \( \pm j\omega_{res} \) (\( \zeta=0 \)). Al subir \( K_{ad} \), el par se desplaza hacia la izquierda (parte real negativa creciente): el amortiguamiento sube de forma casi proporcional a \( K_{ad} \) mientras la frecuencia del par apenas cambia. Esto convierte el diseño en directo: se barre \( K_{ad} \) hasta cruzar la línea de \( \zeta \) objetivo.
+**Estudio de polos: cómo influye \( K_{ad} \) en el diseño (forma cerrada).** Los autovalores de \( A(K_{ad}) \) son el par resonante (más un tercer polo en \( s=0 \) que no depende de \( K_{ad} \) y no es resonante). Su polinomio característico se factoriza exactamente:
 
-<div class="cfig"><img src="figuras/filtro-lcl-damping-polos.png" alt="lugar de los polos resonantes del LCL al barrer Kad, con lineas de zeta constante"><div class="cap">Lugar de los polos resonantes al barrer \(K_{ad}\) de 0 a 12 Ω: parten sobre el eje imaginario (\(\zeta\approx0\), rojo) y se mueven a la izquierda al subir \(K_{ad}\) (color), cruzando las líneas de \(\zeta\) constante. El diseño consiste en elegir el \(K_{ad}\) que lleva el par al \(\zeta\) objetivo (0.3–0.7) sin pasarse.</div></div>
+$$ \det\!\big(sI-A(K_{ad})\big)=s\left(s^2+\frac{K_{ad}}{L_1}\,s+\omega_{res}^2\right) $$
 
-**Procedimiento de diseño.** Identificar \( f_{res} \); medir o estimar \( i_{C_f} \) como \( i_1-i_2 \); barrer \( K_{ad} \) (del orden de unos pocos ohmios) observando el lugar de polos hasta el \( \zeta \) objetivo de la resonancia (0.3–0.7); verificar que no degrada el margen de los lazos de corriente y tensión. Variantes: realimentar \( i_2 \) o la derivada de \( v_C \) en lugar de \( i_{C_f} \).
+es el mismo \( s\,(s^2+\omega_{res}^2) \) que ya aparecía en el denominador de las funciones de transferencia del apartado 1, ahora con el término en \( s \) que aporta \( K_{ad} \). Comparando el factor entre paréntesis con la forma canónica \( s^2+2\zeta\omega_n s+\omega_n^2 \):
+
+$$ \omega_n^2=\omega_{res}^2\ \Rightarrow\ \omega_n=\omega_{res}, \qquad 2\zeta\omega_n=\frac{K_{ad}}{L_1}\ \Rightarrow\ \boxed{\;\zeta=\frac{K_{ad}}{2\,L_1\,\omega_{res}}\;} $$
+
+Es una fórmula **exacta**, no una aproximación: a diferencia de \( \zeta_{res}(R_1,R_2) \) (apartado 2, que sale de una perturbación a primer orden), aquí \( \omega_n \) no se mueve nada con \( K_{ad} \) — solo cambia \( \zeta \). Verificación numérica (\( L_1=2\,\text{mH},\,L_2=1\,\text{mH},\,C_f=20\,\mu\text{F} \), \( \omega_{res}=8660 \) rad/s): para \( K_{ad}=2,6,10,12\,\Omega \) la fórmula da \( \zeta=0.058,\,0.173,\,0.289,\,0.346 \), idéntico a los autovalores calculados numéricamente.
+
+**Cómo ajustar \( K_{ad} \).** Al ser exacta, no hace falta barrer \( K_{ad} \) ni mirar el lugar de polos para diseñar: se despeja directamente para el \( \zeta \) objetivo (0.3–0.7, igual que en el amortiguamiento pasivo):
+
+$$ K_{ad}=2\,\zeta_{objetivo}\,L_1\,\omega_{res} $$
+
+Por ejemplo, con los valores de arriba y \( \zeta_{objetivo}=0.5 \): \( K_{ad}=2\times0.5\times(2\times10^{-3})\times8660\approx8.7\,\Omega \). El lugar de polos de la figura de abajo es la confirmación gráfica de esta fórmula (y la herramienta a usar si \( R_1,R_2 \) no son despreciables, donde la factorización exacta ya no se cumple), no el método de diseño en sí.
+
+<div class="cfig"><img src="figuras/filtro-lcl-damping-polos.png" alt="lugar de los polos resonantes del LCL al barrer Kad, con lineas de zeta constante"><div class="cap">Lugar de los polos resonantes al barrer \(K_{ad}\) de 0 a 12 Ω: parten sobre el eje imaginario (\(\zeta\approx0\), rojo) y se mueven a la izquierda al subir \(K_{ad}\) (color), cruzando las líneas de \(\zeta\) constante. Coincide con \(\zeta=K_{ad}/(2L_1\omega_{res})\): la frecuencia (eje vertical) no se mueve, solo crece la parte real negativa.</div></div>
+
+**Procedimiento de diseño.** Identificar \( f_{res} \) y elegir \( \zeta_{objetivo} \) (0.3–0.7); calcular \( K_{ad}=2\zeta_{objetivo}L_1\omega_{res} \); medir o estimar \( i_{C_f} \) como \( i_1-i_2 \); verificar en el lugar de polos que el resultado es razonable y que no degrada el margen de los lazos de corriente y tensión. Variantes: realimentar \( i_2 \) o la derivada de \( v_C \) en lugar de \( i_{C_f} \).
 
 **Límites y errores.** Ganancia \( K_{ad} \) excesiva amplifica el ruido de medida y puede provocar inestabilidad de alta frecuencia; estimar \( i_{C_f} \) con retardo de muestreo significativo (\( 1.5\,T_s \)) le quita eficacia e incluso puede volver el damping negativo a frecuencias altas — por eso el retardo de cómputo acota el \( K_{ad} \) útil y, con él, el \( \zeta \) máximo alcanzable. En digital conviene compensar ese retardo (ver [[compensacion-retardo]]).
 

@@ -310,22 +310,25 @@ def _lcl_damping_bloques():
     # el cable de vi, sale del propio bloque, igual que iL1 en control-cascada-lazos.
     top_right = (plant.E[0], plant.E[1] + 0.42)
     bot_right = (plant.E[0], plant.E[1] - 0.42)
-    d += dsp.Arrow().right(1.7).at(bot_right).label("$i_2$ (red)", "bottom")
-    tap2 = d.add(dsp.Dot().at((bot_right[0] + 0.85, bot_right[1])))
+    d += dsp.Arrow().right(2.8).at(bot_right).label("$i_2$ (red)", "bottom")
+    tap2 = d.add(dsp.Dot().at((bot_right[0] + 2.0, bot_right[1])))
     d += dsp.Line().right(0.5).at(top_right)
     tap1 = d.add(dsp.Dot().at((top_right[0] + 0.5, top_right[1])))
     d += elm.Label().label("$i_1$ (fuente)").at((tap1.center[0], tap1.center[1] + 0.32))
 
-    y_fb = plant.S[1] - 1.7
-    d += dsp.Line().at(tap1.center).to((tap1.center[0], y_fb))
-    d += dsp.Line().at(tap2.center).to((tap2.center[0], y_fb))
-    xm = (tap1.center[0] + tap2.center[0]) / 2
-    d += dsp.Line().at((tap1.center[0], y_fb)).to((xm, y_fb))
-    d += dsp.Line().at((tap2.center[0], y_fb)).to((xm, y_fb))
-    d.add(dsp.Dot().at((xm, y_fb)))
-    d += elm.Label().label("$i_{C_f}=i_1-i_2$").at((xm, y_fb + 0.32))
+    # restador explicito i1(+)-i2(-) -> i_Cf, luego ganancia Kad, realimentado a s1
+    y_sub = plant.S[1] - 1.7
+    xc = (tap1.center[0] + tap2.center[0]) / 2
+    s2 = d.add(dsp.Sum().anchor("N").at((xc, y_sub)))
+    d += dsp.Line().at(tap1.center).to((tap1.center[0], s2.W[1]))
+    d += dsp.Line().tox(s2.W[0]).at((tap1.center[0], s2.W[1]))
+    d += dsp.Line().at(tap2.center).to((tap2.center[0], s2.E[1]))
+    d += dsp.Line().tox(s2.E[0]).at((tap2.center[0], s2.E[1]))
+    d += elm.Label().label("$-$").at((s2.E[0] + 0.32, s2.E[1] + 0.05))
+    d += dsp.Arrow().down(1.3).at(s2.S)
+    d += elm.Label().label("$i_{C_f}=i_1-i_2$").at((s2.S[0] + 0.35, s2.S[1] - 0.85))
 
-    kad = d.add(dsp.Box(w=1.6, h=1.0).anchor("N").at((xm, y_fb)).label("$K_{ad}$"))
+    kad = d.add(dsp.Box(w=1.6, h=1.0).anchor("N").at((s2.S[0], s2.S[1] - 1.3)).label("$K_{ad}$"))
     d += dsp.Line().left().at(kad.W).tox(s1.S[0])
     d += dsp.Arrow().toy(s1.S[1]).label("$-$", "left")
 
