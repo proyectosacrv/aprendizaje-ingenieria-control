@@ -304,12 +304,17 @@ def _lcl_damping_bloques():
     d += dsp.Arrow().right(1.0).label("$v_{i,PI}$", "top")
     s1 = d.add(dsp.Sum().anchor("W"))
     d += dsp.Arrow().right(1.3).at(s1.E).label("$v_i$", "bottom")
-    plant = d.add(dsp.Box(w=2.8, h=1.2).anchor("W").label("Filtro LCL\n$L_1$–$C_f$–$L_2$"))
-    d += dsp.Arrow().right(1.8).at(plant.E).label("$i_2$ (red)", "bottom")
+    plant = d.add(dsp.Box(w=2.8, h=1.5).anchor("W").label("Filtro LCL\n$L_1$–$C_f$–$L_2$"))
 
-    tap1 = d.add(dsp.Dot().at(((s1.E[0] + plant.W[0]) / 2, s1.E[1])))
+    # el bloque tiene UNA entrada (vi) y DOS salidas (i1, i2): no se "toca" i1 sobre
+    # el cable de vi, sale del propio bloque, igual que iL1 en control-cascada-lazos.
+    top_right = (plant.E[0], plant.E[1] + 0.42)
+    bot_right = (plant.E[0], plant.E[1] - 0.42)
+    d += dsp.Arrow().right(1.7).at(bot_right).label("$i_2$ (red)", "bottom")
+    tap2 = d.add(dsp.Dot().at((bot_right[0] + 0.85, bot_right[1])))
+    d += dsp.Line().right(0.5).at(top_right)
+    tap1 = d.add(dsp.Dot().at((top_right[0] + 0.5, top_right[1])))
     d += elm.Label().label("$i_1$ (fuente)").at((tap1.center[0], tap1.center[1] + 0.32))
-    tap2 = d.add(dsp.Dot().at((plant.E[0] + 0.9, plant.E[1])))
 
     y_fb = plant.S[1] - 1.7
     d += dsp.Line().at(tap1.center).to((tap1.center[0], y_fb))
