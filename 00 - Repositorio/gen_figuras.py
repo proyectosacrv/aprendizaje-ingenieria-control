@@ -296,6 +296,38 @@ def _lcl_damping_polos():
     _savefig(fig, "filtro-lcl-damping-polos.png")
 
 
+@figura("filtro-lcl")
+def _lcl_damping_bloques():
+    """Amortiguamiento activo: diagrama de bloques del lazo (de donde sale A(Kad))."""
+    d = schemdraw.Drawing()
+    d.config(unit=0.95, fontsize=10.5)
+    d += dsp.Arrow().right(1.0).label("$v_{i,PI}$", "top")
+    s1 = d.add(dsp.Sum().anchor("W"))
+    d += dsp.Arrow().right(1.3).at(s1.E).label("$v_i$", "bottom")
+    plant = d.add(dsp.Box(w=2.8, h=1.2).anchor("W").label("Filtro LCL\n$L_1$–$C_f$–$L_2$"))
+    d += dsp.Arrow().right(1.8).at(plant.E).label("$i_2$ (red)", "bottom")
+
+    tap1 = d.add(dsp.Dot().at(((s1.E[0] + plant.W[0]) / 2, s1.E[1])))
+    d += elm.Label().label("$i_1$ (fuente)").at((tap1.center[0], tap1.center[1] + 0.32))
+    tap2 = d.add(dsp.Dot().at((plant.E[0] + 0.9, plant.E[1])))
+
+    y_fb = plant.S[1] - 1.7
+    d += dsp.Line().at(tap1.center).to((tap1.center[0], y_fb))
+    d += dsp.Line().at(tap2.center).to((tap2.center[0], y_fb))
+    xm = (tap1.center[0] + tap2.center[0]) / 2
+    d += dsp.Line().at((tap1.center[0], y_fb)).to((xm, y_fb))
+    d += dsp.Line().at((tap2.center[0], y_fb)).to((xm, y_fb))
+    d.add(dsp.Dot().at((xm, y_fb)))
+    d += elm.Label().label("$i_{C_f}=i_1-i_2$").at((xm, y_fb + 0.32))
+
+    kad = d.add(dsp.Box(w=1.6, h=1.0).anchor("N").at((xm, y_fb)).label("$K_{ad}$"))
+    d += dsp.Line().left().at(kad.W).tox(s1.S[0])
+    d += dsp.Arrow().toy(s1.S[1]).label("$-$", "left")
+
+    d.save(os.path.join(OUT, "filtro-lcl-damping-bloques.png"), dpi=150)
+    print("filtro-lcl-damping-bloques.png")
+
+
 # ===================================================================== #
 #  marco-dq
 # ===================================================================== #

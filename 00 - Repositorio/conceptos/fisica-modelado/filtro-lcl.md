@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [atenuar armonicos de conmutacion, modelar la planta de potencia, gestionar la resonancia y amortiguarla]
 tags: [filtro, resonancia, antiresonancia, amortiguamiento-activo, factor-Q, rizado, dimensionado, funcion-transferencia, LCL, dq]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-27
+fecha_actualizacion: 2026-06-28
 relacionados: [convertidor-vsc, marco-dq, impedancia-salida-estabilidad, control-cascada, diagrama-bode, antiresonancia, resonancia-rlc, amortiguamiento-pasivo-vs-activo, frecuencias-segundo-orden, factor-calidad-q]
 referencias:
   - "Reznik et al., LCL Filter Design and Performance Analysis for Grid-Interconnected Systems, IEEE TIA 2014"
@@ -475,11 +475,37 @@ $$ L_1\frac{di_1}{dt}=v_{i,PI}-v_C-R_1 i_1 - K_{ad}(i_1-i_2) $$
 
 El término \( -K_{ad} i_1 \) actúa exactamente como una resistencia en serie con \( L_1 \) (su caída es proporcional a \( i_1 \)), y el \( -K_{ad}(-i_2) \) recupera que la corriente que pasa por el condensador es \( i_1-i_2 \): el conjunto emula una \( R_d \) vista por la rama del condensador. La diferencia con una resistencia física es que \( K_{ad} \) no disipa potencia real: es una consigna de tensión, no una caída óhmica. Por eso da el mismo amortiguamiento que \( R_d \) pero sin las pérdidas \( P_{R_d} \) (comparativa completa en [[amortiguamiento-pasivo-vs-activo]]).
 
-**Estudio de polos: cómo influye \( K_{ad} \) en el diseño.** Anulando las fuentes y reescribiendo el modelo con la realimentación activa, la matriz de estado del filtro (estados \( i_1,i_2,v_C \); \( R_1=R_2=0 \) para aislar el efecto) es:
+**De dónde sale el modelo en espacio de estados (qué son las filas y columnas de \( A \)).** Un modelo en espacio de estados escribe la dinámica como \( \dot{\mathbf{x}}=A\mathbf{x}+B\mathbf{u} \), donde \( \mathbf{x} \) es el vector de estados — las variables que guardan la "memoria" del sistema, una por cada elemento que almacena energía — y \( \mathbf{u} \) las entradas externas. Aquí hay dos bobinas y un condensador, así que \( \mathbf{x}=[i_1,i_2,v_C]^T \): tres estados, matriz \( A \) de \( 3\times3 \). Cada **fila** de \( A \) es la ecuación de la derivada de un estado, en el mismo orden que \( \mathbf{x} \) (fila 1 → \( di_1/dt \), fila 2 → \( di_2/dt \), fila 3 → \( dv_C/dt \)); cada **columna** dice cuánto pesa cada estado, también en el orden \( i_1,i_2,v_C \), en esa derivada. Así, el elemento \( A_{ij} \) es el coeficiente con el que el estado \( j \)-ésimo entra en la ecuación de la derivada del estado \( i \)-ésimo; por ejemplo \( A_{12} \) (fila 1, columna 2) es cuánto pesa \( i_2 \) en \( di_1/dt \).
+
+**Construcción paso a paso de \( A(K_{ad}) \).** Se parte de las tres ecuaciones de la sección **Ecuaciones de partida** (al principio de la ficha) y se despeja cada derivada dividiendo por su elemento de almacenamiento:
+
+$$ \frac{di_1}{dt}=\frac{1}{L_1}\big(v_i-v_C-R_1 i_1\big), \qquad \frac{dv_C}{dt}=\frac{1}{C_f}(i_1-i_2), \qquad \frac{di_2}{dt}=\frac{1}{L_2}\big(v_C-v_{pcc}-R_2 i_2\big) $$
+
+**Paso 1 — sustituir la ley de control.** \( v_i=v_{i,PI}-K_{ad}(i_1-i_2) \) es la tensión que el propio convertidor aplica en su terminal, así que solo entra en la ecuación de \( di_1/dt \) (las otras dos no dependen de \( v_i \)):
+
+$$ \frac{di_1}{dt}=\frac{1}{L_1}\Big(v_{i,PI}-K_{ad}(i_1-i_2)-v_C-R_1 i_1\Big)=-\frac{R_1+K_{ad}}{L_1}\,i_1+\frac{K_{ad}}{L_1}\,i_2-\frac{1}{L_1}\,v_C+\frac{1}{L_1}\,v_{i,PI} $$
+
+Es aquí donde nace el acoplamiento entre \( i_1 \) e \( i_2 \) que no existía antes: al meter \( K_{ad}\,i_2 \) dentro de la propia ecuación de \( i_1 \), ese término deja de ser una entrada externa y pasa a ser parte de la matriz de estados.
+
+**Paso 2 — separar estados de entradas.** Los términos en \( i_1,i_2,v_C \) van a \( A \); los términos en \( v_{i,PI} \) y \( v_{pcc} \) no dependen de los estados, así que van a la matriz de entradas \( B \), no a \( A \):
+
+$$ A=\begin{bmatrix} -\dfrac{R_1+K_{ad}}{L_1} & \dfrac{K_{ad}}{L_1} & -\dfrac{1}{L_1} \\[5pt] 0 & -\dfrac{R_2}{L_2} & \dfrac{1}{L_2} \\[5pt] \dfrac{1}{C_f} & -\dfrac{1}{C_f} & 0 \end{bmatrix}, \qquad B=\begin{bmatrix} 1/L_1 & 0 \\ 0 & -1/L_2 \\ 0 & 0\end{bmatrix},\qquad \mathbf{u}=\begin{bmatrix}v_{i,PI}\\ v_{pcc}\end{bmatrix} $$
+
+**Paso 3 — aislar el efecto de \( K_{ad} \) (poner \( R_1=R_2=0 \)).** Las resistencias parásitas ya aportan su propio amortiguamiento, ya estudiado en el apartado 2; para ver solo lo que aporta \( K_{ad} \) se anulan \( R_1,R_2 \) y queda la matriz de la ficha:
 
 $$ A(K_{ad})=\begin{bmatrix} -K_{ad}/L_1 & +K_{ad}/L_1 & -1/L_1 \\ 0 & 0 & 1/L_2 \\ 1/C_f & -1/C_f & 0 \end{bmatrix} $$
 
-Los autovalores de \( A(K_{ad}) \) son el par resonante. En \( K_{ad}=0 \) están sobre el eje imaginario en \( \pm j\omega_{res} \) (\( \zeta=0 \)). Al subir \( K_{ad} \), el par se desplaza hacia la izquierda (parte real negativa creciente): el amortiguamiento sube de forma casi proporcional a \( K_{ad} \) mientras la frecuencia del par apenas cambia. Esto convierte el diseño en directo: se barre \( K_{ad} \) hasta cruzar la línea de \( \zeta \) objetivo.
+**Para qué se usa.** No es el modelo que se simula en el controlador real (ahí se usa la ley \( v_i=v_{i,PI}-K_{ad}(i_1-i_2) \) directamente). Sirve para **diseñar** \( K_{ad} \) sin tener que simular nada: anulando las entradas (\( v_{i,PI}=v_{pcc}=0 \), "anular las fuentes" — la misma técnica del apartado 2 para aislar la dinámica libre) los autovalores de \( A(K_{ad}) \) dan directamente el par de polos resonante para cada \( K_{ad} \), que es justo lo que se barre para producir la figura del lugar de polos de abajo.
+
+**Cómo se implementa en el controlador real.** El lazo no añade hardware: son unas pocas líneas en el bucle de control digital que ya calcula la PWM. En cada periodo de muestreo:
+1. Leer (o estimar) \( i_1[k] \) e \( i_2[k] \).
+2. Calcular \( i_{C_f}[k]=i_1[k]-i_2[k] \).
+3. Calcular \( v_i[k]=v_{i,PI}[k]-K_{ad}\,i_{C_f}[k] \), con \( v_{i,PI}[k] \) la salida normal de los lazos de tensión/corriente.
+4. Enviar \( v_i[k] \) al modulador PWM como nueva consigna.
+
+<div class="cfig"><img src="figuras/filtro-lcl-damping-bloques.png" alt="Diagrama de bloques del amortiguamiento activo: vi,PI menos Kad por (i1-i2) da vi, que entra al filtro LCL; i1 e i2 se realimentan y se restan para dar iCf, que multiplicado por Kad vuelve a la suma"><div class="cap">Lazo de amortiguamiento activo: \(i_1\) e \(i_2\) se miden, se resta uno del otro para obtener \(i_{C_f}\), se multiplica por \(K_{ad}\) y se resta a la salida del PI antes de generar \(v_i\). Es exactamente la sustitución del Paso 1: por eso \(K_{ad}\) acopla \(i_1\) e \(i_2\) dentro de \(A\).</div></div>
+
+**Estudio de polos: cómo influye \( K_{ad} \) en el diseño.** Los autovalores de \( A(K_{ad}) \) son el par resonante. En \( K_{ad}=0 \) están sobre el eje imaginario en \( \pm j\omega_{res} \) (\( \zeta=0 \)). Al subir \( K_{ad} \), el par se desplaza hacia la izquierda (parte real negativa creciente): el amortiguamiento sube de forma casi proporcional a \( K_{ad} \) mientras la frecuencia del par apenas cambia. Esto convierte el diseño en directo: se barre \( K_{ad} \) hasta cruzar la línea de \( \zeta \) objetivo.
 
 <div class="cfig"><img src="figuras/filtro-lcl-damping-polos.png" alt="lugar de los polos resonantes del LCL al barrer Kad, con lineas de zeta constante"><div class="cap">Lugar de los polos resonantes al barrer \(K_{ad}\) de 0 a 12 Ω: parten sobre el eje imaginario (\(\zeta\approx0\), rojo) y se mueven a la izquierda al subir \(K_{ad}\) (color), cruzando las líneas de \(\zeta\) constante. El diseño consiste en elegir el \(K_{ad}\) que lleva el par al \(\zeta\) objetivo (0.3–0.7) sin pasarse.</div></div>
 
