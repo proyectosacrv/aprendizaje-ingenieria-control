@@ -505,11 +505,41 @@ $$ A(K_{ad})=\begin{bmatrix} -K_{ad}/L_1 & +K_{ad}/L_1 & -1/L_1 \\ 0 & 0 & 1/L_2
 
 <div class="cfig"><img src="figuras/filtro-lcl-damping-bloques.png" alt="Diagrama de bloques del amortiguamiento activo: vi,PI menos Kad por (i1-i2) da vi, que entra al filtro LCL; i1 e i2 se realimentan y se restan para dar iCf, que multiplicado por Kad vuelve a la suma"><div class="cap">Lazo de amortiguamiento activo: \(i_1\) e \(i_2\) se miden, se resta uno del otro para obtener \(i_{C_f}\), se multiplica por \(K_{ad}\) y se resta a la salida del PI antes de generar \(v_i\). Es exactamente la sustitución del Paso 1: por eso \(K_{ad}\) acopla \(i_1\) e \(i_2\) dentro de \(A\).</div></div>
 
-**Estudio de polos: cómo influye \( K_{ad} \) en el diseño (forma cerrada).** Los autovalores de \( A(K_{ad}) \) son el par resonante (más un tercer polo en \( s=0 \) que no depende de \( K_{ad} \) y no es resonante). Su polinomio característico se factoriza exactamente:
+**Estudio de polos: cómo influye \( K_{ad} \) en el diseño (forma cerrada).** Los autovalores de \( A(K_{ad}) \) son las raíces de su polinomio característico, \( \det(sI-A(K_{ad}))=0 \): son los valores de \( s \) para los que el sistema homogéneo \( \dot{\mathbf{x}}=A\mathbf{x} \) admite una solución no trivial de la forma \( \mathbf{x}(t)=\mathbf{v}\,e^{st} \) (los modos propios de la dinámica libre), y por eso son exactamente los polos de la planta. A continuación se calcula ese determinante explícitamente, sin saltarse ningún paso.
+
+**Paso 1 — formar \( sI-A(K_{ad}) \).** Restando \( A(K_{ad}) \) (apartado 4, Paso 3) de \( sI \) elemento a elemento:
+
+$$ sI-A(K_{ad})=\begin{bmatrix} s+\dfrac{K_{ad}}{L_1} & -\dfrac{K_{ad}}{L_1} & \dfrac{1}{L_1} \\[6pt] 0 & s & -\dfrac{1}{L_2} \\[6pt] -\dfrac{1}{C_f} & \dfrac{1}{C_f} & s \end{bmatrix} $$
+
+**Paso 2 — elegir cómo expandir el determinante.** Para una matriz \( 3\times3 \), \( \det(M)=\sum_j a_{1j}\,C_{1j} \) (expansión por cofactores de la primera fila), donde \( C_{1j}=(-1)^{1+j}M_{1j} \) y \( M_{1j} \) es el menor que queda al borrar la fila 1 y la columna \( j \). Conviene expandir por la primera fila porque ningún elemento de esa fila es cero, pero el resultado es el mismo por cualquier fila o columna que se elija.
+
+**Paso 3 — los tres menores \( 2\times2 \).** Borrando fila 1 y cada columna a su vez:
+
+$$ M_{11}=\det\begin{bmatrix} s & -1/L_2 \\ 1/C_f & s \end{bmatrix}=s^2-\left(-\frac{1}{L_2}\right)\!\left(\frac{1}{C_f}\right)=s^2+\frac{1}{L_2 C_f} $$
+
+$$ M_{12}=\det\begin{bmatrix} 0 & -1/L_2 \\ -1/C_f & s \end{bmatrix}=0\cdot s-\left(-\frac{1}{L_2}\right)\!\left(-\frac{1}{C_f}\right)=-\frac{1}{L_2 C_f} $$
+
+$$ M_{13}=\det\begin{bmatrix} 0 & s \\ -1/C_f & 1/C_f \end{bmatrix}=0\cdot\frac{1}{C_f}-s\left(-\frac{1}{C_f}\right)=\frac{s}{C_f} $$
+
+(cada menor \( 2\times2 \) es, por definición, "producto de la diagonal principal menos producto de la diagonal secundaria"; no hace falta más que esa regla).
+
+**Paso 4 — aplicar los signos de cofactor y sumar.** \( C_{11}=+M_{11} \), \( C_{12}=-M_{12} \), \( C_{13}=+M_{13} \) (signos \( +,-,+ \) alternados desde la posición \( (1,1) \)). Con los elementos de la primera fila del Paso 1:
+
+$$ \det=\Big(s+\frac{K_{ad}}{L_1}\Big)\underbrace{\Big(s^2+\frac{1}{L_2C_f}\Big)}_{C_{11}} + \Big(-\frac{K_{ad}}{L_1}\Big)\underbrace{\Big(\frac{1}{L_2C_f}\Big)}_{C_{12}} + \Big(\frac{1}{L_1}\Big)\underbrace{\Big(\frac{s}{C_f}\Big)}_{C_{13}} $$
+
+**Paso 5 — expandir el primer producto y agrupar.** Multiplicando \( \big(s+\tfrac{K_{ad}}{L_1}\big)\big(s^2+\tfrac{1}{L_2C_f}\big)=s^3+\dfrac{s}{L_2C_f}+\dfrac{K_{ad}}{L_1}s^2+\dfrac{K_{ad}}{L_1L_2C_f} \), y sumando los otros dos términos del Paso 4:
+
+$$ \det=s^3+\frac{K_{ad}}{L_1}s^2+\frac{s}{L_2C_f}+\underbrace{\frac{K_{ad}}{L_1L_2C_f}-\frac{K_{ad}}{L_1L_2C_f}}_{=\,0}+\frac{s}{L_1C_f} $$
+
+El término constante en \( K_{ad} \) (sin \( s \)) se cancela exactamente con el que viene del Paso 4: no es una casualidad numérica, es la razón por la que el polo en \( s=0 \) no depende de \( K_{ad} \) (si no se cancelara, \( K_{ad}=0 \) no sería raíz y \( s=0 \) no sería polo para ningún \( K_{ad} \), lo que contradice que sin amortiguar el filtro sigue teniendo ese integrador). Queda:
+
+$$ \det=s^3+\frac{K_{ad}}{L_1}s^2+s\left(\frac{1}{L_1C_f}+\frac{1}{L_2C_f}\right)=s^3+\frac{K_{ad}}{L_1}s^2+s\cdot\frac{L_1+L_2}{L_1L_2C_f} $$
+
+y como \( \omega_{res}^2=(L_1+L_2)/(L_1L_2C_f) \) (apartado 2), y todo término tiene al menos un factor \( s \):
 
 $$ \det\!\big(sI-A(K_{ad})\big)=s\left(s^2+\frac{K_{ad}}{L_1}\,s+\omega_{res}^2\right) $$
 
-es el mismo \( s\,(s^2+\omega_{res}^2) \) que ya aparecía en el denominador de las funciones de transferencia del apartado 1, ahora con el término en \( s \) que aporta \( K_{ad} \). Comparando el factor entre paréntesis con la forma canónica \( s^2+2\zeta\omega_n s+\omega_n^2 \):
+que es el mismo \( s\,(s^2+\omega_{res}^2) \) que ya aparecía en el denominador de las funciones de transferencia del apartado 1, ahora con el término en \( s \) que aporta \( K_{ad} \). Comparando el factor entre paréntesis con la forma canónica \( s^2+2\zeta\omega_n s+\omega_n^2 \):
 
 $$ \omega_n^2=\omega_{res}^2\ \Rightarrow\ \omega_n=\omega_{res}, \qquad 2\zeta\omega_n=\frac{K_{ad}}{L_1}\ \Rightarrow\ \boxed{\;\zeta=\frac{K_{ad}}{2\,L_1\,\omega_{res}}\;} $$
 
