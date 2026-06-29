@@ -705,11 +705,35 @@ $$ k\approx\frac{1}{\omega_{sw}^2L_2C_f} \;\Rightarrow\; \boxed{\,L_2\approx\fra
 
 **Por qué \( r=L_2/L_1 \) se comprueba después y no se fija antes.** \( L_1 \) ya se fijó por rizado (apartado 5) y \( L_2 \) se acaba de fijar por esta atenuación \( k \) (Paso 4): los dos cálculos son independientes, ninguno usa el resultado del otro. Por eso \( r=L_2/L_1 \) no es un parámetro que se elige al empezar el diseño, es una consecuencia que sale al final y que conviene comprobar.
 
-**De dónde sale el rango práctico 0.2–1 (y qué significa salirse de él).** Dividiendo la definición de \( f_{res} \) (apartado 2) entre la de \( f_{ar} \) (apartado 1, Paso 5):
+**De dónde sale el rango práctico 0.2–1 (y qué significa salirse de él).** El punto de partida son las dos definiciones ya derivadas, escritas ambas en su forma compacta con \( C_f \) dentro de la raíz:
 
-$$ \frac{f_{res}}{f_{ar}}=\sqrt{\frac{L_2}{L_{eq}}}=\sqrt{\frac{L_2\,(L_1+L_2)}{L_1L_2}}=\sqrt{\frac{L_1+L_2}{L_1}}=\sqrt{1+r} $$
+$$ f_{res}=\frac{1}{2\pi\sqrt{L_{eq}C_f}}\quad(\text{apartado 2}),\qquad f_{ar}=\frac{1}{2\pi\sqrt{L_2C_f}}\quad(\text{apartado 1, Paso 5}) $$
 
-(usando \( L_{eq}=L_1L_2/(L_1+L_2) \) del apartado 2 y \( r\equiv L_2/L_1 \)). Es una relación cerrada y exacta: cuánto se separan las dos frecuencias clave del filtro depende solo de \( r \), no de los valores absolutos de \( L_1,L_2,C_f \). Con \( r=0.2 \): \( f_{res}/f_{ar}=\sqrt{1.2}\approx1.10 \) (apenas un 10 % de separación, casi se solapan). Con \( r=1 \): \( f_{res}/f_{ar}=\sqrt2\approx1.41 \) (41 % de separación, claramente distinguibles). Por debajo de \( r\approx0.2 \) la antiresonancia que ayuda a estabilizar el lazo de \( i_1 \) (apartado 1, Paso 6) queda demasiado pegada a la resonancia, con poco margen entre ambas; por encima de \( r\approx1 \), \( L_2 \) pasa a ser mayor que \( L_1 \) — quien hace el trabajo más exigente, absorber el escalón completo de \( V_{dc} \) (apartado 5) — y si \( r \) sale ahí suele ser más barato revisar \( C_f \) (apartado 6) o relajar \( k \) que seguir subiendo \( L_2 \).
+con \( L_{eq}=L_1L_2/(L_1+L_2) \). Se forma el cociente y se desarrolla sin saltarse ningún paso:
+
+$$ \frac{f_{res}}{f_{ar}}=\frac{\dfrac{1}{2\pi\sqrt{L_{eq}C_f}}}{\dfrac{1}{2\pi\sqrt{L_2C_f}}} $$
+
+Dividir entre una fracción es multiplicar por su inversa, así que el \( f_{ar} \) de abajo se da la vuelta y multiplica:
+
+$$ =\frac{1}{2\pi\sqrt{L_{eq}C_f}}\cdot\frac{2\pi\sqrt{L_2C_f}}{1}=\frac{2\pi\sqrt{L_2C_f}}{2\pi\sqrt{L_{eq}C_f}} $$
+
+El \( 2\pi \) aparece igual arriba y abajo y se cancela; agrupando las dos raíces en una sola (\( \sqrt{a}/\sqrt{b}=\sqrt{a/b} \)):
+
+$$ =\frac{\sqrt{L_2C_f}}{\sqrt{L_{eq}C_f}}=\sqrt{\frac{L_2C_f}{L_{eq}C_f}}=\sqrt{\frac{L_2}{L_{eq}}} $$
+
+el \( C_f \) está en numerador y denominador dentro de la raíz y se cancela. Ahora se sustituye \( L_{eq}=L_1L_2/(L_1+L_2) \); dividir entre esa fracción es, otra vez, multiplicar por su inversa:
+
+$$ \frac{L_2}{L_{eq}}=L_2\cdot\frac{L_1+L_2}{L_1L_2}=\frac{L_2(L_1+L_2)}{L_1L_2} $$
+
+el \( L_2 \) del numerador se cancela con el del denominador:
+
+$$ =\frac{L_1+L_2}{L_1}=\frac{L_1}{L_1}+\frac{L_2}{L_1}=1+\frac{L_2}{L_1}=1+r $$
+
+(con \( r\equiv L_2/L_1 \)). Reuniendo todo bajo la raíz:
+
+$$ \boxed{\;\frac{f_{res}}{f_{ar}}=\sqrt{\frac{L_2}{L_{eq}}}=\sqrt{\frac{L_2(L_1+L_2)}{L_1L_2}}=\sqrt{\frac{L_1+L_2}{L_1}}=\sqrt{1+r}\;} $$
+
+Es una relación cerrada y exacta: cuánto se separan las dos frecuencias clave del filtro depende solo de \( r \), no de los valores absolutos de \( L_1,L_2,C_f \). Con \( r=0.2 \): \( f_{res}/f_{ar}=\sqrt{1.2}\approx1.10 \) (apenas un 10 % de separación, casi se solapan). Con \( r=1 \): \( f_{res}/f_{ar}=\sqrt2\approx1.41 \) (41 % de separación, claramente distinguibles). Por debajo de \( r\approx0.2 \) la antiresonancia que ayuda a estabilizar el lazo de \( i_1 \) (apartado 1, Paso 6) queda demasiado pegada a la resonancia, con poco margen entre ambas; por encima de \( r\approx1 \), \( L_2 \) pasa a ser mayor que \( L_1 \) — quien hace el trabajo más exigente, absorber el escalón completo de \( V_{dc} \) (apartado 5) — y si \( r \) sale ahí suele ser más barato revisar \( C_f \) (apartado 6) o relajar \( k \) que seguir subiendo \( L_2 \).
 
 **Para qué sirve \( r \) en la práctica, más allá de comprobarlo al final.** Tres usos concretos:
 
