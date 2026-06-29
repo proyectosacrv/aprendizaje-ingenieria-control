@@ -355,6 +355,100 @@ def _lcl_damping_bloques():
 
 
 @figura("filtro-lcl")
+def _lcl_red_vs_aislado():
+    """Apartado 8: comparativa red fuerte vs red debil (mismo Rd) en las magnitudes clave."""
+    L1, Cf = 40e-6, 85e-6           # valores reales del proyecto 04
+    L2_solo = 8e-6
+    fsw = 10e3; wsw = 2*np.pi*fsw
+    # Rd OPTIMO se fija en red fuerte (Q=3) y NO se retoca: con el cae Q en el texto.
+    LeqF0 = L1*72e-6/(L1+72e-6); fresF0 = 1/(2*np.pi*np.sqrt(LeqF0*Cf))
+    Rd_opt = 1/(3*2*np.pi*fresF0*Cf)        # ~0.183 ohm -> Q=3 en red fuerte (apartado 3)
+    Rd_bode = 0.03                          # solo para el Bode: el optimo aplana el pico
+    casos = [(72e-6,  "Red fuerte ($L_g=0$)",    ACC),
+             (196e-6, "Red débil ($L_g=124$ µH)", BAD)]
+
+    def vC_over_vi(L2, w, Rd):
+        s = 1j*w; Zc = (1 + s*Rd*Cf)/(s*Cf)
+        return (1/(s*L1)) / (1/(s*L1) + 1/(s*L2) + 1/Zc)
+
+    def mags(L2):
+        Leq = L1*L2/(L1+L2)
+        fres = 1/(2*np.pi*np.sqrt(Leq*Cf)); far = 1/(2*np.pi*np.sqrt(L2*Cf))
+        Q = (1/Rd_opt)*np.sqrt(Leq/Cf); k = 1/(wsw**2*L2*Cf)
+        return Leq, fres, far, Q, k
+
+    f = np.logspace(2.5, 4.3, 3000); w = 2*np.pi*f
+    fig, axs = plt.subplots(2, 2, figsize=(9.2, 7.0))
+
+    # (a) |i2/vi|: pico de resonancia. Se desplaza a la izquierda con la red.
+    axa = axs[0, 0]
+    for L2, lab, col in casos:
+        m = 20*np.log10(np.abs(vC_over_vi(L2, w, Rd_bode)/(1j*w*L2)))
+        _, fres, _, _, _ = mags(L2)
+        axa.semilogx(f, m, color=col, lw=2.0, label=lab)
+        axa.axvline(fres, color=col, ls="--", lw=1.0, alpha=0.6)
+    axa.set_title("(a) $|i_2/v_i|$: resonancia (pico)", fontsize=10)
+    axa.set_xlabel("frecuencia [Hz]"); axa.set_ylabel("magnitud [dB]")
+    axa.set_ylim(-20, 30); axa.legend(fontsize=8, loc="upper right")
+    axa.annotate("$f_{res}$ baja\n3404→2995 Hz", xy=(3000, 14), xytext=(1100, 22),
+                 fontsize=8, color="#333", arrowprops=dict(arrowstyle="->", color="#777"))
+
+    # (b) |i1/vi|: valle de antiresonancia. Baja mucho mas que fres.
+    axb = axs[0, 1]
+    for L2, lab, col in casos:
+        m = 20*np.log10(np.abs((1 - vC_over_vi(L2, w, Rd_bode))/(1j*w*L1)))
+        _, _, far, _, _ = mags(L2)
+        axb.semilogx(f, m, color=col, lw=2.0, label=lab)
+        axb.axvline(far, color=col, ls=":", lw=1.0, alpha=0.7)
+    axb.set_title("(b) $|i_1/v_i|$: antiresonancia (valle)", fontsize=10)
+    axb.set_xlabel("frecuencia [Hz]"); axb.set_ylabel("magnitud [dB]")
+    axb.set_ylim(-60, 20); axb.legend(fontsize=8, loc="upper right")
+    axb.annotate("$f_{ar}$ baja más\n2034→1233 Hz (−39%)", xy=(1233, -38),
+                 xytext=(2300, -20), fontsize=8, color="#333",
+                 arrowprops=dict(arrowstyle="->", color="#777"))
+
+    # (c) barras comparativas de fres, far, Q (normalizadas para verlas juntas)
+    axc = axs[1, 0]
+    LF, fresF, farF, QF, kF = mags(72e-6)
+    LD, fresD, farD, QD, kD = mags(196e-6)
+    labels = ["$f_{res}$\n[Hz]", "$f_{ar}$\n[Hz]", "$Q$", "$L_{eq}$\n[µH]"]
+    fuerte = [fresF, farF, QF, LF*1e6]; debil = [fresD, farD, QD, LD*1e6]
+    x = np.arange(len(labels)); wbar = 0.36
+    bF = axc.bar(x - wbar/2, fuerte, wbar, color=ACC, label="Red fuerte")
+    bD = axc.bar(x + wbar/2, debil, wbar, color=BAD, label="Red débil")
+    axc.set_yscale("log"); axc.set_xticks(x); axc.set_xticklabels(labels, fontsize=9)
+    axc.set_title("(c) Magnitudes clave (escala log)", fontsize=10)
+    axc.legend(fontsize=8, loc="upper right")
+    for rects, vals in [(bF, fuerte), (bD, debil)]:
+        for r, v in zip(rects, vals):
+            axc.annotate(f"{v:.0f}" if v >= 10 else f"{v:.1f}",
+                         xy=(r.get_x()+r.get_width()/2, v), xytext=(0, 2),
+                         textcoords="offset points", ha="center", fontsize=7.5, color="#333")
+
+    # (d) atenuacion a fsw: mejora con la red (kef/k) pero no es controlable
+    axd = axs[1, 1]
+    escenarios = ["$L_2$ sola\n(8 µH)", "Red fuerte\n(72 µH)", "Red débil\n(196 µH)"]
+    L2s = [L2_solo, 72e-6, 196e-6]
+    ks = [1/(wsw**2*L2*Cf)*100 for L2 in L2s]
+    cols = [OK, ACC, BAD]
+    bars = axd.bar(escenarios, ks, color=cols)
+    axd.set_title("(d) Atenuación a $f_{sw}$: $k=|i_2/i_1|$", fontsize=10)
+    axd.set_ylabel("$k$ a $f_{sw}$ [%]")
+    for r, v in zip(bars, ks):
+        axd.annotate(f"{v:.1f}%", xy=(r.get_x()+r.get_width()/2, v), xytext=(0, 2),
+                     textcoords="offset points", ha="center", fontsize=8.5, color="#333")
+    axd.annotate("la red mejora $k$\n(×9 y ×24), pero\nno es controlable",
+                 xy=(2, kD*100/1), xytext=(0.3, 25), fontsize=8, color="#333",
+                 arrowprops=dict(arrowstyle="->", color="#777"))
+    axd.set_ylim(0, 42)
+
+    fig.suptitle("Apartado 8 — efecto de la red sobre el filtro (mismo amortiguamiento, fijado en red fuerte)",
+                 fontsize=11, y=0.995)
+    fig.tight_layout(rect=[0, 0, 1, 0.98])
+    _savefig(fig, "filtro-lcl-red-vs-aislado.png")
+
+
+@figura("filtro-lcl")
 def _lcl_L2_atenuacion():
     """Calidad de la aproximacion (despreciar el 1) y curva de diseno L2 vs k objetivo."""
     Cf, fsw = 29.84155182973037e-6, 10e3   # mismos valores que el ejemplo de codigo
@@ -394,6 +488,114 @@ def _lcl_L2_atenuacion():
     ax2.legend(fontsize=7.5, loc="upper right")
     fig.tight_layout()
     _savefig(fig, "filtro-lcl-L2-atenuacion.png")
+
+
+@figura("filtro-lcl")
+def _lcl_diseno_iterativo():
+    """Apartado 9: el diseno completo como proceso iterativo (3 iteraciones encadenadas)."""
+    Sn, Vll, f0, Vdc, fsw = 10e3, 400, 50, 700, 10e3
+    w0, wsw = 2*np.pi*f0, 2*np.pi*fsw
+    In = (Sn/(np.sqrt(3)*Vll))*np.sqrt(2)
+    L1 = Vdc/(8*fsw*0.15*In)                  # fijo por rizado en todas las iteraciones
+
+    def estado(Cf, L2, Rd):
+        Leq = L1*L2/(L1+L2)
+        fres = 1/(2*np.pi*np.sqrt(Leq*Cf)); far = 1/(2*np.pi*np.sqrt(L2*Cf))
+        k = 1/(wsw**2*L2*Cf); r = L2/L1
+        Q = (1/Rd)*np.sqrt(Leq/Cf); zeta = 1/(2*Q)
+        return dict(Cf=Cf, L2=L2, Leq=Leq, fres=fres, far=far, k=k, r=r, Rd=Rd, Q=Q, zeta=zeta)
+
+    # It0: cada apartado por separado -> r fuera de rango
+    Cf0 = 0.05*Sn/(w0*(Vll/np.sqrt(3))**2); L2_0 = 1/(0.10*Cf0*wsw**2)
+    Rd0 = 1/(3*2*np.pi*(1/(2*np.pi*np.sqrt(L1*L2_0/(L1+L2_0)*Cf0)))*Cf0)
+    it0 = estado(Cf0, L2_0, Rd0)
+    # It1: subir L2 a r=0.3 bajando Cf -> r ok, pero verificar red debil despues
+    Cf1, L2_1 = 20e-6, 0.3*L1
+    Rd1 = 1/(3*2*np.pi*(1/(2*np.pi*np.sqrt(L1*L2_1/(L1+L2_1)*Cf1)))*Cf1)
+    it1 = estado(Cf1, L2_1, Rd1)
+    # red debil sobre it1 (SCR=10): zeta cae por debajo de 0.1
+    Lg = 5.09e-3; L2ef = L2_1 + Lg
+    fres_ef = 1/(2*np.pi*np.sqrt(L1*L2ef/(L1+L2ef)*Cf1))
+    it1_debil = estado(Cf1, L2ef, Rd1)
+    # It2: re-amortiguar a fres del peor caso -> ambos extremos en banda
+    Rd2 = 1/(3*2*np.pi*fres_ef*Cf1)
+    it2_fuerte = estado(Cf1, L2_1, Rd2); it2_debil = estado(Cf1, L2ef, Rd2)
+
+    fig, axs = plt.subplots(2, 2, figsize=(9.4, 7.2))
+
+    # (a) recorrido en el plano (r, k): de it0 (fuera) a it1 (dentro)
+    axa = axs[0, 0]
+    axa.axvspan(0.2, 1.0, color=OK, alpha=0.12, label="$r$ práctico [0.2, 1]")
+    axa.axhspan(10, 20, color=ACC2, alpha=0.12, label="$k$ típico [10, 20]%")
+    axa.plot([it0["r"], it1["r"]], [it0["k"]*100, it1["k"]*100], "-", color="#999", zorder=1)
+    axa.scatter([it0["r"]], [it0["k"]*100], color=BAD, s=90, zorder=3, label="It.0 (ingenuo)")
+    axa.scatter([it1["r"]], [it1["k"]*100], color=ACC, s=90, zorder=3, label="It.1 (sube $L_2$)")
+    axa.annotate("$r$=0.03\nfuera", xy=(it0["r"], it0["k"]*100), xytext=(0.05, 25),
+                 fontsize=8, color=BAD, arrowprops=dict(arrowstyle="->", color=BAD))
+    axa.annotate("$r$=0.30 ✓\n$k$ mejora a 1.5%", xy=(it1["r"], it1["k"]*100),
+                 xytext=(0.4, 6), fontsize=8, color=ACC,
+                 arrowprops=dict(arrowstyle="->", color=ACC))
+    axa.set_xscale("log"); axa.set_xlabel("$r=L_2/L_1$"); axa.set_ylabel("$k$ a $f_{sw}$ [%]")
+    axa.set_title("(a) Conflicto 1: $r$ fuera de rango → subir $L_2$", fontsize=10)
+    axa.set_xlim(0.02, 1.2); axa.set_ylim(0, 30); axa.legend(fontsize=7.5, loc="upper right")
+
+    # (b) fres a lo largo de las iteraciones + banda y caida por red debil
+    axb = axs[0, 1]
+    etapas = ["It.0\n(Cf=29.8µF)", "It.1\naislado", "It.1\nred débil", "It.2\nred débil"]
+    fresv = [it0["fres"], it1["fres"], fres_ef, fres_ef]
+    cols = [BAD, ACC, ACC2, OK]
+    axb.axhspan(500, 5000, color=OK, alpha=0.10, label="banda $10f_0$–$f_{sw}/2$")
+    axb.bar(etapas, fresv, color=cols)
+    for i, v in enumerate(fresv):
+        axb.annotate(f"{v:.0f} Hz", xy=(i, v), xytext=(0, 2), textcoords="offset points",
+                     ha="center", fontsize=8, color="#333")
+    axb.set_ylabel("$f_{res}$ [Hz]"); axb.set_ylim(0, 5500)
+    axb.set_title("(b) $f_{res}$ se desplaza en cada paso", fontsize=10)
+    axb.legend(fontsize=8, loc="upper right")
+
+    # (c) zeta: el cuello de botella. it1 cae bajo 0.1 en red debil; it2 lo arregla
+    axc = axs[1, 0]
+    casos = ["It.1\nred fuerte", "It.1\nred débil", "It.2\nred fuerte", "It.2\nred débil"]
+    zetas = [it1["zeta"], it1_debil["zeta"], it2_fuerte["zeta"], it2_debil["zeta"]]
+    colz = [ACC, BAD, OK, OK]
+    axc.axhspan(0.1, 0.3, color=OK, alpha=0.12, label="$\\zeta$ objetivo [0.1, 0.3]")
+    bars = axc.bar(casos, zetas, color=colz)
+    axc.axhline(0.1, color=BAD, ls="--", lw=1)
+    for i, v in enumerate(zetas):
+        axc.annotate(f"{v:.3f}", xy=(i, v), xytext=(0, 2), textcoords="offset points",
+                     ha="center", fontsize=8, color="#333")
+    axc.annotate("cae < 0.1\n(re-amortiguar)", xy=(1, it1_debil["zeta"]), xytext=(1.4, 0.22),
+                 fontsize=8, color=BAD, arrowprops=dict(arrowstyle="->", color=BAD))
+    axc.set_ylabel("$\\zeta$ del par resonante"); axc.set_ylim(0, 0.32)
+    axc.set_title("(c) Conflicto 2: $\\zeta$ cae en red débil → re-amortiguar", fontsize=10)
+    axc.legend(fontsize=8, loc="upper left")
+
+    # (d) tabla-resumen del recorrido: que cambia y que se hereda en cada iteracion
+    axd = axs[1, 1]
+    axd.axis("off")
+    filas = ["$L_1$ [mH]", "$C_f$ [µF]", "$L_2$ [mH]", "$r$", "$k$ [%]",
+             "$f_{res}$ [Hz]", "$R_d$ [Ω]", "$\\zeta$ débil"]
+    col_it0 = [f"{L1*1e3:.2f}", f"{Cf0*1e6:.1f}", f"{L2_0*1e3:.3f}", f"{it0['r']:.2f} ✗",
+               f"{it0['k']*100:.1f}", f"{it0['fres']:.0f}", "—", "—"]
+    col_it1 = [f"{L1*1e3:.2f}", f"{Cf1*1e6:.0f}", f"{L2_1*1e3:.2f}", f"{it1['r']:.2f} ✓",
+               f"{it1['k']*100:.1f}", f"{it1['fres']:.0f}", f"{Rd1:.2f}", f"{it1_debil['zeta']:.3f} ✗"]
+    col_it2 = [f"{L1*1e3:.2f}", f"{Cf1*1e6:.0f}", f"{L2_1*1e3:.2f}", f"{it2_fuerte['r']:.2f} ✓",
+               f"{it2_fuerte['k']*100:.1f}", f"{it2_fuerte['fres']:.0f}", f"{Rd2:.2f}",
+               f"{it2_debil['zeta']:.3f} ✓"]
+    tabla = axd.table(cellText=list(zip(col_it0, col_it1, col_it2)),
+                      rowLabels=filas, colLabels=["It.0", "It.1", "It.2"],
+                      loc="center", cellLoc="center")
+    tabla.auto_set_font_size(False); tabla.set_fontsize(9); tabla.scale(1.0, 1.45)
+    # colorear la columna final y los cambios clave
+    for (r, c), cell in tabla.get_celld().items():
+        if c == 2 and r > 0: cell.set_facecolor("#eafbe7")
+        if r == 0: cell.set_facecolor("#f0f0f0")
+    axd.set_title("(d) Recorrido completo: qué cambia y qué se hereda", fontsize=10, pad=2)
+
+    fig.suptitle("Apartado 9 — diseño completo como proceso iterativo (10 kVA, 400 V, $f_{sw}$=10 kHz)",
+                 fontsize=11, y=0.998)
+    fig.tight_layout(rect=[0, 0, 1, 0.98])
+    _savefig(fig, "filtro-lcl-diseno-iterativo.png")
 
 
 # ===================================================================== #
