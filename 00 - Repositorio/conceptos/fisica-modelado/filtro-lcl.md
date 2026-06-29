@@ -600,9 +600,47 @@ $$ \Delta i_{1,amp}=\frac{\Delta i_{1,pp}}{2}=\frac{V_{dc}}{8 f_{sw} L_1} \;\Rig
 - Si la etapa de entrada es de tres niveles, el escalón de tensión sobre \( L_1 \) se reduce a la mitad (\( \pm V_{dc}/4 \) efectivo por nivel), de modo que para el mismo rizado \( L_1 \) baja a la mitad; ver [[convertidor-vsc|modulación PWM]]. Con modulación vectorial (SVPWM) o inyección de tercer armónico el caso peor cambia ligeramente respecto al SPWM senoidal puro.
 
 ## 6 — Dimensionado de \( C_f \) (reactiva)
-El condensador absorbe reactiva a la frecuencia de red: corriente \( I_C=\omega_0 C_f V \), luego \( Q_C=V I_C=\omega_0 C_f V^2 \). Se limita a un \( \le5\% \) de la potencia base para no cargar la fuente con reactiva inútil:
+El condensador absorbe reactiva a la frecuencia de red. A continuación se deriva, sin saltarse ningún paso, de dónde sale \( I_C=\omega_0 C_f V \), por qué esa corriente es puramente reactiva (\( Q_C=VI_C \), sin parte activa) y por qué se limita al diseñar.
+
+**Paso 1 — la tensión que ve \( C_f \) a la frecuencia fundamental.** En régimen permanente, e ignorando el rizado de conmutación de alta frecuencia (ya tratado en los apartados 5 y 7 — aquí solo interesa la componente a 50/60 Hz, que es la que fija cuánta reactiva hay que suministrar de forma continua), la tensión del nudo \( v_C \) sigue a la tensión de red:
+
+$$ v_C(t)=\sqrt{2}\,V\sin(\omega_0 t) $$
+
+donde \( V \) es el valor **RMS** de la tensión de fase (no de línea, no de pico — la distinción importa, ver Nota al final) y \( \omega_0=2\pi f_0 \). El factor \( \sqrt2 \) convierte el RMS, que es como se especifica habitualmente una tensión de red, en la amplitud de pico que aparece en la señal temporal.
+
+**Paso 2 — corriente por \( C_f \) (ley constitutiva del condensador).** La rama del condensador ya se planteó en "Ecuaciones de partida": \( i_C=C_f\,dv_C/dt \). Derivando el Paso 1:
+
+$$ i_C(t)=C_f\frac{d}{dt}\Big[\sqrt2\,V\sin(\omega_0 t)\Big]=\sqrt2\,V\,\omega_0 C_f\,\cos(\omega_0 t) $$
+
+Es una señal senoidal con amplitud de pico \( \sqrt2\,V\,\omega_0 C_f \); dividiendo entre \( \sqrt2 \) (la misma conversión del Paso 1, ahora en sentido inverso) se obtiene su valor RMS:
+
+$$ \boxed{\;I_C=\omega_0 C_f V\;} $$
+
+**Paso 3 — por qué la corriente va en cuadratura (90°) con la tensión.** \( v_C(t)\propto\sin(\omega_0 t) \) e \( i_C(t)\propto\cos(\omega_0 t) \); como \( \cos\theta=\sin(\theta+90°) \), la corriente va adelantada 90° respecto a la tensión. Esto no es una coincidencia de este circuito: es la firma de cualquier elemento puramente reactivo. Al ser la derivada de un seno, la corriente es máxima exactamente donde la tensión pasa por cero, y nula donde la tensión es máxima — tensión y corriente nunca son grandes a la vez.
+
+**Paso 4 — la potencia activa media es cero (de ahí "reactiva").** La potencia instantánea entregada al condensador es el producto:
+
+$$ p(t)=v_C(t)\,i_C(t)=\big(\sqrt2\,V\sin\omega_0t\big)\big(\sqrt2\,V\omega_0C_f\cos\omega_0t\big)=2V^2\omega_0C_f\sin(\omega_0t)\cos(\omega_0t) $$
+
+Usando la identidad trigonométrica \( 2\sin\theta\cos\theta=\sin2\theta \):
+
+$$ p(t)=V^2\omega_0C_f\sin(2\omega_0t)=V I_C\sin(2\omega_0t) $$
+
+Esta potencia oscila al doble de la frecuencia de red (coherente con el Paso 3: cuando \( v_C \) e \( i_C \) tienen signos opuestos la potencia es negativa, el condensador devuelve energía) y su **media en un periodo es cero**: \( \overline{p(t)}=0 \). El condensador no disipa nada, solo intercambia energía dos veces por ciclo. Lo único que queda como número característico no nulo es la **amplitud** de esa oscilación de potencia — eso es, por definición, la potencia reactiva:
+
+$$ Q_C \equiv \text{amplitud de } p(t) = V\,I_C $$
+
+**Paso 5 — sustituir \( I_C \) del Paso 2.**
+
+$$ Q_C=V\,I_C=V\,(\omega_0 C_f V)=\omega_0 C_f V^2 $$
+
+que es la fórmula de partida de este apartado, ahora derivada en vez de enunciada.
+
+**Paso 6 — por qué se limita (y de dónde sale el 5 %).** Esa reactiva no la "regala" la red: tiene que suministrarla el convertidor a través de \( L_1 \) (o, vista desde el otro lado, la red a través de \( L_2 \)), aunque no hace ningún trabajo útil — ocupa capacidad de corriente del convertidor, cuya corriente máxima está fijada por su potencia aparente nominal \( S_n=\sqrt{P^2+Q^2} \), y cambia el factor de potencia visto en el punto de conexión sin que lo pida la carga. El \( 5\% \) es una cifra de diseño habitual en la industria (no una constante física): suficientemente pequeña para que esa reactiva sea despreciable frente a la potencia activa, pero sin forzar a \( C_f \) a ser tan pequeño que perjudique la atenuación a \( f_{sw} \) que depende de él (apartado 7) — los apartados 6 y 7 compiten por el mismo grado de libertad (\( C_f \) grande ayuda a atenuar pero quita margen de reactiva). Imponiendo el límite sobre el resultado del Paso 5:
 
 $$ Q_C=\omega_0 C_f V^2 \le 0.05\,S_n \;\Rightarrow\; C_f\le\frac{0.05\,S_n}{\omega_0 V^2} $$
+
+**Nota — RMS, no de pico.** La fórmula del Paso 5 exige \( V \) en RMS porque así se definió en el Paso 1; \( Q=VI \) con magnitudes de pico daría el doble de lo correcto (un factor \( (\sqrt2)^2=2 \) de más). Es un error fácil de cometer porque en el apartado 5 (rizado de \( L_1 \)) las fórmulas usan magnitudes de pico, no RMS — convenciones distintas para preguntas distintas, conviene no mezclarlas.
 
 ## 7 — Dimensionado de \( L_2 \) (atenuación a \( f_{sw} \))
 Muy por encima de \( f_{res} \), la impedancia del condensador \( 1/(\omega C_f) \) es mucho menor que \( \omega L_2 \), así que casi todo el rizado se deriva por \( C_f \). El divisor de corriente da la atenuación de lado fuente a lado red:
@@ -660,11 +698,11 @@ from control import tf
 # Diseño: 10 kVA, 400 V (Vll), 50 Hz, Vdc=700 V, fsw=10 kHz, rizado 15% de In
 Sn, Vll, f0, Vdc, fsw, rip = 10e3, 400, 50, 700, 10e3, 0.15
 w0, wsw = 2*np.pi*f0, 2*np.pi*fsw
-V  = Vll*np.sqrt(2/3)                      # pico de fase
-In = (Sn/(np.sqrt(3)*Vll))*np.sqrt(2)      # pico de fase nominal
+Vrms = Vll/np.sqrt(3)                      # rms de fase (para Qc=w0*Cf*Vrms^2, apartado 6)
+In   = (Sn/(np.sqrt(3)*Vll))*np.sqrt(2)    # pico de fase nominal (para el rizado, apartado 5)
 
 L1 = Vdc/(8*fsw*rip*In)                    # por rizado
-Cf = 0.05*Sn/(w0*V**2)                     # por reactiva (<=5%)
+Cf = 0.05*Sn/(w0*Vrms**2)                  # por reactiva (<=5%); Qc=V*Ic exige V en RMS, no de pico
 L2 = 1/(0.10*Cf*wsw**2)                    # atenuacion objetivo k=0.10 a fsw
 
 Leq   = L1*L2/(L1+L2)                       # inductancia equivalente paralelo
