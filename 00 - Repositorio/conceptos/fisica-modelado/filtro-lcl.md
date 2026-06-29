@@ -669,7 +669,13 @@ $$ \left|\frac{i_2}{i_1}\right|(\omega_{sw})=\frac{1}{\big|1-\omega_{sw}^2L_2C_f
 
 que es exactamente la fórmula de partida de este apartado, ahora derivada en vez de enunciada.
 
-**Paso 3 — por qué se puede despreciar el "1" del denominador.** \( f_{sw} \) (decenas de kHz) está muy por encima de la antiresonancia \( f_{ar}=\omega_{ar}/2\pi \) con \( \omega_{ar}=1/\sqrt{L_2C_f} \) (apartado 1, Paso 5; bajan ambas con la red, apartado 8). Eso significa:
+**Paso 3 — por qué se puede despreciar el "1" del denominador.** \( f_{sw} \) (decenas de kHz) está muy por encima de la antiresonancia \( f_{ar}=\omega_{ar}/2\pi \) con \( \omega_{ar}=1/\sqrt{L_2C_f} \) (apartado 1, Paso 5; bajan ambas con la red, apartado 8).
+
+**Por qué importa precisamente ese cociente \( \omega_{sw}/\omega_{ar} \) (y no el producto \( \omega_{sw}^2L_2C_f \) tal cual).** El producto \( \omega_{sw}^2L_2C_f \) tiene unidades (rad\(^2\)/s\(^2\) por F por H, que se cancelan hasta quedar adimensional, pero el VALOR concreto no dice nada por sí solo): no hay manera de "ver" si es mucho mayor que 1 sin calcularlo primero. Un cociente de dos frecuencias, en cambio, es directamente un número puro y comparable: \( \omega_{sw}/\omega_{ar} \) responde a la pregunta intuitiva "¿cuántas veces más alta es \( f_{sw} \) que \( f_{ar} \)?", que es exactamente lo que hay que saber para decidir si despreciar el "1". Para reescribir el producto como ese cociente basta usar la propia definición de \( \omega_{ar} \): de \( \omega_{ar}=1/\sqrt{L_2C_f} \) se eleva al cuadrado y se invierte, \( \omega_{ar}^2=1/(L_2C_f) \;\Rightarrow\; L_2C_f=1/\omega_{ar}^2 \), y sustituyendo en el producto:
+
+$$ \omega_{sw}^2L_2C_f=\omega_{sw}^2\cdot\frac{1}{\omega_{ar}^2}=\left(\frac{\omega_{sw}}{\omega_{ar}}\right)^2 $$
+
+Con \( f_{sw} \) en decenas de kHz y \( f_{ar} \) en pocos kHz (apartado 8: 2034 Hz o 1233 Hz en el ejemplo), ese cociente vale entre 5 y 10 largamente, de donde:
 
 $$ \omega_{sw}^2L_2C_f=\left(\frac{\omega_{sw}}{\omega_{ar}}\right)^2\gg1 $$
 
