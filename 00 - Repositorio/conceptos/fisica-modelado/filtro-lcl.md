@@ -9,7 +9,7 @@ objetivos: [atenuar armonicos de conmutacion, modelar la planta de potencia, ges
 tags: [filtro, resonancia, antiresonancia, amortiguamiento-activo, factor-Q, rizado, dimensionado, funcion-transferencia, LCL, dq]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-06-28
-relacionados: [convertidor-vsc, marco-dq, impedancia-salida-estabilidad, control-cascada, diagrama-bode, antiresonancia, resonancia-rlc, amortiguamiento-pasivo-vs-activo, frecuencias-segundo-orden, factor-calidad-q]
+relacionados: [convertidor-vsc, marco-dq, impedancia-salida-estabilidad, control-cascada, diagrama-bode, antiresonancia, resonancia-rlc, amortiguamiento-pasivo-vs-activo, frecuencias-segundo-orden, factor-calidad-q, red-thevenin-scr]
 referencias:
   - "Reznik et al., LCL Filter Design and Performance Analysis for Grid-Interconnected Systems, IEEE TIA 2014"
   - "Dannehl et al., Investigation of Active Damping Approaches for LCL Filters, IEEE TIA 2010"
@@ -653,40 +653,92 @@ $$ Q_C=\omega_0 C_f V^2 \le 0.05\,S_n \;\Rightarrow\; C_f\le\frac{0.05\,S_n}{\om
 **Nota — RMS, no de pico.** La fórmula del Paso 5 exige \( V \) en RMS porque así se definió en el Paso 1; \( Q=VI \) con magnitudes de pico daría el doble de lo correcto (un factor \( (\sqrt2)^2=2 \) de más). Es un error fácil de cometer porque en el apartado 5 (rizado de \( L_1 \)) las fórmulas usan magnitudes de pico, no RMS — convenciones distintas para preguntas distintas, conviene no mezclarlas.
 
 ## 7 — Dimensionado de \( L_2 \) (atenuación a \( f_{sw} \))
-Muy por encima de \( f_{res} \), la impedancia del condensador \( 1/(\omega C_f) \) es mucho menor que \( \omega L_2 \), así que casi todo el rizado se deriva por \( C_f \). El divisor de corriente da la atenuación de lado fuente a lado red:
+**Punto de partida — no hace falta un circuito nuevo.** La relación entre \( i_1 \) e \( i_2 \) ya se obtuvo en el apartado 1, Paso 3 (con \( v_{pcc}=0 \), red rígida): \( I_1=I_2(1+s^2L_2C_f) \). Es exactamente el divisor de corriente que se necesita aquí; solo falta despejar y evaluarlo en \( s=j\omega_{sw} \).
 
-$$ \left|\frac{i_2}{i_1}\right|(\omega_{sw})\approx\frac{1}{|1-\omega_{sw}^2 L_2 C_f|}\approx\frac{1}{\omega_{sw}^2 L_2 C_f} $$
+**Paso 1 — despejar \( i_2/i_1 \).**
 
-Para una atenuación objetivo \( k=i_2/i_1 \) a \( f_{sw} \) se despeja:
+$$ I_1=I_2\big(1+s^2L_2C_f\big) \;\Rightarrow\; \frac{I_2}{I_1}=\frac{1}{1+s^2L_2C_f} $$
 
-$$ L_2\approx\frac{1}{k\,C_f\,\omega_{sw}^2} $$
+**Paso 2 — evaluar en \( s=j\omega_{sw} \).** Sustituyendo \( s=j\omega_{sw} \) y usando \( (j\omega_{sw})^2=-\omega_{sw}^2 \):
 
-Relación práctica \( L_2/L_1 \) entre 0.2 y 1. Conviene definir \( r=L_2/L_1 \) y comprobar después que \( f_{res} \) cae en banda.
+$$ \frac{I_2}{I_1}(j\omega_{sw})=\frac{1}{1-\omega_{sw}^2L_2C_f} $$
+
+Tomando módulo de ambos lados (cociente de complejos: el módulo de un cociente es el cociente de los módulos, y el numerador ya es real):
+
+$$ \left|\frac{i_2}{i_1}\right|(\omega_{sw})=\frac{1}{\big|1-\omega_{sw}^2L_2C_f\big|} $$
+
+que es exactamente la fórmula de partida de este apartado, ahora derivada en vez de enunciada.
+
+**Paso 3 — por qué se puede despreciar el "1" del denominador.** \( f_{sw} \) (decenas de kHz) está muy por encima de la antiresonancia \( f_{ar}=\omega_{ar}/2\pi \) con \( \omega_{ar}=1/\sqrt{L_2C_f} \) (apartado 1, Paso 5; bajan ambas con la red, apartado 8). Eso significa:
+
+$$ \omega_{sw}^2L_2C_f=\left(\frac{\omega_{sw}}{\omega_{ar}}\right)^2\gg1 $$
+
+y frente a un número mucho mayor que 1, el "\( 1 \)" no pesa:
+
+$$ \big|1-\omega_{sw}^2L_2C_f\big|\approx\omega_{sw}^2L_2C_f \;\Rightarrow\; \left|\frac{i_2}{i_1}\right|(\omega_{sw})\approx\frac{1}{\omega_{sw}^2L_2C_f} $$
+
+Dividiendo la condición \( \omega_{sw}^2L_2C_f\gg1 \) por \( \omega_{sw}C_f \) se obtiene \( \omega_{sw}L_2\gg1/(\omega_{sw}C_f) \): es la misma condición dicha de otra forma — la impedancia de \( L_2 \) a \( f_{sw} \) es mucho mayor que la de \( C_f \), así que casi toda la corriente de rizado prefiere el camino de menor impedancia (el condensador) en vez de seguir hacia \( L_2 \) y la red.
+
+**Paso 4 — despejar \( L_2 \) para una atenuación objetivo \( k \).** Llamando \( k=|i_2/i_1| \) en \( f_{sw} \) al objetivo de diseño y despejando de la aproximación del Paso 3:
+
+$$ k\approx\frac{1}{\omega_{sw}^2L_2C_f} \;\Rightarrow\; \boxed{\,L_2\approx\frac{1}{k\,C_f\,\omega_{sw}^2}\,} $$
+
+**Por qué \( r=L_2/L_1 \) se comprueba después y no se fija antes.** \( L_1 \) ya se fijó por rizado (apartado 5) y \( L_2 \) se acaba de fijar por esta atenuación \( k \) (Paso 4): los dos cálculos son independientes, ninguno usa el resultado del otro. Por eso \( r=L_2/L_1 \) no es un parámetro que se elige al empezar el diseño, es una consecuencia que sale al final y que conviene comprobar.
+
+**De dónde sale el rango práctico 0.2–1 (y qué significa salirse de él).** Dividiendo la definición de \( f_{res} \) (apartado 2) entre la de \( f_{ar} \) (apartado 1, Paso 5):
+
+$$ \frac{f_{res}}{f_{ar}}=\sqrt{\frac{L_2}{L_{eq}}}=\sqrt{\frac{L_2\,(L_1+L_2)}{L_1L_2}}=\sqrt{\frac{L_1+L_2}{L_1}}=\sqrt{1+r} $$
+
+(usando \( L_{eq}=L_1L_2/(L_1+L_2) \) del apartado 2 y \( r\equiv L_2/L_1 \)). Es una relación cerrada y exacta: cuánto se separan las dos frecuencias clave del filtro depende solo de \( r \), no de los valores absolutos de \( L_1,L_2,C_f \). Con \( r=0.2 \): \( f_{res}/f_{ar}=\sqrt{1.2}\approx1.10 \) (apenas un 10 % de separación, casi se solapan). Con \( r=1 \): \( f_{res}/f_{ar}=\sqrt2\approx1.41 \) (41 % de separación, claramente distinguibles). Por debajo de \( r\approx0.2 \) la antiresonancia que ayuda a estabilizar el lazo de \( i_1 \) (apartado 1, Paso 6) queda demasiado pegada a la resonancia, con poco margen entre ambas; por encima de \( r\approx1 \), \( L_2 \) pasa a ser mayor que \( L_1 \) — quien hace el trabajo más exigente, absorber el escalón completo de \( V_{dc} \) (apartado 5) — y si \( r \) sale ahí suele ser más barato revisar \( C_f \) (apartado 6) o relajar \( k \) que seguir subiendo \( L_2 \).
 
 ## 8 — Efecto de la red y el trafo sobre el filtro
-Hasta aquí el filtro se ha tratado aislado, con \( L_2 \) terminando en una fuente de tensión ideal. En la práctica, aguas abajo del PCC hay una red con inductancia \( L_g \) (mayor cuanto más débil, es decir cuanto menor el SCR) y casi siempre un transformador con inductancia de dispersión \( L_t \). Ninguna de las dos es opcional en el diseño: ambas se suman en serie con \( L_2 \) y entran en **todo** lo que depende de \( L_2 \), no solo en \( f_{res} \):
+Hasta aquí el filtro se ha tratado aislado, con \( L_2 \) terminando en una fuente de tensión ideal. En la práctica, aguas abajo del PCC hay un transformador (inductancia de dispersión \( L_t \)) y la red real, vista como un equivalente Thévenin con inductancia \( L_g \) (mayor cuanto más débil la red — ver [[red-thevenin-scr]] para de dónde sale \( L_g \) a partir del SCR). A continuación se justifica, sin asumirlo, por qué ambas se suman en serie con \( L_2 \), y se deriva su efecto en cada magnitud ya calculada en los apartados anteriores.
 
-$$ L_{2ef}=L_2+L_t+L_g $$
+**Paso 1 — por qué \( L_t \) y \( L_g \) se suman en serie con \( L_2 \) (justificar la topología).** La hipótesis necesaria es que la conexión es radial: entre el filtro, el transformador y el equivalente de red no hay ninguna otra rama ni carga conectada (si la hubiera, desviaría parte de la corriente y la suma directa que sigue ya no sería válida — es la única suposición real de este apartado, y conviene tenerla presente). Con esa hipótesis, la misma corriente \( i_2 \) que sale de \( L_2 \) es, por KCL en cada nudo intermedio, exactamente la misma que atraviesa \( L_t \) y luego \( L_g \): no hay otro camino para ella. Tres bobinas atravesadas por la misma corriente, una tras otra, son por definición una conexión en serie, y sus caídas de tensión (cada una proporcional a la misma \( di_2/dt \)) se suman:
 
-**Efecto sobre la resonancia.** La frecuencia de resonancia efectiva baja al crecer \( L_{2ef} \):
+$$ v_{L_2}+v_{L_t}+v_{L_g}=L_2\frac{di_2}{dt}+L_t\frac{di_2}{dt}+L_g\frac{di_2}{dt}=(L_2+L_t+L_g)\frac{di_2}{dt} $$
 
-$$ f_{res,ef}=\frac{1}{2\pi}\sqrt{\frac{L_1+L_{2ef}}{L_1 L_{2ef} C_f}} $$
+Esa suma tiene la misma forma que la ley de una sola bobina (\( v=L\,di/dt \)) con \( L=L_2+L_t+L_g \): vistas desde el filtro, las tres son indistinguibles de una sola inductancia equivalente
 
-Esto es crítico en red débil: un SCR bajo significa \( L_g \) grande, lo que empuja \( f_{res} \) hacia abajo y puede acercarla al ancho de banda del control.
+$$ \boxed{\;L_{2ef}=L_2+L_t+L_g\;} $$
 
-Ejemplo con valores del proyecto 04 (\( L_1=40\,\mu\text{H},\ C_f=85\,\mu\text{F},\ L_2=8\,\mu\text{H},\ L_t=64\,\mu\text{H} \)):
-- SCR 5 (\( L_g=0 \)): \( L_{2ef}=72\,\mu\text{H} \), \( L_{eq}=25.7\,\mu\text{H} \), \( f_{res}=3406 \) Hz
-- SCR 2 (\( L_g=124\,\mu\text{H} \)): \( L_{2ef}=196\,\mu\text{H} \), \( L_{eq}=33.2\,\mu\text{H} \), \( f_{res}=2997 \) Hz
+**Paso 2 — por qué basta sustituir \( L_2\to L_{2ef} \) en las fórmulas ya derivadas.** El Paso 1 demuestra que, desde el punto de vista del filtro, \( L_{2ef} \) cumple exactamente la misma relación tensión-corriente que \( L_2 \) sola. Ninguna derivación anterior (apartados 1, 2, 3, 7) usó ninguna otra propiedad de \( L_2 \) más que esa relación \( v=L_2\,di_2/dt \); por tanto todas siguen siendo válidas sustituyendo \( L_2\to L_{2ef} \) sin repetir ningún paso:
 
-La resonancia baja unos 400 Hz (un 12 %) al pasar de SCR 5 a SCR 2. El amortiguamiento debe funcionar en todo ese rango.
+| Magnitud | Fórmula (con \( L_2 \) aislado) | Con la red (\( L_2\to L_{2ef} \)) | Apartado de origen |
+|---|---|---|---|
+| Inductancia equivalente | \( L_{eq}=\dfrac{L_1L_2}{L_1+L_2} \) | \( L_{eq,ef}=\dfrac{L_1L_{2ef}}{L_1+L_{2ef}} \) | 2 |
+| Resonancia | \( f_{res}=\dfrac{1}{2\pi\sqrt{L_{eq}C_f}} \) | \( f_{res,ef}=\dfrac{1}{2\pi}\sqrt{\dfrac{L_1+L_{2ef}}{L_1L_{2ef}C_f}} \) | 2 |
+| Antiresonancia | \( f_{ar}=\dfrac{1}{2\pi\sqrt{L_2C_f}} \) | \( f_{ar,ef}=\dfrac{1}{2\pi\sqrt{L_{2ef}C_f}} \) | 1, Paso 5 |
+| Factor \( Q \) (\( R_d \) fijo) | \( Q=\dfrac{1}{R_d}\sqrt{L_{eq}/C_f} \) | \( Q_{ef}=\dfrac{1}{R_d}\sqrt{L_{eq,ef}/C_f} \) | 3 |
+| Atenuación a \( f_{sw} \) | \( k\approx\dfrac{1}{\omega_{sw}^2L_2C_f} \) | \( k_{ef}\approx\dfrac{1}{\omega_{sw}^2L_{2ef}C_f} \) | 7 |
 
-**Efecto sobre la antiresonancia (cero de \( i_1 \)).** El cero que aparece en la función de transferencia de \( i_1 \) (apartado 1, [[antiresonancia]]) está en \( f_{ar}=1/(2\pi\sqrt{L_{2ef} C_f}) \). También baja con \( L_{2ef} \), y más deprisa que \( f_{res} \) porque no está "amortiguada" por el paralelo con \( L_1 \): con los mismos valores cae de 2034 Hz (SCR 5) a 1233 Hz (SCR 2), un -39 %, frente al -12 % de \( f_{res} \). En red débil el margen de fase que aporta ese cero al usar \( i_1 \) como realimentación se estrecha más de lo que sugiere mirar solo \( f_{res} \).
+**Paso 3 — ejemplo numérico (valores reales del proyecto 04).** Con \( L_1=40\,\mu\text{H},\ C_f=85\,\mu\text{F},\ L_2=8\,\mu\text{H},\ L_t=64\,\mu\text{H} \), dos escenarios:
+- **Red fuerte** (\( L_g=0 \), SCR alto): \( L_{2ef}=L_2+L_t=72\,\mu\text{H} \).
+- **Red débil** (\( L_g=124\,\mu\text{H} \), valor tomado directamente del modelo del proyecto 04 para su escenario de SCR≈2 — no se recalcula aquí con la fórmula simplificada de [[red-thevenin-scr]] porque esa fórmula necesita el \( X/R \) de la red, que en el modelo del proyecto no coincide con el del trafo): \( L_{2ef}=L_2+L_t+L_g=196\,\mu\text{H} \).
 
-**Efecto sobre el amortiguamiento \( \zeta \) y el factor \( Q \).** Tanto \( \zeta_{res} \) (apartado 2) como \( Q \) (apartado 3) dependen de \( L_{eq}=L_1 L_{2ef}/(L_1+L_{2ef}) \), no de \( L_{2ef} \) directamente. Al crecer \( L_{2ef} \), \( L_{eq} \) crece mucho menos (tiende a saturar en \( L_1 \)): en el ejemplo, \( L_{eq} \) sube solo un 29 % (25.7→33.2 µH) mientras \( L_{2ef} \) casi se triplica. Como \( Q\propto\sqrt{L_{eq}} \), un \( R_d \) (o \( K_{ad} \)) dimensionado para SCR 5 da, sin tocarlo, un \( Q \) un 14 % mayor en SCR 2 (\( \sqrt{33.2/25.7}\approx1.14 \)): el pico de resonancia crece ligeramente al debilitarse la red, además de bajar de frecuencia. Por eso el amortiguamiento hay que verificarlo en el peor caso, no solo recalcular \( f_{res} \).
+Aplicando la tabla del Paso 2 (cálculo directo, ningún paso adicional):
 
-**Efecto sobre la atenuación a \( f_{sw} \).** La atenuación de la rama completa (apartado 7) mejora con \( L_{2ef} \) mayor, porque hay más inductancia total de lado red. Esa mejora no es controlable por diseño — depende de cuánta red haya — así que nunca debe contarse como margen: solo es un bonus en el caso de red fuerte, y no puede asumirse en el peor caso (red débil), que es precisamente el que hay que verificar.
+| | Red fuerte (\( L_{2ef}=72\,\mu\text{H} \)) | Red débil (\( L_{2ef}=196\,\mu\text{H} \)) | Variación |
+|---|---|---|---|
+| \( L_{eq,ef} \) | \( 25.7\,\mu\text{H} \) | \( 33.2\,\mu\text{H} \) | \( +29\% \) |
+| \( f_{res,ef} \) | \( 3404 \) Hz | \( 2995 \) Hz | \( -12\% \) |
+| \( f_{ar,ef} \) | \( 2034 \) Hz | \( 1233 \) Hz | \( -39\% \) |
 
-**Regla de verificación.** Recalcular siempre \( f_{res} \), \( f_{ar} \), \( \zeta \) y \( Q \) — no solo \( f_{res} \) — con el peor caso de \( L_g \) (SCR mínimo esperado, y \( L_t \) del trafo real si lo hay), y comprobar que el amortiguamiento sigue siendo suficiente en todo el rango.
+**Paso 4 — por qué \( f_{ar} \) baja más deprisa que \( f_{res} \) (no es casualidad, sale de las propias fórmulas).** \( f_{ar,ef}\propto1/\sqrt{L_{2ef}} \): depende de \( L_{2ef} \) directamente. \( f_{res,ef}\propto1/\sqrt{L_{eq,ef}} \), y \( L_{eq,ef}=L_1L_{2ef}/(L_1+L_{2ef}) \) **satura** hacia \( L_1 \) cuando \( L_{2ef}\gg L_1 \) (en el límite, \( L_{eq,ef}\to L_1 \), constante, ya no crece con \( L_{2ef} \)). Por eso, al multiplicarse \( L_{2ef} \) por casi 3 (de 72 a 196 µH), \( L_{eq,ef} \) solo sube un 29 % en vez de también triplicarse, y \( f_{res,ef} \) (que depende de \( L_{eq,ef} \)) baja mucho menos que \( f_{ar,ef} \) (que depende de \( L_{2ef} \) sin atenuar). En red débil el margen de fase que aporta el cero de antiresonancia al usar \( i_1 \) como realimentación (apartado 1, Paso 6) se estrecha más de lo que sugeriría mirar solo \( f_{res} \).
+
+**Paso 5 — efecto sobre el amortiguamiento \( \zeta \) y el factor \( Q \) (con \( R_d \) o \( K_{ad} \) ya fijados).** Si el amortiguamiento se diseñó para la red fuerte y no se retoca, \( R_d \) (o \( K_{ad} \)) queda fijo mientras \( L_{eq,ef} \) cambia. De la fórmula \( Q_{ef}=(1/R_d)\sqrt{L_{eq,ef}/C_f} \) (apartado 3) con \( R_d,C_f \) constantes, el cociente entre los dos escenarios es:
+
+$$ \frac{Q_{ef,\text{débil}}}{Q_{ef,\text{fuerte}}}=\sqrt{\frac{L_{eq,ef,\text{débil}}}{L_{eq,ef,\text{fuerte}}}}=\sqrt{\frac{33.2}{25.7}}\approx1.14 $$
+
+es decir, un \( 14\% \) más de \( Q \) (pico de resonancia algo más alto) en red débil, con el mismo \( R_d \) sin tocar. El amortiguamiento empeora ligeramente justo en el caso (red débil) donde más hace falta, así que hay que verificarlo ahí, no solo en la red fuerte.
+
+**Paso 6 — efecto sobre la atenuación a \( f_{sw} \) (mejora, pero no es controlable).** De \( k_{ef}\approx1/(\omega_{sw}^2L_{2ef}C_f) \) (apartado 7) con \( \omega_{sw},C_f \) fijos, el cociente entre tener \( L_2 \) sola y tener \( L_{2ef} \) es simplemente \( L_2/L_{2ef} \):
+
+$$ \frac{k_{ef}}{k}=\frac{L_2}{L_{2ef}} $$
+
+Con los valores del Paso 3: en red fuerte, \( k_{ef}/k=8/72\approx0.11 \) (atenuación real \( \approx9\times \) mejor que si solo existiera \( L_2 \), gracias solo al trafo); en red débil, \( k_{ef}/k=8/196\approx0.041 \) (\( \approx24\times \) mejor). La mejora es real, pero depende de cuánta inductancia externa haya — algo que el diseñador no controla y que puede no estar ahí (p. ej. en pruebas en banco sin red ni trafo, o en isla) — así que nunca debe contarse como margen de diseño: el cálculo del apartado 7 sin red es el que define el \( L_2 \) propio del filtro, y esta mejora es solo un bonus cuando aparece.
+
+**Regla de verificación.** Recalcular siempre \( f_{res} \), \( f_{ar} \), \( \zeta \) y \( Q \) — no solo \( f_{res} \) — con el peor caso de \( L_g \) (SCR mínimo esperado, y \( L_t \) del trafo real si lo hay), usando la sustitución \( L_2\to L_{2ef} \) del Paso 2, y comprobar que el amortiguamiento sigue siendo suficiente en todo el rango.
 
 ## Cuándo y por qué se usa
 Estándar a la salida de cualquier convertidor conectado a red (PV, eólica, baterías, STATCOM) por la normativa de inyección de armónicos, y también alimentando cargas sensibles en isla. Se prefiere al filtro L cuando se busca menos inductancia total / menor caída para la misma atenuación. La resonancia aparece en cuanto un lazo rápido o la impedancia de red excita la zona de \( f_{res} \); es crítica en red débil, donde \( L_g \) baja \( f_{res} \) y la mete en la banda de control.
@@ -745,7 +797,7 @@ print(f"L1={L1*1e3:.2f} mH  Cf={Cf*1e6:.1f} uF  L2={L2*1e3:.2f} mH  f_res={f_res
 - 02 - GFL-Impedance (estabilidad en red débil): el mismo LCL obliga a mantener el lazo de corriente / PLL por debajo de \( f_{res} \), que además baja al debilitarse la red.
 
 ## Conceptos relacionados
-- [[convertidor-vsc|modulación PWM]] · [[marco-dq]] · [[antiresonancia]] · [[resonancia-rlc]] · [[factor-calidad-q]] · [[amortiguamiento-pasivo-vs-activo]] · [[impedancia-salida-estabilidad]] · [[control-cascada]] · [[diagrama-bode]]
+- [[convertidor-vsc|modulación PWM]] · [[marco-dq]] · [[antiresonancia]] · [[resonancia-rlc]] · [[factor-calidad-q]] · [[amortiguamiento-pasivo-vs-activo]] · [[impedancia-salida-estabilidad]] · [[control-cascada]] · [[diagrama-bode]] · [[red-thevenin-scr]]
 
 ## Referencias
 - Reznik et al., *LCL Filter Design...*, IEEE TIA 2014.
