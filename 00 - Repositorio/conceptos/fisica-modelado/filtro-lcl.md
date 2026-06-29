@@ -624,7 +624,17 @@ $$ p(t)=v_C(t)\,i_C(t)=\big(\sqrt2\,V\sin\omega_0t\big)\big(\sqrt2\,V\omega_0C_f
 
 Usando la identidad trigonométrica \( 2\sin\theta\cos\theta=\sin2\theta \):
 
+$$ p(t)=V^2\omega_0C_f\sin(2\omega_0t) $$
+
+**De dónde sale \( I_C \) en vez de \( V^2 \).** El paso siguiente no añade nada nuevo: es sustituir, dentro de \( V^2\omega_0C_f \), la propia definición de \( I_C \) del Paso 2 (\( I_C=\omega_0C_fV \)). Separando un factor \( V \):
+
+$$ V^2\omega_0C_f = V\cdot\big(V\,\omega_0C_f\big) = V\cdot I_C $$
+
+— se reagrupan los mismos tres factores (\( V,\,V,\,\omega_0C_f \)) como \( V \) por (\( V\,\omega_0C_f \)), y ese paréntesis es exactamente \( I_C \). Por eso \( V^2 \) "desaparece": no se cancela ni se aproxima, se reescribe como \( V\cdot I_C \) porque \( I_C \) ya contiene un factor \( V \) dentro de su propia definición. Con esto:
+
 $$ p(t)=V^2\omega_0C_f\sin(2\omega_0t)=V I_C\sin(2\omega_0t) $$
+
+Esta forma con \( I_C \) es la que conviene seguir usando, porque \( Q_C=VI_C \) es la definición habitual de potencia reactiva (tensión por corriente, ambas RMS) y se generaliza igual a cualquier elemento reactivo, no solo a un condensador con su \( C_f \) explícito.
 
 Esta potencia oscila al doble de la frecuencia de red (coherente con el Paso 3: cuando \( v_C \) e \( i_C \) tienen signos opuestos la potencia es negativa, el condensador devuelve energía) y su **media en un periodo es cero**: \( \overline{p(t)}=0 \). El condensador no disipa nada, solo intercambia energía dos veces por ciclo. Lo único que queda como número característico no nulo es la **amplitud** de esa oscilación de potencia — eso es, por definición, la potencia reactiva:
 
