@@ -354,6 +354,48 @@ def _lcl_damping_bloques():
     print("filtro-lcl-damping-bloques.png")
 
 
+@figura("filtro-lcl")
+def _lcl_L2_atenuacion():
+    """Calidad de la aproximacion (despreciar el 1) y curva de diseno L2 vs k objetivo."""
+    Cf, fsw = 29.84155182973037e-6, 10e3   # mismos valores que el ejemplo de codigo
+    L1 = 2.857738033247041e-3
+    wsw = 2*np.pi*fsw
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.8, 3.7))
+
+    # (a) exacta vs aproximada |i2/i1| en funcion de fsw/far
+    x = np.logspace(0.02, np.log10(30), 400)            # fsw/far
+    exacta = 1/np.abs(1 - x**2)
+    aprox = 1/x**2
+    ax1.loglog(x, exacta, color=ACC, lw=2.0, label="exacta: $1/|1-x^2|$")
+    ax1.loglog(x, aprox, color=ACC2, lw=1.8, ls="--", label="aprox.: $1/x^2$")
+    ax1.axvspan(5, 15, color=OK, alpha=0.12, label="rango típico $f_{sw}/f_{ar}$")
+    for xv in (5, 10):
+        err = -100/xv**2
+        ax1.annotate(f"error {err:.1f}%", xy=(xv, 1/xv**2), xytext=(xv*1.15, 1/xv**2*2.3),
+                     fontsize=8, color="#555")
+    ax1.set_xlabel("$x=f_{sw}/f_{ar}$"); ax1.set_ylabel("$|i_2/i_1|$")
+    ax1.set_title("Calidad de la aproximación (Paso 3)", fontsize=10)
+    ax1.legend(fontsize=8, loc="upper right")
+
+    # (b) curva de diseno L2 vs k objetivo, con la tension frente al rango practico de r
+    k_pct = np.logspace(np.log10(0.2), np.log10(35), 400)
+    L2_uH = 1/((k_pct/100)*Cf*wsw**2)*1e6
+    ax2.loglog(k_pct, L2_uH, color=ACC, lw=2.2)
+    ax2.axvspan(10, 20, color=ACC2, alpha=0.15, label="$k$ típico (Reznik, 10–20%)")
+    ax2.axhspan(0.2*L1*1e6, 1.0*L1*1e6, color=OK, alpha=0.15, label="$L_2$ con $r$ en [0.2, 1]")
+    for kk, col, dy in [(10, ACC2, 2.6), (20, ACC2, 4.2)]:
+        L2v = 1/((kk/100)*Cf*wsw**2)*1e6
+        ax2.plot([kk], [L2v], "o", color=col, zorder=5)
+        ax2.annotate(f"$k$={kk}%, $L_2$≈{L2v:.0f} µH, $r$≈{L2v/(L1*1e6):.2f}",
+                     xy=(kk, L2v), xytext=(kk*0.55, L2v*dy), fontsize=7.5, color="#333")
+    ax2.set_xlabel("$k$ objetivo [%]"); ax2.set_ylabel("$L_2$ [µH]")
+    ax2.set_title("Curva de diseño: $L_2$ vs $k$ (Paso 4)", fontsize=10)
+    ax2.set_xlim(0.2, 35); ax2.set_ylim(10, 5000)
+    ax2.legend(fontsize=7.5, loc="upper right")
+    fig.tight_layout()
+    _savefig(fig, "filtro-lcl-L2-atenuacion.png")
+
+
 # ===================================================================== #
 #  marco-dq
 # ===================================================================== #

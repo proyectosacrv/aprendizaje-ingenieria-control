@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [atenuar armonicos de conmutacion, modelar la planta de potencia, gestionar la resonancia y amortiguarla]
 tags: [filtro, resonancia, antiresonancia, amortiguamiento-activo, factor-Q, rizado, dimensionado, funcion-transferencia, LCL, dq]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-28
+fecha_actualizacion: 2026-06-30
 relacionados: [convertidor-vsc, marco-dq, impedancia-salida-estabilidad, control-cascada, diagrama-bode, antiresonancia, resonancia-rlc, amortiguamiento-pasivo-vs-activo, frecuencias-segundo-orden, factor-calidad-q, red-thevenin-scr]
 referencias:
   - "Reznik et al., LCL Filter Design and Performance Analysis for Grid-Interconnected Systems, IEEE TIA 2014"
@@ -685,9 +685,23 @@ $$ \big|1-\omega_{sw}^2L_2C_f\big|\approx\omega_{sw}^2L_2C_f \;\Rightarrow\; \le
 
 Dividiendo la condición \( \omega_{sw}^2L_2C_f\gg1 \) por \( \omega_{sw}C_f \) se obtiene \( \omega_{sw}L_2\gg1/(\omega_{sw}C_f) \): es la misma condición dicha de otra forma — la impedancia de \( L_2 \) a \( f_{sw} \) es mucho mayor que la de \( C_f \), así que casi toda la corriente de rizado prefiere el camino de menor impedancia (el condensador) en vez de seguir hacia \( L_2 \) y la red.
 
+**Qué tan buena es la aproximación, en números.** El error relativo tiene forma cerrada. Dividiendo la aproximada entre la exacta y usando \( x\equiv\omega_{sw}/\omega_{ar}\gg1 \) (con lo que \( |1-x^2|=x^2-1 \)):
+
+$$ \frac{\text{aprox.}}{\text{exacta}}=\frac{1/x^2}{1/(x^2-1)}=\frac{x^2-1}{x^2}=1-\frac{1}{x^2} $$
+
+restando 1 a ambos lados se obtiene directamente el error relativo (aprox. menos exacta, dividido por exacta):
+
+$$ \text{error}=\frac{\text{aprox.}-\text{exacta}}{\text{exacta}}=-\frac{1}{x^2}=-\left(\frac{f_{ar}}{f_{sw}}\right)^2 $$
+
+el error cae con el **cuadrado** de cuánto se separan las dos frecuencias: con \( f_{sw}/f_{ar}=5 \) (separación todavía modesta) ya es solo del \( 4\,\% \); con \( 10 \), del \( 1\,\% \); con \( 20 \), del \( 0.25\,\% \). El panel izquierdo de la figura siguiente compara ambas curvas.
+
 **Paso 4 — despejar \( L_2 \) para una atenuación objetivo \( k \).** Llamando \( k=|i_2/i_1| \) en \( f_{sw} \) al objetivo de diseño y despejando de la aproximación del Paso 3:
 
 $$ k\approx\frac{1}{\omega_{sw}^2L_2C_f} \;\Rightarrow\; \boxed{\,L_2\approx\frac{1}{k\,C_f\,\omega_{sw}^2}\,} $$
+
+**Qué valores de \( k \) se buscan en la práctica.** \( k \) no es un número libre: en la metodología de Reznik et al. (ya en la bibliografía de esta ficha) se diseña para un \( k \) de en torno al \( 10\text{–}20\,\% \) de la fundamental en \( f_{sw} \) — atenuar más exige más \( L_2 \) (más caída de tensión y coste de cobre/núcleo); atenuar menos delega más filtrado en \( C_f \) o en la inductancia de salida que ya exista (cableado, trafo — apartado 8). El panel derecho de la figura siguiente traza \( L_2 \) frente a \( k \) objetivo con los valores de este mismo ejemplo (\( C_f=29.8\,\mu\text{F} \), \( f_{sw}=10 \) kHz): para \( k=10\,\% \), \( L_2\approx85\,\mu\text{H} \); para \( k=20\,\% \), \( L_2\approx42\,\mu\text{H} \).
+
+<div class="cfig"><img src="figuras/filtro-lcl-L2-atenuacion.png" alt="Izquierda: curvas exacta y aproximada de i2/i1 en funcion de fsw/far, con el error marcado en el rango tipico. Derecha: curva de diseno L2 en funcion de k objetivo, con los puntos k=10% y k=20% senalados y la banda de L2 que daria r entre 0.2 y 1"><div class="cap">Izquierda: la aproximación del Paso 3 (línea discontinua) prácticamente se solapa con la exacta (línea continua) en el rango típico \( f_{sw}/f_{ar}=5\text{–}15 \), con el error indicado en cada punto. Derecha: cuanto más exigente el \( k \) objetivo, menor el \( L_2 \) necesario; la banda verde marca el rango de \( L_2 \) que daría \( r=L_2/L_1 \) entre 0.2 y 1 con la \( L_1 \) de este ejemplo — nótese que no se solapa con la banda naranja de \( k \) típico, la tensión que se explica a continuación.</div></div>
 
 **Por qué \( r=L_2/L_1 \) se comprueba después y no se fija antes.** \( L_1 \) ya se fijó por rizado (apartado 5) y \( L_2 \) se acaba de fijar por esta atenuación \( k \) (Paso 4): los dos cálculos son independientes, ninguno usa el resultado del otro. Por eso \( r=L_2/L_1 \) no es un parámetro que se elige al empezar el diseño, es una consecuencia que sale al final y que conviene comprobar.
 
@@ -696,6 +710,12 @@ $$ k\approx\frac{1}{\omega_{sw}^2L_2C_f} \;\Rightarrow\; \boxed{\,L_2\approx\fra
 $$ \frac{f_{res}}{f_{ar}}=\sqrt{\frac{L_2}{L_{eq}}}=\sqrt{\frac{L_2\,(L_1+L_2)}{L_1L_2}}=\sqrt{\frac{L_1+L_2}{L_1}}=\sqrt{1+r} $$
 
 (usando \( L_{eq}=L_1L_2/(L_1+L_2) \) del apartado 2 y \( r\equiv L_2/L_1 \)). Es una relación cerrada y exacta: cuánto se separan las dos frecuencias clave del filtro depende solo de \( r \), no de los valores absolutos de \( L_1,L_2,C_f \). Con \( r=0.2 \): \( f_{res}/f_{ar}=\sqrt{1.2}\approx1.10 \) (apenas un 10 % de separación, casi se solapan). Con \( r=1 \): \( f_{res}/f_{ar}=\sqrt2\approx1.41 \) (41 % de separación, claramente distinguibles). Por debajo de \( r\approx0.2 \) la antiresonancia que ayuda a estabilizar el lazo de \( i_1 \) (apartado 1, Paso 6) queda demasiado pegada a la resonancia, con poco margen entre ambas; por encima de \( r\approx1 \), \( L_2 \) pasa a ser mayor que \( L_1 \) — quien hace el trabajo más exigente, absorber el escalón completo de \( V_{dc} \) (apartado 5) — y si \( r \) sale ahí suele ser más barato revisar \( C_f \) (apartado 6) o relajar \( k \) que seguir subiendo \( L_2 \).
+
+**Para qué sirve \( r \) en la práctica, más allá de comprobarlo al final.** Tres usos concretos:
+
+1. **Diagnóstico de un conflicto de diseño entre apartados 6 y 7.** \( C_f \) (apartado 6) y \( L_2 \) (apartado 7) se calculan de forma independiente, pero comparten el mismo \( C_f \) en sus fórmulas — y eso los puede dejar incompatibles sin que ninguno de los dos cálculos, por separado, avise. En este mismo ejemplo (\( C_f=29.8\,\mu\text{F} \), el máximo que permite el \( 5\,\% \) de reactiva del apartado 6): con \( k=10\,\% \) (dentro del rango típico) sale \( L_2\approx85\,\mu\text{H} \) y por tanto \( r=L_2/L_1\approx0.03 \) — muy por debajo de 0.2. Para que \( r \) cayera en el rango práctico haría falta \( k\approx1.5\,\% \) (\( r=0.2 \)) o incluso \( k\approx0.3\,\% \) (\( r=1 \)), valores mucho más exigentes que el \( 10\text{–}20\,\% \) habitual — ver la banda naranja (\( k \) típico) y la banda verde (\( L_2 \) que da \( r \) en rango) en la figura anterior, que no se solapan. La lectura correcta no es "subir \( L_2 \) hasta que \( r \) entre en rango" (eso es justo lo que el Paso 4 — apartado anterior — desaconseja: sobredimensionar \( L_2 \) cuesta caída de tensión y cobre sin necesidad real de atenuación); es revisar si \( C_f \) se forzó sin necesidad al límite del \( 5\,\% \) (apartado 6 solo dice "como máximo", no "hay que usarlo todo") — un \( C_f \) menor sube \( L_2 \) para el mismo \( k \) y con ello sube \( r \) también, sin gastar más cobre del estrictamente necesario.
+2. **Separación efectiva entre resonancia y antiresonancia**, ya cuantificada arriba con \( f_{res}/f_{ar}=\sqrt{1+r} \): \( r \) es, literalmente, la única variable de la que depende esa separación.
+3. **Indicio (no verificado en una fuente primaria por quien escribe esta ficha) sobre el factor de potencia.** Algunas referencias de diseño de filtros LCL señalan que valores de \( r \) por encima de 0.5–0.6 empiezan a introducir una reducción apreciable (del orden de unos pocos puntos porcentuales) del factor de potencia visto desde la red, porque \( L_2 \) ya no es despreciable frente a la reactancia de magnetización/dispersión vista por la red. No se ha podido confirmar esta cifra contra el artículo original (acceso bloqueado), así que aquí se trata como una señal adicional para no quedarse en el extremo alto del rango 0.2–1 sin motivo, no como un límite con la misma solidez que el resto de fórmulas de este apartado.
 
 ## 8 — Efecto de la red y el trafo sobre el filtro
 Hasta aquí el filtro se ha tratado aislado, con \( L_2 \) terminando en una fuente de tensión ideal. En la práctica, aguas abajo del PCC hay un transformador (inductancia de dispersión \( L_t \)) y la red real, vista como un equivalente Thévenin con inductancia \( L_g \) (mayor cuanto más débil la red — ver [[red-thevenin-scr]] para de dónde sale \( L_g \) a partir del SCR). A continuación se justifica, sin asumirlo, por qué ambas se suman en serie con \( L_2 \), y se deriva su efecto en cada magnitud ya calculada en los apartados anteriores.
