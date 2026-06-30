@@ -774,7 +774,47 @@ Aplicando la tabla del Paso 2 (cálculo directo, ningún paso adicional):
 | \( f_{res,ef} \) | \( 3404 \) Hz | \( 2995 \) Hz | \( -12\% \) |
 | \( f_{ar,ef} \) | \( 2034 \) Hz | \( 1233 \) Hz | \( -39\% \) |
 
-**Paso 4 — por qué \( f_{ar} \) baja más deprisa que \( f_{res} \) (no es casualidad, sale de las propias fórmulas).** \( f_{ar,ef}\propto1/\sqrt{L_{2ef}} \): depende de \( L_{2ef} \) directamente. \( f_{res,ef}\propto1/\sqrt{L_{eq,ef}} \), y \( L_{eq,ef}=L_1L_{2ef}/(L_1+L_{2ef}) \) **satura** hacia \( L_1 \) cuando \( L_{2ef}\gg L_1 \) (en el límite, \( L_{eq,ef}\to L_1 \), constante, ya no crece con \( L_{2ef} \)). Por eso, al multiplicarse \( L_{2ef} \) por casi 3 (de 72 a 196 µH), \( L_{eq,ef} \) solo sube un 29 % en vez de también triplicarse, y \( f_{res,ef} \) (que depende de \( L_{eq,ef} \)) baja mucho menos que \( f_{ar,ef} \) (que depende de \( L_{2ef} \) sin atenuar). En red débil el margen de fase que aporta el cero de antiresonancia al usar \( i_1 \) como realimentación (apartado 1, Paso 6) se estrecha más de lo que sugeriría mirar solo \( f_{res} \).
+**Paso 4 — desarrollo: por qué la red mueve mucho \( f_{ar} \) y poco \( f_{res} \).** Las dos frecuencias dependen de \( L_{2ef} \) de forma distinta, y eso se ve exactamente comparando cada una entre los dos escenarios (subíndices F = red fuerte, D = red débil). Se hace por separado.
+
+*Antiresonancia.* Partiendo de \( f_{ar,ef}=1/(2\pi\sqrt{L_{2ef}C_f}) \) (tabla del Paso 2), el cociente entre escenarios es
+
+$$ \frac{f_{ar,D}}{f_{ar,F}}=\frac{1/(2\pi\sqrt{L_{2ef,D}C_f})}{1/(2\pi\sqrt{L_{2ef,F}C_f})}=\frac{\sqrt{L_{2ef,F}C_f}}{\sqrt{L_{2ef,D}C_f}}=\sqrt{\frac{L_{2ef,F}}{L_{2ef,D}}} $$
+
+(se invierte la fracción de fracciones, se cancelan \( 2\pi \) y \( C_f \) bajo la raíz, como en el desarrollo del apartado 7). Con los valores del Paso 3, \( L_{2ef,F}=72\,\mu\text{H} \), \( L_{2ef,D}=196\,\mu\text{H} \):
+
+$$ \frac{f_{ar,D}}{f_{ar,F}}=\sqrt{\frac{72}{196}}=\sqrt{0.367}=0.606 \;\Rightarrow\; f_{ar}\ \text{baja un}\ 39.4\% $$
+
+que es exactamente el \( 2034\to1233 \) Hz de la figura. La clave: \( L_{2ef} \) entra **entero** bajo la raíz, sin atenuar.
+
+*Resonancia.* Partiendo de \( f_{res,ef}=1/(2\pi\sqrt{L_{eq,ef}C_f}) \) con \( L_{eq,ef}=L_1L_{2ef}/(L_1+L_{2ef}) \), el mismo cociente da
+
+$$ \frac{f_{res,D}}{f_{res,F}}=\sqrt{\frac{L_{eq,ef,F}}{L_{eq,ef,D}}} $$
+
+pero ahora lo que está bajo la raíz no es \( L_{2ef} \) sino \( L_{eq,ef} \), que **satura**. Sustituyendo la definición del paralelo en el cociente \( L_{eq,ef,F}/L_{eq,ef,D} \):
+
+$$ \frac{L_{eq,ef,F}}{L_{eq,ef,D}}=\frac{\dfrac{L_1L_{2ef,F}}{L_1+L_{2ef,F}}}{\dfrac{L_1L_{2ef,D}}{L_1+L_{2ef,D}}}=\frac{L_{2ef,F}}{L_{2ef,D}}\cdot\frac{L_1+L_{2ef,D}}{L_1+L_{2ef,F}} $$
+
+(el \( L_1 \) del numerador de cada paralelo se cancela; se reordena como producto de dos cocientes). El primer factor \( L_{2ef,F}/L_{2ef,D} \) es el mismo que aparece en \( f_{ar} \) — el que la haría bajar igual de rápido. El segundo factor, \( (L_1+L_{2ef,D})/(L_1+L_{2ef,F}) \), es **mayor que 1** (el numerador tiene el \( L_{2ef} \) más grande) y por tanto **frena** la caída. Con números, \( L_1=40\,\mu\text{H} \):
+
+$$ \frac{L_{eq,ef,F}}{L_{eq,ef,D}}=\frac{72}{196}\cdot\frac{40+196}{40+72}=0.367\cdot\frac{236}{112}=0.367\cdot2.107=0.774 $$
+
+$$ \frac{f_{res,D}}{f_{res,F}}=\sqrt{0.774}=0.880 \;\Rightarrow\; f_{res}\ \text{baja solo un}\ 12.0\% $$
+
+que es el \( 3404\to2995 \) Hz de la figura. El segundo factor (2.107) es justo lo que convierte el \( -39\% \) de \( f_{ar} \) en el \( -12\% \) de \( f_{res} \).
+
+*La razón de fondo, en una sola fórmula.* Cuánto responde cada frecuencia a un cambio relativo de \( L_{2ef} \) se mide con su elasticidad \( \mathrm{d}\ln f/\mathrm{d}\ln L_{2ef} \). Para la antiresonancia, de \( \ln f_{ar,ef}=\text{cte}-\tfrac12\ln L_{2ef}-\tfrac12\ln C_f \), derivando:
+
+$$ \frac{\mathrm{d}\ln f_{ar,ef}}{\mathrm{d}\ln L_{2ef}}=-\frac12\quad(\text{constante, siempre}) $$
+
+Para la resonancia, \( \ln f_{res,ef}=\text{cte}+\tfrac12\ln(L_1+L_{2ef})-\tfrac12\ln L_{2ef}-\tfrac12\ln C_f \) (de \( L_{eq,ef}=L_1L_{2ef}/(L_1+L_{2ef}) \), tomando logaritmo: \( \ln L_{eq,ef}=\ln L_1+\ln L_{2ef}-\ln(L_1+L_{2ef}) \), y \( f_{res}\propto L_{eq,ef}^{-1/2} \)). Derivando respecto a \( \ln L_{2ef} \) —el único término variable es \( L_{2ef} \), y \( \mathrm{d}\ln(L_1+L_{2ef})/\mathrm{d}\ln L_{2ef}=L_{2ef}/(L_1+L_{2ef}) \) por la regla de la cadena:
+
+$$ \frac{\mathrm{d}\ln f_{res,ef}}{\mathrm{d}\ln L_{2ef}}=\frac12\cdot\frac{L_{2ef}}{L_1+L_{2ef}}-\frac12=-\frac12\cdot\frac{L_1}{L_1+L_{2ef}} $$
+
+(juntando los dos términos sobre \( L_1+L_{2ef} \): \( L_{2ef}-(L_1+L_{2ef})=-L_1 \)). Comparando las dos elasticidades:
+
+$$ \frac{\mathrm{d}\ln f_{res,ef}/\mathrm{d}\ln L_{2ef}}{\mathrm{d}\ln f_{ar,ef}/\mathrm{d}\ln L_{2ef}}=\frac{-\tfrac12\,L_1/(L_1+L_{2ef})}{-\tfrac12}=\frac{L_1}{L_1+L_{2ef}}<1 $$
+
+Ese factor \( L_1/(L_1+L_{2ef}) \) es la **fracción exacta** de lo que se mueve \( f_{ar} \) que se mueve \( f_{res} \): vale 0.357 en red fuerte (\( 40/112 \)) y 0.169 en red débil (\( 40/236 \)) — cuanto más \( L_{2ef} \), más se acerca a 0 y más se queda quieta \( f_{res} \) mientras \( f_{ar} \) sigue cayendo a ritmo \( -\tfrac12 \). En el límite \( L_{2ef}\gg L_1 \), \( L_{eq,ef}\to L_1 \) (constante) y \( f_{res} \) deja de depender de la red por completo. **Consecuencia de control:** en red débil el margen de fase que aporta el cero de antiresonancia al realimentar \( i_1 \) (apartado 1, Paso 6) se estrecha más de lo que sugeriría mirar solo \( f_{res} \) — \( f_{ar} \) y \( f_{res} \) se acercan entre sí, no se mueven juntas.
 
 **Paso 5 — efecto sobre el amortiguamiento \( \zeta \) y el factor \( Q \) (con \( R_d \) o \( K_{ad} \) ya fijados).** Si el amortiguamiento se diseñó para la red fuerte y no se retoca, \( R_d \) (o \( K_{ad} \)) queda fijo mientras \( L_{eq,ef} \) cambia. De la fórmula \( Q_{ef}=(1/R_d)\sqrt{L_{eq,ef}/C_f} \) (apartado 3) con \( R_d,C_f \) constantes, el cociente entre los dos escenarios es:
 
