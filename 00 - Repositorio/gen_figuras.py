@@ -696,6 +696,91 @@ def _cascada():
     print("control-cascada-lazos.png")
 
 
+@figura("control-cascada")
+def _cascada_sintonia():
+    """Sintonia de los dos PI: cancelacion de polo (corriente) y separacion de escalas."""
+    L1, R1, Cf = 2e-3, 0.1, 20e-6
+    fci, fcv = 1000.0, 350.0
+    wci, wcv = 2*np.pi*fci, 2*np.pi*fcv
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9.0, 3.8))
+
+    # (a) lazo de corriente: planta, PI y lazo abierto -> integrador puro tras cancelar
+    f = np.logspace(0, 4, 2000); w = 2*np.pi*f; s = 1j*w
+    planta = 1/(L1*s + R1)
+    Kp, Ti = L1*wci, L1/R1
+    pi = Kp*(Ti*s + 1)/(Ti*s)
+    L_ol = pi*planta
+    ax1.semilogx(f, 20*np.log10(np.abs(planta*R1)), color="#888", lw=1.4, ls=":",
+                 label="planta $1/(sL_1{+}R_1)$ (norm.)")
+    ax1.semilogx(f, 20*np.log10(np.abs(L_ol)), color=ACC, lw=2.2,
+                 label="lazo abierto $L(s)$ = integrador")
+    ax1.axvline(fci, color=OK, ls="--", lw=1.1)
+    ax1.axvline(R1/L1/(2*np.pi), color=BAD, ls=":", lw=1.1)
+    ax1.axhline(0, color="#555", lw=0.8)
+    ax1.text(R1/L1/(2*np.pi)*1.1, 38, f"polo planta =\ncero PI\n({R1/L1/(2*np.pi):.0f} Hz)",
+             color=BAD, fontsize=7.5)
+    ax1.text(fci*1.08, 25, f"$f_{{ci}}$={fci:.0f} Hz\n($|L|$=1)", color=OK, fontsize=8)
+    ax1.set_xlabel("frecuencia [Hz]"); ax1.set_ylabel("magnitud [dB]")
+    ax1.set_title("(a) Lazo de corriente: el PI cancela el polo", fontsize=9.5)
+    ax1.set_ylim(-40, 60); ax1.legend(fontsize=7.5, loc="upper right")
+
+    # (b) separacion de escalas: lazo interno cerrado ~1 donde actua el externo
+    Hi = wci/(s + wci)                       # corriente cerrada (1er orden)
+    ax2.semilogx(f, 20*np.log10(np.abs(Hi)), color=ACC, lw=2.2,
+                 label="lazo corriente cerrado")
+    ax2.axvspan(1, fcv, color=OK, alpha=0.12, label="banda del lazo de tensión")
+    ax2.axvline(fcv, color=OK, ls="--", lw=1.1)
+    ax2.axvline(fci, color=ACC, ls="--", lw=1.1)
+    ax2.axhline(-3, color="#aaa", ls=":", lw=1)
+    ax2.text(fcv*0.30, -16, f"$f_{{cv}}$={fcv:.0f} Hz\naquí el interno\nvale ≈1", color=OK, fontsize=8)
+    ax2.annotate(f"$f_{{ci}}/f_{{cv}}$≈{fci/fcv:.1f}×", xy=(fci, -3), xytext=(fci*1.2, -22),
+                 fontsize=8.5, color="#333", arrowprops=dict(arrowstyle="->", color="#777"))
+    ax2.set_xlabel("frecuencia [Hz]"); ax2.set_ylabel("$|i_{L1}/i_{L1}^*|$ [dB]")
+    ax2.set_title("(b) Separación de escalas (interno ≫ externo)", fontsize=9.5)
+    ax2.set_ylim(-30, 6); ax2.legend(fontsize=7.5, loc="lower left")
+    fig.tight_layout()
+    _savefig(fig, "control-cascada-sintonia.png")
+
+
+@figura("control-cascada")
+def _cascada_lcl_limite():
+    """El LCL limita el lazo de tension: fcv debe quedar bajo fres; escalon antes/despues."""
+    L1, L2, Cf, R1 = 2e-3, 1e-3, 20e-6, 0.1
+    Leq = L1*L2/(L1+L2); wres = np.sqrt((L1+L2)/(L1*L2*Cf)); fres = wres/(2*np.pi)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9.0, 3.8))
+
+    # (a) bandas de control sobre el modulo de la planta de tension con resonancia
+    f = np.logspace(1, 4, 3000); w = 2*np.pi*f; s = 1j*w
+    Rd = 1/(3*wres*Cf)
+    # vC/iL1* aprox: pico resonante. Uso 1/(sCf) modulada por el factor resonante con damping.
+    H = 1/(s*Cf) * (wres**2)/(s**2 + 2*0.1*wres*s + wres**2)
+    ax1.semilogx(f, 20*np.log10(np.abs(H)), color="#888", lw=1.8, label="planta $v_C/i_{L1}^*$")
+    ax1.axvline(fres, color=BAD, ls="--", lw=1.4); ax1.text(fres*1.05, 60, f"$f_{{res}}$\n{fres:.0f} Hz", color=BAD, fontsize=8)
+    for fc, lab, col in [(350, "$f_{cv}$ tensión", OK), (1000, "$f_{ci}$ corriente", ACC)]:
+        ax1.axvline(fc, color=col, ls=":", lw=1.3); ax1.text(fc*0.62, 18, lab, color=col, fontsize=8, rotation=90)
+    ax1.axvspan(10, fres, color=OK, alpha=0.07)
+    ax1.set_xlabel("frecuencia [Hz]"); ax1.set_ylabel("magnitud [dB]")
+    ax1.set_title("(a) $f_{cv}<f_{ci}<f_{res}$: el control va\npor debajo de la resonancia", fontsize=9.5)
+    ax1.set_ylim(-20, 80); ax1.legend(fontsize=8, loc="lower left")
+
+    # (b) escalon de vC: estable (fcv bajo) vs excitado (fcv subido sin amortiguar)
+    t = np.linspace(0, 12e-3, 1200)
+    def step(fc, zeta):
+        wn = 2*np.pi*fc; wd = wn*np.sqrt(1-zeta**2)
+        return 1 - np.exp(-zeta*wn*t)*(np.cos(wd*t) + (zeta/np.sqrt(1-zeta**2))*np.sin(wd*t))
+    ax2.plot(t*1e3, step(350, 0.7), color=OK, lw=2.2, label="$f_{cv}$=350 Hz (amortiguado)")
+    # subir fcv cerca de fres sin amortiguar -> oscilacion mantenida
+    wn2 = 2*np.pi*fres; zeta2 = 0.04
+    y2 = 1 - np.exp(-zeta2*wn2*t)*np.cos(wn2*np.sqrt(1-zeta2**2)*t)
+    ax2.plot(t*1e3, y2, color=BAD, lw=1.6, label="$f_{cv}$ subido a $f_{res}$ sin amortiguar")
+    ax2.axhline(1, color="#aaa", ls=":", lw=1)
+    ax2.set_xlabel("tiempo [ms]"); ax2.set_ylabel("$v_C$ (norm.)")
+    ax2.set_title("(b) Escalón de $v_C$: subir $f_{cv}$ a $f_{res}$\nexcita la resonancia", fontsize=9.5)
+    ax2.set_ylim(-0.2, 2.1); ax2.legend(fontsize=7.5, loc="upper right")
+    fig.tight_layout()
+    _savefig(fig, "control-cascada-lcl-limite.png")
+
+
 # ===================================================================== #
 #  red-thevenin-scr
 # ===================================================================== #
