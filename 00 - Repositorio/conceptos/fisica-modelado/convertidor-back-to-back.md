@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [desacoplar dos sistemas AC con flujo de potencia bidireccional, modelar el bus DC compartido]
 tags: [back-to-back, vsc, bus-dc, hvdc, eolica, full-converter, bidireccional, modelado]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-30
 relacionados: [convertidor-vsc, dinamica-bus-dc, control-tension-bus-dc, eolica-mppt, modelo-bateria-bess]
 referencias:
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
@@ -39,6 +39,27 @@ Visto desde el bus DC, **el convertidor que controla potencia se comporta como u
 (impedancia incremental negativa) → puede desestabilizar el lazo de tensión si el condensador es pequeño.
 
 <div class="cfig"><img src="figuras/convertidor-back-to-back-topologia.png" alt="topologia back-to-back de dos VSC con bus DC comun"><div class="cap">Dos VSC comparten un único condensador de bus DC: el acoplamiento entre ambos lados es solo energético ($C\,\dot V_{dc}=(P_1-P_2)/V_{dc}$). Uno regula la tensión del bus y el otro controla la potencia/par; cada lado ve al otro como una simple fuente o sumidero de potencia, lo que desacopla dos redes AC distintas en frecuencia y fase.</div></div>
+
+## 1 — La dinámica del bus DC desde el balance de potencia
+**Paso 1 — energía almacenada en el condensador.** El bus DC es un condensador \( C \) cargado a \( V_{dc} \). Su energía es
+
+$$ E=\tfrac12\,C\,V_{dc}^2 $$
+
+**Paso 2 — balance de potencia.** La energía del condensador sube cuando entra más potencia de la que sale. El convertidor 1 inyecta \( P_1 \), el convertidor 2 extrae \( P_2 \), y las pérdidas internas consumen \( P_{loss} \):
+
+$$ \frac{dE}{dt}=P_1-P_{loss}-P_2 $$
+
+**Paso 3 — derivar la energía.** Derivando \( E=\tfrac12 C V_{dc}^2 \) respecto al tiempo (regla de la cadena, \( C \) constante):
+
+$$ \frac{dE}{dt}=\tfrac12\,C\cdot 2\,V_{dc}\,\frac{dV_{dc}}{dt}=C\,V_{dc}\,\frac{dV_{dc}}{dt} $$
+
+**Paso 4 — igualar y despejar.** Igualando los dos pasos anteriores:
+
+$$ C\,V_{dc}\,\frac{dV_{dc}}{dt}=P_1-P_{loss}-P_2 $$
+
+$$ \boxed{\;C\,\frac{dV_{dc}}{dt}=\frac{P_1-P_{loss}-P_2}{V_{dc}}=i_{dc,1}-i_{dc,2}\;} $$
+
+donde se ha identificado \( i_{dc,k}=P_k/V_{dc} \) (corriente DC equivalente de cada puente). En equilibrio \( dV_{dc}/dt=0 \) exige \( P_1=P_2+P_{loss} \): el lado-red debe evacuar toda la potencia que el lado-máquina inyecta, o \( V_{dc} \) deriva. Esta es la razón física de por qué un lado regula \( V_{dc} \): es el único grado de libertad que cierra el balance. Linealizada en torno a \( V_{dc0} \) da el modelo del lazo de tensión ([[control-tension-bus-dc]]); el término \( P_2/V_{dc} \) con \( P_2 \) fija es el que aporta la pendiente negativa de la [[dinamica-bus-dc|CPL]].
 
 ## Cuándo y por qué se usa
 Siempre que haya que **interconectar dos redes AC desacopladas en frecuencia/fase** con control

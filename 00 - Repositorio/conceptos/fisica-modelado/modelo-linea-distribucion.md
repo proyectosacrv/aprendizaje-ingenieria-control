@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [modelar la impedancia entre convertidor y red, justificar el droop P-f/Q-V]
 tags: [linea, pi, rl, impedancia, x-r, distribucion, transmision, dq, modelado]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-30
 relacionados: [transferencia-potencia-linea, red-thevenin-scr, impedancia-reactancia, droop-control, marco-dq, sistema-por-unidad]
 referencias:
   - "Kundur, Power System Stability and Control, McGraw-Hill 1994"
@@ -36,6 +36,28 @@ válido **solo si \( X\gg R \)**. La relación \( X/R \) decide qué controla qu
 | Distribución (MT/BT) | 0.3–2 | \( P \) y \( Q \) **acoplados** (R no despreciable) |
 
 <div class="cfig"><img src="figuras/modelo-linea-distribucion-pi.png" alt="modelo pi de linea con impedancia serie RL y capacidad shunt"><div class="cap">Modelo π de un tramo de línea/cable: impedancia serie $Z=R+j\omega L$ y capacidad shunt $C/2$ en cada extremo (solo necesaria en líneas largas/cables). La relación $X/R$ decide el acoplamiento: con $X\gg R$ (transmisión) $P\leftrightarrow\delta$ y $Q\leftrightarrow V$ se desacoplan y vale el droop clásico; en distribución ($X/R\sim1$) $P$ y $Q$ quedan acoplados.</div></div>
+
+## 1 — De dónde sale el acoplamiento cruzado \( \pm\omega L \) en dq
+**Paso 1 — la ley del tramo RL en abc.** Por fase, la tensión sobre el tramo serie es la caída resistiva más la inductiva (vector espacial \( \vec{x}=x_d+jx_q \) en marco **estacionario** \( \alpha\beta \)):
+
+$$ \vec{v}_1-\vec{v}_2=R\,\vec{i}+L\frac{d\vec{i}}{dt} $$
+
+**Paso 2 — pasar al marco giratorio.** El marco dq gira a \( \omega \): un vector estacionario \( \vec{i}^{s} \) se relaciona con el del marco giratorio \( \vec{i} \) por \( \vec{i}^{s}=\vec{i}\,e^{j\omega t} \). Sustituyendo y derivando el producto:
+
+$$ \frac{d\vec{i}^{s}}{dt}=\frac{d}{dt}\big(\vec{i}\,e^{j\omega t}\big)=\left(\frac{d\vec{i}}{dt}+j\omega\,\vec{i}\right)e^{j\omega t} $$
+
+El término extra \( j\omega\,\vec{i} \) aparece **solo** por derivar dentro de un marco que gira (regla del producto): es el origen del acoplamiento.
+
+**Paso 3 — escribir la ecuación en dq.** Sustituyendo todo (\( \vec{v}=\vec{v}\,e^{j\omega t} \)) y cancelando el factor común \( e^{j\omega t} \):
+
+$$ \vec{v}_1-\vec{v}_2=R\,\vec{i}+L\left(\frac{d\vec{i}}{dt}+j\omega\,\vec{i}\right)\quad\Longrightarrow\quad L\frac{d\vec{i}}{dt}=\vec{v}_1-\vec{v}_2-R\,\vec{i}-j\omega L\,\vec{i} $$
+
+**Paso 4 — separar parte real (d) e imaginaria (q).** Con \( \vec{i}=i_d+ji_q \), el término \( -j\omega L\,\vec{i}=-j\omega L(i_d+ji_q)=\omega L\,i_q-j\omega L\,i_d \). Igualando componente real y componente imaginaria:
+
+$$ \boxed{\;L\frac{di_d}{dt}=v_{1d}-v_{2d}-R\,i_d+\omega L\,i_q,\qquad
+   L\frac{di_q}{dt}=v_{1q}-v_{2q}-R\,i_q-\omega L\,i_d\;} $$
+
+El \( +\omega L\,i_q \) en la ecuación de d y el \( -\omega L\,i_d \) en la de q son el **acoplamiento cruzado**: el eje q empuja al d y viceversa, con signos opuestos. No es un artificio de modelado — nace literalmente del \( j\omega \) de derivar en un marco giratorio (Paso 2). Por eso el lazo de corriente añade términos de **desacoplo** \( \mp\omega L\,i_{q,d} \) en la referencia, para cancelarlos. El mismo \( \omega L_g \) aparece en la red ([[red-thevenin-scr]]) y en el [[filtro-lcl]].
 
 ## Cuándo y por qué se usa
 Para dimensionar lazos de corriente (la \( L \) es la planta del lazo), calcular la [[red-thevenin-scr|SCR]]

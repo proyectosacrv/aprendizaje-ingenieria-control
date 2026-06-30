@@ -8,7 +8,7 @@ proyectos: [03-DataCenter-IA]
 objetivos: [modelar y dimensionar el condensador del bus DC, modelar la carga de potencia constante y analizar la estabilidad del bus]
 tags: [bus-dc, condensador, balance-energia, rizado, hold-up, CPL, resistencia-negativa, estabilidad, microrred-dc, datacenter]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-16
+fecha_actualizacion: 2026-06-30
 relacionados: [control-tension-bus-dc, criterio-middlebrook, impedancia-salida-estabilidad, potencia-instantanea-dq, robustez-parametrica]
 referencias:
   - "Mohan, Undeland, Robbins, Power Electronics, Wiley"
@@ -75,6 +75,58 @@ Es decir: más potencia, menos resistencia o menos condensador → inestable. So
 Es el análogo DC de la inestabilidad por impedancia que en AC aparece en el grid-following.
 
 <div class="cfig"><img src="figuras/estabilidad-bus-dc-cpl-polos.png" alt="polos del bus DC con CPL al subir la potencia"><div class="cap">Al aumentar la potencia de la CPL, el término P/(V²Cdc) resta amortiguamiento y el par de polos del filtro L-C se desplaza a la derecha, cruzando el eje imaginario en P_crit=V²RfCdc/Lf. Por encima de esa potencia el bus oscila: hay que dejar margen o subir Cdc.</div></div>
+
+## 1 — De la corriente del condensador a \( C\,dV_{dc}/dt=i_{in}-i_{out} \) y al balance de energía
+**Paso 1 — ley constitutiva del condensador.** La carga almacenada es \( q=C\,V_{dc} \). Su corriente es la tasa de cambio de carga, y con \( C \) constante:
+
+$$ i_C=\frac{dq}{dt}=\frac{d(C\,V_{dc})}{dt}=C\,\frac{dV_{dc}}{dt} $$
+
+**Paso 2 — Kirchhoff de corrientes en el nodo del bus.** Al nudo DC entra la corriente de la fuente \( i_{in} \) y salen la de la carga \( i_{out} \) y la del condensador \( i_C \). La conservación de carga (lo que entra = lo que sale) impone:
+
+$$ i_{in}=i_{out}+i_C\;\;\Longrightarrow\;\; i_C=i_{in}-i_{out} $$
+
+**Paso 3 — igualar ambas expresiones de \( i_C \).** Combinando Pasos 1 y 2:
+
+$$ \boxed{\;C\,\frac{dV_{dc}}{dt}=i_{in}-i_{out}\;} $$
+
+El condensador integra el **desbalance** de corriente: si entra más de lo que sale, \( V_{dc} \) sube. Es un integrador puro (no hay término en \( V_{dc} \) en el lado derecho si las corrientes no dependen de él), de ahí que sin control la tensión derive.
+
+**Paso 4 — versión en energía.** La energía del condensador es \( E=\tfrac12 C V_{dc}^2 \). Derivando y usando el Paso 3:
+
+$$ \frac{dE}{dt}=C\,V_{dc}\frac{dV_{dc}}{dt}=V_{dc}\,(i_{in}-i_{out})=P_{in}-P_{out} $$
+
+es decir \( \boxed{\,\dfrac{dE}{dt}=P_{in}-P_{out}\,} \). En la variable \( E \) (equivalentemente \( V_{dc}^2 \)) la planta es **lineal**: por eso el lazo de tensión se cierra sobre \( V_{dc}^2 \) y no sobre \( V_{dc} \) (ver [[control-tension-bus-dc]]). Este es el balance genérico de [[modelado-sistemas]] aplicado a la energía del bus.
+
+## 2 — Por qué la CPL da resistencia incremental negativa y fija \( P_{crit} \)
+**Paso 1 — la relación i–V de la carga.** Una carga de potencia constante mantiene \( P=V\,i \) fija. Despejando la corriente:
+
+$$ i_{cpl}(V)=\frac{P}{V} $$
+
+Es una hipérbola decreciente: a menor tensión, **más** corriente (al revés que una resistencia óhmica, donde \( i=V/R \) crece con \( V \)).
+
+**Paso 2 — linealizar en torno al punto de operación.** La estabilidad de pequeña señal no la ve la curva entera, sino su **pendiente** en el punto \( V_0 \). Derivando \( i_{cpl}=P/V \):
+
+$$ \left.\frac{di_{cpl}}{dV}\right|_{V_0}=-\frac{P}{V_0^2}<0 $$
+
+La conductancia incremental es negativa. Su inverso es la **resistencia incremental**:
+
+$$ \boxed{\;r_{cpl}=\left(\frac{di_{cpl}}{dV}\right)^{-1}=-\frac{V_0^2}{P}<0\;} $$
+
+Físicamente: una resistencia disipa y amortigua; una resistencia **negativa** inyecta energía a la resonancia LC aguas arriba, la desamortigua. Por eso la CPL puede inestabilizar un bus que con carga resistiva sería estable (no pasividad; ver [[impedancia-salida-estabilidad]]).
+
+**Paso 3 — meter esa pendiente en el modelo del filtro.** Con un filtro \( L_f,R_f \) que alimenta \( C_{dc} \) con la CPL, los estados son \( (i_{L},V_{dc}) \). La ecuación del condensador es \( C_{dc}\dot V_{dc}=i_L-i_{cpl}(V_{dc}) \); al linealizar, \( i_{cpl} \) aporta la derivada del Paso 2 con signo cambiado (sale del nodo), dejando un término **positivo** \( +P/(V_0^2 C_{dc}) \) en la diagonal de \( A \):
+
+$$ A=\begin{bmatrix}-\dfrac{R_f}{L_f}&-\dfrac{1}{L_f}\\[0.9em]\dfrac{1}{C_{dc}}&\dfrac{P}{V_0^2\,C_{dc}}\end{bmatrix} $$
+
+**Paso 4 — condición de estabilidad por la traza.** Para un sistema \( 2\times2 \), un par de polos complejos cruza al semiplano derecho cuando la **traza** de \( A \) pasa de negativa a positiva (la traza es la suma de las partes reales de los autovalores). Imponiendo \( \mathrm{tr}(A)<0 \):
+
+$$ -\frac{R_f}{L_f}+\frac{P}{V_0^2\,C_{dc}}<0\;\;\Longrightarrow\;\; \frac{P}{V_0^2\,C_{dc}}<\frac{R_f}{L_f} $$
+
+Despejando la potencia se obtiene la potencia crítica:
+
+$$ \boxed{\;P_{crit}=\frac{V_0^2\,R_f\,C_{dc}}{L_f}\;} $$
+
+Por encima de \( P_{crit} \) la traza es positiva y el bus oscila de forma creciente. La lectura de diseño es directa: más resistencia o más capacidad de bus suben \( P_{crit} \); menos inductancia de cable también. Como \( R_f \) (resistencia de cable) es incierta, se opera con margen amplio (factor 2 o más) respecto a \( P_{crit} \).
 
 ## Cuándo y por qué se usa
 Para elegir C (rizado, autonomía, vida útil), modelar el lazo de tensión, y analizar la estabilidad del bus frente a cargas CPL en microrredes DC, data centers, vehículos eléctricos, naval y aeronáutica.

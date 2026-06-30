@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [soportar tensión de red inyectando/absorbiendo reactiva, comparar fuente de corriente vs susceptancia]
 tags: [statcom, svc, facts, reactiva, soporte-tension, tcr, tsc, vsc, modelado]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-30
 relacionados: [convertidor-vsc, servicios-red-soporte, transferencia-potencia-linea, potencia-instantanea-dq, fault-ride-through, droop-control]
 referencias:
   - "Hingorani, Gyugyi, Understanding FACTS, IEEE Press 2000"
@@ -43,6 +43,27 @@ El control del STATCOM es un lazo de corriente en [[potencia-instantanea-dq|dq]]
 **[[droop-control|droop]] Q-V** para repartir entre varios equipos.
 
 <div class="cfig"><img src="figuras/statcom-svc-qv.png" alt="reactiva disponible frente a tension para SVC y STATCOM"><div class="cap">Reactiva disponible frente a la tensión: el SVC es una susceptancia, así que su $Q\propto V^2$ se hunde justo cuando más falta (en el hueco); el STATCOM es una fuente de corriente, mantiene $I_q$ y su soporte cae solo $\propto V$. Por eso el STATCOM es muy superior para sostener tensión durante un defecto.</div></div>
+
+## 1 — La reactiva del STATCOM \( Q=\dfrac{V(E-V)}{X} \) y por qué fija la tensión
+**Paso 1 — el circuito.** El STATCOM es un [[convertidor-vsc|VSC]] que impone su tensión \( E\angle\delta \) tras la reactancia de acoplamiento \( X \) (filtro + trafo) hacia el nudo de red \( V\angle 0 \). La corriente es \( \bar I=(\bar E-\bar V)/(jX) \).
+
+**Paso 2 — intercambio puramente reactivo.** Para no intercambiar potencia activa con la red (el STATCOM no tiene fuente DC, solo un condensador), el control mantiene \( E \) **en fase** con \( V \): \( \delta\approx 0 \). Con \( \bar E=E\angle 0 \) y \( \bar V=V\angle 0 \), ambos reales, la corriente es puramente imaginaria:
+
+$$ \bar I=\frac{E-V}{jX}=-j\,\frac{E-V}{X} $$
+
+**Paso 3 — potencia compleja en el nudo de red.** \( S=\bar V\,\bar I^\* \):
+
+$$ S=V\cdot\left(-j\,\frac{E-V}{X}\right)^{\!\*}=V\cdot\left(+j\,\frac{E-V}{X}\right)=j\,\frac{V(E-V)}{X} $$
+
+Es imaginaria pura: \( P=0 \) (consistente con \( \delta=0 \)) y toda la potencia es reactiva:
+
+$$ \boxed{\;Q=\frac{V(E-V)}{X}\;} $$
+
+**Paso 4 — el modo de operación.** El signo lo fija la diferencia de módulos:
+- \( E>V \): \( Q>0 \), el STATCOM **inyecta** reactiva (modo capacitivo) y **sube** la tensión del nudo.
+- \( E<V \): \( Q<0 \), **absorbe** reactiva (inductivo) y la baja.
+
+El control solo tiene que ajustar la amplitud \( E \) de la moduladora respecto a \( V \) para fijar \( Q \). Ejemplo: \( V=1.0 \), \( E=1.05 \), \( X=0.2 \) p.u. → \( Q=1.0(1.05-1.0)/0.2=0.25 \) p.u. inyectada. Esto explica por qué su soporte cae solo \( \propto V \): la corriente \( I_q=(E-V)/X \) se acota al límite del convertidor, y \( Q=V I_q \) baja linealmente con \( V \), mientras que el SVC (susceptancia \( B \)) da \( Q=BV^2 \), que se hunde con el cuadrado en el hueco.
 
 ## Cuándo y por qué se usa
 Soporte de tensión en puntos débiles, cumplimiento de **[[fault-ride-through|FRT]]** (inyección de reactiva

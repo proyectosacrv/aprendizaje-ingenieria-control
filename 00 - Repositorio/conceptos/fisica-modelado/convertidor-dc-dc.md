@@ -8,7 +8,7 @@ proyectos: [03-DataCenter-IA]
 objetivos: [entender la célula básica de conversión DC y el origen de la carga CPL]
 tags: [dc-dc, buck, boost, duty, conmutado, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-06-30
 relacionados: [dinamica-bus-dc, control-tension-bus-dc, fotovoltaica-mppt, convertidor-vsc]
 referencias:
   - "Erickson & Maksimovic, Fundamentals of Power Electronics"
@@ -28,6 +28,46 @@ inductor y el condensador filtran el rizado; si la corriente del inductor llega 
 con un lazo (a menudo en cascada: tensión externa, corriente interna).
 
 <div class="cfig"><img src="figuras/convertidor-dc-dc-ratio.png" alt="relacion de conversion buck y boost"><div class="cap">Relación de conversión en CCM: el buck reduce la tensión (Vo/Vin=D) y el boost la eleva (1/(1−D)). El control ajusta D para regular Vo.</div></div>
+
+## 1 — Ganancia del buck \( V_o=D\,V_{in} \) por balance voltios-segundo
+**Paso 1 — el principio.** En régimen permanente la corriente media del inductor no cambia de un ciclo al siguiente, luego su tensión media en un periodo es cero: \( \langle v_L\rangle=\frac1T\int_0^T v_L\,dt=0 \). Equivale a decir que el área voltios-segundo en el subintervalo de conducción cancela exactamente la del subintervalo de bloqueo.
+
+**Paso 2 — las dos fases del buck.** El inductor une el nudo de conmutación con la salida \( V_o \).
+- Interruptor cerrado (fracción \( D\,T \)): el nudo está a \( V_{in} \), así que \( v_L=V_{in}-V_o \).
+- Interruptor abierto (fracción \( (1-D)\,T \)): el diodo conduce y el nudo está a \( 0 \), así que \( v_L=-V_o \).
+
+**Paso 3 — igualar el área a cero.**
+
+$$ (V_{in}-V_o)\,D\,T+(-V_o)\,(1-D)\,T=0 $$
+
+Dividiendo por \( T \) y desarrollando:
+
+$$ D\,V_{in}-D\,V_o-V_o+D\,V_o=0\;\Longrightarrow\;D\,V_{in}-V_o=0 $$
+
+(los términos \( \pm D V_o \) se cancelan). Despejando:
+
+$$ \boxed{\;V_o=D\,V_{in}\;} $$
+
+Como \( 0\le D\le1 \), el buck siempre **reduce** la tensión. Con \( V_{in}=400 \) y \( D=0.5 \) da \( V_o=200\,\text{V} \).
+
+## 2 — Ganancia del boost \( V_o=V_{in}/(1-D) \) por balance voltios-segundo
+**Paso 1 — las dos fases del boost.** Ahora el inductor está entre la entrada \( V_{in} \) y el nudo de conmutación.
+- Interruptor cerrado (\( D\,T \)): el inductor se conecta a tierra, \( v_L=V_{in} \) (se carga).
+- Interruptor abierto (\( (1-D)\,T \)): el inductor descarga hacia la salida a través del diodo, \( v_L=V_{in}-V_o \).
+
+**Paso 2 — balance voltios-segundo.**
+
+$$ V_{in}\,D\,T+(V_{in}-V_o)\,(1-D)\,T=0 $$
+
+Dividiendo por \( T \) y agrupando los términos en \( V_{in} \):
+
+$$ V_{in}\big[D+(1-D)\big]-V_o\,(1-D)=0\;\Longrightarrow\;V_{in}-V_o\,(1-D)=0 $$
+
+(\( D+(1-D)=1 \)). Despejando:
+
+$$ \boxed{\;V_o=\frac{V_{in}}{1-D}\;} $$
+
+Como \( 1-D<1 \), el boost siempre **eleva** la tensión, y diverge cuando \( D\to1 \) (de ahí evitar \( D \) cerca de los extremos). Con \( V_{in}=400 \) y \( D=0.5 \): \( V_o=800\,\text{V} \). La corriente queda fijada aparte por el balance de potencia ideal \( V_{in}I_{in}=V_o I_o \).
 
 ## Cuándo y por qué se usa
 Es la base de las fuentes conmutadas, del MPPT fotovoltaico, y de los **POL** (point-of-load) que

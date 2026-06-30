@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [cuantificar la distorsión que inyecta el convertidor y cumplir códigos de red]
 tags: [armonicos, thd, pwm, calidad-potencia, ieee-519, tiempo-muerto, conmutacion, modelado]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-30
 relacionados: [convertidor-vsc, calidad-potencia, fft-analisis-espectral, filtro-lcl, controlador-resonante, fenomenos-oscilatorios-red, valor-rms-factor-potencia]
 referencias:
   - "Mohan, Undeland, Robbins, Power Electronics, Wiley"
@@ -38,6 +38,27 @@ Códigos tipo **IEEE 519** limitan THD de corriente (TDD) en función de la \( I
 conexión, y la tensión a \( \le5\% \) THD en BT/MT.
 
 <div class="cfig"><img src="figuras/armonicos-thd-convertidores-espectro.png" alt="espectro de un convertidor PWM con bajos ordenes y bandas de conmutacion"><div class="cap">Espectro típico: junto a la fundamental aparecen armónicos de bajo orden (5º, 7º…) que vienen de no idealidades como el tiempo muerto, y las bandas de conmutación centradas en $m_f f_1$ y sus múltiplos. El filtro LCL atenúa las bandas de alta frecuencia; los bajos órdenes se compensan con resonantes y compensación de tiempo muerto.</div></div>
+
+## 1 — De dónde sale la definición de THD
+**Paso 1 — descomponer la señal en armónicos.** Una corriente periódica no senoidal se expande en serie de Fourier como suma de la fundamental más sus armónicos (ver [[series-fourier]]):
+
+$$ i(t)=\sum_{h\ge1}\sqrt2\,I_h\sin(h\omega t+\phi_h)=\underbrace{\sqrt2\,I_1\sin(\omega t+\phi_1)}_{\text{fundamental}}+\underbrace{\sum_{h\ge2}\sqrt2\,I_h\sin(h\omega t+\phi_h)}_{\text{distorsión}} $$
+
+donde \( I_h \) es el **RMS** del armónico de orden \( h \).
+
+**Paso 2 — el RMS total se reparte por armónico.** El valor eficaz del conjunto es \( I_{rms}^2=\tfrac1T\int_0^T i^2\,dt \). Al elevar al cuadrado la suma aparecen los términos propios \( I_h^2 \) y los cruzados \( I_hI_k \) (\( h\ne k \)). Por **ortogonalidad** de los senos de distinta frecuencia, todo término cruzado promedia cero sobre un periodo (igual que en [[valor-rms-factor-potencia]]). Sobreviven solo los cuadrados:
+
+$$ I_{rms}^2=\sum_{h\ge1}I_h^2=I_1^2+\sum_{h\ge2}I_h^2 $$
+
+**Paso 3 — separar fundamental y distorsión.** Define el RMS de distorsión como todo lo que no es fundamental:
+
+$$ I_{dist}=\sqrt{\sum_{h\ge2}I_h^2}\quad\Longrightarrow\quad I_{rms}^2=I_1^2+I_{dist}^2 $$
+
+**Paso 4 — normalizar frente a la fundamental.** La THD es ese RMS de distorsión expresado como fracción de la fundamental:
+
+$$ \boxed{\;\text{THD}=\frac{I_{dist}}{I_1}=\frac{\sqrt{\sum_{h\ge2}I_h^2}}{I_1}\times100\%\;} $$
+
+De aquí sale también el **factor de distorsión** que degrada el factor de potencia: dividiendo \( I_{rms}^2=I_1^2+I_{dist}^2 \) entre \( I_1^2 \) y tomando la raíz, \( I_{rms}/I_1=\sqrt{1+\text{THD}^2} \), de modo que \( I_1/I_{rms}=1/\sqrt{1+\text{THD}^2} \) es el factor por el que la distorsión reduce el FP frente al \( \cos\varphi \) de la fundamental. Por eso con armónicos \( \mathrm{FP}<\cos\varphi \). La integral del Paso 2 es exactamente la que ejecuta la FFT del ejemplo de código.
 
 ## Cuándo y por qué se usa
 Para **dimensionar el filtro** de salida (qué atenuación hace falta en \( f_{sw} \)), **cumplir el código

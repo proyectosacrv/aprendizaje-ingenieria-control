@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance]
 objetivos: [entender qué conmuta realmente en el VSC y de dónde salen las pérdidas]
 tags: [igbt, mosfet, diodo, conmutacion, perdidas, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-06-30
 relacionados: [convertidor-vsc, simulacion-conmutada, topologias-multinivel]
 referencias:
   - "Mohan, Undeland & Robbins, Power Electronics"
@@ -43,6 +43,25 @@ muerto** (dead time) entre el apagado de uno y el encendido del otro.
 Definen el **modelo conmutado** (lo que PLECS simula en detalle) frente al **modelo promediado**
 (diseño y análisis). Sus pérdidas fijan el rendimiento y la refrigeración; sus tiempos muertos
 introducen distorsión que el modelo promediado no captura.
+
+## 1 — Pérdida de conmutación \( P_{sw}=\tfrac12 V I (t_{on}+t_{off}) f_{sw} \)
+**Paso 1 — energía de una transición.** Durante una conmutación, la tensión \( V \) y la corriente \( I \) del dispositivo se solapan: mientras la tensión sube, la corriente aún no ha caído (y viceversa). La potencia instantánea disipada es \( p(t)=v(t)\,i(t) \), y la energía de esa transición es su integral:
+
+$$ E=\int_{0}^{t_{sw}} v(t)\,i(t)\,dt $$
+
+**Paso 2 — aproximación lineal del solapamiento.** En el encendido (duración \( t_{on} \)) se modela la corriente subiendo en rampa de \( 0 \) a \( I \) mientras la tensión cae de \( V \) a \( 0 \) (o se toma el perfil dual). El producto \( v\,i \) es un triángulo de altura máxima \( V I \) y base \( t_{on} \). El área de un triángulo es \( \tfrac12\,\text{base}\times\text{altura} \):
+
+$$ E_{on}=\tfrac12\,V\,I\,t_{on} $$
+
+Igual razonamiento en el apagado:
+
+$$ E_{off}=\tfrac12\,V\,I\,t_{off} $$
+
+**Paso 3 — sumar y multiplicar por la frecuencia.** Cada periodo de conmutación tiene un encendido y un apagado, luego la energía perdida por ciclo es \( E_{on}+E_{off}=\tfrac12 V I (t_{on}+t_{off}) \). Se repite \( f_{sw} \) veces por segundo, así que la potencia media de conmutación es:
+
+$$ \boxed{\;P_{sw}=\big(E_{on}+E_{off}\big)\,f_{sw}=\tfrac12\,V\,I\,(t_{on}+t_{off})\,f_{sw}\;} $$
+
+Es la versión analítica de la \( P_{sw}\approx(E_{on}+E_{off})f_{sw} \) del Fundamento (las hojas de datos dan \( E_{on},E_{off} \) medidas, que ya incluyen colas de corriente y recuperación inversa del diodo). **Clave física:** \( P_{sw}\propto f_{sw} \) — por eso subir la frecuencia para reducir el filtro tiene un coste térmico lineal, y por eso el SiC (con \( t_{on}+t_{off} \) ×5–10 menores) gana a alta frecuencia. Ejemplo: \( V=600\,\text{V} \), \( I=20\,\text{A} \), \( t_{on}=1\,\mu s \), \( t_{off}=2\,\mu s \), \( f_{sw}=10\,\text{kHz} \) → \( P_{sw}=\tfrac12\cdot600\cdot20\cdot3{\times}10^{-6}\cdot10^4=180\,\text{W} \).
 
 ## Impacto de la topología sobre el modelo de planta y el control
 

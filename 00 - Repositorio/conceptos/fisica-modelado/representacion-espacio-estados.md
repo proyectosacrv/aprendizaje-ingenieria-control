@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance, 03-DataCenter-IA]
 objetivos: [escribir el modelo como x'=Ax+Bu y analizar sus propiedades]
 tags: [espacio-estados, A-B-C-D, controlabilidad, observabilidad, MIMO]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-11
+fecha_actualizacion: 2026-06-30
 relacionados: [variables-estado, modelado-sistemas, asignacion-polos-lqr, respuesta-frecuencia-ss, linealizacion-teoria]
 referencias:
   - "Kailath, Linear Systems, Prentice Hall 1980"
@@ -35,6 +35,34 @@ Dos propiedades estructurales clave:
   \( \mathcal{C}=[B\;AB\;\dots\;A^{n-1}B] \) de rango \( n \). Necesaria para asignar polos / LQR.
 - **Observabilidad**: ¿puede reconstruirse el estado a partir de la salida? Matriz
   \( \mathcal{O}=[C;\,CA;\,\dots;\,CA^{n-1}] \) de rango \( n \). Necesaria para el observador.
+
+## 1 — De la función de transferencia a la forma canónica controlable
+La relación \( G(s)=C(sI-A)^{-1}B+D \) va de estado a transferencia. El camino inverso —dado \( G(s) \), construir un \( (A,B,C,D) \)— se llama **realización**. Hay infinitas (cualquier cambio de base \( \mathbf{z}=T\mathbf{x} \) da otra), pero una es directa de leer: la **forma canónica controlable**, donde \( A,B \) salen de los denominadores y \( C,D \) de los numeradores.
+
+**Paso 1 — partir de una transferencia estrictamente propia.** Sea, sin pérdida de generalidad, una transferencia de orden \( n \) con denominador mónico:
+
+$$ G(s)=\frac{b_{n-1}s^{n-1}+\dots+b_1 s+b_0}{s^n+a_{n-1}s^{n-1}+\dots+a_1 s+a_0} $$
+
+(Si el grado de numerador y denominador coincide, se hace primero la división polinómica: el cociente es \( D \) y el resto es esta fracción estrictamente propia.)
+
+**Paso 2 — introducir una variable auxiliar.** Definimos \( V(s) \) por
+
+$$ V(s)=\frac{U(s)}{s^n+a_{n-1}s^{n-1}+\dots+a_0}\;\;\Longrightarrow\;\; Y(s)=\big(b_{n-1}s^{n-1}+\dots+b_0\big)V(s) $$
+
+El truco: el **denominador** actúa solo sobre \( v \), y el **numerador** solo reconstruye la salida. En el dominio temporal la primera relación es la EDO
+
+$$ v^{(n)}+a_{n-1}v^{(n-1)}+\dots+a_1\dot v+a_0 v = u $$
+
+**Paso 3 — estados = \( v \) y sus derivadas.** Igual que en [[variables-estado]], tomamos \( x_1=v,\;x_2=\dot v,\;\dots,\;x_n=v^{(n-1)} \). Las cadenas \( \dot x_k=x_{k+1} \) y el despeje de \( v^{(n)} \) de la EDO dan la matriz de dinámica y la de entrada:
+
+$$ A=\begin{bmatrix}0&1&0&\cdots&0\\0&0&1&\cdots&0\\\vdots&&&\ddots&\vdots\\0&0&0&\cdots&1\\-a_0&-a_1&-a_2&\cdots&-a_{n-1}\end{bmatrix},\qquad
+B=\begin{bmatrix}0\\0\\\vdots\\0\\1\end{bmatrix} $$
+
+**Paso 4 — la salida lee los numeradores.** Como \( y=b_{n-1}v^{(n-1)}+\dots+b_1\dot v+b_0 v=b_0 x_1+b_1 x_2+\dots+b_{n-1}x_n \), la matriz de salida son directamente los coeficientes del numerador, y \( D=0 \) (por ser estrictamente propia):
+
+$$ \boxed{\;C=\begin{bmatrix}b_0&b_1&\cdots&b_{n-1}\end{bmatrix},\qquad D=0\;} $$
+
+**Paso 5 — por qué "controlable".** Con este \( (A,B) \), la matriz de controlabilidad \( \mathcal{C}=[\,B\;AB\;\cdots\;A^{n-1}B\,] \) resulta triangular con unos en la antidiagonal, luego de rango \( n \) **siempre**: esta realización es controlable por construcción, sea cual sea \( G(s) \). De ahí el nombre. Si además \( G(s) \) no tiene cancelaciones polo-cero, también es observable y es una realización **mínima** (orden \( n \) = grado del denominador).
 
 ## Cuándo y por qué se usa
 Es el lenguaje del control en estado (LQR, observadores) y del análisis modal. Permite tratar de

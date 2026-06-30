@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [modelar la dinámica electromagnética y mecánica del generador síncrono]
 tags: [generador-sincrono, dq-park, swing, amortiguador, AVR, avanzado, modelado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-30
 relacionados: [ecuacion-oscilacion, vsm-inercia, marco-dq, representacion-espacio-estados, clasificacion-estabilidad]
 referencias:
   - "Kundur, Power System Stability and Control, McGraw-Hill 1994"
@@ -42,6 +42,27 @@ el governor cierra \( \omega\to T_m \). Su dinámica (tiempo \( \sim100\,\)ms–
 sobre un convertidor; entender el original clarifica qué se emula, sus límites y las aproximaciones.
 
 <div class="cfig"><img src="figuras/generador-sincrono-pdelta.png" alt="curva potencia-angulo del generador sincrono"><div class="cap">La potencia transferida sigue $P=\frac{EV}{X}\sin\delta$. La pendiente en el punto de operación es el par sincronizante $K_s=\partial P/\partial\delta$, que mantiene la máquina en paso; el máximo de transferencia está en $\delta=90°$, y más allá el par sincronizante se vuelve negativo y se pierde el sincronismo. El VSM emula exactamente esta dinámica sobre un convertidor.</div></div>
+
+## 1 — De dónde sale \( P=\dfrac{E V}{X_s}\sin\delta \)
+**Paso 1 — el circuito.** Tras la reactancia síncrona \( X_s \), el generador es una FEM interna \( E\angle\delta \) conectada a la red \( V\angle 0 \). Se desprecia la resistencia de estátor frente a \( X_s \). La corriente que circula es:
+
+$$ \bar I=\frac{\bar E-\bar V}{jX_s}=\frac{E\angle\delta-V\angle 0}{jX_s} $$
+
+**Paso 2 — potencia compleja entregada a la red.** En el nudo de red, \( S=P+jQ=\bar V\,\bar I^\* \). Con \( \bar V=V\angle 0 \) (real):
+
+$$ S=V\left(\frac{E\angle\delta-V}{jX_s}\right)^{\!\*}=V\cdot\frac{E\angle(-\delta)-V}{-jX_s}=\frac{V\,E\angle(-\delta)-V^2}{-jX_s} $$
+
+(conjugar invierte el signo del ángulo y de la \( j \)).
+
+**Paso 3 — separar partes real e imaginaria.** Usando \( E\angle(-\delta)=E\cos\delta-jE\sin\delta \) y \( 1/(-j)=j \):
+
+$$ S=j\,\frac{V E\cos\delta-jV E\sin\delta-V^2}{X_s}=\frac{V E\sin\delta}{X_s}+j\,\frac{V E\cos\delta-V^2}{X_s} $$
+
+(el término \( -j\cdot jVE\sin\delta=+VE\sin\delta \) pasa a la parte real). Identificando \( P=\mathrm{Re}\,S \) y \( Q=\mathrm{Im}\,S \):
+
+$$ \boxed{\;P=\frac{E V}{X_s}\sin\delta\;}\qquad Q=\frac{E V\cos\delta-V^2}{X_s} $$
+
+**Paso 4 — lectura física.** \( P \) es máxima en \( \delta=90^\circ \) (límite de estabilidad estática). La pendiente \( K_s=\partial P/\partial\delta=(EV/X_s)\cos\delta_0 \) es el **par sincronizante** que mantiene la máquina en paso; se anula en \( 90^\circ \) y se vuelve negativo más allá, perdiéndose el sincronismo. Esta \( P(\delta) \) es la que entra como \( P_e \) en la [[ecuacion-oscilacion|swing equation]] y la que el VSM ([[vsm-inercia]]) reproduce sobre un convertidor.
 
 ## Cuándo y por qué se usa
 Para estudios de estabilidad de red mixta (generadores + convertidores), para entender la base

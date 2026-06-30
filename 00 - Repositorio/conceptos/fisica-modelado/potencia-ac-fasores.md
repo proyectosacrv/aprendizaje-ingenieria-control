@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [entender potencia activa, reactiva y aparente, y el uso de fasores]
 tags: [potencia, activa, reactiva, aparente, fasores, RMS, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-06-30
 relacionados: [potencia-instantanea-dq, marco-dq, droop-control]
 referencias:
   - "Irwin, Análisis Básico de Circuitos en Ingeniería"
@@ -30,6 +30,32 @@ es \( \cos\varphi = P/S \). Una carga inductiva absorbe \( Q>0 \); una capacitiv
 En trifásico equilibrado, \( P=3\,V_{fase}I_{fase}\cos\varphi=\sqrt3\,V_{LL}I_L\cos\varphi \).
 
 <div class="cfig"><img src="figuras/potencia-ac-fasores-triangulo.png" alt="triangulo de potencia"><div class="cap">Triángulo de potencia: la activa P y la reactiva Q son los catetos, la aparente S la hipotenusa, y el factor de potencia es cos φ = P/S.</div></div>
+
+## 1 — De dónde salen \( P=VI\cos\varphi \) y \( Q=VI\sin\varphi \)
+**Paso 1 — partir de la potencia compleja.** Define los fasores **eficaces** \( \bar V=V\,e^{j\theta_v} \), \( \bar I=I\,e^{j\theta_i} \). La potencia compleja se define con el conjugado de la corriente (así el ángulo resultante es el desfase \( \varphi=\theta_v-\theta_i \), no la suma):
+
+$$ \bar S=\bar V\,\bar I^{*}=\big(V\,e^{j\theta_v}\big)\big(I\,e^{-j\theta_i}\big)=VI\,e^{j(\theta_v-\theta_i)}=VI\,e^{j\varphi} $$
+
+**Paso 2 — pasar a forma binómica.** Con la fórmula de Euler \( e^{j\varphi}=\cos\varphi+j\sin\varphi \):
+
+$$ \bar S=VI\cos\varphi+j\,VI\sin\varphi $$
+
+**Paso 3 — identificar partes real e imaginaria.** Por definición \( \bar S=P+jQ \). Igualando componente a componente:
+
+$$ \boxed{\;P=\mathrm{Re}\,\bar S=VI\cos\varphi,\qquad Q=\mathrm{Im}\,\bar S=VI\sin\varphi\;} $$
+
+y el módulo \( S=|\bar S|=VI=\sqrt{P^2+Q^2} \) es la hipotenusa del triángulo de la figura. El **factor de potencia** es \( \cos\varphi=P/S \): la fracción de la aparente que hace trabajo. El uso del conjugado garantiza el signo correcto de \( Q \): carga inductiva (corriente retrasada, \( \theta_i<\theta_v \), \( \varphi>0 \)) da \( Q>0 \).
+
+## 2 — Por qué la media de \( v(t)\,i(t) \) coincide con \( VI\cos\varphi \)
+**Paso 1 — potencia instantánea.** Con \( v=\sqrt2\,V\cos\omega t \) e \( i=\sqrt2\,I\cos(\omega t-\varphi) \) (amplitud de pico \( =\sqrt2\times \) RMS):
+
+$$ p(t)=v\,i=2VI\cos\omega t\,\cos(\omega t-\varphi) $$
+
+**Paso 2 — producto de cosenos a suma.** Con \( \cos A\cos B=\tfrac12[\cos(A-B)+\cos(A+B)] \):
+
+$$ p(t)=2VI\cdot\frac12\big[\cos\varphi+\cos(2\omega t-\varphi)\big]=\underbrace{VI\cos\varphi}_{\text{media}}+\underbrace{VI\cos(2\omega t-\varphi)}_{\text{pulsa a }2\omega} $$
+
+**Paso 3 — promediar.** El término \( \cos(2\omega t-\varphi) \) promedia cero sobre un periodo; queda \( \langle p\rangle=VI\cos\varphi=P \). Esto reconcilia la definición fasorial del apartado 1 con la potencia instantánea: el \( 2 \) del pico cancela el \( \tfrac12 \) del producto de cosenos. (En trifásico equilibrado las tres pulsaciones de \( 2\omega \) se cancelan entre sí y la potencia total es constante: ver [[sistema-trifasico]] y [[potencia-instantanea-dq]].)
 
 ## Cuándo y por qué se usa
 Es la base del análisis de sistemas de potencia: dimensionar equipos (por \( S \)), compensar

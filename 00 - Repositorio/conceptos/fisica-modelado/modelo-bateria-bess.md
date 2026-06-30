@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [modelar la dinámica eléctrica de una batería y dimensionar un BESS]
 tags: [bateria, bess, soc, thevenin, degradacion, almacenamiento, intermedio, modelado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-30
 relacionados: [dinamica-bus-dc, droop-dc, control-tension-bus-dc, servicios-red-soporte, sistema-por-unidad]
 referencias:
   - "Tremblay, Dessaint, Experimental Validation of a Battery Dynamic Model, IEEE TVT 2009"
@@ -45,6 +45,44 @@ resistencia interna \( R_0 \) aumenta y \( Q_{nom} \) cae. Para control de servi
   System), que limita las referencias del control.
 
 <div class="cfig"><img src="figuras/modelo-bateria-bess-pulso.png" alt="respuesta de tension de la bateria a un pulso de corriente"><div class="cap">Respuesta del modelo Thevenin 1-RC a un pulso de descarga: al aplicar corriente, la tensión cae instantáneamente por la resistencia óhmica $R_0$ y luego sigue bajando con la constante $\tau_{RC}$ por la difusión; al cesar el pulso ocurre lo inverso. Un modelo solo resistivo (sin RC) no captura esa cola, relevante para dimensionar el convertidor.</div></div>
+
+## 1 — El modelo Thévenin \( V_t=OCV-I\,R_{int} \) desde la malla equivalente
+La celda se modela como una fuente interna (la tensión química \( OCV \)) en serie con una impedancia que representa todas las pérdidas. La tensión en bornes que ve el convertidor es lo que queda tras la caída en esa impedancia.
+
+**Paso 1 — circuito equivalente.** En descarga, la celda es una fuente \( OCV(SoC) \) en serie con la resistencia óhmica \( R_0 \) y el par \( R_1\,C_1 \) de difusión. La corriente \( I \) (positiva en descarga) circula por la malla; la tensión de salida \( V_t \) es la de la fuente menos las caídas en serie.
+
+**Paso 2 — Kirchhoff de tensiones en la malla.** Recorriendo la malla desde la fuente a los bornes, se restan la caída óhmica \( I\,R_0 \) y la tensión del condensador de difusión \( V_{RC} \):
+
+$$ V_t=OCV(SoC)-I\,R_0-V_{RC} $$
+
+**Paso 3 — el término de difusión es de primer orden.** El par \( R_1\,C_1 \) responde a un escalón de corriente con constante \( \tau_{RC}=R_1 C_1 \). Su ecuación de estado (corriente del condensador \( C_1\dot V_{RC}=I-V_{RC}/R_1 \), multiplicada por \( R_1 \)):
+
+$$ \tau_{RC}\,\dot V_{RC}=I\,R_1-V_{RC} $$
+
+En **régimen permanente** (\( \dot V_{RC}=0 \)) queda \( V_{RC}=I R_1 \), y agrupando ambas resistencias \( R_{int}=R_0+R_1 \) se recupera la forma compacta de la definición:
+
+$$ \boxed{\;V_t=OCV(SoC)-I\,R_{int}\;} $$
+
+La cola transitoria entre el salto óhmico inmediato (\( I R_0 \)) y este valor final (\( I R_{int} \)) es la que dibuja la figura del pulso: un modelo puramente resistivo se saltaría esa cola de constante \( \tau_{RC} \), relevante para dimensionar el convertidor.
+
+## 2 — El SoC por integración de corriente (coulomb counting)
+**Paso 1 — definición del estado de carga.** El SoC es la fracción de carga disponible respecto a la capacidad nominal \( Q_{nom} \) (en culombios, o Ah). Si \( q(t) \) es la carga remanente:
+
+$$ SoC(t)=\frac{q(t)}{Q_{nom}} $$
+
+**Paso 2 — la corriente es el flujo de carga.** Por definición de corriente, \( I=-dq/dt \) en descarga (la carga remanente disminuye al entregar corriente). Con la eficiencia coulómbica \( \eta_c \) que contabiliza las pérdidas de carga:
+
+$$ \frac{dq}{dt}=-\eta_c\,I $$
+
+**Paso 3 — derivar el SoC.** Dividiendo por \( Q_{nom} \) constante:
+
+$$ \boxed{\;\dot{SoC}=-\frac{\eta_c\,I}{Q_{nom}}\;} $$
+
+**Paso 4 — integrar para obtener el SoC.** Resolviendo la EDO desde un valor inicial conocido:
+
+$$ SoC(t)=SoC(0)-\frac{\eta_c}{Q_{nom}}\int_0^t I(\tau)\,d\tau $$
+
+De ahí el nombre *coulomb counting*: se integra (se "cuenta") la carga que entra y sale. Su debilidad es que es un **integrador puro**: cualquier sesgo en la medida de \( I \) (offset del sensor) se acumula y hace **derivar** la estimación con el tiempo, lo que obliga a recalibrar (p.ej. en SoC conocidos, como plena carga) o a corregir con un filtro de Kalman que usa también \( V_t \) del modelo Thévenin del apartado anterior.
 
 ## Cuándo y por qué se usa
 Para modelar el bus DC de un BESS, diseñar los lazos de carga/descarga, los servicios de

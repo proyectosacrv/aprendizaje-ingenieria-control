@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [modelar la turbina eólica y extraer la máxima potencia según el viento]
 tags: [eolica, dfig, pmsg, mppt, cp-lambda, back-to-back, tipo-3, tipo-4, avanzado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-30
 relacionados: [generador-sincrono, convertidor-vsc, control-vectorial, ecuacion-oscilacion, servicios-red-soporte]
 referencias:
   - "Hansen, Aerodynamics of Wind Turbines, Earthscan 2008"
@@ -53,6 +53,27 @@ de cortocircuito natural, pero el convertidor puede proveer [[fault-ride-through
 \( P \) a la potencia nominal (control de \( \beta \) con PI sobre \( P \) o \( \omega_r \)).
 
 <div class="cfig"><img src="figuras/eolica-mppt-cp.png" alt="curvas de potencia de la turbina por viento y locus MPPT"><div class="cap">Para cada velocidad de viento, la potencia de la turbina tiene un máximo a una velocidad de rotor distinta (donde $\lambda=\lambda^*$). El MPPT mantiene ese óptimo: la curva de par $T^*=k\,\omega_r^2$ (locus $\propto\omega^3$) pasa justo por los picos, así que basta seguirla —sin medir el viento— para extraer la máxima potencia.</div></div>
+
+## 1 — Del par óptimo \( T^*=k_{opt}\,\omega_r^2 \) sin medir el viento
+La estrategia OTC sigue la curva de potencia máxima sin anemómetro. La clave: si se mantiene \( \lambda=\lambda^* \), la velocidad del viento se puede **eliminar** de la ecuación de potencia y dejar el par como función solo de la velocidad de giro, que sí se mide.
+
+**Paso 1 — potencia en el punto óptimo.** Partimos de la aerodinámica con \( A=\pi R^2 \):
+
+$$ P=\tfrac12\,\rho\,A\,v_w^3\,C_p(\lambda,\beta) $$
+
+En MPPT se opera siempre en \( \lambda=\lambda^* \), \( \beta=0 \), donde \( C_p=C_p^{max} \) es **constante**.
+
+**Paso 2 — eliminar el viento usando \( \lambda^* \).** Por definición \( \lambda^*=\omega_r R/v_w \), luego el viento es \( v_w=\omega_r R/\lambda^* \). Sustituyendo \( v_w^3 \) en el Paso 1:
+
+$$ P_{opt}=\tfrac12\,\rho\,A\,C_p^{max}\left(\frac{\omega_r R}{\lambda^*}\right)^3=\underbrace{\frac{\rho\,A\,R^3\,C_p^{max}}{2\,\lambda^{*3}}}_{\displaystyle k_{opt,P}}\;\omega_r^3 $$
+
+El viento ha desaparecido: en la curva óptima, \( P_{opt}\propto\omega_r^3 \).
+
+**Paso 3 — pasar de potencia a par.** El par mecánico es \( T=P/\omega_r \). Dividiendo el Paso 2 por \( \omega_r \):
+
+$$ \boxed{\;T^*=\frac{P_{opt}}{\omega_r}=\underbrace{\frac{\rho\,\pi R^5\,C_p^{max}}{2\,\lambda^{*3}}}_{\displaystyle k_{opt}}\;\omega_r^2\;} $$
+
+(usando \( A R^3=\pi R^5 \)). El control de par del generador solo necesita medir \( \omega_r \) y aplicar \( T_e=k_{opt}\,\omega_r^2 \); el sistema se asienta solo en el óptimo. **Por qué funciona como realimentación estable:** si el viento sube, \( T_{aero} \) supera al \( T^* \) demandado y el rotor **acelera**; al acelerar, \( T^*=k_{opt}\omega_r^2 \) crece hasta reequilibrar en el nuevo \( \omega_r \) que vuelve a dar \( \lambda=\lambda^* \). El locus \( T^*\propto\omega_r^2 \) (equivalente a \( P\propto\omega_r^3 \)) pasa exactamente por los picos de las curvas \( P(\omega_r) \) de la figura. La constante \( k_{opt} \) se calibra una vez con \( \rho, R, C_p^{max}, \lambda^* \) de la hoja del fabricante.
 
 ## Cuándo y por qué se usa
 Para modelar el comportamiento de un parque eólico en estudios de estabilidad, diseño de control

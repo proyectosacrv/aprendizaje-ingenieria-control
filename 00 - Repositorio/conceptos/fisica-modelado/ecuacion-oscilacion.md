@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [describir la dinámica ángulo-frecuencia de una fuente síncrona]
 tags: [swing, inercia, angulo, frecuencia, par-sincronizante, intermedio, modelado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-06-30
 relacionados: [vsm-inercia, droop-control, grid-forming-vs-following, potencia-ac-fasores, red-thevenin-scr]
 referencias:
   - "Kundur, Power System Stability and Control, McGraw-Hill 1994"
@@ -41,6 +41,35 @@ pierde el sincronismo. Menos inercia \( H \) → oscilaciones más rápidas; red
 bajo [[red-thevenin-scr|SCR]]) → \( K_s \) pequeño → modo lento y poco amortiguado.
 
 <div class="cfig"><img src="figuras/ecuacion-oscilacion-swing.png" alt="oscilacion del angulo tras un escalon de potencia"><div class="cap">Tras un escalón de potencia, el ángulo δ oscila a la frecuencia del modo electromecánico √(ω0·Ks/2H) y se asienta en el nuevo equilibrio; menos inercia o amortiguamiento → más oscilatorio.</div></div>
+
+## 1 — La swing equation \( 2H\,\dot{\Delta\omega}=P_m-P_e \) desde el par y la energía cinética
+**Paso 1 — segunda ley de Newton en rotación.** El rotor de momento de inercia \( J \) acelera según el par neto: el par mecánico de entrada \( T_m \) menos el electromagnético de salida \( T_e \):
+
+$$ J\,\frac{d\omega_m}{dt}=T_m-T_e $$
+
+con \( \omega_m \) la velocidad mecánica del rotor en rad/s.
+
+**Paso 2 — definir la constante de inercia \( H \).** \( H \) normaliza la energía cinética almacenada a velocidad nominal frente a la potencia base \( S_B \) (unidades: segundos):
+
+$$ H=\frac{\tfrac12 J\,\omega_{m0}^2}{S_B}\;\Longrightarrow\;J=\frac{2H\,S_B}{\omega_{m0}^2} $$
+
+\( H \) es "cuántos segundos puede la máquina entregar potencia nominal solo con su energía cinética".
+
+**Paso 3 — pasar a por unidad.** Sustituyendo \( J \) en la ley de Newton y multiplicando por \( \omega_{m0} \) para convertir par en potencia (\( P=T\omega \)):
+
+$$ \frac{2H\,S_B}{\omega_{m0}^2}\,\frac{d\omega_m}{dt}=T_m-T_e $$
+
+$$ \frac{2H\,S_B}{\omega_{m0}}\,\frac{d(\omega_m/\omega_{m0})}{dt}=T_m-T_e $$
+
+Multiplicando ambos lados por \( \omega_{m0}/S_B \): el lado derecho se vuelve \( (T_m-T_e)\,\omega_{m0}/S_B\approx (P_m-P_e)/S_B \) (cerca del nominal \( \omega_m\approx\omega_{m0} \), par×velocidad ≈ potencia), es decir potencias en p.u.; y con la velocidad en p.u. \( \omega=\omega_m/\omega_{m0} \), \( \Delta\omega=\omega-1 \):
+
+$$ \boxed{\;2H\,\frac{d\Delta\omega}{dt}=P_m-P_e\;} $$
+
+**Paso 4 — añadir amortiguamiento y la relación ángulo-frecuencia.** Las cargas dependientes de la velocidad y los devanados amortiguadores aportan un par \( \propto\Delta\omega \); se añade \( -D\,\Delta\omega \). El ángulo del rotor \( \delta \) es la integral de la desviación de frecuencia respecto a la red (\( \dot\delta=\omega_0\Delta\omega \), con \( \omega_0 \) en rad eléctricos/s):
+
+$$ 2H\,\frac{d\Delta\omega}{dt}=P_m-P_e-D\,\Delta\omega,\qquad \frac{d\delta}{dt}=\omega_0\,\Delta\omega $$
+
+Sustituyendo \( P_e=\dfrac{EV}{X}\sin\delta \) ([[generador-sincrono]]) se cierra el modelo electromecánico de 2 estados. Esta es exactamente la ecuación que el [[vsm-inercia|VSM]] integra en software para que un convertidor exhiba inercia.
 
 ## Cuándo y por qué se usa
 Para analizar estabilidad de frecuencia/ángulo, dimensionar inercia y droop, y entender por qué los

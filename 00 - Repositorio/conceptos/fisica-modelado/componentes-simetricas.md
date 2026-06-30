@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [descomponer un sistema trifásico desequilibrado en secuencias tratables]
 tags: [componentes-simetricas, secuencia, desequilibrio, fortescue, intermedio, modelado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-06-30
 relacionados: [sistema-trifasico, potencia-ac-fasores, marco-dq]
 referencias:
   - "Kundur, Power System Stability and Control, McGraw-Hill 1994"
@@ -34,6 +34,38 @@ Relación con dq: en marco dq a \( +\omega \), la secuencia positiva es **contin
 aparece como rizado de **\( 2\omega \)** (100 Hz), motivo de los controles de doble secuencia.
 
 <div class="cfig"><img src="figuras/componentes-simetricas-fasores.png" alt="fasores de secuencia positiva, negativa y homopolar"><div class="cap">Cualquier terna desequilibrada se descompone en tres equilibradas: positiva (gira +ω), negativa (secuencia invertida, −ω) y homopolar (tres fasores en fase).</div></div>
+
+## 1 — De dónde sale la matriz de Fortescue
+**Paso 1 — la síntesis (lo físico).** El punto de partida no es la matriz de análisis, sino su inversa: *cualquier* terna se **construye** sumando tres ternas equilibradas. Por definición de cada secuencia, sus fasores se desfasan \( 120° \) usando el operador \( a=e^{j120°} \) (que cumple \( a^3=1 \) y \( 1+a+a^2=0 \)). Tomando la fase A de cada secuencia (\( V_0,V_+,V_- \)) como referencia:
+
+$$ \begin{aligned}
+V_a&=V_0+V_++V_-\\
+V_b&=V_0+a^2V_++a\,V_-\\
+V_c&=V_0+a\,V_++a^2V_-
+\end{aligned} $$
+
+La secuencia **positiva** va a-b-c (la fase B retrasa \( 120° \): factor \( a^2 \)); la **negativa** va a-c-b (factor \( a \)); la **homopolar** es idéntica en las tres (factor \( 1 \)). En forma matricial:
+
+$$ \begin{bmatrix}V_a\\V_b\\V_c\end{bmatrix}=
+   \underbrace{\begin{bmatrix}1&1&1\\1&a^2&a\\1&a&a^2\end{bmatrix}}_{A^{-1}}
+   \begin{bmatrix}V_0\\V_+\\V_-\end{bmatrix} $$
+
+**Paso 2 — invertir para obtener el análisis.** Queremos \( (V_0,V_+,V_-) \) a partir de \( (V_a,V_b,V_c) \), es decir invertir \( A^{-1} \). En lugar de Gauss, usamos la **ortogonalidad** de las raíces de la unidad: \( 1+a+a^2=0 \). Multiplicando, por ejemplo, la primera fila de \( V_a,V_b,V_c \) por los pesos \( (1,a,a^2) \) y sumando:
+
+$$ V_a+a\,V_b+a^2V_c=V_0(1+a+a^2)+V_+(1+a^3+a^3)+V_-(1+a^2+a^4) $$
+
+**Paso 3 — colapsar con \( a^3=1 \).** Sustituyendo \( a^3=1 \) y \( a^4=a \):
+- coeficiente de \( V_0 \): \( 1+a+a^2=0 \) → se anula;
+- coeficiente de \( V_+ \): \( 1+1+1=3 \);
+- coeficiente de \( V_- \): \( 1+a^2+a=0 \) → se anula.
+
+Queda \( V_a+a\,V_b+a^2V_c=3V_+ \), de donde \( V_+=\tfrac13(V_a+a\,V_b+a^2V_c) \). Repitiendo con pesos \( (1,1,1) \) sale \( V_0=\tfrac13(V_a+V_b+V_c) \), y con \( (1,a^2,a) \) sale \( V_-=\tfrac13(V_a+a^2V_b+a\,V_c) \). Reunidos:
+
+$$ \boxed{\;\begin{bmatrix}V_0\\V_+\\V_-\end{bmatrix}=
+   \frac{1}{3}\begin{bmatrix}1&1&1\\1&a&a^2\\1&a^2&a\end{bmatrix}
+   \begin{bmatrix}V_a\\V_b\\V_c\end{bmatrix}\;} $$
+
+El factor \( 1/3 \) viene del \( 3 \) que dejó la ortogonalidad. La matriz de análisis es la conjugada (transpuesta) de la de síntesis salvo ese \( 1/3 \): por eso \( A^{-1}=3\bar A^{\top}/3 \) y todo encaja. El ejemplo de la falta monofásica de más abajo aplica directamente esta matriz fila a fila.
 
 ## Cuándo y por qué se usa
 Análisis de faltas asimétricas, requisitos de **fault ride-through**, control bajo desequilibrio

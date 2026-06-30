@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance]
 objetivos: [entender la topología del convertidor controlado por tensión, cómo sintetiza tensión por PWM y cómo se modela en promediado para diseño y control]
 tags: [vsc, inversor, dos-niveles, pwm, ciclo-de-trabajo, modelo-promediado, averaging, conmutado, modulacion, modelado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-16
+fecha_actualizacion: 2026-06-30
 relacionados: [topologias-multinivel, semiconductores-potencia, filtro-lcl, marco-dq, sistema-trifasico, medicion-impedancia-inyeccion]
 referencias:
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
@@ -46,6 +46,23 @@ Fundamento: si fsw es mucho mayor que el ancho de banda de control y que la din�
 <div class="cfig"><img src="figuras/modelo-promediado-ondas.png" alt="conmutado vs promediado"><div class="cap">El modelo conmutado (gris) lleva el rizado de fsw; el promediado (azul) retiene solo la dinámica útil. Si fsw separa escalas, ambos coinciden salvo ese rizado de alta frecuencia.</div></div>
 
 Para diseñar y analizar (control, impedancia, estabilidad) se usa el promediado: es continuo, linealizable y rápido de simular. El conmutado se reserva para validar y para estudiar fenómenos de conmutación (rizado, pérdidas, EMI).
+
+## 1 — De dónde sale \( V_{fase,pico}=m\,V_{dc}/2 \) en SPWM
+**Paso 1 — qué genera una rama.** Cada rama conmuta su salida entre \( +V_{dc} \) y \( 0 \) según el ciclo de trabajo \( d_x(t)\in[0,1] \). Su valor medio en un periodo de conmutación es \( v_{x\_N}=d_x V_{dc} \). En SPWM el ciclo de trabajo se modula de forma sinusoidal en torno al punto medio \( 1/2 \) con amplitud \( m/2 \):
+
+$$ d_x(t)=\frac12+\frac{m}{2}\cos(\omega_0 t),\qquad 0\le m\le 1 $$
+
+\( m \) es el **índice de modulación**: la amplitud de la moduladora normalizada a la portadora. Con \( m\le 1 \) la moduladora no rebasa la portadora y se trabaja en la zona lineal.
+
+**Paso 2 — tensión rama-neutro del bus DC.** Restando el offset constante \( 1/2 \) (modo común, igual en las tres ramas), la tensión respecto al punto medio del bus es:
+
+$$ v_{x\_0}=v_{x\_N}-\frac{V_{dc}}{2}=\Big(d_x-\frac12\Big)V_{dc}=\frac{m}{2}\cos(\omega_0 t)\,V_{dc} $$
+
+**Paso 3 — leer la amplitud.** La componente fundamental de fase es \( v_{x\_0}(t)=\hat V_{fase}\cos(\omega_0 t) \), con
+
+$$ \boxed{\;\hat V_{fase}=m\,\frac{V_{dc}}{2}\;}\qquad\Longrightarrow\qquad m=\frac{\hat V_{fase}}{V_{dc}/2} $$
+
+El offset de modo común \( 1/2 \) se cancela entre fases en la tensión fase-fase (sistema trifásico equilibrado, ver [[sistema-trifasico]]) y no afecta a la carga. En SPWM lineal \( m_{max}=1 \) da \( \hat V_{fase}=V_{dc}/2 \); inyectando tercer armónico o con SVPWM se llega a \( m=2/\sqrt3\approx1.15 \), un \( 15\,\% \) más de tensión con el mismo \( V_{dc} \), porque el tercer armónico de modo común también se cancela entre fases y deja margen en la portadora. De aquí sale el dimensionado \( V_{dc}\ge 2\hat V_{fase}/m_{max} \) del procedimiento.
 
 ## Cuándo y por qué se usa
 El VSC aparece siempre que se necesita intercambiar potencia AC↔DC de forma controlada y bidireccional: conexión a red de renovables, STATCOM, accionamientos de motor, HVDC y back-to-back (en cascada/multinivel). La modulación PWM es el modo estándar de imponer la tensión con bajas pérdidas en prácticamente todos los convertidores (también DC-DC y rectificadores activos). Su salida exige un [[filtro-lcl|filtro]] para atenuar la conmutación.
