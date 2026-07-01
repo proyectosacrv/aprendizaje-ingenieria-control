@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [cuantificar ganancia, direccionalidad y robustez de sistemas multivariable]
 tags: [svd, valores-singulares, rga, h-infinito, direccionalidad, mimo, avanzado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-07-01
 relacionados: [nyquist-generalizado, control-robusto-hinf, funciones-sensibilidad, margenes-estabilidad, respuesta-frecuencia-ss]
 referencias:
   - "Skogestad, Postlethwaite, Multivariable Feedback Control, Wiley 2005"
@@ -43,6 +43,36 @@ elementos grandes/negativos → acoplamiento fuerte, evitar ese emparejamiento.
 \( \bar\sigma \) cuando la incertidumbre tiene estructura; \( \mu<1 \) → estabilidad/desempeño robusto.
 
 <div class="cfig"><img src="figuras/valores-singulares-mimo-bode.png" alt="bode de valores singulares maximo y minimo"><div class="cap">Bode de valores singulares de una planta $2\times2$: $\sigma_{max}$ y $\sigma_{min}$ acotan la ganancia según la dirección de la entrada. La franja entre ambos es el número de condición $\gamma=\sigma_{max}/\sigma_{min}$: si es grande, la planta está mal condicionada (direcciones fuertes y débiles) y es difícil de controlar. El pico de $\sigma_{max}$ es la norma $H_\infty$.</div></div>
+
+## 1 — De dónde salen los valores singulares: SVD desde eigenvalores de \( \mathbf{A}^H\mathbf{A} \)
+**Paso 1 — planteamiento.** Para una matriz \( \mathbf{G}\in\mathbb{C}^{m\times p} \), la **ganancia** en la dirección de entrada \( \mathbf{v} \) (normalizada) es \( \|\mathbf{G}\mathbf{v}\| \). El máximo y el mínimo de esa ganancia son los valores singulares extremos. Buscarlos equivale a un problema de autovalores: se maximiza \( \mathbf{v}^H\mathbf{G}^H\mathbf{G}\mathbf{v} \) con \( \|\mathbf{v}\|=1 \), que por el teorema variacional de Rayleigh se alcanza en los autovectores de la matriz hermitica semidefinida positiva \( \mathbf{G}^H\mathbf{G} \).
+
+**Paso 2 — conexión con la SVD.** Si \( \mathbf{G}=\mathbf{U}\Sigma\mathbf{V}^H \), entonces:
+
+$$ \mathbf{G}^H\mathbf{G}=\mathbf{V}\Sigma^H\mathbf{U}^H\mathbf{U}\Sigma\mathbf{V}^H=\mathbf{V}(\Sigma^H\Sigma)\mathbf{V}^H $$
+
+Los autovalores de \( \mathbf{G}^H\mathbf{G} \) son los cuadrados de los valores singulares:
+
+$$ \boxed{\sigma_i = \sqrt{\lambda_i(\mathbf{G}^H\mathbf{G})},\quad \sigma_1\ge\sigma_2\ge\dots\ge0} $$
+
+Las columnas de \( \mathbf{V} \) (entrada, dirección de máxima ganancia) y \( \mathbf{U} \) (salida) son los autovectores correspondientes.
+
+**Paso 3 — ejemplo numérico \( 2\times2 \).** Para \( \mathbf{G}=\bigl[\begin{smallmatrix}3&1\\0&2\end{smallmatrix}\bigr] \):
+
+$$ \mathbf{G}^T\mathbf{G}=\begin{bmatrix}9&3\\3&5\end{bmatrix},\quad \lambda_{1,2}=7\pm\sqrt{9}=10.62,\,3.38 $$
+
+$$ \sigma_{\max}=\sqrt{10.62}=3.26,\quad \sigma_{\min}=\sqrt{3.38}=1.84,\quad \kappa=\sigma_{\max}/\sigma_{\min}=1.77 $$
+
+## 2 — El número de condición \( \kappa \) y su significado para robustez
+**Paso 1 — definición.** \( \kappa(\omega)=\bar\sigma/\underline\sigma \). Si \( \kappa\gg1 \) existe una dirección de entrada que la planta amplifica mucho (\( \bar\sigma \)) y otra que casi colapsa (\( \underline\sigma\approx0 \)): inversión numérica de \( \mathbf{G} \) amplifica los errores en la dirección débil por un factor \( 1/\underline\sigma \).
+
+**Paso 2 — consecuencia para el control.** Para invertir la planta (descentralizar, pre-compensar o calcular \( \mathbf{C}\approx\mathbf{G}^{-1} \)), la incertidumbre relativa \( \delta\mathbf{G}/\mathbf{G} \) se amplifica por \( \kappa \) en la señal de control:
+
+$$ \|\delta\mathbf{u}\|/\|\mathbf{u}\|\lesssim\kappa\cdot\|\delta\mathbf{G}\|/\|\mathbf{G}\| $$
+
+**Paso 3 — regla práctica.** \( \kappa < 10 \): planta bien condicionada, control desacoplado razonable. \( \kappa > 100 \): planta mal condicionada; control lazo-a-lazo es frágil; se necesita control robusto MIMO o pre-compensador. En sistemas dq con acoplamiento fuerte, \( \kappa \) crece en la zona de resonancia del filtro LCL, exactamente donde la robustez es más crítica.
+
+$$ \boxed{\kappa=\frac{\bar\sigma(\mathbf{G})}{\underline\sigma(\mathbf{G})}\gg1 \;\Rightarrow\; \text{planta mal condicionada, control frágil}} $$
 
 ## Cuándo y por qué se usa
 Para diseñar y validar control de convertidores como sistema \( 2\times2 \) en dq (acoplamiento

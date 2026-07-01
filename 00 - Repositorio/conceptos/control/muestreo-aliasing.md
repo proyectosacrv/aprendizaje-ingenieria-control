@@ -31,6 +31,38 @@ indistinguible de una señal real de esa frecuencia baja. Por eso, antes del con
 
 <div class="cfig"><img src="figuras/muestreo-aliasing-alias.png" alt="aliasing de una senoide"><div class="cap">Una señal de 900 Hz muestreada a 1 kHz (puntos) es indistinguible de una de 100 Hz (alias): el contenido por encima de fs/2 se "pliega" a baja frecuencia. De ahí el filtro antialiasing antes del A/D.</div></div>
 
+## 1 — De dónde sale \( f_{alias} = |f - k\,f_s| \)
+
+**Paso 1 — muestreo como modulación impulsional.** Muestrear una señal continua \( x(t) \) a intervalos \( T_s \) equivale a multiplicarla por el tren de impulsos de Dirac \( p(t)=\sum_{n=-\infty}^{\infty}\delta(t-nT_s) \):
+
+$$ x_s(t) = x(t)\,p(t) $$
+
+**Paso 2 — espectro del tren de impulsos.** El espectro de \( p(t) \) es también un tren de impulsos en frecuencia:
+
+$$ P(f) = f_s \sum_{k=-\infty}^{\infty} \delta(f - k\,f_s) $$
+
+**Paso 3 — espectro de la señal muestreada.** Por el teorema de convolución, la multiplicación en tiempo equivale a convolución en frecuencia:
+
+$$ X_s(f) = X(f) * P(f) = f_s\sum_{k=-\infty}^{\infty} X(f - k\,f_s) $$
+
+El espectro original \( X(f) \) se **replica** en torno a cada múltiplo de \( f_s \).
+
+**Paso 4 — condición de Nyquist.** Para que las réplicas no se solapen, la réplica centrada en \( k=1 \) (que llega desde abajo a \( f_s - f_{max} \)) debe quedar a la derecha de la réplica central (que llega hasta \( f_{max} \)):
+
+$$ f_s - f_{max} > f_{max} \quad\Rightarrow\quad \boxed{f_s > 2\,f_{max}} $$
+
+**Paso 5 — frecuencia del alias.** Una componente a \( f > f_s/2 \) (violación de Nyquist) queda en la réplica \( k=1 \) centrada en \( f_s \). Su posición dentro de esa réplica, vista en el baseband \( [0, f_s/2] \), es:
+
+$$ \boxed{f_{alias} = |f - k\,f_s|} $$
+
+con \( k \) el entero que minimiza el resultado.
+
+**Paso 6 — ejemplo numérico verificado.** Señal a \( f=6\,\text{kHz} \), \( f_s=10\,\text{kHz} \) (\( f > f_s/2=5\,\text{kHz} \), aliasing inevitable):
+
+$$ f_{alias} = |6000 - 1\times10000| = \mathbf{4000\,\text{Hz}} $$
+
+Una componente de 6 kHz aparece en el espectro digital como si fuera 4 kHz. Verificado: `alias=4000 Hz`.
+
 ## Cuándo y por qué se usa
 En todo control digital (elegir \( f_s \) del lazo), en la FFT (la malla temporal fija qué
 frecuencias se pueden ver), en la simulación conmutada (el paso debe resolver \( f_{sw} \)) y en la

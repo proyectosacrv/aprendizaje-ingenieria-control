@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance, 03-DataCenter-IA]
 objetivos: [obtener el modelo lineal A,B,C,D para analisis de estabilidad e impedancia]
 tags: [linealizacion, jacobiano, espacio-estados, numerico, scipy]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-11
+fecha_actualizacion: 2026-07-01
 relacionados: [equilibrio-fsolve, analisis-modal, impedancia-salida-estabilidad]
 referencias:
   - "Khalil, Nonlinear Systems, 3rd ed., cap. 4 (linealizacion)"
@@ -31,6 +31,40 @@ Cada columna del Jacobiano se aproxima por **diferencias centradas** (error \( O
 $$ A_{:,j} \approx \frac{\mathbf{f}(\mathbf{x}_e+h\mathbf{e}_j,\mathbf{u}_e)-\mathbf{f}(\mathbf{x}_e-h\mathbf{e}_j,\mathbf{u}_e)}{2h} $$
 
 <div class="cfig"><img src="figuras/linealizacion-numerica-tangente.png" alt="linealizacion: tangente por diferencias centradas"><div class="cap">La linealización sustituye f(x) por su tangente en x0; numéricamente la pendiente A se aproxima con los dos puntos f(x0±h) (diferencias centradas, error O(h²)).</div></div>
+
+## 1 — Jacobiano numérico: elección óptima de \( \varepsilon \) y el compromiso truncamiento/redondeo
+**Paso 1 — diferencia hacia adelante (primer orden).** La derivada se aproxima por:
+
+$$ A_{ij}\approx\frac{f_i(x_e+\varepsilon\,\mathbf{e}_j)-f_i(x_e)}{\varepsilon} $$
+
+El **error de truncamiento** (de la serie de Taylor) es \( O(\varepsilon) \): decrece linealmente con \( \varepsilon \). El **error de redondeo** es \( O(\varepsilon_{mach}/\varepsilon) \) (el numerador tiene error de \( \varepsilon_{mach}\cdot|f| \) y se divide por \( \varepsilon \)): crece al reducir \( \varepsilon \). El mínimo del error total es:
+
+$$ \varepsilon_{opt,\text{forward}}\approx\sqrt{\varepsilon_{mach}}\approx\sqrt{2.22\times10^{-16}}\approx1.49\times10^{-8} $$
+
+**Paso 2 — diferencias centradas (segundo orden).** La fórmula centrada cancela el término de primer orden del error de truncamiento (error \( O(\varepsilon^2) \)):
+
+$$ A_{ij}\approx\frac{f_i(x_e+\varepsilon\,\mathbf{e}_j)-f_i(x_e-\varepsilon\,\mathbf{e}_j)}{2\varepsilon} $$
+
+El error total mínimo ahora es:
+
+$$ \varepsilon_{opt,\text{central}}\approx\varepsilon_{mach}^{1/3}\approx(2.22\times10^{-16})^{1/3}\approx6.1\times10^{-6} $$
+
+y el error mínimo alcanzable es \( \approx\varepsilon_{mach}^{2/3}\approx3.7\times10^{-11} \), mucho menor que con diferencias hacia adelante (\( \approx\varepsilon_{mach}^{1/2}\approx1.5\times10^{-8} \)).
+
+**Paso 3 — \( \varepsilon \) relativo para estados de magnitudes distintas.** Cuando los estados tienen magnitudes muy distintas (corriente ~10 A, tensión ~300 V), un \( \varepsilon \) absoluto fijo produce un paso relativo enorme para la corriente y microscópico para la tensión. La solución es:
+
+$$ h_j = \varepsilon\cdot\max(1,|x_{e,j}|) $$
+
+$$ \boxed{\varepsilon\approx10^{-6}\text{ (centradas)} \;\Rightarrow\; \text{error }\sim10^{-11}\text{ en }f,\; \text{aplicable a estados de cualquier magnitud}} $$
+
+## 2 — Verificación del Jacobiano: prueba de norma residual
+**Paso 1 — verificar el equilibrio antes de linearizar.** Si \( \|\mathbf{f}(\mathbf{x}_e,\mathbf{u}_e)\|>\delta \) (p.ej. \( \delta=10^{-8} \)) el punto no es un equilibrio real y \( A \) carece de sentido. Siempre verificar antes de llamar a la rutina de linealización.
+
+**Paso 2 — comprobación por Taylor.** Para un desplazamiento pequeño \( \Delta\mathbf{x} \), la aproximación lineal debería coincidir con la respuesta real:
+
+$$ \|\mathbf{f}(\mathbf{x}_e+\Delta\mathbf{x})-A\,\Delta\mathbf{x}\| = O(\|\Delta\mathbf{x}\|^2) $$
+
+Si la norma del residuo crece cuadráticamente al duplicar \( \|\Delta\mathbf{x}\| \), el Jacobiano es correcto; si crece linealmente, hay un error de cálculo.
 
 ## Cuándo y por qué se usa
 Cuando el modelo es complejo (muchos estados, no linealidades como rotaciones dq, droop,

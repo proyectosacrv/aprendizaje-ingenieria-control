@@ -38,6 +38,28 @@ internos de casi todos los convertidores y accionamientos.
 
 <div class="cfig"><img src="figuras/control-vectorial-orientacion.png" alt="diagrama de orientacion dq con la tension en el eje d"><div class="cap">Al orientar el marco dq con la tensión de red ($v_q=0$, vía PLL), la corriente se descompone en $i_d$ —que gobierna la potencia activa P— e $i_q$ —que gobierna la reactiva Q—, controlables de forma independiente con dos PI. En máquinas el marco se alinea con el flujo y entonces $i_d$ es flujo e $i_q$ es par.</div></div>
 
+## 1 — Orientación del marco dq: por qué \( v_d=V \), \( v_q=0 \) desacopla P de Q
+
+**Paso 1 — vector espacial de tensión de red en αβ.** La red trifásica equilibrada produce una tensión \( \mathbf{v}_{red}(t) \) que, transformada con Clarke, es un fasor giratorio de módulo \( V \) y ángulo \( \theta(t)=\omega t \). En αβ:
+
+$$ \mathbf{v}_{\alpha\beta} = V\,e^{j\theta} $$
+
+**Paso 2 — elección del ángulo de orientación.** Se lleva ese fasor al marco dq girante con el mismo \( \theta \) extraído por la PLL (ver [[pll-srf]]). La transformada de Park alinea el eje d con \( \mathbf{v}_{red} \):
+
+$$ \begin{pmatrix}v_d\\v_q\end{pmatrix} = \begin{pmatrix}\cos\theta & \sin\theta\\-\sin\theta & \cos\theta\end{pmatrix}\begin{pmatrix}v_\alpha\\v_\beta\end{pmatrix} = \begin{pmatrix}V\\0\end{pmatrix} $$
+
+El vector de tensión cae exactamente sobre el eje d, de modo que \( v_d = V \) y \( v_q = 0 \) en régimen permanente.
+
+**Paso 3 — potencia instantánea en dq.** Con la convención de potencia instantánea trifásica (ver [[potencia-instantanea-dq]]) y el factor \( \tfrac{3}{2} \) de la transformada de Park normalizada:
+
+$$ P = \tfrac{3}{2}(v_d\,i_d + v_q\,i_q),\qquad Q = \tfrac{3}{2}(v_q\,i_d - v_d\,i_q) $$
+
+**Paso 4 — sustitución de la orientación.** Sustituyendo \( v_d=V \), \( v_q=0 \):
+
+$$ \boxed{P = \tfrac{3}{2}\,V\,i_d}, \qquad \boxed{Q = -\tfrac{3}{2}\,V\,i_q} $$
+
+**Conclusión.** La potencia activa depende únicamente de \( i_d \) y la reactiva únicamente de \( i_q \). Cerrar un lazo PI sobre \( i_d \) controla P sin perturbar Q, y viceversa: el control vectorial orientado a la tensión de red produce **desacoplo P–Q natural** a partir de la geometría de la transformada, no de cancelaciones complicadas.
+
 ## Cuándo y por qué se usa
 En accionamientos de máquinas AC (PMSM, inducción) y en convertidores conectados a red. Permite
 control independiente y de alto desempeño de par/flujo o de P/Q.

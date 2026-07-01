@@ -32,6 +32,30 @@ conservar las señales. Para topologías densas, la **regla de Mason** da \( G_{
 
 <div class="cfig"><img src="figuras/diagrama-bloques-reduccion.png" alt="reduccion de un lazo realimentado"><div class="cap">Reducción de un lazo: el bucle con planta G y sensor H equivale a G/(1+GH). Series → G1·G2, paralelo → G1±G2, realimentación → esta fórmula.</div></div>
 
+## 1 — Álgebra de bloques: serie, paralelo y realimentación por sustitución algebraica
+
+**Paso 1 — conexión en serie.** Dos bloques \( G_1 \) y \( G_2 \) en cascada: la salida del primero es la entrada del segundo. Si \( U \) es la entrada, \( W=G_1 U \) y \( Y=G_2 W = G_2 G_1 U \). Dividiendo por \( U \):
+
+$$ \boxed{G_{serie}=G_1 G_2} $$
+
+El orden de los bloques importa si son matrices (MIMO), pero en SISO la multiplicación de escalares es conmutativa.
+
+**Paso 2 — conexión en paralelo.** Dos bloques con la misma entrada \( U \) cuyas salidas se suman: \( Y=G_1 U \pm G_2 U = (G_1\pm G_2)U \). Dividiendo por \( U \):
+
+$$ \boxed{G_{paralelo}=G_1\pm G_2} $$
+
+**Paso 3 — lazo de realimentación negativa.** La planta \( G \) y el sensor \( H \) forman el lazo. Definiendo las señales: error \( E=R-HY \), salida \( Y=GE \). Sustituyendo \( E \):
+
+$$ Y = G\,(R-HY) = GR - GHY $$
+
+Despejando \( Y \) al reagrupar el término \( GHY \) en la izquierda:
+
+$$ Y(1+GH)=GR $$
+
+$$ \boxed{\frac{Y}{R}=\frac{G}{1+GH}} $$
+
+La ganancia de lazo es \( L=GH \); el denominador \( 1+L \) es el polinomio característico — sus raíces son los polos de lazo cerrado. Para realimentación positiva basta cambiar el signo: \( G/(1-GH) \).
+
 ## Cuándo y por qué se usa
 Para modelar sistemas con varios lazos (corriente dentro de tensión dentro de potencia → ver
 [[control-cascada]]), identificar la ganancia de lazo que entra en Nyquist/Bode y derivar las

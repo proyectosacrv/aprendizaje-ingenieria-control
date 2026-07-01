@@ -46,6 +46,38 @@ dinámica del oscilador aún tiene que coordinarse con la impedancia de red (an�
 
 <div class="cfig"><img src="figuras/virtual-oscillator-control-ciclo.png" alt="ciclo limite de Van der Pol como atractor global"><div class="cap">El VOC emula un oscilador de Van der Pol: cualquier condición inicial (dentro o fuera) converge al mismo ciclo límite de amplitud y frecuencia fijas. Al acoplar varios convertidores por sus impedancias, la interacción eléctrica los sincroniza globalmente sin comunicaciones (sincronización tipo Kuramoto).</div></div>
 
+## 1 — Linealización del oscilador de Van der Pol: amortiguamiento negativo y ciclo límite
+
+**Paso 1 — ecuación completa.** El VOC emula el oscilador de Van der Pol:
+
+$$ \ddot{v} - \varepsilon(1-\kappa v^2)\dot{v} + \omega_0^2\,v = 0 $$
+
+con \( \varepsilon > 0 \) (coeficiente de no linealidad) y \( \kappa > 0 \) (parámetro de saturación de amplitud).
+
+**Paso 2 — linealización alrededor de \( v = 0 \).** Para amplitudes pequeñas (\( \kappa v^2 \ll 1 \)) el término de amortiguamiento queda:
+
+$$ \varepsilon(1-\kappa v^2)\dot{v}\approx \varepsilon\,\dot{v} $$
+
+La ecuación linealizada es:
+
+$$ \ddot{v} - \varepsilon\,\dot{v} + \omega_0^2\,v = 0 $$
+
+cuyo polinomio característico es \( s^2 - \varepsilon s + \omega_0^2 = 0 \).
+
+**Paso 3 — raíces y comportamiento.** Las raíces son:
+
+$$ s = \frac{\varepsilon}{2} \pm j\sqrt{\omega_0^2 - \frac{\varepsilon^2}{4}} $$
+
+Para \( \varepsilon \ll 2\omega_0 \) (caso típico): parte real \( +\varepsilon/2 > 0 \) → las oscilaciones de amplitud pequeña **crecen exponencialmente** con la frecuencia \( \omega_0 \). El sistema es inestable alrededor del origen (amortiguamiento negativo).
+
+**Paso 4 — saturación no lineal y ciclo límite.** A medida que crece \( |v| \), el factor \( (1-\kappa v^2) \) se vuelve negativo para \( |v| > 1/\sqrt\kappa \): el amortiguamiento pasa a ser positivo y frena el crecimiento. El equilibrio entre los dos regímenes define el ciclo límite de amplitud:
+
+$$ \boxed{A_{lim} = \frac{1}{\sqrt\kappa}} $$
+
+con frecuencia \( \omega_0 \). Cualquier condición inicial converge a esta trayectoria (atractor global del ciclo límite), lo que garantiza que la tensión de salida del convertidor alcanza siempre la amplitud y frecuencia correctas.
+
+**Paso 5 — efecto de la red.** Al conectar el convertidor a la red (o a otros convertidores), la corriente inyectada añade un término de fuerza al oscilador. En régimen permanente sincronizado, ese término compensa exactamente el amortiguamiento negativo, dejando \( \varepsilon_{efectivo} = 0 \): el convertidor oscila en el ciclo límite con la frecuencia y fase de la red, sin PLL.
+
 ## Cuándo y por qué se usa
 Redes islandinas con múltiples convertidores (microrredes) donde se quiere sincronización robusta y
 global sin comunicaciones, y donde las garantías formales de estabilidad no lineal son valiosas.

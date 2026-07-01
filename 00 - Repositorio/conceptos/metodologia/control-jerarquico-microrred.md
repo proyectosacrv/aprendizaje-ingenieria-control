@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [organizar el control de una microrred en capas por escala de tiempo y objetivo]
 tags: [microrred, jerarquico, primario, secundario, terciario, droop, restauracion, avanzado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-07-01
 relacionados: [droop-control, droop-dc, microrred-hibrida-ac-dc, servicios-red-soporte, vsm-inercia]
 referencias:
   - "Guerrero et al., Hierarchical Control of Droop-Controlled AC and DC Microgrids, IEEE TIE 2011"
@@ -38,6 +38,19 @@ interactuar. Modos de operación: **conectado a red** (terciario manda P/Q) e **
 secundario mantienen la red).
 
 <div class="cfig"><img src="figuras/control-jerarquico-microrred-capas.png" alt="tres capas del control jerarquico de microrred por escala de tiempo"><div class="cap">El control se organiza en tres capas separadas por escala de tiempo: el primario (ms–s, local, droop) da estabilidad y reparto pero deja desviación; el secundario (s–min) la restaura devolviendo ω/V a su nominal; el terciario (min–h) optimiza el despacho. Cada capa es ~5–10× más lenta que la inferior para no interactuar.</div></div>
+
+## 1 — Ejemplo cuantitativo: diseño de las tres capas para una microrred de 200 kVA
+**Primario.** Dos convertidores GFM de 100 kVA cada uno en paralelo. Para que a plena carga la desviación de frecuencia sea \( \le1\,\% \) (\( \le0.5\,\text{Hz} \)) con el estatismo \( m \):
+
+$$ \Delta\omega = m\,P_{\max}\;\Rightarrow\; m=\frac{2\pi\times0.5}{100\times10^3}=3.14\times10^{-5}\,\text{rad/s/W} $$
+
+Cada unidad tendrá \( m_1=m_2=3.14\times10^{-5} \) → potencias iguales a plena carga (reparto proporcional). Si los droop son iguales, la carga se reparte 50/50 independientemente de las impedancias de línea (en la banda donde el droop domina).
+
+**Secundario.** Para restaurar \( \omega \) con un PI de restauración: constante de tiempo del secundario \( \tau_s=5\,\text{s} \) (factor 5 más lento que el primario, cuya dinámica dominante es \( \tau_1\approx 1/m/P_n\cdot 2H\approx 1\,\text{s} \)). Ganancia del PI secundario: \( K_s=2\pi\times(1/\tau_s)=1.26 \) rad/s/Hz.
+
+**Terciario.** Despacho económico cada 5 min. Con dos fuentes de coste marginal \( c_1<c_2 \), la unidad 1 produce a \( P_1^*=P_{carga}-P_2^{min} \) hasta su límite; el terciario envía estas referencias al secundario como desplazamientos del punto de operación \( \delta\omega^* \).
+
+**Verificación de separación de escalas:** primario ms–s, secundario s–10 s, terciario minutos: factor \( \ge5 \) entre cada nivel \( \checkmark \).
 
 ## Cuándo y por qué se usa
 En microrredes (incluida la híbrida AC/DC del data center): coordina varias fuentes/convertidores,

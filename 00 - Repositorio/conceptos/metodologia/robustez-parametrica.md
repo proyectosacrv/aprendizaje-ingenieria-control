@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance, 03-DataCenter-IA]
 objetivos: [comprobar que el control aguanta la variacion de la planta]
 tags: [robustez, barrido, monte-carlo, peor-caso, SCR, sensibilidad-parametrica]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-07-01
 relacionados: [margenes-estabilidad, niveles-validacion, impedancia-salida-estabilidad, analisis-modal]
 referencias:
   - "Skogestad, Postlethwaite, Multivariable Feedback Control, Wiley 2005"
@@ -30,6 +30,27 @@ punto de operación varían dentro de su rango realista (no solo en el valor nom
   ([[impedancia-salida-estabilidad]]) cuando la incertidumbre es la red.
 
 <div class="cfig"><img src="figuras/robustez-parametrica-barrido.png" alt="barrido de SCR mostrando el valor critico de estabilidad"><div class="cap">Barriendo un parámetro incierto (aquí la SCR de la red) y observando $\max\mathrm{Re}(\lambda)$ se localiza el valor crítico donde el sistema cruza a inestable. En el GFM el cruce está en $SCR\approx3.35$: es inestable en red fuerte. El valor nominal puede ser estable y el rango real no, por eso nunca se valida solo en el punto nominal.</div></div>
+
+## 1 — Sensibilidad paramétrica en lazo abierto y en lazo cerrado
+**Paso 1 — lazo abierto.** Sea la salida \( y=G(p)\,u \) donde \( p \) es un parámetro incierto (p.ej. la inductancia \( L \) o el SCR). La sensibilidad de la salida a una variación \( \delta p \) es directa:
+
+$$ \delta y = \frac{\partial G}{\partial p}\cdot u\cdot\delta p $$
+
+No hay ningún mecanismo que la atenúe: si \( G \) cambia un 10 %, la salida cambia un 10 % también.
+
+**Paso 2 — lazo cerrado.** Con realimentación unitaria y controlador \( C \), la función de transferencia es \( T=GC/(1+GC) \). Una variación \( \delta G \) produce, tras linearizar:
+
+$$ \delta y = \frac{\partial T}{\partial G}\cdot\delta G\cdot r = \frac{C}{(1+GC)^2}\cdot\delta G\cdot r $$
+
+La **función de sensibilidad** \( S=1/(1+L) \) (con \( L=GC \)) aparece al factor:
+
+$$ \frac{\delta y/y}{\delta G/G}=\frac{1}{1+L(j\omega)}=S(j\omega) $$
+
+**Paso 3 — reducción por el factor \( S \).** Si \( |L|\gg1 \) en la banda de interés, \( S\approx 1/L\ll1 \): la misma variación paramétrica produce una perturbación en la salida reducida en un factor \( 1/(1+L) \) respecto al lazo abierto. Por eso la realimentación mejora la robustez paramétrica: su efecto se ve en el barrido de la planta vs la respuesta del lazo cerrado.
+
+$$ \boxed{S_G^y = \frac{\delta y/y}{\delta G/G}\bigg|_{LC} = \frac{1}{1+L(j\omega)}} $$
+
+**Comprobación con el SCR crítico del GFM:** al reducir el SCR (aumentar \( Z_{red} \)) la ganancia del lazo equivalente sube; \( |L| \) en la banda del droop disminuye → \( S\to1 \), la robustez se pierde y el sistema se acerca al cruce de estabilidad (SCR crítico ≈ 3.35).
 
 ## Cuándo y por qué se usa
 Siempre antes de dar por bueno un diseño: el valor nominal puede ser estable y el rango real no.

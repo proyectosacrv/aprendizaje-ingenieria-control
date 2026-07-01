@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [conocer los servicios auxiliares que un convertidor puede prestar a la red]
 tags: [servicios-red, inercia, ffr, p-f, q-v, ancillary, grid-code, intermedio]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-07-01
 relacionados: [vsm-inercia, droop-control, fault-ride-through, ecuacion-oscilacion, grid-forming-vs-following]
 referencias:
   - "ENTSO-E, Network Codes (RfG, HVDC)"
@@ -39,6 +39,39 @@ grid-forming **forma** tensión/frecuencia y aporta inercia y soporte de forma i
 imprescindibles.
 
 <div class="cfig"><img src="figuras/servicios-red-soporte-pf.png" alt="caracteristica droop P-f con banda muerta y saturacion"><div class="cap">Característica de la respuesta primaria de frecuencia: el convertidor ajusta su potencia activa proporcionalmente a la desviación de frecuencia, $\Delta P=-\Delta f/R$, con una banda muerta central (evita actuar por ruido) y saturación en los extremos (limitada por la reserva de energía disponible). Análogamente, el droop Q–V sostiene la tensión con reactiva.</div></div>
+
+## 1 — Droop de frecuencia \( \Delta P = -\Delta f / R \): derivación y valores típicos
+**Paso 1 — la característica droop.** El estatismo \( R \) (droop) relaciona la desviación de frecuencia con el cambio de potencia del generador/convertidor. Se define como la variación relativa de frecuencia que produce una variación del 100 % de la potencia nominal:
+
+$$ R = \frac{\Delta f/f_0}{\Delta P/P_n} \quad\Rightarrow\quad \Delta P = -\frac{1}{R}\,\frac{\Delta f}{f_0}\,P_n $$
+
+En notación en por unidad, con \( \Delta f \) en Hz y \( f_0=50 \) Hz, y \( \Delta P \) en p.u.:
+
+$$ \boxed{\Delta P\,[\text{p.u.}] = -\frac{1}{R}\,\Delta f\,[\text{p.u.}]} $$
+
+**Paso 2 — verificación numérica.** Con \( R=4\,\% \) y una caída de frecuencia de \( \Delta f=-0.5 \) Hz (que en p.u. es \( -0.5/50=-0.01 \)):
+
+$$ \Delta P = -\frac{1}{0.04}\times(-0.01) = +0.25\,\text{p.u.} = 25\,\% \text{ de } P_n $$
+
+El convertidor aumenta su potencia un 25 % ante una caída de 0.5 Hz: respuesta proporcional al déficit de generación.
+
+**Paso 3 — elección de \( R \).** El estatismo \( R \) es el compromiso entre la **variación de frecuencia** permitida en régimen permanente y la **reserva activa** disponible:
+- \( R \) pequeño (2 %): respuesta agresiva, poca desviación, pero requiere mucha reserva.
+- \( R \) grande (8 %): respuesta moderada, mayor desviación de frecuencia permitida.
+- Valor habitual: \( R=4\text{–}5\,\% \) (convención de los grupos térmicos sincronizados, adoptada por el código de red ENTSO-E para renovables).
+
+La banda muerta (\( \pm10\text{–}20\,\text{mHz} \)) evita que el ruido de medida de frecuencia excite continuamente el lazo de droop. La saturación (\( \Delta P_{\max}=P_{\text{reserva}} \)) refleja que el convertidor no puede dar más potencia que la que tiene disponible.
+
+## 2 — Respuesta inercial sintética: \( \Delta P = -2H\,df/dt \)
+**Paso 1 — analogía con la inercia del rotor.** En una máquina síncrona, la energía cinética almacenada es \( E=\frac{1}{2}J\omega^2 \). La constante de inercia \( H=E/S_n \) (en segundos) cuantifica cuánta energía en vatios-segundo por VA nominal hay en el volante. Ante un desequilibrio \( \Delta P \), la ecuación de oscilación es:
+
+$$ 2H\,\frac{d(\Delta f/f_0)}{dt} = \Delta P_{mec} - \Delta P_{elec} \;\Rightarrow\; \Delta P_{iner} = -2H\,\frac{d(\Delta f)}{dt}\frac{1}{f_0} $$
+
+**Paso 2 — emulación virtual.** Un convertidor mide \( df/dt \) (con filtro para evitar ruido) y genera una referencia de potencia adicional:
+
+$$ \boxed{\Delta P_{iner} = -2H_v\,\frac{df}{dt} \cdot \frac{1}{f_0}} $$
+
+donde \( H_v \) es la constante de inercia virtual (típ. 2–6 s). Esta acción es más rápida que el droop (actúa en la transición, no en régimen permanente) y reduce la tasa de cambio de frecuencia (ROCOF), lo que da tiempo a la regulación primaria para actuar.
 
 ## Cuándo y por qué se usa
 En el diseño del nivel superior de control de cualquier convertidor de red moderno: define qué

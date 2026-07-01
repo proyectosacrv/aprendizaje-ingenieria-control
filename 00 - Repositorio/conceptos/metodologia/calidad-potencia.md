@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [cuantificar y cumplir los límites de distorsión armónica, desequilibrio y flicker]
 tags: [calidad-potencia, thd, armonicos, flicker, ieee519, iec61000, desequilibrio, intermedio]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-07-01
 relacionados: [fft-analisis-espectral, convertidor-vsc, filtro-lcl, fenomenos-oscilatorios-red, deteccion-islanding]
 referencias:
   - "IEEE Std 519-2022, Harmonic Control in Electric Power Systems"
@@ -47,6 +47,33 @@ agrupación en 3 s, 10 min, 2 h para estadísticas.
 generan flicker e interarmónicos.
 
 <div class="cfig"><img src="figuras/calidad-potencia-armonicos.png" alt="armonicos medidos frente al limite IEEE 519"><div class="cap">Comprobación de cumplimiento: cada armónico de corriente medido en el PCC se compara con el límite individual de IEEE 519 (que depende de la relación $I_{sc}/I_L$). Aquí todos cumplen salvo el 5º, que supera su límite; cumplir el THD global no basta si un armónico individual lo viola. La mitigación es más atenuación de filtro, filtro activo o resonantes.</div></div>
+
+## 1 — Derivación del THD y aplicación del límite IEEE 519
+**Paso 1 — descomposición de Fourier.** Cualquier señal de corriente periódica \( i(t) \) con fundamental \( I_1 \) a \( f_1=50 \) Hz se expande en serie de Fourier:
+
+$$ i(t)=\sum_{h=1}^{\infty}I_h\sin(h\omega_1 t + \varphi_h) $$
+
+La potencia RMS total es \( I_{rms}=\sqrt{\sum_{h=1}^\infty I_h^2} \). La componente fundamental \( I_1 \) es la que transfiere potencia activa a la red; el resto son **armónicos** que solo generan pérdidas y distorsión.
+
+**Paso 2 — definición del THD.** El THD de corriente es la razón entre la energía armónica y la fundamental:
+
+$$ \text{THD}_I = \frac{\sqrt{\sum_{h=2}^{\infty}I_h^2}}{I_1}\times100\,\% = \frac{\sqrt{I_{rms}^2-I_1^2}}{I_1}\times100\,\% $$
+
+Para un VSC de dos niveles a \( f_{sw}=5 \) kHz con un filtro LCL que atenúa 60 dB los armónicos de conmutación, los armónicos relevantes quedan por debajo de \( 0.1\,\% \cdot I_1 \), y el THD es:
+
+$$ \text{THD}\approx\sqrt{3^2+2^2+1^2}/100 = \sqrt{14}/100 \approx 3.74\,\% \quad \checkmark \text{ (límite IEEE 519: 5\%)} $$
+
+**Paso 3 — límites normativos IEEE 519-2022.** Los límites de corriente en el PCC dependen de la relación de cortocircuito \( I_{sc}/I_L \): a mayor SCR (red más fuerte), la red puede absorber más armónicos:
+
+| \( I_{sc}/I_L \) | THD límite | Armónico individual h<11 |
+|---|---|---|
+| < 20 (SCR bajo) | 5 % | 4 % |
+| 20–50 | 8 % | 7 % |
+| > 100 | 15 % | 12 % |
+
+La tensión armónica total en el PCC siempre debe ser \( <5\,\% \) (armónico individual \( <3\,\% \)) independientemente del SCR. La corriente armónica inyectada genera tensión armónica mediante la impedancia de red: \( V_h=I_h\cdot Z_{red,h}\approx I_h\cdot h\omega_0 L_g \), de modo que la red débil (SCR bajo, \( L_g \) grande) tiene límites de corriente más estrictos.
+
+$$ \boxed{\text{THD}_I < 5\,\%\ (\text{IEEE 519 en PCC, SCR }<20);\quad V_{h}<3\,\%\ \text{cada armónico}} $$
 
 ## Cuándo y por qué se usa
 Como criterio de aceptación en el diseño del filtro y del control, en auditorías de conexión a red

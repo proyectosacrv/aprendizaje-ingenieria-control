@@ -49,6 +49,31 @@ Inestabilidad de media-alta frecuencia (decenas de Hz a kHz) que se manifiesta c
 
 <div class="cfig"><img src="figuras/estabilidad-armonica-pasividad.png" alt="parte real de la impedancia de salida con region no pasiva"><div class="cap">La parte real de la impedancia de salida Z_o del convertidor se vuelve negativa en una banda (sobre todo por el retardo digital): ahí es no pasivo. Si esa región coincide con una resonancia de red, el amortiguamiento neto es negativo y aparece la oscilación armónica.</div></div>
 
+## 1 — Condición de oscilación: \( \mathrm{Re}\{Z_{conv}+Z_{red}\}=0 \)
+
+**Paso 1 — circuito equivalente.** Convertidor y red se conectan en serie desde el punto de vista de la impedancia. El convertidor GFL presenta una impedancia de salida \( Z_{conv}(j\omega) \) (determinada por sus lazos de control, PLL y retardo digital); la red aporta \( Z_{red}(j\omega) = R_g + j\omega L_g \). La corriente total de lazo circula por ambas en serie.
+
+**Paso 2 — condición de resonancia con amortiguamiento nulo.** Para que exista una oscilación sostenida a la frecuencia \( \omega^* \) sin excitación externa, la impedancia total debe ser nula en esa frecuencia (condición de Barkhausen generalizada para impedancias en serie):
+
+$$ Z_{conv}(j\omega^*) + Z_{red}(j\omega^*) = 0 $$
+
+Separando en parte real e imaginaria:
+
+$$ \mathrm{Re}\{Z_{conv}(j\omega^*)\} + \mathrm{Re}\{Z_{red}(j\omega^*)\} = 0 $$
+$$ \mathrm{Im}\{Z_{conv}(j\omega^*)\} + \mathrm{Im}\{Z_{red}(j\omega^*)\} = 0 $$
+
+**Paso 3 — interpretación física.** La red es pasiva: \( \mathrm{Re}\{Z_{red}\} = R_g \geq 0 \). Para que se cumpla la primera ecuación, es necesario que:
+
+$$ \mathrm{Re}\{Z_{conv}(j\omega^*)\} = -R_g \leq 0 $$
+
+Es decir, el convertidor debe presentar **resistencia negativa** en \( \omega^* \) que cancele exactamente la resistencia de red. La segunda ecuación fija la frecuencia de oscilación: \( \omega^* \) es la resonancia donde las partes imaginarias se anulan entre sí.
+
+**Paso 4 — criterio práctico.** En la práctica, la oscilación crece si la condición es más que cumplida:
+
+$$ \boxed{\mathrm{Re}\{Z_{conv}(j\omega^*) + Z_{red}(j\omega^*)\} < 0} $$
+
+La frecuencia crítica \( \omega^* \) se busca en el barrido de \( \omega \): es donde \( \mathrm{Im}\{Z_{total}\}\approx0 \) y simultáneamente \( \mathrm{Re}\{Z_{total}\}<0 \). En la banda subsíncrona, \( \omega^* = \omega_n = \omega_0\sqrt{X_{Cs}/X_L} \); en la banda armónica, coincide con la resonancia paralelo de cables/filtros.
+
 ## Cuándo y por qué se usa
 Subsíncrona: parques eólicos conectados por líneas compensadas serie (causa de eventos reales, p.ej. ERCOT 2009), HVDC y redes débiles con alta penetración de convertidores. Armónica: parques eólicos/PV con cables largos (alta capacidad), HVDC y redes con muchos convertidores, donde aparecen oscilaciones de cientos de Hz a kHz no explicables por la dinámica electromecánica. Ambas son subclases "resonancia" de la [[clasificacion-estabilidad|clasificación de estabilidad]].
 

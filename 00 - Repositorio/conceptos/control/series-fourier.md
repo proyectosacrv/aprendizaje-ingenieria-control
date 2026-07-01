@@ -33,6 +33,38 @@ energía en tiempo y en frecuencia.
 
 <div class="cfig"><img src="figuras/series-fourier-cuadrada.png" alt="reconstruccion de una onda cuadrada con armonicos"><div class="cap">Una onda cuadrada es la suma de sus armónicos impares (amplitud ∝1/k): con más términos la aproximación mejora; el rizado de los flancos es el fenómeno de Gibbs.</div></div>
 
+## 1 — Derivación de los coeficientes cn por ortogonalidad
+
+**Paso 1 — ortogonalidad de los exponenciales complejos.** Las funciones \( e^{jn\omega_0 t} \) son ortogonales en el intervalo \( [0,T] \):
+
+$$ \frac{1}{T}\int_0^T e^{jn\omega_0 t}\,e^{-jm\omega_0 t}\,dt = \frac{1}{T}\int_0^T e^{j(n-m)\omega_0 t}\,dt = \begin{cases}1 & n=m \\ 0 & n\neq m\end{cases} $$
+
+Para \( n\neq m \), la integral de una exponencial compleja de periodo exactamente \( T/(n-m) \) sobre un número entero de periodos es cero.
+
+**Paso 2 — multiplicar la serie por \( e^{-jm\omega_0 t} \) e integrar.** Partiendo de \( x(t)=\sum_{k=-\infty}^{\infty}c_k e^{jk\omega_0 t} \), se multiplican ambos lados por \( e^{-jm\omega_0 t} \) y se integra sobre un periodo:
+
+$$ \frac{1}{T}\int_0^T x(t)\,e^{-jm\omega_0 t}\,dt = \sum_{k=-\infty}^{\infty}c_k\underbrace{\frac{1}{T}\int_0^T e^{j(k-m)\omega_0 t}\,dt}_{=\,\delta_{km}} = c_m $$
+
+**Paso 3 — resultado.** Renombrando \( m\to n \):
+
+$$ \boxed{c_n = \frac{1}{T}\int_0^T x(t)\,e^{-jn\omega_0 t}\,dt} $$
+
+## 2 — THD desde los coeficientes de Fourier
+
+**Paso 1 — potencia por armónico (Parseval).** La potencia media de \( x(t) \) es \( \sum_k |c_k|^2 \). La potencia de la fundamental es \( |c_1|^2+|c_{-1}|^2=2|c_1|^2 \) (para señal real \( c_{-k}=c_k^* \), así que \( |c_1|=|c_{-1}| \)).
+
+**Paso 2 — definir THD.** El THD (Total Harmonic Distortion) es la razón entre la potencia de todos los armónicos \( k\ge2 \) y la de la fundamental:
+
+$$ \mathrm{THD} = \frac{\sqrt{\displaystyle\sum_{k=2}^{\infty}|a_k|^2}}{|a_1|} $$
+
+donde \( a_k \) son las amplitudes de los armónicos en forma real (\( a_k=2|c_k| \) para señal real).
+
+**Paso 3 — ejemplo: onda cuadrada.** Para una onda cuadrada de amplitud 1, los coeficientes son \( c_k=2/(jk\pi) \) para \( k \) impar, cero para \( k \) par. La amplitud del armónico \( k \) impar es \( |a_k|=4/(k\pi) \). El THD resulta:
+
+$$ \mathrm{THD}=\frac{\sqrt{\sum_{k=3,5,7,\dots}(4/(k\pi))^2}}{4/\pi}=\sqrt{\sum_{k=3,5,\dots}\frac{1}{k^2}}\bigg/1 \approx 48.1\,\% $$
+
+(valor numérico obtenido con los primeros 100 armónicos impares).
+
 ## Cuándo y por qué se usa
 Para cuantificar **armónicos** y distorsión (THD), para entender el espectro de una señal medida,
 para la **respuesta en frecuencia** de un sistema, y como base de la FFT (su versión discreta y

@@ -43,6 +43,28 @@ reactiva (no ambos a la vez), según objetivo.
 
 <div class="cfig"><img src="figuras/fault-ride-through-lvrt.png" alt="envolvente LVRT y curva de inyeccion de reactiva"><div class="cap">Izquierda: envolvente LVRT del grid code; mientras la tensión del PCC quede por encima de la curva, el convertidor no debe desconectar (debe soportar 0 pu durante ~150 ms). Derecha: durante el hueco se prioriza corriente reactiva proporcional a la caída, $\Delta I_q=k\,\Delta V$, saturada a $I_{max}$.</div></div>
 
+## 1 — Derivación de Δiq = k·ΔV/Vn desde el requisito del grid code
+
+**Paso 1 — objetivo normativo.** Durante un hueco de tensión, el grid code exige que el convertidor aporte corriente reactiva para sostener la tensión en el PCC. La norma (p.ej. ENTSO-E RfG, VDE-AR-N 4120) establece que el incremento de corriente reactiva sea proporcional al hueco:
+
+$$ \Delta I_q = k\,\frac{\Delta V}{V_n}, \qquad \Delta V = V_n - V_{pcc} $$
+
+con \( k\ge2 \) p.u./p.u. (al menos 2 A de reactiva por cada 1 p.u. de caída de tensión).
+
+**Paso 2 — sustento físico.** La tensión en el PCC se puede aproximar como \( V_{pcc}\approx V_{grid}-X_{red}\,I_q \) (para red predominantemente inductiva). Un aumento \( \Delta I_q \) en la corriente reactiva produce una subida de tensión \( \Delta V_{pcc}\approx X_{red}\,\Delta I_q \). La pendiente \( k \) establece cuánta reactiva se inyecta por unidad de caída: cuanto mayor \( k \), mayor soporte de tensión, pero también mayor riesgo de sobrepasar \( I_{max} \).
+
+**Paso 3 — límite de corriente.** La corriente total está limitada por la capacidad del puente (\( I_{max} \)), por lo que la corriente reactiva inyectada se satura:
+
+$$ I_q^* = \min\!\left(k\,\Delta V,\; I_{max}\right) $$
+
+y la activa se recorta al valor restante:
+
+$$ I_d^* = \sqrt{\max\!\left(I_{max}^2 - (I_q^*)^2,\;0\right)} $$
+
+**Paso 4 — ejemplo numérico.** Para un hueco \( \Delta V=0.3 \) p.u. y \( k=2 \): \( \Delta I_q=2\times0.3=0.6 \) p.u. Si \( I_{max}=1.0 \) p.u., la activa disponible queda \( I_d^*=\sqrt{1-0.36}=0.8 \) p.u.
+
+$$ \boxed{\Delta I_q = k\,\Delta V,\quad k\ge2\;\text{p.u./p.u.}} $$
+
 ## Cuándo y por qué se usa
 Obligatorio para conexión a red de PV/eólica/almacenamiento. Crítico en grid-forming, donde además
 hay que limitar corriente sin perder la fuente de tensión (transición a modo limitado).

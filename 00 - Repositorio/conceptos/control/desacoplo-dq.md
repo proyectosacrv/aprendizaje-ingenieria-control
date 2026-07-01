@@ -34,6 +34,39 @@ huecos; el desacoplo de \( \omega L \) elimina el sobreimpulso cruzado en transi
 
 <div class="cfig"><img src="figuras/desacoplo-dq-bloques.png" alt="lazo de corriente con desacoplo"><div class="cap">Lazo de corriente del eje d: el término de desacoplo −ωL·iq se inyecta antes de la planta para cancelar el acoplamiento cruzado +ωL·iq, dejando una planta SISO 1/(Ls+R) que el PI controla sin interferencia del eje q.</div></div>
 
+## 1 — Sintonía IMC del PI sobre la planta SISO \( 1/(Ls+R) \)
+
+Tras cancelar los términos \( \pm\omega L \) por desacoplo, cada eje queda con la planta de primer orden:
+$$ G(s)=\frac{i_d}{v_d'}=\frac{1}{Ls+R} $$
+
+**Paso 1 — forma IMC del PI.** El método *Internal Model Control* elige el PI de manera que la función de lazo abierto sea un integrador puro de ganancia \( \alpha_c \) (ancho de banda en rad/s). Con \( C(s)=K_p+K_i/s \):
+
+$$ L_{OL}(s)=C(s)\,G(s)=\frac{K_p s+K_i}{s}\cdot\frac{1}{Ls+R} $$
+
+Para que se cancele el polo de la planta, se pide que el cero del PI coincida con ese polo:
+
+$$ \frac{K_i}{K_p}=\frac{R}{L}\quad\Rightarrow\quad K_p=L\,\alpha_c,\quad K_i=R\,\alpha_c $$
+
+siendo \( \alpha_c \) la frecuencia de cruce deseada.
+
+**Paso 2 — lazo abierto resultante.** Sustituyendo:
+
+$$ L_{OL}(s)=\frac{\alpha_c(Ls+R)}{s(Ls+R)}=\frac{\alpha_c}{s} $$
+
+Integrador puro: pendiente \(-20\) dB/dec y fase \(-90°\) constante — margen de fase de **90°** independientemente de \( \alpha_c \).
+
+**Paso 3 — lazo cerrado.** Con la retroalimentación unitaria:
+
+$$ \frac{i_d}{i_d^*}=\frac{L_{OL}}{1+L_{OL}}=\frac{\alpha_c/s}{1+\alpha_c/s}=\boxed{\frac{\alpha_c}{s+\alpha_c}} $$
+
+Sistema de **primer orden** con constante de tiempo \( \tau_c=1/\alpha_c \): la corriente sigue la referencia con ancho de banda exactamente igual a \( \alpha_c \), sin sobreimpulso y sin depender de \( L \) ni \( R \) (están cancelados).
+
+**Paso 4 — valores numéricos de ejemplo.** Para \( L=2\,\text{mH} \), \( R=0.05\,\Omega \), \( \alpha_c=2\pi\cdot1000\,\text{rad/s} \):
+
+$$ K_p=L\,\alpha_c=0.002\times6283=\mathbf{12.57}\,\Omega,\qquad K_i=R\,\alpha_c=0.05\times6283=\mathbf{314}\,\text{Ω/s} $$
+
+La relación \( T_i=K_p/K_i=L/R=0.04\,\text{s} \) es la constante de tiempo eléctrica del filtro.
+
 ## Cuándo y por qué se usa
 En todo control vectorial de corriente de convertidores y máquinas, sobre todo cuando \( \omega L \)
 es grande (alta frecuencia o inductancia), donde el acoplamiento degrada notablemente la respuesta.

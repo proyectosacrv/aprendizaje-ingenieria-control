@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [definir que ensayos confirman cada especificacion]
 tags: [ensayos, escalon, perturbacion, inyeccion, falta, validacion]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-07-01
 relacionados: [niveles-validacion, validacion-cruzada, medicion-impedancia-inyeccion, especificaciones-control]
 referencias:
   - "Teodorescu et al., Grid Converters for PV and Wind Power Systems, Wiley 2011"
@@ -29,6 +29,19 @@ especificación, su prueba**.
 - **Variación paramétrica** (cambiar SCR, potencia): liga con [[robustez-parametrica]].
 
 <div class="cfig"><img src="figuras/pruebas-validacion-ensayos.png" alt="cuatro ensayos tipicos de validacion de control"><div class="cap">A cada especificación, su ensayo: el escalón de referencia mide el seguimiento ($M_p,t_s$); el escalón de carga mide el rechazo de perturbación; la inyección de pequeña señal mide la respuesta en frecuencia / impedancia; y el hueco de tensión prueba la supervivencia en falta y el current limiting. Cada uno con su criterio de aceptación numérico.</div></div>
+
+## 1 — Ejemplo cuantitativo: tabla de ensayos con criterio de aceptación
+**Contexto:** GFM de 50 kVA, \( V_n=400\,\text{V} \), \( f_{sw}=10\,\text{kHz} \), SCR nominal = 8.
+
+| Ensayo | Especificación | Resultado medido | Veredicto |
+|---|---|---|---|
+| Escalón de potencia 50→90 % | \( M_p<10\,\%;\; t_s<100\,\text{ms} \) | \( M_p=7\,\%;\; t_s=68\,\text{ms} \) | \( \checkmark \) |
+| Escalón de carga (microgrid isla) | Caída de tensión \( <5\,\% \) durante \( <80\,\text{ms} \) | Caída 3.8 %, recuperación 72 ms | \( \checkmark \) |
+| Inyección de impedancia (10–500 Hz) | Error modelo/medición \( <5\,\% \) | Error medio 0.21 % | \( \checkmark \) |
+| Hueco de tensión al 30 % (100 ms) | Corriente pico \( <1.5\,\text{p.u.} \) | Pico 1.12 p.u. | \( \checkmark \) |
+| Barrido SCR 1–12 | SCR crítico \( <1.5 \) (inestable en red fuerte confirmado) | SCR crítico 3.35 | \( \checkmark \) |
+
+**Clave:** cada fila de la tabla liga directamente un requisito del grid code o del diseño a un número medible. Sin ese criterio previo, el ensayo solo produce una curva sin conclusión.
 
 ## Cuándo y por qué se usa
 En la fase de validación, en cada nivel de fidelidad. Cada ensayo debe tener un **criterio de

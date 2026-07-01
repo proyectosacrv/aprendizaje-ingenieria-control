@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [validar control y hardware contra un modelo de planta en tiempo real]
 tags: [hil, phil, tiempo-real, validacion, simulacion, fpga, intermedio, programacion]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-07-01
 relacionados: [niveles-validacion, simulacion-conmutada, discretizacion-controladores, pruebas-validacion, medicion-impedancia-inyeccion]
 referencias:
   - "Bélanger, Venne, Paquin, The What, Where and Why of Real-Time Simulation, IEEE PES 2010"
@@ -39,6 +39,37 @@ intercambiando potencia con la planta simulada.
 Encaja en la pirámide de [[niveles-validacion]]: modelo offline → HIL de control → PHIL → campo.
 
 <div class="cfig"><img src="figuras/hil-phil-lazo.png" alt="lazo de HIL y PHIL contra simulador en tiempo real"><div class="cap">El modelo de planta corre en un simulador de tiempo real que debe completar cada paso antes del siguiente tick (sin overruns). En HIL se cierra el lazo de señal con el controlador real (sensores→control→PWM) para validar firmware y protecciones; en PHIL se cierra además un lazo de potencia real con un amplificador, cuya estabilidad depende del cociente de impedancias real/simulada.</div></div>
+
+## 1 — El lazo HIL: señales y retardos de interfaz
+**Paso 1 — ciclo de un paso HIL.** En cada paso de tiempo \( \Delta t \) el simulador en tiempo real ejecuta la secuencia:
+
+1. **ADC:** las salidas analógicas de la planta simulada (tensiones, corrientes) se convierten a digital con retardo \( T_{ADC}\approx1\text{–}5\,\mu\text{s} \).
+2. **Cómputo del controlador:** el DSP/FPGA real procesa la medida y calcula la acción de control. Tiempo de cómputo \( T_{comp}\approx5\text{–}50\,\mu\text{s} \).
+3. **DAC:** la señal de control (PWM o referencia) se convierte a analógico con retardo \( T_{DAC}\approx1\text{–}5\,\mu\text{s} \).
+4. **Modelo:** el simulador avanza la planta un paso \( \Delta t \).
+
+El **retardo total de interfaz** es \( T_d=T_{ADC}+T_{comp}+T_{DAC} \).
+
+**Paso 2 — efecto del retardo en el lazo de control.** Un retardo puro \( e^{-T_d s} \) en el lazo de corriente reduce el margen de fase en:
+
+$$ \Delta\phi = T_d\cdot\omega_c\cdot\frac{180°}{\pi} $$
+
+Para \( \omega_c=2\pi\times1000 \) rad/s y \( T_d=100\,\mu\text{s} \): \( \Delta\phi=2\pi\times1000\times10^{-4}\times57.3°=36° \). Si el margen nominal era 72°, queda en 36° — por debajo del límite de 45°. El HIL detecta esto sin riesgo.
+
+$$ \boxed{T_d\cdot\omega_c<\frac{\pi}{4}\;\Rightarrow\; T_d < \frac{1}{4f_c}} $$
+
+Para \( f_c=1\,\text{kHz} \): \( T_d < 250\,\mu\text{s} \). Valores típicos de HIL (50–150 µs) cumplen con margen.
+
+## 2 — Estabilidad del PHIL: condición sobre el retardo y la impedancia de interfaz
+**Paso 1 — el bucle de potencia PHIL.** En PHIL se cierra un lazo físico de potencia entre el amplificador real y la planta simulada. El amplificador impone la tensión \( V_{HW} \) y mide la corriente \( I_{HW} \). La planta simulada recibe \( I_{HW} \) y devuelve la tensión de referencia \( V_{ref} \) al amplificador. El retardo total del lazo introduce una fase que puede inestabilizar el acoplamiento.
+
+**Paso 2 — criterio de estabilidad del ITM (Ideal Transformer Model).** Para el algoritmo ITM, el lazo PHIL es estable si la impedancia del hardware real \( Z_{HW} \) es menor que la de la planta simulada \( Z_{sim} \) en la banda crítica:
+
+$$ \left|\frac{Z_{HW}(j\omega)}{Z_{sim}(j\omega)}\right| < 1\quad\forall\omega \text{ en la banda de interés} $$
+
+El retardo \( T_d \) añade fase \( e^{-j\omega T_d} \) y transforma la condición en una restricción de estabilidad más estricta a altas frecuencias. La compensación estándar es añadir un filtro en la interfaz que anticipe fase (lead) para compensar el retardo.
+
+$$ \boxed{|Z_{HW}/Z_{sim}|<1 \;\wedge\; T_d<T_{crit}\;\Rightarrow\;\text{PHIL estable}} $$
 
 ## Cuándo y por qué se usa
 Para validar el control diseñado (sobre [[simulacion-conmutada|modelo conmutado]]) en condiciones

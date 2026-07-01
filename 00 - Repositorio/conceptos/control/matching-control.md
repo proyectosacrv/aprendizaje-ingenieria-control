@@ -44,6 +44,40 @@ hasta la dinámica del generador.
 
 <div class="cfig"><img src="figuras/matching-control-swing.png" alt="tension del bus DC oscilando como un swing tras un escalon de potencia"><div class="cap">Al asignar $\dot\theta=k\,v_{dc}$, la tensión del bus DC hace de frecuencia: ante un escalón de potencia oscila y se asienta igual que el ángulo de un generador síncrono (ecuación de swing), con la inercia del condensador real. La sincronización emerge de la física del almacenamiento, sin PLL ni lazo de frecuencia.</div></div>
 
+## 1 — Analogía bus DC ↔ frecuencia: derivación de la dinámica equivalente
+
+**Paso 1 — energía en el bus DC.** El condensador de bus almacena energía:
+
+$$ E_{DC} = \tfrac{1}{2}C\,v_{dc}^2 $$
+
+La derivada temporal da el balance de potencia:
+
+$$ \frac{dE_{DC}}{dt} = C\,v_{dc}\frac{dv_{dc}}{dt} = P_{in} - P_{out} \quad\Rightarrow\quad \frac{dv_{dc}}{dt}=\frac{P_{in}-P_{out}}{C\,v_{dc}} $$
+
+**Paso 2 — ecuación de swing del generador síncrono.** La segunda ley de Newton para el rotor (en pu con \( \omega_0 \) la pulsación nominal) es:
+
+$$ \frac{2H}{\omega_0}\frac{d\omega}{dt} = P_m - P_e $$
+
+donde \( H \) [s] es la constante de inercia, \( P_m \) la potencia mecánica y \( P_e \) la eléctrica.
+
+**Paso 3 — emparejamiento.** El matching asigna:
+
+$$ \dot\theta = k_{match}\,v_{dc} \quad\Leftrightarrow\quad \omega \equiv k_{match}\,v_{dc} $$
+
+Derivando esta relación:
+
+$$ \dot\omega = k_{match}\,\dot v_{dc} = k_{match}\,\frac{P_{in}-P_{out}}{C\,v_{dc}} = \frac{k_{match}^2}{C\,\omega}\,(P_{in}-P_{out}) $$
+
+**Paso 4 — identificación del parámetro equivalente.** Comparando con la swing equation:
+
+$$ \frac{2H}{\omega_0}\dot\omega = P_m - P_e \quad\Leftrightarrow\quad \frac{C}{k_{match}^2}\,\omega\,\dot\omega = (P_{in}-P_{out})\,\omega $$
+
+En el entorno de \( \omega\approx\omega_0 \), la inercia virtual equivalente del condensador es:
+
+$$ \boxed{J_v = \frac{C}{k_{match}^2}, \qquad H_v = \frac{J_v\,\omega_0^2}{2\,S_n}} $$
+
+El condensador físico hace el papel de la masa rotante: más \( C \) → más inercia; más \( k_{match} \) → misma \( C \) da menos inercia (el ángulo es más sensible a \( v_{dc} \)). La sincronización emerge del balance energético sin ningún lazo de frecuencia artificial.
+
 ## Cuándo y por qué se usa
 Convertidores con fuente de energía en el bus DC (BESS, supercondensadores) donde el rizado de
 tensión DC es aceptable, y donde se quiere la máxima simplicidad de control con inercia genuina.

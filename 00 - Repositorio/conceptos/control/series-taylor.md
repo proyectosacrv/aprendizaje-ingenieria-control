@@ -82,6 +82,27 @@ $$ \frac{\omega_d}{\omega_n}=\sqrt{1-\zeta^2}=1-\frac{\zeta^2}{2}-\frac{\zeta^4}
 
 No es una fórmula nueva: es la misma serie binomial de \( \sqrt{1-x} \), con \( x \) sustituido por \( \zeta^2 \). Que solo aparezcan potencias **pares** de \( \zeta \) (\( \zeta^2 \), \( \zeta^4 \)…) no es casualidad: como la sustitución es \( x=\zeta^2 \), cada potencia \( x^m \) de la serie en \( x \) se convierte en \( \zeta^{2m} \), así que nunca puede salir un término en \( \zeta^1 \) o \( \zeta^3 \). Esto explica, de paso, por qué la aproximación \( \omega_d\approx\omega_n \) es tan buena incluso para \( \zeta \) moderado: su primer error es de orden \( \zeta^2 \) (cuadrático), mientras que el de \( e^{-x} \) en el Ejemplo A es de orden \( x=4\pi\zeta \) (lineal en \( \zeta \)) — de ahí que en [[factor-calidad-q]] la aproximación de la exponencial sea la que realmente domina el error, no la de \( \omega_d\approx\omega_n \).
 
+## Desarrollo 4 — linealización de sin(δ) ≈ δ para δ pequeño
+
+**Paso 1 — función de partida.** Se quiere aproximar \( f(\delta)=\sin\delta \) alrededor del punto de operación \( \delta=0 \) (ángulo nulo).
+
+**Paso 2 — calcular derivadas en δ = 0.**
+
+$$ f(0)=\sin0=0,\quad f'(\delta)=\cos\delta\;\Rightarrow\; f'(0)=1,\quad f''(\delta)=-\sin\delta\;\Rightarrow\; f''(0)=0 $$
+$$ f'''(\delta)=-\cos\delta\;\Rightarrow\; f'''(0)=-1 $$
+
+**Paso 3 — montar el polinomio de Maclaurin (\( a=0 \)).**
+
+$$ \sin\delta = 0 + 1\cdot\delta + \frac{0}{2!}\delta^2 + \frac{-1}{3!}\delta^3 + \dots = \delta - \frac{\delta^3}{6} + \frac{\delta^5}{120} - \dots $$
+
+**Paso 4 — truncar a primer orden.**
+
+$$ \boxed{\sin\delta \approx \delta} \quad (\delta\text{ en radianes, }\delta\ll1) $$
+
+El primer término descartado es \( -\delta^3/6 \), de modo que el error relativo es \( |\sin\delta-\delta|/|\delta|\approx\delta^2/6 \). Para \( \delta=10°\approx0.175\,\text{rad} \): error \( \approx0.175^2/6\approx0.5\,\% \). Para \( \delta=30°\approx0.524\,\text{rad} \): error \( \approx4.6\,\% \).
+
+**Aplicación directa.** En la swing equation y en el modelo de línea de transmisión, la potencia transferida es \( P=P_{max}\sin\delta \). Para ángulos de operación pequeños (\( \delta<15° \)), la linealización \( \sin\delta\approx\delta \) convierte la ecuación no lineal en una EDO lineal, lo que permite diseñar reguladores lineales (estabilizadores de sistema de potencia, PSS).
+
 ## Generalización — válido para cualquier función derivable
 Nada en esta derivación usa que \( f \) sea \( e^{-x} \) o \( \sqrt{1-x} \): solo que tenga suficientes derivadas en \( a \). Por eso el mismo procedimiento da \( \sin\theta\approx\theta \) (linealizar un ángulo pequeño), \( (1+x)^n\approx1+nx \) (binomio para \( x \) pequeño), o la linealización de un modelo de estados \( \dot{\mathbf{x}}=\mathbf{f}(\mathbf{x},\mathbf{u}) \) alrededor de un punto de equilibrio (ver [[linealizacion-teoria]] y, en su versión numérica con Jacobianos, [[linealizacion-numerica]]).
 

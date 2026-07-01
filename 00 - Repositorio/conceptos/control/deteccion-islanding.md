@@ -50,6 +50,30 @@ incluso en isla.
 
 <div class="cfig"><img src="figuras/deteccion-islanding-ndz.png" alt="zona de no deteccion en el plano de desbalance de potencia"><div class="cap">Zona de no detección (NDZ): si al quedar en isla la generación casi iguala a la carga ($\Delta P\approx0$, $\Delta Q\approx0$), la tensión y la frecuencia permanecen dentro de umbrales y los métodos pasivos OUF/OUV no disparan. Los métodos activos perturban la salida para empujar el punto fuera de esta caja.</div></div>
 
+## 1 — ROCOF desde la swing equation
+
+**Paso 1 — ecuación de oscilación (swing equation).** Un generador (o convertidor con inercia virtual) de inercia \( H \) (en segundos) y potencia nominal \( S_n \) obedece:
+
+$$ \frac{2H}{\omega_0}\frac{d\omega}{dt} = P_{mec}-P_{elec} = \Delta P $$
+
+donde \( \omega_0=2\pi f_0 \) es la pulsación nominal y \( \Delta P \) el desequilibrio de potencia (en p.u. sobre \( S_n \)).
+
+**Paso 2 — pasar a variación de frecuencia.** Como \( \omega=2\pi f \), dividiendo por \( 2\pi \):
+
+$$ \frac{2H}{f_0}\frac{df}{dt} = \Delta P $$
+
+Despejando la tasa de cambio de frecuencia:
+
+$$ \boxed{\frac{df}{dt} = \frac{\Delta P\,f_0}{2H}} \quad [\text{Hz/s}] $$
+
+**Paso 3 — interpretar el umbral.** En isla, si la generación excede a la carga en \( \Delta P=0.1 \) p.u., con \( H=5\,\text{s} \) y \( f_0=50\,\text{Hz} \):
+
+$$ \frac{df}{dt}=\frac{0.1\times50}{2\times5}=0.5\,\text{Hz/s} $$
+
+Un umbral típico de ROCOF es \( 0.5\text{–}2\,\text{Hz/s} \). Si el desequilibrio es mayor, el ROCOF supera el umbral antes del tiempo de actuación normativo (< 0.5–2 s).
+
+**Paso 4 — límite de sensibilidad.** En red conectada, la red absorbe o aporta \( \Delta P \) sin cambiar \( f \) (la red tiene inercia efectiva enorme: \( H_{red}\to\infty \)). Al abrir el interruptor toda la inercia disponible se reduce a \( H \) del convertidor → \( df/dt \) salta bruscamente, lo que el ROCOF detecta.
+
 ## Cuándo y por qué se usa
 Obligatorio por normativa (IEEE 1547, IEC 62116, VDE-AR-N 4105) para toda generación distribuida
 conectada a red pública. Especialmente crítico en instalaciones con [[servicios-red-soporte|FRT y

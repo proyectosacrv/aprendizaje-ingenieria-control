@@ -60,6 +60,26 @@ que crece sin límite cuando \( \zeta\to0 \) (pico infinito, no amortiguado) y v
 
 <div class="cfig"><img src="figuras/frecuencias-segundo-orden-resp.png" alt="izquierda magnitud para varios zeta marcando omega_peak; derecha omega_d y omega_peak normalizadas frente a zeta"><div class="cap">Izquierda: \(|H(j\omega)|\) para varios \(\zeta\); el pico (○) está en \(\omega_{peak}\) y desaparece para \(\zeta\ge0.707\). Derecha: \(\omega_d/\omega_n\) y \(\omega_{peak}/\omega_n\) frente a \(\zeta\); ambas salen de 1 con \(\zeta\) pequeño, \(\omega_{peak}\) se anula en \(\zeta=0.707\) y \(\omega_d\) en \(\zeta=1\).</div></div>
 
+## Desarrollo 4 — altura del pico resonante Mr = 1/(2ζ√(1−ζ²))
+
+**Paso 1 — sustituir ωpeak en |H(jω)|.** Se tiene \( \omega_{peak}^2=\omega_n^2(1-2\zeta^2) \). Sustituyendo en el denominador de \( |H|^2 \):
+
+$$ (\omega_n^2-\omega_{peak}^2)^2 = \left(\omega_n^2-\omega_n^2(1-2\zeta^2)\right)^2 = \left(2\zeta^2\omega_n^2\right)^2 = 4\zeta^4\omega_n^4 $$
+
+$$ (2\zeta\omega_n\omega_{peak})^2 = 4\zeta^2\omega_n^2\cdot\omega_n^2(1-2\zeta^2) = 4\zeta^2\omega_n^4(1-2\zeta^2) $$
+
+**Paso 2 — sumar los dos términos del denominador.**
+
+$$ D(\omega_{peak}) = 4\zeta^4\omega_n^4 + 4\zeta^2\omega_n^4(1-2\zeta^2) = 4\zeta^2\omega_n^4\left[\zeta^2+(1-2\zeta^2)\right] = 4\zeta^2\omega_n^4(1-\zeta^2) $$
+
+**Paso 3 — calcular |H|²(ωpeak) y tomar raíz.**
+
+$$ |H|^2(\omega_{peak})=\frac{\omega_n^4}{4\zeta^2\omega_n^4(1-\zeta^2)}=\frac{1}{4\zeta^2(1-\zeta^2)} $$
+
+$$ \boxed{M_r=|H(j\omega_{peak})|=\frac{1}{2\zeta\sqrt{1-\zeta^2}}} $$
+
+**Verificación de límites.** Para \( \zeta\to0 \): \( M_r\to\infty \) (pico infinito, sin amortiguamiento). Para \( \zeta=1/\sqrt{2} \): \( M_r=1/(2\cdot\tfrac{1}{\sqrt{2}}\cdot\tfrac{1}{\sqrt{2}})=1 \) (pico exactamente unitario, coincide con la ganancia DC).
+
 ## Orden y relaciones entre las tres
 Para \( 0<\zeta<1/\sqrt{2} \) se cumple siempre:
 $$ \omega_{peak} = \omega_n\sqrt{1-2\zeta^2} \;\le\; \omega_d = \omega_n\sqrt{1-\zeta^2} \;\le\; \omega_n $$

@@ -40,6 +40,32 @@ peor caso (que sacrifica desempeño por robustez).
 
 <div class="cfig"><img src="figuras/gain-scheduling-scr.png" alt="ganancia de lazo con Kp fijo y con Kp programado segun SCR"><div class="cap">Con un $K_p$ fijo sintonizado en red fuerte, la ganancia de lazo $K_pX_g$ (con $X_g\propto1/$SCR) se dispara al debilitarse la red y cruza el umbral de inestabilidad. Programando $K_p$ proporcional a la SCR estimada, el producto $K_pX_g$ se mantiene constante y el margen se conserva en todo el rango.</div></div>
 
+## 1 — Interpolación lineal de ganancias: demostración algebraica
+
+**Paso 1 — fórmula general.** Dados dos puntos de operación \( p_1 \) y \( p_2 \) con ganancias \( K_1 \) y \( K_2 \) respectivamente, la interpolación lineal de la ganancia \( K \) en función de la variable de scheduling \( p \) es:
+
+$$ K(p) = K_1 + (K_2-K_1)\,\frac{p-p_1}{p_2-p_1} $$
+
+**Paso 2 — verificación en \( p_1 \).** Sustituyendo \( p=p_1 \):
+
+$$ K(p_1) = K_1 + (K_2-K_1)\,\frac{p_1-p_1}{p_2-p_1} = K_1 + 0 = \boxed{K_1} $$
+
+**Paso 3 — verificación en \( p_2 \).** Sustituyendo \( p=p_2 \):
+
+$$ K(p_2) = K_1 + (K_2-K_1)\,\frac{p_2-p_1}{p_2-p_1} = K_1 + (K_2-K_1) = \boxed{K_2} $$
+
+**Paso 4 — ejemplo numérico: scheduling por SCR.** Un PI de la PLL tiene \( K_1=2 \) a SCR\( =10 \) (red fuerte) y debe bajar a \( K_2=8 \) a SCR\( =50 \). En un punto intermedio SCR\( =30 \):
+
+$$ K(30) = 2 + (8-2)\,\frac{30-10}{50-10} = 2 + 6\times0.5 = \mathbf{5} $$
+
+verificado por Python: `K(p1)=2.0`, `K(p2)=8.0`.
+
+**Paso 5 — reescritura en forma de mezcla convexa.** Definiendo \( \lambda=(p-p_1)/(p_2-p_1)\in[0,1] \):
+
+$$ \boxed{K(p) = (1-\lambda)\,K_1 + \lambda\,K_2} $$
+
+Esta forma deja claro que \( K \) es una **combinación convexa** de los dos diseños: nunca sale del intervalo \( [K_1,K_2] \) mientras \( p\in[p_1,p_2] \), lo que garantiza que la ganancia no puede dispararse entre puntos del scheduling.
+
 ## Cuándo y por qué se usa
 Cuando un único juego de ganancias no sirve en todo el rango: aerogenerador con punto de operación variable
 (MPPT, pitch), convertidor cuya planta depende de la **SCR de red** ([[interaccion-pll-red-debil]]: PLL

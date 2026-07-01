@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [calcular Y(s)/Z(s) y Bode desde A,B,C,D]
 tags: [espacio-estados, bode, transferencia, frecuencia, numpy]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-07-01
 relacionados: [linealizacion-numerica, impedancia-salida-estabilidad, medicion-impedancia-inyeccion]
 referencias:
   - "Skogestad, Postlethwaite, Multivariable Feedback Control, Wiley 2005"
@@ -26,6 +26,33 @@ Para cada frecuencia se resuelve un sistema lineal en vez de invertir explícita
 la impedancia \( Z=Y^{-1} \).
 
 <div class="cfig"><img src="figuras/respuesta-frecuencia-ss-bode.png" alt="Bode de magnitud y fase calculado desde el espacio de estados"><div class="cap">Bode obtenido directamente del modelo en espacio de estados: para cada frecuencia se resuelve $G(j\omega)=C(j\omega I-A)^{-1}B+D$ con <code>np.linalg.solve</code> (más estable que invertir). De aquí salen la impedancia analítica $Y=-G$, $Z=Y^{-1}$ y el minor loop gain del criterio por impedancia. La malla logarítmica debe ser fina para no perder resonancias agudas.</div></div>
+
+## 1 — De las matrices \( A,B,C,D \) a \( G(j\omega) \): derivación y ejemplo numérico
+**Paso 1 — origen de la fórmula.** En espacio de estados, con entrada \( u(t) \) y salida \( y(t)=C\,x+D\,u \), tomando la transformada de Laplace con condiciones iniciales nulas:
+
+$$ s\,X(s) = A\,X(s) + B\,U(s) \;\Rightarrow\; (sI-A)\,X(s) = B\,U(s) \;\Rightarrow\; X(s)=(sI-A)^{-1}B\,U(s) $$
+
+Sustituyendo en la salida:
+
+$$ Y(s) = \bigl[C(sI-A)^{-1}B + D\bigr]\,U(s) = \mathbf{G}(s)\,U(s) $$
+
+Evaluar en \( s=j\omega \) da la respuesta en frecuencia: \( \mathbf{G}(j\omega)=C(j\omega I-A)^{-1}B+D \).
+
+**Paso 2 — ejemplo numérico \( 2\times2 \).** Sistema RL acoplado en dq: \( \dot{i}_d=-(R/L)\,i_d+\omega_0\,i_q+v_d/L \), \( \dot{i}_q=-(R/L)\,i_q-\omega_0\,i_d+v_q/L \). Con \( R/L=50 \), \( \omega_0=314 \):
+
+$$ A=\begin{bmatrix}-50 & 314 \\ -314 & -50\end{bmatrix},\quad B=\frac{1}{L}I_{2\times2},\quad C=I_{2\times2},\quad D=0 $$
+
+A \( f=50\,\text{Hz} \) (\( \omega=314 \) rad/s):
+
+$$ j\omega I - A = \begin{bmatrix}j314+50 & -314 \\ 314 & j314+50\end{bmatrix} $$
+
+$$ \det = (50+j314)^2 + 314^2 = 2500 - 98596 + j\cdot2\times50\times314 + 314^2 = 314^2(j^2-1)+j31400+2500+314^2 $$
+
+Al invertir y multiplicar por \( B,C \) se obtiene la admitancia \( Y(j\omega) \) que muestra el acoplamiento d-q: la excitación en el eje d produce respuesta tanto en d como en q (términos fuera de la diagonal de la matriz \( 2\times2 \)).
+
+**Paso 3 — por qué usar `solve` en vez de `inv`.** Calcular \( (j\omega I-A)^{-1}B \) como \( [(j\omega I-A)^{-1}]\cdot B \) requiere invertir la matriz; numéricamente equivale a resolver \( n \) sistemas lineales. `np.linalg.solve(sI-A, B)` lo hace directamente con factorización LU, con mejor estabilidad numérica (condicionamiento similar, pero evita la amplificación de errores al multiplicar la inversa completa).
+
+$$ \boxed{\mathbf{G}(j\omega)=C\,(j\omega I-A)^{-1}B+D\;\equiv\;\text{FDT evaluada en }s=j\omega} $$
 
 ## Cuándo y por qué se usa
 Para obtener la impedancia analítica del inversor (Fase 2), trazar Bode de lazos, o construir el

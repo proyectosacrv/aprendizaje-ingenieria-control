@@ -33,6 +33,42 @@ $$ M_p = e^{-\pi\zeta/\sqrt{1-\zeta^2}}\;(\text{sobreimpulso}), \qquad
 
 <div class="cfig"><img src="figuras/respuesta-segundo-orden-familia.png" alt="respuestas al escalon segun zeta"><div class="cap">Respuesta al escalón según ζ: ζ<1 oscila (más sobreimpulso cuanto menor ζ), ζ=1 es lo más rápido sin oscilar, ζ>1 es lento sin oscilar. ζ≈0.7 es el compromiso habitual.</div></div>
 
+## 1 — Sobreimpulso Mp desde la envolvente del escalón
+
+**Paso 1 — respuesta al escalón del sistema subamortiguado.** Para \( G(s)=\omega_n^2/(s^2+2\zeta\omega_n s+\omega_n^2) \) con entrada escalón unitario \( U(s)=1/s \), la antitransformada da:
+
+$$ y(t)=1-\frac{e^{-\zeta\omega_n t}}{\sqrt{1-\zeta^2}}\sin\!\left(\omega_d t+\phi\right), \quad \omega_d=\omega_n\sqrt{1-\zeta^2},\quad \phi=\arccos\zeta $$
+
+La respuesta oscila alrededor del valor final 1, modulada por la envolvente \( e^{-\zeta\omega_n t}/\sqrt{1-\zeta^2} \).
+
+**Paso 2 — localizar el primer pico.** El primer máximo ocurre cuando \( \dot{y}(t)=0 \) por primera vez para \( t>0 \). Derivando y simplificando, la condición reduce a \( \sin(\omega_d t)=0 \) con \( \omega_d t>0 \), es decir \( t_p=\pi/\omega_d \).
+
+**Paso 3 — calcular el sobreimpulso.** Evaluando \( y(t_p) \) y restando el valor final 1:
+
+$$ M_p = y(t_p)-1 = \frac{e^{-\zeta\omega_n\cdot\pi/\omega_d}}{\sqrt{1-\zeta^2}}\cdot\sin(\pi+\phi)\cdot(-1) $$
+
+Como \( \sin(\pi+\phi)=-\sin\phi \) y \( \sin\phi=\sqrt{1-\zeta^2} \) (porque \( \phi=\arccos\zeta \)), los factores \( \sqrt{1-\zeta^2} \) se cancelan:
+
+$$ \boxed{M_p = e^{-\pi\zeta/\sqrt{1-\zeta^2}}} $$
+
+Para \( \zeta=0.5 \): \( M_p=e^{-\pi\cdot0.5/0.866}=e^{-1.814}\approx0.163 \) (16.3%).
+
+## 2 — Tiempo de establecimiento ts ≈ 4/(ζωn) desde el criterio del 2%
+
+**Paso 1 — banda de tolerancia del 2%.** Se define \( t_s \) como el instante a partir del cual \( |y(t)-1|\le0.02 \) para siempre. La cota superior del error es la envolvente:
+
+$$ |y(t)-1|\le\frac{e^{-\zeta\omega_n t}}{\sqrt{1-\zeta^2}} $$
+
+**Paso 2 — imponer la cota.** Para \( \zeta \) moderado (\( 0.3\lesssim\zeta\lesssim0.8 \)), \( \sqrt{1-\zeta^2}\approx1 \). Igualando la envolvente a 0.02:
+
+$$ e^{-\zeta\omega_n t_s}=0.02 \;\Rightarrow\; \zeta\omega_n t_s=\ln(50)\approx3.91 $$
+
+**Paso 3 — fórmula práctica.** Redondeando \( \ln(50)\approx4 \):
+
+$$ \boxed{t_s \approx \frac{4}{\zeta\omega_n}} $$
+
+Esta fórmula es exacta solo si la envolvente domina el criterio del 2%; para \( \zeta \) muy pequeño las oscilaciones permanecen dentro de la banda más tiempo, pero la fórmula es un buen orden de magnitud de diseño.
+
 ## Cuándo y por qué se usa
 Es el patrón con el que se fijan especificaciones (sobreimpulso, tiempo de establecimiento) y se
 interpretan los polos dominantes de sistemas de orden mayor.

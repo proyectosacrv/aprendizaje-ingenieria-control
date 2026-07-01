@@ -32,6 +32,30 @@ agresivo) en red FUERTE.
 
 <div class="cfig"><img src="figuras/interaccion-pll-red-debil-mapa.png" alt="SCR critico en funcion del ancho de banda de la PLL"><div class="cap">Mapa de estabilidad del grid-following: cuanto más rápida es la PLL, mayor es el SCR crítico por debajo del cual el sistema oscila, es decir, más amplia la región de red débil inestable. La palanca principal de diseño es reducir el ancho de banda de la PLL.</div></div>
 
+## 1 — Por qué \( \Delta i_d \) perturba \( V_q \) en red débil: la realimentación positiva
+
+**Paso 1 — modelo Thévenin de la red en dq.** La red vista desde el PCC es una fuente \( \mathbf{V}_g \) detrás de \( Z_{red}=R_g+jX_g \). La tensión en el PCC en αβ es:
+
+$$ \mathbf{V}_{PCC} = \mathbf{V}_g - (R_g+jX_g)\,\mathbf{I} $$
+
+**Paso 2 — linealización en el punto de operación.** El control orientado a \( \mathbf{V}_{PCC} \) mantiene \( V_d = V \), \( V_q = 0 \) en equilibrio. Una perturbación pequeña \( \Delta\mathbf{I}=\Delta i_d + j\Delta i_q \) produce una variación en el PCC. Separando partes real (eje d) e imaginaria (eje q) y tomando \( \Delta i_q = 0 \) para aislar el efecto de \( \Delta i_d \):
+
+$$ \Delta V_d = -R_g\,\Delta i_d, \qquad \Delta V_q = -X_g\,\Delta i_d $$
+
+**Paso 3 — por qué importa el signo de \( \Delta V_q \).** La PLL cierra un lazo PI sobre \( V_q \) para forzarla a cero. Una perturbación \( \Delta V_q < 0 \) (producida por \( \Delta i_d > 0 \) con \( X_g > 0 \)) hace que la PLL acelere el ángulo estimado \( \hat\theta \) para "recuperar" \( V_q = 0 \). El nuevo ángulo modifica \( i_d \) en sentido que amplifica \( \Delta i_d \):
+
+$$ \boxed{\Delta V_q \approx -X_g\,\Delta i_d}, \qquad \frac{\partial \hat\omega_{PLL}}{\partial V_q} > 0 $$
+
+**Paso 4 — la ganancia del lazo parásito.** La cadena completa es:
+
+$$ \Delta i_d \xrightarrow{\times(-X_g)} \Delta V_q \xrightarrow{H_{PLL}(s)} \Delta\hat\theta \xrightarrow{\text{lazo corriente}} \Delta i_d $$
+
+La ganancia de lazo en la frecuencia crítica es \( \approx K_{PPLL}\,X_g \). Cuando \( X_g \) crece (red débil, SCR bajo) y \( K_{PPLL} \) es grande (PLL rápida), el producto supera la unidad con fase desfavorable y el lazo se inestabiliza. La condición límite es:
+
+$$ K_{PPLL}\,X_g\big|_{\text{fase}=-180°} = 1 \quad\Rightarrow\quad \text{oscilación sostenida} $$
+
+Esto explica el **mapa de estabilidad**: a \( X_g \) fija, aumentar la PLL lleva antes al límite; a PLL fija, una red más débil (\( X_g \) mayor) cruza el límite con menos margen.
+
 ## Cuándo y por qué se usa (cómo se evita)
 Aparece en parques PV/eólicos GFL conectados por líneas largas (red débil). Se previene
 limitando el ancho de banda de la PLL, con impedance shaping, o migrando a grid-forming.
