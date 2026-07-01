@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [leer la respuesta en frecuencia: magnitud y fase]
 tags: [bode, frecuencia, magnitud, fase, decibelios, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-11
+fecha_actualizacion: 2026-06-30
 relacionados: [funcion-transferencia, margenes-estabilidad, loop-shaping, respuesta-frecuencia-ss]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -30,6 +30,31 @@ La **frecuencia de cruce de ganancia** (donde \( |G|=0 \) dB) marca el ancho de 
 lee el **margen de fase**. La ventaja del logaritmo: multiplicar bloques = sumar sus Bode.
 
 <div class="cfig"><img src="figuras/diagrama-bode-ejemplo.png" alt="diagrama de Bode de ejemplo"><div class="cap">Bode (magnitud y fase): cada polo dobla la pendiente en −20 dB/dec y añade hasta −90°. Las frecuencias de esquina (líneas) marcan dónde entra en juego cada polo.</div></div>
+
+## 1 — De dónde salen las asíntotas de un polo simple (±20 dB/dec, ±90°)
+**Paso 1 — evaluar el polo en \( j\omega \).** Toma un polo simple \( G(s)=\dfrac{1}{1+s/\omega_p} \). En \( s=j\omega \):
+
+$$ G(j\omega)=\frac{1}{1+j\,\omega/\omega_p} $$
+
+**Paso 2 — módulo y fase.** El módulo de un cociente es el cociente de módulos; la fase, la diferencia de fases. El numerador \( 1 \) tiene módulo \( 1 \) y fase \( 0 \); el denominador \( 1+j\,\omega/\omega_p \) tiene módulo \( \sqrt{1+(\omega/\omega_p)^2} \) y fase \( \arctan(\omega/\omega_p) \):
+
+$$ |G(j\omega)|=\frac{1}{\sqrt{1+(\omega/\omega_p)^2}},\qquad \angle G(j\omega)=-\arctan\!\frac{\omega}{\omega_p} $$
+
+**Paso 3 — pasar a decibelios.** Por definición \( |G|_{dB}=20\log_{10}|G| \). Como \( \log\) de un cociente resta y \( \log\sqrt{x}=\tfrac12\log x \):
+
+$$ |G(j\omega)|_{dB}=-20\log_{10}\sqrt{1+(\omega/\omega_p)^2}=-10\log_{10}\!\Big(1+(\omega/\omega_p)^2\Big) $$
+
+**Paso 4 — asíntota de baja frecuencia.** Si \( \omega\ll\omega_p \), \( (\omega/\omega_p)^2\ll1 \), el argumento del log tiende a \( 1 \) y \( |G|_{dB}\to0 \). La asíntota es **plana a 0 dB**. La fase tiende a \( -\arctan 0=0^\circ \).
+
+**Paso 5 — asíntota de alta frecuencia (la pendiente).** Si \( \omega\gg\omega_p \), \( 1+(\omega/\omega_p)^2\approx(\omega/\omega_p)^2 \), luego:
+
+$$ |G(j\omega)|_{dB}\approx-20\log_{10}\frac{\omega}{\omega_p} $$
+
+Cada vez que \( \omega \) se multiplica por 10 (una década), \( \log_{10}(\omega/\omega_p) \) crece en 1 y la magnitud cae \( 20 \) dB: **pendiente \( -20 \) dB/dec**. La fase tiende a \( -\arctan(\infty)=-90^\circ \). Verificado: en \( \omega=10\,\omega_p \) la fórmula exacta da \( -20.04 \) dB.
+
+$$ \boxed{\;\text{polo simple: } 0\text{ dB} \to -20\text{ dB/dec},\quad \text{fase } 0^\circ\to-90^\circ\;} $$
+
+**Paso 6 — la frecuencia de esquina.** En \( \omega=\omega_p \): \( 1+1=2 \), \( |G|_{dB}=-10\log_{10}2\approx-3.01 \) dB (el conocido "punto de \( -3 \) dB") y \( \angle G=-\arctan1=-45^\circ \) (verificado). Un **cero** simple \( 1+s/\omega_z \) es idéntico con signo opuesto: \( +20 \) dB/dec y \( +90^\circ \). Un **integrador** \( 1/s \) es el caso límite \( \omega_p\to0 \): pendiente \( -20 \) dB/dec y fase \( -90^\circ \) constantes en todo el rango.
 
 ## Cuándo y por qué se usa
 Para diseñar por loop-shaping, leer márgenes de estabilidad y entender el filtrado (qué

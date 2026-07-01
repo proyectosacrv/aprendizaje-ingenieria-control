@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [comprobar estabilidad sin calcular las raíces del polinomio característico]
 tags: [routh, hurwitz, estabilidad, ecuacion-caracteristica, basico, control]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-30
 relacionados: [estabilidad-bibo, polos-ceros, funcion-transferencia, criterio-nyquist]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -33,6 +33,39 @@ Casos especiales: un cero en la primera columna se sustituye por \( \varepsilon\
 fila entera nula indica raíces simétricas (polinomio auxiliar) → al menos marginalmente inestable.
 
 <div class="cfig"><img src="figuras/routh-hurwitz-locus.png" alt="raices del polinomio al variar Kp"><div class="cap">Raíces de $s^3+3s^2+2s+K_p$ al variar $K_p$ (color). El par complejo cruza el eje imaginario en $s=\pm j\sqrt{2}$ exactamente en $K_p=6$: por debajo el sistema es estable, por encima inestable. Routh entrega ese límite ($0<K_p<6$) sin resolver el polinomio.</div></div>
+
+## 1 — Construcción de la tabla y por qué los signos cuentan polos
+**Paso 1 — las dos primeras filas.** Con el polinomio \( a_n s^n+a_{n-1}s^{n-1}+\dots+a_0 \), las dos primeras filas se rellenan **alternando** los coeficientes: la fila \( s^n \) toma los de potencias pares contando desde arriba, la fila \( s^{n-1} \) los de potencias impares.
+
+$$
+\begin{array}{c|ccc}
+s^n     & a_n     & a_{n-2} & a_{n-4} \\
+s^{n-1} & a_{n-1} & a_{n-3} & a_{n-5} \\
+\end{array}
+$$
+
+**Paso 2 — fila siguiente por el determinante \( 2\times2 \).** Cada elemento nuevo se calcula con las dos filas inmediatamente superiores. La fila \( s^{n-2} \) tiene elementos \( b_i \):
+
+$$ b_1=\frac{a_{n-1}a_{n-2}-a_n a_{n-3}}{a_{n-1}}=-\frac{1}{a_{n-1}}\begin{vmatrix} a_n & a_{n-2}\\ a_{n-1} & a_{n-3}\end{vmatrix},\qquad b_2=\frac{a_{n-1}a_{n-4}-a_n a_{n-5}}{a_{n-1}} $$
+
+El patrón: numerador = (producto de la diagonal del primer pivote) − (producto cruzado con la columna siguiente), todo dividido por el pivote \( a_{n-1} \) de la fila de encima. Se repite con las filas \( s^{n-2} \) y \( s^{n-1} \) para obtener \( s^{n-3} \), y así hasta \( s^0 \).
+
+**Paso 3 — por qué la primera columna detecta el SPD.** Routh-Hurwitz es equivalente a aplicar el principio del argumento a \( D(j\omega) \) recorriendo el eje imaginario: el número de cambios de signo en la primera columna iguala el número de raíces con parte real positiva. Intuición: si todas las raíces tuvieran \( \mathrm{Re}<0 \), la división sucesiva nunca cambia de signo (todos los pivotes positivos); cada raíz que cruza al SPD fuerza un cambio de signo. Por eso:
+
+$$ \boxed{\;\text{nº de cambios de signo en la 1ª columna}=\text{nº de raíces en el SPD}\;} $$
+
+**Paso 4 — ejemplo de 3er orden.** Para \( s^3+3s^2+2s+K_p \) (coef. \( a_3{=}1,a_2{=}3,a_1{=}2,a_0{=}K_p \)):
+
+$$
+\begin{array}{c|cc}
+s^3 & 1 & 2 \\
+s^2 & 3 & K_p \\
+s^1 & \dfrac{3\cdot2-1\cdot K_p}{3}=\dfrac{6-K_p}{3} & 0 \\
+s^0 & K_p & 0
+\end{array}
+$$
+
+Primera columna \( \{1,\,3,\,(6-K_p)/3,\,K_p\} \): toda positiva exige \( K_p>0 \) y \( 6-K_p>0 \), es decir \( \boxed{0<K_p<6} \). En \( K_p=6 \) el pivote \( s^1 \) se anula: verificado numéricamente, las raíces son \( -3 \) y \( \pm j\sqrt2 \) (\( \sqrt2\approx1.414 \)), par imaginario puro = oscilación sostenida = margen de ganancia. Coincide con el cruce del [[lugar-raices]] por el eje imaginario.
 
 ## Cuándo y por qué se usa
 Para hallar **rangos de un parámetro** (p.ej. la ganancia \( K \)) que mantienen la estabilidad,

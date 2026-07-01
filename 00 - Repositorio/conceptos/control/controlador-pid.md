@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [entender que aporta cada termino proporcional, integral y derivativo]
 tags: [PID, PI, proporcional, integral, derivativo, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-06-30
 relacionados: [realimentacion, sintonia-pi-pid, sistema-primer-orden, control-cascada]
 referencias:
   - "Aström, Hägglund, Advanced PID Control, ISA 2006"
@@ -31,6 +31,40 @@ Qué aporta cada término:
 En convertidores se usa casi siempre **PI** (sin D, por el ruido de conmutación).
 
 <div class="cfig"><img src="figuras/controlador-pid-estructura.png" alt="estructura paralela del PID"><div class="cap">Estructura PID: tres ramas en paralelo sobre el error — proporcional (Kp), integral (Ki/s) y derivativa (Kd·s) — que se suman para formar la acción de control u.</div></div>
+
+## 1 — De la forma temporal a la FDT del PID
+**Paso 1 — los tres términos en el tiempo.** El controlador suma tres acciones sobre el error \( e(t) \): una proporcional al error actual, una proporcional a su integral acumulada y una proporcional a su pendiente:
+
+$$ u(t) = K_p\,e(t) + K_i\!\int_0^t e(\tau)\,d\tau + K_d\,\frac{de(t)}{dt} $$
+
+**Paso 2 — Laplace de cada término.** Con condiciones iniciales nulas (ver [[funcion-transferencia]]), la transformada de Laplace es lineal y cumple \( \mathcal{L}\{e\}=E(s) \), \( \mathcal{L}\!\left\{\int_0^t e\,d\tau\right\}=\dfrac{E(s)}{s} \) (integrar = dividir por \( s \)) y \( \mathcal{L}\!\left\{\dfrac{de}{dt}\right\}=s\,E(s) \) (derivar = multiplicar por \( s \)). Transformando término a término:
+
+$$ U(s)=K_p\,E(s)+\frac{K_i}{s}\,E(s)+K_d\,s\,E(s) $$
+
+**Paso 3 — factorizar \( E(s) \).** La FDT del controlador es \( C(s)=U(s)/E(s) \); sacando \( E(s) \) factor común:
+
+$$ \boxed{\;C(s)=\frac{U(s)}{E(s)}=K_p+\frac{K_i}{s}+K_d\,s\;} $$
+
+Cada término domina en una zona de frecuencia: el integral \( K_i/s \to\infty \) cuando \( s\to 0 \) (ganancia infinita en continua, de ahí que **anule el error en régimen** ante escalón, ver [[error-regimen-permanente]]); el derivativo \( K_d s \to\infty \) cuando \( s\to\infty \) (de ahí que **amplifique el ruido** de alta frecuencia); el proporcional \( K_p \) actúa en toda la banda.
+
+## 2 — Lazo cerrado de un PI sobre una planta de primer orden
+**Paso 1 — planteamiento.** Tomamos el PI \( C(s)=K_p+\dfrac{K_i}{s}=\dfrac{K_p s+K_i}{s} \) realimentado sobre una planta de primer orden \( P(s)=\dfrac{K}{\tau s+1} \) (ver [[sistema-primer-orden]]). La transferencia de lazo abierto es:
+
+$$ L(s)=C(s)\,P(s)=\frac{K_p s+K_i}{s}\cdot\frac{K}{\tau s+1}=\frac{K(K_p s+K_i)}{s(\tau s+1)} $$
+
+**Paso 2 — fórmula del lazo cerrado.** Con realimentación unitaria, \( T(s)=\dfrac{L}{1+L} \) (ver [[realimentacion]]). Sustituyendo \( L \) y multiplicando numerador y denominador por \( s(\tau s+1) \) para limpiar la fracción anidada:
+
+$$ T(s)=\frac{\dfrac{K(K_p s+K_i)}{s(\tau s+1)}}{1+\dfrac{K(K_p s+K_i)}{s(\tau s+1)}}=\frac{K(K_p s+K_i)}{s(\tau s+1)+K(K_p s+K_i)} $$
+
+**Paso 3 — desarrollar el denominador.** Expandiendo \( s(\tau s+1)=\tau s^2+s \) y agrupando los términos en \( s \):
+
+$$ s(\tau s+1)+K(K_p s+K_i)=\tau s^2+s+KK_p s+KK_i=\tau s^2+(1+KK_p)\,s+KK_i $$
+
+de donde resulta un sistema de **segundo orden** (ver [[respuesta-segundo-orden]]):
+
+$$ \boxed{\;T(s)=\frac{K(K_p s+K_i)}{\tau s^2+(1+KK_p)\,s+KK_i}\;} $$
+
+**Paso 4 — interpretación.** Comparando el denominador con la forma canónica \( s^2+2\zeta\omega_n s+\omega_n^2 \) (tras dividir por \( \tau \)): \( \omega_n=\sqrt{KK_i/\tau} \) y \( 2\zeta\omega_n=(1+KK_p)/\tau \). El integrador \( K_i \) fija la rapidez \( \omega_n \) y, en \( s=0 \), \( T(0)=\dfrac{KK_i}{KK_i}=1 \): **ganancia continua exactamente unidad**, luego seguimiento sin error en régimen ante escalón. El proporcional \( K_p \) aparece solo en el término de amortiguamiento, ajustando \( \zeta \) sin tocar \( T(0) \).
 
 ## Cuándo y por qué se usa
 En lazos de corriente, tensión, velocidad: cuando se quiere seguimiento sin error en régimen con

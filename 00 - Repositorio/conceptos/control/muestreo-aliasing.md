@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance]
 objetivos: [elegir la frecuencia de muestreo y evitar el solapamiento espectral]
 tags: [muestreo, aliasing, nyquist-shannon, adc, control-digital, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-07-01
 relacionados: [transformada-z, fft-analisis-espectral, discretizacion-controladores, convertidor-vsc, series-fourier]
 referencias:
   - "Oppenheim & Willsky, Señales y Sistemas, Prentice Hall"

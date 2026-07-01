@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [entender el valle de antiresonancia (ceros), por qué aparece y por qué hace más fácil cerrar un lazo de realimentación]
 tags: [antiresonancia, ceros, notch, realimentacion, margen-de-fase, lugar-de-raices, lcl, intermedio]
 fecha_creacion: 2026-06-17
-fecha_actualizacion: 2026-06-17
+fecha_actualizacion: 2026-06-30
 relacionados: [resonancia-rlc, filtro-lcl, polos-ceros, diagrama-bode, lugar-raices, control-cascada, filtro-notch]
 referencias:
   - "Franklin, Powell, Emami-Naeini, Feedback Control of Dynamic Systems"
@@ -58,6 +58,24 @@ Cerrar un lazo de corriente significa realimentar una corriente medida y subir l
 **2. Argumento del lugar de raíces.** Los ceros "atraen" a los polos: al subir la ganancia de realimentación, los polos de lazo cerrado se desplazan hacia los ceros. Si la variable realimentada tiene ceros de antiresonancia cerca de los polos de resonancia (caso i1), esos polos son atraídos hacia la izquierda (más amortiguados, más estables) al subir la ganancia. Si no los tiene (caso i2), los polos resonantes se van hacia la derecha (hacia la inestabilidad). Esta es la razón de fondo por la que el lazo de corriente rápido de un convertidor con filtro LCL se cierra sobre la corriente de lado fuente i1, no sobre i2.
 
 <div class="cfig"><img src="figuras/antiresonancia-rlocus.png" alt="Lugar de raices del lazo de corriente: realimentando i1 los polos resonantes van a la izquierda hacia el cero; realimentando i2 van a la derecha"><div class="cap">Lugar de raíces al subir la ganancia k. Izquierda (realimentar i₁): el polo resonante (×) es atraído por el cero de antiresonancia (○) y se mueve a la IZQUIERDA → más amortiguado, estable. Derecha (realimentar i₂): sin cero cerca, el polo resonante se mueve a la DERECHA → hacia la inestabilidad.</div></div>
+
+## 1 — De dónde sale \( f_{ar}=1/(2\pi\sqrt{L_2C_f}) \) y por qué da \( +180^\circ \)
+**Paso 1 — el numerador que produce el valle.** En \( i_1/v_i \) del LCL (sin resistencias), el numerador es \( N(s)=1+s^2L_2C_f \). El valle (antiresonancia) está donde \( N=0 \):
+
+$$ 1+s^2L_2C_f=0 \;\Rightarrow\; s^2=-\frac{1}{L_2C_f} \;\Rightarrow\; s=\pm j\,\omega_{ar},\quad \omega_{ar}=\frac{1}{\sqrt{L_2C_f}} $$
+
+$$ \boxed{\;f_{ar}=\frac{1}{2\pi\sqrt{L_2C_f}}\;} $$
+
+**Paso 2 — por qué son \( L_2 \) y \( C_f \) y no toda la planta.** Anulada la fuente de red (\( v_{pcc} \) a masa en pequeña señal), desde el nudo del condensador se ve \( C_f \) en **paralelo** con \( L_2 \). La admitancia de ese paralelo es \( Y(s)=sC_f+\tfrac{1}{sL_2}=\tfrac{1+s^2L_2C_f}{sL_2} \); se anula (impedancia infinita) justo en \( s=\pm j\omega_{ar} \). El nudo "flota" para esa frecuencia y la corriente \( i_1 \) cae a un mínimo: ese mínimo es el cero de \( i_1/v_i \).
+
+**Paso 3 — la fase del par de ceros sobre el eje \( j\omega \).** Evaluando el numerador en \( s=j\omega \), como los ceros están sobre el eje imaginario \( N \) es **real**:
+
+$$ N(j\omega)=1+(j\omega)^2L_2C_f=1-\omega^2L_2C_f $$
+
+- Para \( \omega<\omega_{ar} \): \( \omega^2L_2C_f<1 \Rightarrow N>0 \Rightarrow \angle N=0^\circ \).
+- Para \( \omega>\omega_{ar} \): \( \omega^2L_2C_f>1 \Rightarrow N<0 \Rightarrow \angle N=+180^\circ \).
+
+**Paso 4 — el salto.** Al cruzar \( \omega_{ar} \), \( N \) pasa de positivo a negativo: su fase salta **\( +180^\circ \)** de forma abrupta (instantánea sin amortiguar; repartida en una banda si \( R_2>0 \)). Como el numerador entra sumando en la fase total \( \angle(i_1/v_i)=\angle N-\angle D \), ese \( +180^\circ \) **eleva** la fase justo antes de que el par de polos de resonancia (en \( \omega_{res}>\omega_{ar} \)) la haga caer \( -180^\circ \). Ese es el mecanismo por el que la antiresonancia regala margen de fase: el repunte de los ceros llega antes que el desplome de los polos.
 
 ## Cuándo y por qué se usa
 Para elegir la variable de realimentación en cualquier planta con resonancia (filtros LCL/LC, ejes mecánicos flexibles, accionamientos con acoplamiento elástico): si una de las salidas medibles tiene antiresonancia por debajo de la resonancia, realimentar esa es lo más estable. También se introduce antiresonancia a propósito mediante un filtro notch ([[filtro-notch]]) para cancelar una resonancia conocida, o mediante amortiguamiento activo (que reubica los polos usando la realimentación, ver [[filtro-lcl]]).

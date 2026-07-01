@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance, 03-DataCenter-IA]
 objetivos: [hallar el punto de operacion antes de linealizar]
 tags: [equilibrio, fsolve, scipy, punto-operacion, raices]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-30
 relacionados: [linealizacion-numerica, analisis-modal]
 referencias:
   - "SciPy docs: scipy.optimize.fsolve"
@@ -25,6 +25,44 @@ estimación inicial \( \mathbf{x}_0 \). La calidad del resultado se mide por el 
 \( \lVert\mathbf{f}(\mathbf{x}_e)\rVert \), que debe ser ~0 (p.ej. <1e-9).
 
 <div class="cfig"><img src="figuras/equilibrio-fsolve-convergencia.png" alt="convergencia del residuo de fsolve con buen y mal guess inicial"><div class="cap">Convergencia de fsolve: partiendo de una estimación inicial física (corrientes desde la potencia, tensión nominal) el residuo $\|f(x)\|$ cae hasta ~$10^{-11}$ en pocas iteraciones; con un guess pobre el método se estanca en una raíz espuria sin sentido físico. Por eso el paso crítico es construir un buen $x_0$ y verificar siempre el residuo.</div></div>
+
+## 1 — De dónde sale la iteración de Newton-Raphson
+**Paso 1 — el problema.** Buscamos \( \mathbf{x}_e \) tal que \( \mathbf{f}(\mathbf{x}_e)=0 \), con \( \mathbf{f}:\mathbb{R}^n\to\mathbb{R}^n \) no lineal. No hay fórmula cerrada; iteramos desde un \( \mathbf{x}_0 \).
+
+**Paso 2 — linealizar alrededor del iterado actual.** Cerca de \( \mathbf{x}_k \), el desarrollo de Taylor de primer orden del campo vectorial es:
+
+$$ \mathbf{f}(\mathbf{x}_k+\Delta\mathbf{x})\approx \mathbf{f}(\mathbf{x}_k)+J(\mathbf{x}_k)\,\Delta\mathbf{x},\qquad J_{ij}=\frac{\partial f_i}{\partial x_j} $$
+
+donde \( J \) es la matriz **Jacobiana** evaluada en \( \mathbf{x}_k \).
+
+**Paso 3 — imponer que el modelo lineal valga cero.** Pedimos que el incremento \( \Delta\mathbf{x} \) lleve la aproximación a la raíz, \( \mathbf{f}(\mathbf{x}_k)+J(\mathbf{x}_k)\Delta\mathbf{x}=0 \). Resolviendo el sistema lineal:
+
+$$ \Delta\mathbf{x}=-J(\mathbf{x}_k)^{-1}\mathbf{f}(\mathbf{x}_k) $$
+
+**Paso 4 — actualizar.** El nuevo iterado es \( \mathbf{x}_{k+1}=\mathbf{x}_k+\Delta\mathbf{x} \), es decir:
+
+$$ \boxed{\;\mathbf{x}_{k+1}=\mathbf{x}_k-J(\mathbf{x}_k)^{-1}\,\mathbf{f}(\mathbf{x}_k)\;} $$
+
+(En la práctica no se invierte \( J \): se resuelve \( J\,\Delta\mathbf{x}=-\mathbf{f} \) por factorización LU. `fsolve` usa una variante híbrida de Powell que combina Newton con descenso de gradiente cuando \( J \) está mal condicionada, y aproxima \( J \) por diferencias finitas si no se da.)
+
+## 2 — Por qué la convergencia es cuadrática
+**Paso 1 — definir el error.** Sea \( \mathbf{x}_e \) la raíz y \( e_k=\mathbf{x}_k-\mathbf{x}_e \) el error del iterado \( k \). Queremos relacionar \( e_{k+1} \) con \( e_k \).
+
+**Paso 2 — Taylor de segundo orden de la raíz.** Como \( \mathbf{f}(\mathbf{x}_e)=0 \), desarrollando \( \mathbf{f} \) en \( \mathbf{x}_k \) y evaluando en la raíz (caso escalar para ver el mecanismo):
+
+$$ 0=f(\mathbf{x}_e)=f(\mathbf{x}_k)+f'(\mathbf{x}_k)(\mathbf{x}_e-\mathbf{x}_k)+\tfrac12 f''(\xi)(\mathbf{x}_e-\mathbf{x}_k)^2 $$
+
+con \( \xi \) entre \( \mathbf{x}_k \) y \( \mathbf{x}_e \).
+
+**Paso 3 — sustituir la actualización de Newton.** Dividiendo entre \( f'(\mathbf{x}_k) \) y usando \( \mathbf{x}_{k+1}=\mathbf{x}_k-f(\mathbf{x}_k)/f'(\mathbf{x}_k) \), el término \( f(\mathbf{x}_k)/f'(\mathbf{x}_k) \) se reescribe como \( \mathbf{x}_k-\mathbf{x}_{k+1} \). Reagrupando, los términos lineales en el error se cancelan y queda:
+
+$$ e_{k+1}=\mathbf{x}_{k+1}-\mathbf{x}_e=\frac{f''(\xi)}{2f'(\mathbf{x}_k)}\,e_k^2 $$
+
+**Paso 4 — la cota cuadrática.** Tomando módulos, con \( C=\big|f''/2f'\big| \) acotado cerca de la raíz:
+
+$$ \boxed{\;|e_{k+1}|\le C\,|e_k|^2\;} $$
+
+El error **se eleva al cuadrado** en cada paso: si \( |e_k|\sim10^{-3} \), entonces \( |e_{k+1}|\sim10^{-6} \), luego \( \sim10^{-12} \). El número de dígitos correctos **se duplica** por iteración. Por eso el residuo cae a \( \sim10^{-11} \) en pocas iteraciones (en el ejemplo, <20). La condición es que \( f'(\mathbf{x}_e)\neq0 \) (Jacobiana no singular en la raíz) y que \( \mathbf{x}_0 \) esté en la **cuenca de atracción**: de ahí la importancia del guess físico, pues un \( \mathbf{x}_0 \) lejano puede caer en otra cuenca y converger a una raíz espuria.
 
 ## Cuándo y por qué se usa
 Siempre que se quiera linealizar o analizar alrededor de un punto de operación concreto

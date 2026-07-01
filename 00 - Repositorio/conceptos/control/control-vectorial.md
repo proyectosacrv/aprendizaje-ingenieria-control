@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [controlar corriente trifasica desacoplando par/flujo o P/Q en dq]
 tags: [control-vectorial, FOC, dq, orientacion-de-campo, desacoplo]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-07-01
 relacionados: [marco-dq, control-cascada, potencia-instantanea-dq, pll-srf]
 referencias:
   - "Kazmierkowski, Krishnan, Blaabjerg, Control in Power Electronics, Academic Press 2002"

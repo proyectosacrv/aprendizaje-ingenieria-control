@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [distinguir y deducir las tres frecuencias de un sistema de segundo orden resonante y saber cuándo coinciden o difieren]
 tags: [segundo-orden, frecuencia-natural, frecuencia-amortiguada, pico-resonante, amortiguamiento, polos, intermedio]
 fecha_creacion: 2026-06-24
-fecha_actualizacion: 2026-06-24
+fecha_actualizacion: 2026-07-01
 relacionados: [respuesta-segundo-orden, resonancia-rlc, filtro-lcl, polos-ceros, diagrama-bode]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"

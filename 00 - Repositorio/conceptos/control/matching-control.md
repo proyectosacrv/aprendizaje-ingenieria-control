@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [emparejar la dinámica del bus DC con la frecuencia de red para sincronización natural]
 tags: [matching, grid-forming, bus-dc, sincronizacion, energia, avanzado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-07-01
 relacionados: [grid-forming-vs-following, vsm-inercia, power-synchronization-control, dinamica-bus-dc, ecuacion-oscilacion]
 referencias:
   - "Arghir, Jouini, Dörfler, Grid-Forming Control for Power Converters based on Matching, Automatica 2018"

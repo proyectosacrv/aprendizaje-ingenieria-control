@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [descomponer señales en armónicos y razonar en el dominio de la frecuencia]
 tags: [fourier, armonicos, espectro, frecuencia, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-07-01
 relacionados: [fft-analisis-espectral, transformada-laplace, diagrama-bode, calidad-potencia, muestreo-aliasing]
 referencias:
   - "Oppenheim & Willsky, Señales y Sistemas, Prentice Hall"

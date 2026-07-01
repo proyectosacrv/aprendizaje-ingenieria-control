@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [cancelar perturbaciones medibles antes de que afecten la salida, acelerar el seguimiento]
 tags: [feedforward, prealimentacion, perturbacion, desacoplo, 2dof, anticipativo, control]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-30
 relacionados: [realimentacion, desacoplo-dq, control-cascada, controlador-pid, funciones-sensibilidad, control-tension-bus-dc]
 referencias:
   - "Åström, Murray, Feedback Systems, Princeton 2008"
@@ -39,6 +39,27 @@ lazo de corriente, y el **\( \pm\omega L\,i \)** es el [[desacoplo-dq|desacoplo 
 acoplamiento cruzado).
 
 <div class="cfig"><img src="figuras/control-feedforward-hueco.png" alt="desviacion de corriente ante un hueco de red con y sin feedforward"><div class="cap">Ante un hueco de red, el lazo con solo feedback deja un pico de error de corriente que el PI tarda en limpiar; con feedforward de la tensión de red medida, la perturbación se cancela casi por completo (solo queda el residuo de una muestra de retardo). La estabilidad del lazo es idéntica: el ff no entra en $1+GC$.</div></div>
+
+## 1 — Por qué \( u_{ff}=-G^{-1}G_d\,d \) cancela la perturbación
+**Paso 1 — escribir la salida.** La perturbación medible \( d \) llega a la salida por su camino \( G_d \); la acción de control \( u \) por la planta \( G \). Superponiendo ambos caminos:
+
+$$ y = G\,u + G_d\,d $$
+
+La acción total suma feedback y feedforward: \( u = C\,e + u_{ff} \), con \( e=r-y \) y \( u_{ff}=G_{ff}\,d \).
+
+**Paso 2 — sustituir y agrupar.** Metiendo \( u \) en la salida y usando \( e=r-y \):
+
+$$ y = G\big(C(r-y)+G_{ff}\,d\big)+G_d\,d = GC\,r - GC\,y + G\,G_{ff}\,d + G_d\,d $$
+
+Pasando \( GC\,y \) al lado izquierdo, \( y+GC\,y=y(1+GC) \), y despejando:
+
+$$ y = \frac{GC}{1+GC}\,r \;+\; \frac{G\,G_{ff}+G_d}{1+GC}\,d $$
+
+**Paso 3 — anular el término de perturbación.** El efecto de \( d \) sobre \( y \) es el segundo sumando. Para cancelarlo basta hacer **cero su numerador**, sin tocar el denominador \( 1+GC \):
+
+$$ G\,G_{ff}+G_d = 0 \;\Longrightarrow\; \boxed{\;G_{ff}=u_{ff}/d=-G^{-1}G_d\;} $$
+
+**Paso 4 — dos conclusiones.** (a) El feedforward **inyecta por \( G \) justo lo contrario** de lo que la perturbación mete por \( G_d \): \( G\,G_{ff}=-G_d \), así que en la salida los dos caminos se restan y \( d \) desaparece. (b) El denominador \( 1+GC \) (la ecuación característica, ver [[realimentacion]]) **no cambia**: el feedforward es lazo abierto, no afecta a la estabilidad ni a los polos, solo al término de \( d \). Por eso el feedback sigue limpiando cualquier residuo por error de modelo en \( G_{ff} \).
 
 ## Cuándo y por qué se usa
 Cuando la perturbación es **medible** y el feedback solo es demasiado lento para rechazarla a tiempo:

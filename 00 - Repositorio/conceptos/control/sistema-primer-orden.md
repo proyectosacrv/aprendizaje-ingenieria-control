@@ -30,6 +30,27 @@ Ejemplo físico: un inductor con resistencia tiene \( \tau=L/R \); un condensado
 
 <div class="cfig"><img src="figuras/sistema-primer-orden-escalon.png" alt="respuesta al escalon de primer orden"><div class="cap">Respuesta al escalón de primer orden: alcanza el 63% del valor final en t=τ y prácticamente el 100% en 4τ. El polo en −1/τ fija la rapidez.</div></div>
 
+## 1 — De la FDT a la respuesta al escalón \( 1-e^{-t/\tau} \)
+**Paso 1 — salida en Laplace.** Un escalón de amplitud \( A \) es \( R(s)=A/s \). La salida es el producto de la planta por la entrada:
+
+$$ Y(s)=G(s)\,R(s)=\frac{K}{\tau s+1}\cdot\frac{A}{s}=\frac{AK}{s\,(\tau s+1)} $$
+
+**Paso 2 — fracciones parciales.** Descomponemos en dos términos para poder antitransformar cada uno:
+
+$$ \frac{AK}{s\,(\tau s+1)}=\frac{B}{s}+\frac{C}{\tau s+1} $$
+
+Multiplicando por \( s(\tau s+1) \): \( AK=B(\tau s+1)+C\,s \). Evaluando en \( s=0 \): \( AK=B \). Evaluando en \( s=-1/\tau \): \( AK=C\,(-1/\tau)\Rightarrow C=-AK\tau \). Sustituyendo:
+
+$$ Y(s)=\frac{AK}{s}-\frac{AK\tau}{\tau s+1}=\frac{AK}{s}-\frac{AK}{s+1/\tau} $$
+
+(en el último paso se dividió numerador y denominador del segundo término por \( \tau \)).
+
+**Paso 3 — antitransformar.** Usando \( \mathcal{L}^{-1}\{1/s\}=1 \) y \( \mathcal{L}^{-1}\{1/(s+1/\tau)\}=e^{-t/\tau} \):
+
+$$ \boxed{\;y(t)=AK\left(1-e^{-t/\tau}\right)\;} $$
+
+**Paso 4 — leer la constante de tiempo.** En \( t=\tau \): \( y=AK(1-e^{-1})=AK\cdot 0{,}632 \), el **63,2 %** del valor final \( AK \). En \( t=4\tau \): \( y=AK(1-e^{-4})=AK\cdot 0{,}982 \), el **98,2 %** — de ahí \( t_s\approx 4\tau \) como tiempo de establecimiento al 2 %. La velocidad la fija enteramente \( \tau \) (posición del polo \( s=-1/\tau \), ver [[polos-ceros]]): polo más a la izquierda ⟹ \( \tau \) menor ⟹ exponencial más rápida.
+
 ## Cuándo y por qué se usa
 Muchos lazos internos (corriente sobre un inductor) son de primer orden. Entenderlo permite
 sintonizar por cancelación de polo y estimar tiempos de respuesta.

@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance]
 objetivos: [sincronizar sin PLL, repartir potencia entre fuentes]
 tags: [grid-forming, droop, frecuencia, reparto-carga, dq]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-11
+fecha_actualizacion: 2026-06-30
 relacionados: [grid-forming-vs-following, vsm-inercia, impedancia-virtual, transferencia-potencia-linea, analisis-modal]
 referencias:
   - "Chandorkar, Divan, Adapa, Control of Parallel Connected Inverters, IEEE TIA 1993"
@@ -46,6 +46,28 @@ La potencia medida se filtra (paso-bajo \( \omega_f \)) para quitar el rizado:
 > filtro \( \omega_f \) ya aporta −90° → **poco margen de fase** y un modo de potencia mal amortiguado.
 > Se baja con [[impedancia-virtual]] (sube \( X \), reduce \( \partial P/\partial\delta \)) o se pasa a
 > [[vsm-inercia]].
+
+## 1 — De la caída de frecuencia admisible a la pendiente \( m_p \)
+**Paso 1 — qué fija el diseñador.** El estatismo se especifica como un porcentaje: "la frecuencia cae un \( \text{droop}\% \) entre vacío y plena potencia". Es decir, al pasar de \( P=0 \) a \( P=S_n \) la frecuencia debe caer una cantidad
+$$ \Delta\omega_{max}=(\text{droop}\%)\,\omega_0 $$
+Por ejemplo, \( 0.5\,\% \) sobre \( \omega_0=2\pi\cdot50 \) son \( \Delta\omega_{max}=0.005\cdot314.16=1.571\,\text{rad/s} \), o sea \( 0.25\,\text{Hz} \) de caída a plena carga.
+
+**Paso 2 — igualar a la ley de droop.** La ley \( \omega=\omega_0+m_p\,(P_{set}-P) \) dice que la desviación de frecuencia respecto a \( \omega_0 \) (con \( P_{set}=0 \)) es \( \Delta\omega=-m_p\,P \). En módulo, al cargar de \( 0 \) a \( S_n \):
+$$ |\Delta\omega_{max}|=m_p\,S_n $$
+
+**Paso 3 — despejar la pendiente.** Igualando las dos expresiones de \( \Delta\omega_{max} \):
+$$ m_p\,S_n=(\text{droop}\%)\,\omega_0\;\Longrightarrow\;\boxed{\;m_p=\frac{(\text{droop}\%)\,\omega_0}{S_n}\;} $$
+La misma cuenta con \( V_0 \) en lugar de \( \omega_0 \) da \( n_q=(\text{droop}\%)\,V_0/S_n \) para el droop Q–V. La pendiente tiene unidades \( (\text{rad/s})/\text{W} \): es lo que convierte un error de potencia en una desviación de frecuencia.
+
+## 2 — Por qué el filtro de potencia limita el ancho de banda del lazo P–f
+**Paso 1 — la planta del lazo de potencia.** En pequeña señal, una perturbación de ángulo \( \tilde\delta \) mueve la potencia con la pendiente del flujo de carga, \( \partial P/\partial\delta=\tfrac{EV}{X}\cos\delta_0=:K_s \) (par sincronizante). El ángulo es la integral de la frecuencia, \( \dot{\tilde\delta}=\tilde\omega=-m_p\,\tilde P_m \), y la potencia medida pasa por el paso-bajo \( \dot{\tilde P}_m=\omega_f(\tilde P-\tilde P_m) \). Encadenando, la ganancia de lazo abierto es
+$$ L(s)=\underbrace{m_p}_{\text{droop}}\cdot\underbrace{\frac{K_s}{s}}_{\delta\to P}\cdot\underbrace{\frac{\omega_f}{s+\omega_f}}_{\text{filtro}} $$
+
+**Paso 2 — los dos polos.** \( L(s) \) tiene un **integrador** (el \( 1/s \) del ángulo) y el **polo del filtro** en \( -\omega_f \). El integrador ya aporta \( -90° \) de fase a toda frecuencia; el filtro añade otros \( -90° \) más a partir de \( \omega_f \). Cerca del cruce, la fase tiende a \( -180° \): el margen de fase sale de lo que falte para los \( -180° \) en la frecuencia de cruce \( \omega_c \) (donde \( |L(j\omega_c)|=1 \)).
+
+**Paso 3 — la trampa de subir la ganancia.** Subir \( m_p \) o \( K_s \) (red más fuerte, \( X \) menor) empuja \( \omega_c \) hacia y por encima de \( \omega_f \), justo donde el filtro ya está restando fase:
+$$ \angle L(j\omega_c)=-90°-\arctan\!\frac{\omega_c}{\omega_f}\;\xrightarrow{\;\omega_c\gg\omega_f\;}\;-180° $$
+Por eso un \( \omega_f \) **alto** (acerca el polo al cruce) o un \( m_p K_s \) alto dejan el **modo de potencia mal amortiguado**. Las dos palancas para recuperar margen son: bajar \( \omega_f \), o reducir \( K_s \) subiendo \( X \) con [[impedancia-virtual]] (lo que aplana \( P(\delta) \)). Si aun así falta, se pasa a [[vsm-inercia]], que añade inercia y un amortiguamiento \( D \) explícito.
 
 ## Cuándo y por qué se usa
 Base de la mayoría de microrredes y grid-forming. El reparto de carga es automático: dos unidades con

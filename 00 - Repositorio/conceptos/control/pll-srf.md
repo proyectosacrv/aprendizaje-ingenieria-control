@@ -8,7 +8,7 @@ proyectos: [02-GFL-Impedance]
 objetivos: [estimar ángulo y frecuencia de una tensión trifásica para sincronizar el control, también bajo desequilibrio y distorsión]
 tags: [pll, sincronizacion, srf, dsogi, sogi, fll, secuencia, desequilibrio, dq, ancho-de-banda]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-16
+fecha_actualizacion: 2026-06-30
 relacionados: [grid-forming-vs-following, marco-dq, componentes-simetricas, impedancia-salida-estabilidad, interaccion-pll-red-debil, fault-ride-through]
 referencias:
   - "Kaura, Blasko, Operation of a Phase Locked Loop System Under Distorted Utility Conditions, IEEE TIA 1997"
@@ -61,6 +61,30 @@ Aplicando un SOGI a v_alpha y otro a v_beta (tras Clarke, ver [[marco-dq|transfo
 Sobre la secuencia positiva se cierra una SRF-PLL o, mejor, un FLL (frequency-locked loop): la frecuencia se estima de la realimentación del error del SOGI sin lazo de fase, lo que lo hace insensible a saltos de fase y muy robusto en faltas. El FLL adapta omega' de los SOGI, dando seguimiento de frecuencia sin la no linealidad de la PLL. Frente a la SRF-PLL simple, la DSOGI rechaza el rizado de 2·omega que la secuencia negativa provoca en dq, dando un ángulo limpio para el control y para el fault ride-through.
 
 <div class="cfig"><img src="figuras/dsogi-pll-sogi.png" alt="respuesta en frecuencia del SOGI: banda y cuadratura"><div class="cap">Cada SOGI es un filtro resonante sintonizado a f0: v'/v es un paso-banda centrado en la fundamental y qv'/v entrega la misma señal retrasada 90° (cuadratura). Con un SOGI por eje αβ se calculan las secuencias positiva y negativa instantáneas, dando un ángulo limpio incluso con desequilibrio.</div></div>
+
+## 1 — Linealización del SRF-PLL: la FDT de 2º orden vq→θ
+**Paso 1 — la no linealidad de entrada.** El error de ángulo es \( \Delta\theta=\theta-\theta_{pll} \). Proyectando la tensión \( V\angle\theta \) en el marco de la PLL (girado a \( \theta_{pll} \)), su componente en cuadratura es
+$$ v_q=V\sin(\theta-\theta_{pll})=V\sin\Delta\theta $$
+Para error pequeño, \( \sin\Delta\theta\approx\Delta\theta \), de modo que \( v_q\approx V\,\Delta\theta \). La amplitud \( V \) actúa como ganancia de medida; por eso conviene normalizar por \( V \).
+
+**Paso 2 — el PI y el integrador del ángulo.** El PI sobre \( v_q \) fija la frecuencia, y el integrador genera el ángulo:
+$$ \omega_{pll}=\omega_0+K_p v_q+K_i\!\int v_q\,dt,\qquad \dot\theta_{pll}=\omega_{pll} $$
+En Laplace, la frecuencia corregida sobre \( v_q \) es \( \big(K_p+\tfrac{K_i}{s}\big)v_q \), y el ángulo estimado es esa frecuencia integrada: \( \theta_{pll}=\tfrac1s\,\omega_{pll} \).
+
+**Paso 3 — cerrar el lazo.** La planta del lazo es la cadena \( v_q\to\theta_{pll} \): el PI seguido del integrador, con la ganancia de medida \( V \) cerrando \( \theta_{pll}\to v_q \). La ganancia de lazo abierto (de \( \theta \) a \( \theta_{pll} \)) es
+$$ L(s)=V\cdot\Big(K_p+\frac{K_i}{s}\Big)\cdot\frac1s=\frac{V(K_p s+K_i)}{s^2} $$
+La FDT de lazo cerrado \( \theta_{pll}/\theta=L/(1+L) \):
+$$ \frac{\theta_{pll}}{\theta}(s)=\frac{V(K_p s+K_i)}{s^2+V K_p\,s+V K_i} $$
+
+**Paso 4 — identificar \( \omega_n \) y \( \zeta \).** El denominador es un 2º orden canónico \( s^2+2\zeta\omega_n s+\omega_n^2 \). Igualando término a término:
+$$ \omega_n^2=V K_i,\qquad 2\zeta\omega_n=V K_p $$
+de donde
+$$ \boxed{\;\omega_n=\sqrt{V K_i},\qquad \zeta=\frac{K_p}{2}\sqrt{\frac{V}{K_i}}=\frac{V K_p}{2\omega_n}\;} $$
+El ancho de banda de la PLL es \( \approx\omega_n \), su parámetro de robustez frente a la red.
+
+**Paso 5 — invertir para sintonizar.** Fijados \( \omega_n \) (banda) y \( \zeta \) (típico \( 0.707 \)), se despejan las ganancias normalizadas por \( V \):
+$$ K_i=\frac{\omega_n^2}{V},\qquad K_p=\frac{2\zeta\omega_n}{V} $$
+Con \( f_{pll}=30\,\text{Hz} \) (\( \omega_n=2\pi\cdot30=188.5\,\text{rad/s} \)), \( \zeta=0.707 \) y \( V=1 \) p.u.: \( K_i=\omega_n^2=3.55\times10^4 \) y \( K_p=2\cdot0.707\cdot188.5=266.5 \). Subir \( \omega_n \) acelera la sincronización pero ensancha la banda donde \( \text{Re}\{Z\}<0 \) del GFL, reduciendo el SCR crítico (ver [[interaccion-pll-red-debil]]).
 
 ## Cuándo y por qué se usa
 SRF-PLL: en todo equipo grid-following con red equilibrada y limpia, y en cualquier control que solo necesite el ángulo de una tensión sana. DSOGI-PLL/FLL: sincronización bajo desequilibrio y armónicos, imprescindible para [[fault-ride-through]] (necesita secuencia positiva limpia y secuencia negativa para el soporte) y para redes débiles/distorsionadas. Ninguna se usa en grid-forming, que genera su propio ángulo.

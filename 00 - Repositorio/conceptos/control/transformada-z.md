@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [analizar y diseñar control en tiempo discreto (digital)]
 tags: [transformada-z, discreto, control-digital, muestreo, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-06-30
 relacionados: [transformada-laplace, discretizacion-controladores, muestreo-aliasing, estabilidad-bibo]
 referencias:
   - "Ogata, Sistemas de Control en Tiempo Discreto, Pearson"
@@ -34,6 +34,27 @@ El eje \( j\omega \) de \( s \) se convierte en la circunferencia \( |z|=1 \), y
 Nyquist \( \omega_s/2 \) cae en \( z=-1 \).
 
 <div class="cfig"><img src="figuras/transformada-z-planos.png" alt="mapeo plano s a plano z"><div class="cap">La relación z=e^{sTs} mapea el semiplano izquierdo de s (estable en continuo) al interior del círculo unidad de z (estable en discreto). Por eso el criterio digital es |z|<1, no Re(z)<0.</div></div>
+
+## 1 — De dónde sale \( z=e^{sT_s} \) (muestrear Laplace)
+**Paso 1 — la señal muestreada.** Muestrear \( x(t) \) cada \( T_s \) es modelarla como un tren de impulsos pesados por las muestras \( x[n]=x(nT_s) \):
+
+$$ x^*(t)=\sum_{n=0}^{\infty}x[n]\,\delta(t-nT_s) $$
+
+**Paso 2 — aplicar Laplace.** La transformada de un impulso desplazado es \( \mathcal{L}\{\delta(t-nT_s)\}=e^{-snT_s} \). Por linealidad:
+
+$$ X^*(s)=\mathcal{L}\{x^*(t)\}=\sum_{n=0}^{\infty}x[n]\,e^{-s n T_s} $$
+
+**Paso 3 — el cambio de variable.** Esta suma depende de \( s \) solo a través del bloque \( e^{sT_s} \). Define:
+
+$$ \boxed{\;z\equiv e^{sT_s}\;} $$
+
+**Paso 4 — aparece la transformada Z.** Sustituyendo \( e^{snT_s}=(e^{sT_s})^n=z^n \), o sea \( e^{-snT_s}=z^{-n} \):
+
+$$ X^*(s)\big|_{e^{sT_s}=z}=\sum_{n=0}^{\infty}x[n]\,z^{-n}=X(z) $$
+
+que es exactamente la definición de la transformada Z. El **retardo** de una muestra, \( x[n-1] \), corresponde a \( \mathcal{L}\{\delta(t-T_s)\}=e^{-sT_s}=z^{-1} \): por eso \( z^{-1} \) es "atrasar un paso".
+
+**Paso 5 — el mapeo de estabilidad.** El semiplano izquierdo es \( s=\sigma+j\omega \) con \( \sigma<0 \). Su imagen es \( z=e^{\sigma T_s}e^{j\omega T_s} \), de módulo \( |z|=e^{\sigma T_s} \). Como \( \sigma<0 \) y \( T_s>0 \) ⇒ \( |z|<1 \): el SPI estable se mapea al **interior del círculo unidad**. El eje \( j\omega \) (\( \sigma=0 \)) da \( |z|=1 \), la circunferencia unidad. De ahí el criterio discreto \( |z_i|<1 \), heredado del \( \mathrm{Re}(s_i)<0 \) de [[estabilidad-bibo]].
 
 ## Cuándo y por qué se usa
 Siempre que el control se ejecute en un procesador digital (la práctica totalidad de los

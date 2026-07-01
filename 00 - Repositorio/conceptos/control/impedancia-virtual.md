@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance]
 objetivos: [estabilizar el lazo de potencia, amortiguar oscilaciones, desacoplar P-Q]
 tags: [grid-forming, droop, reactancia, dq, amortiguamiento]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-06-30
 relacionados: [droop-control, control-cascada, grid-forming-vs-following]
 referencias:
   - "Rocabert et al., Control of Power Converters in AC Microgrids, IEEE Trans. Power Electron., 2012"
@@ -38,6 +38,30 @@ El efecto clave: la ganancia del lazo de potencia de un grid-forming es
 potencia, sin añadir un polo de planta lento (es algebraica sobre la referencia).
 
 <div class="cfig"><img src="figuras/impedancia-virtual-pd.png" alt="curva P-delta con y sin impedancia virtual"><div class="cap">Curva $P(\delta)=1.5\,V^2/X\,\sin\delta$. Sumar reactancia virtual $X_v$ (azul) aplana la curva: la pendiente en el punto de operación $\partial P/\partial\delta$ —la ganancia del lazo de potencia— se reduce, amortiguando el lazo sin introducir un polo lento de planta.</div></div>
+
+## 1 — Por qué restar \( Z_v\,\mathbf{i} \) de la referencia emula una impedancia
+**Paso 1 — el lazo de tensión sigue su referencia.** El lazo interno de tensión es rápido y de alta ganancia, así que en su banda hace \( \mathbf{v}_C\approx\mathbf{v}_C^* \): la tensión del condensador sigue a la referencia que le damos. Esa es la palanca: lo que escribamos en \( \mathbf{v}_C^* \) aparece en bornes.
+
+**Paso 2 — inyectar la caída de una impedancia ficticia.** Definimos la referencia como la consigna deseada menos la caída de una impedancia \( Z_v \) recorrida por la corriente de salida medida \( \mathbf{i} \):
+$$ \mathbf{v}_C^*=\mathbf{v}_{ref}-Z_v\,\mathbf{i} $$
+Combinando con \( \mathbf{v}_C\approx\mathbf{v}_C^* \):
+$$ \mathbf{v}_C\approx\mathbf{v}_{ref}-Z_v\,\mathbf{i} $$
+
+**Paso 3 — leerlo como Thévenin.** Esta ecuación es exactamente la de una fuente ideal \( \mathbf{v}_{ref} \) detrás de una impedancia serie \( Z_v \): la tensión en bornes cae \( Z_v\,\mathbf{i} \) conforme sube la corriente, igual que si hubiera un \( R_v+jX_v \) **físico** en serie. La impedancia de salida de pequeña señal que el equipo presenta hacia la red gana ese término:
+$$ Z_o^{eff}(s)=Z_{o,fis}(s)+Z_v(s) $$
+pero sin disipar potencia ni añadir hardware: es una caída calculada y reescrita en la referencia. Por eso tampoco mete un polo de planta lento — la operación es **algebraica** sobre \( \mathbf{v}_C^* \), instantánea dentro de la banda del lazo de tensión.
+
+**Paso 4 — en dq el término reactivo se cruza.** Una reactancia es \( Z_v=R_v+j\omega L_v \); en el marco dq el producto \( j\omega L_v\cdot\mathbf{i} \) rota \( 90° \) los ejes, dando los términos cruzados de la ficha:
+$$ v_{Cd}^*=v_{ref,d}-R_v i_d+\omega L_v i_q,\qquad v_{Cq}^*=v_{ref,q}-R_v i_q-\omega L_v i_d $$
+(el \( +\omega L_v i_q \) en d y el \( -\omega L_v i_d \) en q son el "\( j \)" de la reactancia visto en componentes).
+
+## 2 — Cómo \( X_v \) reduce la ganancia del lazo de potencia
+**Paso 1 — la ganancia depende de \( 1/X \).** La pendiente del flujo de carga en el punto de operación es \( \partial P/\partial\delta\approx 1.5\,V^2\cos\delta_0/X \) (factor \( 1.5 \) por la potencia trifásica en valores de pico dq). Esta pendiente es la ganancia del lazo de potencia del grid-forming: cuanto mayor, menos margen de fase (ver [[droop-control]] apartado 2).
+
+**Paso 2 — la virtual entra en serie.** La impedancia virtual suma su reactancia a la de acoplamiento real, \( X_{tot}=X_{fis}+X_v \), porque aparece en serie con la fuente de tensión (apartado anterior). Sustituyendo:
+$$ \frac{\partial P}{\partial\delta}\approx\frac{1.5\,V^2\cos\delta_0}{X_{fis}+X_v} $$
+
+**Paso 3 — el efecto.** Subir \( X_v \) **baja** \( \partial P/\partial\delta \) (curva \( P(\delta) \) más plana), reduciendo la ganancia del lazo de potencia y amortiguándolo, sin el polo lento que añadiría subir \( L_2 \) físico. Coste: más caída de tensión y mayor \( \delta_0 \) en operación (hay que generar el mismo \( P \) con menor pendiente, así que el ángulo de trabajo crece). Por eso \( X_v \) típica \( 0.1\text{–}0.3 \) pu: suficiente para amortiguar sin disparar \( \delta_0 \).
 
 ## Cuándo y por qué se usa
 - Cuando la reactancia de acoplamiento real es pequeña → \( \partial P/\partial\delta \)

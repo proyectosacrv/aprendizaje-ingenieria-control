@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [convertir el lazo de corriente dq acoplado en dos lazos SISO independientes]
 tags: [desacoplo, feedforward, acoplamiento-cruzado, dq, lazo-corriente, intermedio, control]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-11
+fecha_actualizacion: 2026-07-01
 relacionados: [marco-dq, control-cascada, control-vectorial, controlador-pid, filtro-lcl]
 referencias:
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"

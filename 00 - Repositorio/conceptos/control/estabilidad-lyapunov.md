@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [probar estabilidad de sistemas no lineales sin resolver sus ecuaciones]
 tags: [lyapunov, estabilidad, no-lineal, energia, basico]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-06-30
 relacionados: [analisis-modal, estabilidad-bibo, clasificacion-estabilidad, impedancia-salida-estabilidad, ecuacion-oscilacion]
 referencias:
   - "Khalil, Nonlinear Systems, Prentice Hall"
@@ -34,6 +34,25 @@ La existencia de tal \( P \) equivale a que todos los autovalores de \( A \) ten
 negativa: conecta el método con el análisis modal.
 
 <div class="cfig"><img src="figuras/estabilidad-lyapunov-V.png" alt="trayectoria descendiendo por V y V(t) decreciente"><div class="cap">Izquierda: la trayectoria atraviesa curvas de nivel de $V$ cada vez menores hasta el equilibrio. Derecha: $V(x(t))$ decrece de forma monótona ($\dot V<0$), lo que prueba estabilidad asintótica sin integrar las ecuaciones del sistema.</div></div>
+
+## 1 — De \( V=\mathbf{x}^\top P\mathbf{x} \) a la ecuación de Lyapunov
+**Paso 1 — la candidata cuadrática.** Para el sistema lineal \( \dot{\mathbf{x}}=A\mathbf{x} \) prueba la "energía" \( V(\mathbf{x})=\mathbf{x}^\top P\,\mathbf{x} \) con \( P=P^\top>0 \) (simétrica definida positiva). Es definida positiva por construcción: \( V(0)=0 \) y \( V(\mathbf{x})>0 \) para \( \mathbf{x}\neq0 \). Cumple la primera condición.
+
+**Paso 2 — derivar a lo largo de las trayectorias.** Por la regla del producto sobre \( V=\mathbf{x}^\top P\mathbf{x} \):
+
+$$ \dot V=\dot{\mathbf{x}}^\top P\,\mathbf{x}+\mathbf{x}^\top P\,\dot{\mathbf{x}} $$
+
+**Paso 3 — sustituir la dinámica.** Como \( \dot{\mathbf{x}}=A\mathbf{x} \), entonces \( \dot{\mathbf{x}}^\top=\mathbf{x}^\top A^\top \). Sustituyendo:
+
+$$ \dot V=\mathbf{x}^\top A^\top P\,\mathbf{x}+\mathbf{x}^\top P A\,\mathbf{x}=\mathbf{x}^\top\big(A^\top P+P A\big)\mathbf{x} $$
+
+**Paso 4 — imponer \( \dot V<0 \).** Queremos que esta forma cuadrática sea definida negativa. Define la matriz \( -Q\equiv A^\top P+PA \), es decir, exige que exista \( Q=Q^\top>0 \) tal que:
+
+$$ \boxed{\;A^\top P+P A=-Q\;} $$
+
+Entonces \( \dot V=-\mathbf{x}^\top Q\,\mathbf{x}<0 \) para todo \( \mathbf{x}\neq0 \): el equilibrio es asintóticamente estable.
+
+**Paso 5 — equivalencia con los autovalores.** El teorema de Lyapunov para sistemas lineales dice: dada cualquier \( Q>0 \), existe una solución única \( P>0 \) **si y solo si** todos los autovalores de \( A \) tienen parte real negativa. Así el método de energía y el [[analisis-modal]] coinciden. **Verificado** con \( A=\left[\begin{smallmatrix}0&1\\-2&-3\end{smallmatrix}\right] \) (autovalores \( -1,-2 \)) y \( Q=I \): la solución es \( P=\left[\begin{smallmatrix}1.25&0.25\\0.25&0.25\end{smallmatrix}\right] \), cuyos autovalores \( \{1.31,\,0.19\} \) son positivos, confirmando \( P>0 \) y por tanto estabilidad.
 
 ## Cuándo y por qué se usa
 Cuando el sistema es **no lineal** y los autovalores no bastan: ecuación de oscilación del VSM,

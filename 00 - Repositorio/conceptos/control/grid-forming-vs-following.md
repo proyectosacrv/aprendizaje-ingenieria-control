@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [elegir la arquitectura de control del inversor]
 tags: [grid-forming, grid-following, PLL, red-debil, SCR]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-11
+fecha_actualizacion: 2026-06-30
 relacionados: [droop-control, vsm-inercia, impedancia-salida-estabilidad, red-thevenin-scr, pll-srf, interaccion-pll-red-debil]
 referencias:
   - "Rocabert et al., Control of Power Converters in AC Microgrids, IEEE TPEL 2012"
@@ -29,6 +29,21 @@ tensión** con su propia frecuencia y ángulo, como una fuente de tensión detr�
 - **GFM**: fuente de tensión; el ángulo lo genera el propio control (droop/VSM), **sin PLL**.
   Aporta inercia/soporte y es robusto en red débil. Su impedancia de salida es **inductiva**
   en banda media (firma de fuente de tensión), igual que una máquina síncrona.
+
+## 1 — Por qué la fuente de corriente (GFL) sufre en red débil y la de tensión (GFM) no
+**Paso 1 — los dos equivalentes.** Cada filosofía es un equivalente de Thévenin/Norton distinto detrás de la impedancia de red \( Z_{red} \):
+- **GFL** = fuente de **corriente** \( I \) (Norton, impedancia interna idealmente \( \infty \)): impone la corriente que inyecta y deja que la red fije la tensión del PCC.
+- **GFM** = fuente de **tensión** \( E \) detrás de una impedancia interna \( Z_o \) pequeña (Thévenin): impone la tensión y deja que la red fije la corriente.
+
+**Paso 2 — sensibilidad de la tensión del PCC en el GFL.** Con la fuente de corriente \( I \) inyectando contra la red \( V_g \) detrás de \( Z_{red} \), la tensión del nudo es
+$$ V_{pcc}=V_g+Z_{red}\,I\;\Longrightarrow\;\frac{\partial V_{pcc}}{\partial I}=Z_{red} $$
+La tensión que mide la PLL depende de \( Z_{red} \). En **red débil** \( |Z_{red}| \) es grande (SCR bajo): cada pequeño cambio de corriente mueve mucho \( V_{pcc} \). La PLL reacciona a ese movimiento corrigiendo el ángulo, lo que cambia \( I \), que vuelve a mover \( V_{pcc} \) — el lazo PLL–red se cierra con ganancia \( \propto Z_{red} \) y se desestabiliza (ver [[interaccion-pll-red-debil]]). Cuanto más débil la red, más alta la ganancia de ese lazo.
+
+**Paso 3 — sensibilidad de la corriente en el GFM.** Con la fuente de tensión \( E \) detrás de \( Z_o \), la corriente que circula a la red es
+$$ I=\frac{E-V_g}{Z_o+Z_{red}}\;\Longrightarrow\;\frac{\partial I}{\partial E}=\frac{1}{Z_o+Z_{red}} $$
+Aquí \( Z_{red} \) está en el **denominador**: una red débil (\( |Z_{red}| \) grande) **reduce** la sensibilidad de la corriente a la tensión impuesta. El GFM no necesita medir el ángulo de la red —lo genera él (droop/VSM)— así que no hay lazo de medida que la impedancia alta pueda desestabilizar. Es robusto justo donde el GFL falla.
+
+**Paso 4 — el espejo.** El mismo cociente explica el caso opuesto: en **red fuerte** (\( Z_{red}\to0 \)), \( \partial I/\partial E\to1/Z_o \) es grande, así que un GFM con droop **agresivo** (lazo de potencia de banda ancha) puede inestabilizar en red fuerte — el espejo exacto del GFL. Cada arquitectura es robusta en el extremo donde la otra falla; la elección la decide el SCR esperado ([[red-thevenin-scr]]).
 
 ## Cuándo y por qué se usa
 - **GFL**: redes fuertes, plantas que solo "siguen" la red (la mayoría del parque PV actual).

@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [adaptar el controlador al punto de operación en plantas no lineales o de parámetros variables]
 tags: [gain-scheduling, no-lineal, punto-operacion, lpv, adaptacion, scr-variable, control]
 fecha_creacion: 2026-06-10
-fecha_actualizacion: 2026-06-10
+fecha_actualizacion: 2026-07-01
 relacionados: [linealizacion-teoria, asignacion-polos-lqr, sintonia-pi-pid, robustez-parametrica, interaccion-pll-red-debil, control-robusto-hinf, medicion-impedancia-inyeccion, red-thevenin-scr]
 referencias:
   - "Rugh, Shamma, Research on gain scheduling, Automatica 2000"

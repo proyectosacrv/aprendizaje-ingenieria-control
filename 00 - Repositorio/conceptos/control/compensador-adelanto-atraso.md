@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [moldear fase y ganancia del lazo para fijar margen y ancho de banda]
 tags: [lead-lag, adelanto, atraso, compensador, frecuencia, intermedio, control]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-06-30
 relacionados: [loop-shaping, lugar-raices, diagrama-bode, margenes-estabilidad, controlador-pid]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -36,6 +36,50 @@ que se coloca lejos del cruce. Análogo a un PI aproximado.
 velocidad.
 
 <div class="cfig"><img src="figuras/compensador-adelanto-atraso-bode.png" alt="Bode de un compensador de adelanto"><div class="cap">El compensador de adelanto inyecta un máximo de fase φmax en ωm=1/(T√α); colocándolo en el cruce de ganancia sube el margen de fase, a costa de más ganancia (y ruido) en alta frecuencia.</div></div>
+
+## 1 — De dónde sale \( \phi_{max} \) y la frecuencia \( \omega_m \) donde ocurre
+**Paso 1 — la fase del lead.** El compensador de adelanto \( C(s)=K_c\dfrac{1+\alpha Ts}{1+Ts} \) (con \( \alpha>1 \)) tiene un cero en \( \omega_z=1/(\alpha T) \) y un polo en \( \omega_p=1/T \), con \( \omega_z<\omega_p \). Su fase en \( s=j\omega \) es la del cero menos la del polo:
+
+$$ \phi(\omega)=\arctan(\alpha T\omega)-\arctan(T\omega) $$
+
+**Paso 2 — maximizar: derivar e igualar a cero.** Usando \( \dfrac{d}{d\omega}\arctan(a\omega)=\dfrac{a}{1+a^2\omega^2} \):
+
+$$ \frac{d\phi}{d\omega}=\frac{\alpha T}{1+(\alpha T\omega)^2}-\frac{T}{1+(T\omega)^2}=0 $$
+
+Multiplicando en cruz: \( \alpha T\,[1+(T\omega)^2]=T\,[1+(\alpha T\omega)^2] \). Dividiendo por \( T \) y reordenando:
+
+$$ \alpha+\alpha T^2\omega^2=1+\alpha^2T^2\omega^2 \;\Rightarrow\; \alpha-1=\alpha T^2\omega^2(\alpha-1) \;\Rightarrow\; \omega^2=\frac{1}{\alpha T^2} $$
+
+$$ \boxed{\;\omega_m=\frac{1}{T\sqrt{\alpha}}\;} $$
+
+Es la **media geométrica** del cero y el polo: \( \omega_m=\sqrt{\omega_z\,\omega_p}=\sqrt{\tfrac{1}{\alpha T}\cdot\tfrac{1}{T}} \). En escala logarítmica (Bode), justo el punto medio entre cero y polo.
+
+**Paso 3 — evaluar la fase en \( \omega_m \).** Sustituyendo \( \omega_m \), con \( \alpha T\omega_m=\sqrt{\alpha} \) y \( T\omega_m=1/\sqrt{\alpha} \):
+
+$$ \phi_{max}=\arctan\sqrt{\alpha}-\arctan\frac{1}{\sqrt{\alpha}} $$
+
+**Paso 4 — cerrar en forma de arcoseno.** Aplicando \( \tan(\phi_{max})=\dfrac{\sqrt\alpha-1/\sqrt\alpha}{1+\sqrt\alpha\cdot(1/\sqrt\alpha)}=\dfrac{\alpha-1}{2\sqrt\alpha} \) (resta de arcotangentes). De ahí, construyendo el triángulo (\( \text{op}=\alpha-1 \), \( \text{ady}=2\sqrt\alpha \), \( \text{hip}=\sqrt{(\alpha-1)^2+4\alpha}=\alpha+1 \)):
+
+$$ \boxed{\;\sin\phi_{max}=\frac{\alpha-1}{\alpha+1}\quad\Longleftrightarrow\quad \alpha=\frac{1+\sin\phi_{max}}{1-\sin\phi_{max}}\;} $$
+
+Esta última forma es la de diseño: fijado el \( \phi_{max} \) que falta para el margen, da \( \alpha \) directamente. Con \( \alpha\le10 \), \( \phi_{max}\lesssim55^\circ \) por etapa.
+
+## 2 — El ejemplo numérico, paso a paso, y la corrección de \( K_c \)
+**Paso 1 — fase a aportar.** Margen actual 22°, objetivo 45°; faltan 23°, más 5° de colchón (porque el propio lead mueve algo el cruce) → \( \phi_{max}=28^\circ \).
+
+**Paso 2 — factor \( \alpha \).** \( \alpha=\dfrac{1+\sin28^\circ}{1-\sin28^\circ}=\dfrac{1+0.469}{1-0.469}=2.77 \).
+
+**Paso 3 — constante de tiempo.** Para que el máximo de fase caiga en el cruce, \( \omega_m=\omega_c=200\,\text{rad/s} \):
+
+$$ T=\frac{1}{\omega_c\sqrt{\alpha}}=\frac{1}{200\times1.664}=3.0\times10^{-3}\,\text{s},\qquad \alpha T=8.3\times10^{-3}\,\text{s} $$
+
+$$ C(s)=\frac{1+8.3\times10^{-3}s}{1+3.0\times10^{-3}s} $$
+
+**Paso 4 — corregir \( K_c \).** El lead no es transparente en ganancia: en \( \omega_m \) su módulo es
+
+$$ |C(j\omega_m)|=\sqrt{\alpha}=1.66\;(+4.4\,\text{dB}) $$
+
+Ese +4.4 dB **adelantaría el cruce** a una frecuencia mayor (donde la fase aportada ya no es el máximo). Para mantener el cruce en \( \omega_c \) se baja \( K_c \) en \( 1/\sqrt\alpha \). Resultado: margen \( \approx22^\circ+28^\circ=50^\circ \) ✓ (los 5° de colchón cubren el pequeño residuo del reescalado). Si hicieran falta \( \alpha>10 \), el \( \sqrt\alpha \) de ganancia amplificaría demasiado el ruido de alta frecuencia: se encadenan dos etapas de menos \( \alpha \) cada una.
 
 ## Cuándo y por qué se usa
 Cuando un P/PI no basta para cumplir simultáneamente margen, ancho de banda y error, o cuando se

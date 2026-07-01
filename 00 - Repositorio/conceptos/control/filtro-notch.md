@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [atenuar una resonancia estrecha en el lazo sin perder ancho de banda]
 tags: [notch, rechazo-banda, resonancia, lcl, filtro, intermedio, control]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-06-30
 relacionados: [filtro-lcl, diagrama-bode, loop-shaping]
 referencias:
   - "Yepes et al., Analysis and design of resonant current controllers, IEEE TIE 2011"
@@ -36,6 +36,34 @@ necesita sensar la corriente del condensador) pero menos robusto a la deriva de 
 (con \( L \), \( C \) variando con el punto de operación o tolerancias).
 
 <div class="cfig"><img src="figuras/filtro-notch-respuesta.png" alt="respuesta en frecuencia de un filtro notch"><div class="cap">El notch atenúa profundamente una banda estrecha en fn (la resonancia LCL) dejando el resto casi intacto; el precio es algo de fase restada por debajo de fn.</div></div>
+
+## 1 — Por qué el cero anula la frecuencia \( \omega_n \)
+**Paso 1 — el notch ideal.** Tomamos el caso límite de máxima profundidad, \( \zeta_z=0 \), que deja el numerador como un par de ceros sobre el eje imaginario:
+
+$$ N(s)=\frac{s^2+\omega_n^2}{s^2+2\zeta_p\,\omega_n s+\omega_n^2} $$
+
+**Paso 2 — evaluar en \( s=j\omega \).** Con \( (j\omega)^2=-\omega^2 \), el numerador es \( -\omega^2+\omega_n^2=\omega_n^2-\omega^2 \). El denominador, separando real e imaginario:
+
+$$ N(j\omega)=\frac{\omega_n^2-\omega^2}{(\omega_n^2-\omega^2)+2\zeta_p\,\omega_n\,(j\omega)} $$
+
+**Paso 3 — el numerador se anula en \( \omega_n \).** Justo en \( \omega=\omega_n \), el numerador \( \omega_n^2-\omega^2=0 \), mientras el denominador conserva su parte imaginaria \( 2\zeta_p\,\omega_n\,j\omega_n\neq 0 \). Por tanto:
+
+$$ \boxed{\;N(j\omega_n)=\frac{0}{2\zeta_p\,\omega_n\,j\omega_n}=0\;} $$
+
+Atenuación **total** en \( \omega_n \): el filtro tiene ceros en \( s=\pm j\omega_n \) (raíces de \( s^2+\omega_n^2 \)) exactamente sobre la frecuencia que se quiere matar. Una senoide de \( \omega_n \) que entre se anula a la salida.
+
+**Paso 4 — fuera de \( \omega_n \) deja pasar.** En continua, \( \omega=0 \): \( N(0)=\dfrac{\omega_n^2}{\omega_n^2}=1 \). En alta frecuencia, \( \omega\to\infty \): el \( -\omega^2 \) domina arriba y abajo, \( N\to\dfrac{-\omega^2}{-\omega^2}=1 \). El notch vale **1 (0 dB) lejos del pico** y solo cava la muesca en torno a \( \omega_n \); de ahí "rechazo de banda" estrecho.
+
+## 2 — Profundidad finita: el papel de \( \zeta_z \)
+**Paso 1 — caso general.** En la práctica se usa \( \zeta_z>0 \) (un notch infinito es frágil). Con \( N(s)=\dfrac{s^2+2\zeta_z\omega_n s+\omega_n^2}{s^2+2\zeta_p\omega_n s+\omega_n^2} \), en \( \omega=\omega_n \) los términos \( \omega_n^2-\omega^2 \) se cancelan en numerador y denominador, quedando solo las partes imaginarias:
+
+$$ N(j\omega_n)=\frac{2\zeta_z\,\omega_n\,(j\omega_n)}{2\zeta_p\,\omega_n\,(j\omega_n)} $$
+
+**Paso 2 — cancelar.** El factor \( 2\omega_n\,(j\omega_n)=2j\omega_n^2 \) es común y se cancela:
+
+$$ \boxed{\;\big|N(j\omega_n)\big|=\frac{\zeta_z}{\zeta_p}\;} $$
+
+La profundidad de la muesca es el **cociente \( \zeta_z/\zeta_p \)**: con \( \zeta_z=0 \) es 0 (atenuación infinita, caso ideal); con \( \zeta_z=0.02 \), \( \zeta_p=0.5 \) da \( 0.04 \), es decir \( 20\log_{10}(0.04)\approx-28 \) dB. Esto justifica el criterio de diseño \( \zeta_z\ll\zeta_p \).
 
 ## Cuándo y por qué se usa
 Para estabilizar el lazo de corriente con filtro LCL sin recurrir a sensores extra de

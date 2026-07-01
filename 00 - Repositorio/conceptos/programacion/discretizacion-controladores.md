@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [pasar un controlador continuo a su versión digital implementable]
 tags: [discretizacion, tustin, zoh, c2d, retardo, basico, programacion]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-30
 relacionados: [controlador-pid, respuesta-frecuencia-ss, sintonia-pi-pid, margenes-estabilidad]
 referencias:
   - "Aström, Wittenmark, Computer-Controlled Systems, Prentice Hall 1997"
@@ -31,6 +31,63 @@ El muestreo añade un **retardo equivalente** de \( \approx T_s/2 \) (ZOH) más 
 Tustin fuerza coincidencia exacta a una frecuencia crítica \( \omega_0 \).
 
 <div class="cfig"><img src="figuras/discretizacion-controladores-fase.png" alt="fase del PI continuo frente al discretizado por Tustin"><div class="cap">La discretización por Tustin conserva la fase del controlador continuo a baja frecuencia (diferencia $<1°$ en la banda de control), pero el retardo equivalente del muestreo añade fase negativa cerca de $f_s/2$. Por eso el ancho de banda de control debe quedar por debajo de $\sim f_s/10$ para que el margen de fase sobreviva al muestreo y el cómputo.</div></div>
+
+## 1 — De dónde sale la regla bilineal y por qué preserva la estabilidad
+**Paso 1 — el mapeo exacto.** El paso de continuo a discreto exacto es \( z=e^{sT_s} \): un polo en \( s \) se traslada a \( z=e^{sT_s} \). El problema es que \( e^{sT_s} \) es trascendente y no da una función racional en \( z \) (no se implementa como ecuación en diferencias). Hay que aproximarlo.
+
+**Paso 2 — invertir y aproximar el logaritmo.** Despejando, \( s=\dfrac{1}{T_s}\ln z \). Se usa la serie del logaritmo en la variable \( \tfrac{z-1}{z+1} \):
+
+$$ \ln z = 2\left(\frac{z-1}{z+1}+\frac13\left(\frac{z-1}{z+1}\right)^3+\cdots\right) $$
+
+Truncando en el primer término (aproximación de Padé de orden 1, equivalente a la regla del trapecio para integrar):
+
+$$ \boxed{\;s=\frac{2}{T_s}\,\frac{z-1}{z+1}\;} $$
+
+que es la sustitución de **Tustin / bilineal**. Es racional en \( z \), luego cualquier \( C(s) \) racional se convierte en \( C(z) \) racional implementable.
+
+**Paso 3 — despejar el mapeo inverso.** Resolviendo para \( z \):
+
+$$ z=\frac{1+sT_s/2}{1-sT_s/2} $$
+
+**Paso 4 — probar que conserva la estabilidad.** Un polo continuo es estable si está en el semiplano izquierdo, \( \operatorname{Re}s<0 \); un polo discreto es estable si \( |z|<1 \). Hay que ver que la transformación lleva uno al otro. Escribiendo \( s=\sigma+j\omega \):
+
+$$ |z|^2=\frac{|1+sT_s/2|^2}{|1-sT_s/2|^2}=\frac{(1+\sigma T_s/2)^2+(\omega T_s/2)^2}{(1-\sigma T_s/2)^2+(\omega T_s/2)^2} $$
+
+Numerador y denominador comparten el término \( (\omega T_s/2)^2 \); la diferencia está en \( (1+\sigma T_s/2)^2 \) frente a \( (1-\sigma T_s/2)^2 \). Su diferencia es \( 4\cdot(\sigma T_s/2)=2\sigma T_s \). Por tanto:
+
+$$ |z|^2-1=\frac{2\sigma T_s}{(1-\sigma T_s/2)^2+(\omega T_s/2)^2} $$
+
+El denominador es siempre positivo, así que el signo de \( |z|^2-1 \) es el de \( \sigma=\operatorname{Re}s \):
+
+$$ \boxed{\;\operatorname{Re}s<0\;\Longleftrightarrow\;|z|<1\;} $$
+
+El semiplano izquierdo completo se mapea **biyectivamente** al interior del círculo unidad, y el eje \( j\omega \) al borde \( |z|=1 \). Por eso Tustin nunca convierte un controlador estable en uno inestable (al contrario de Euler adelantado, cuyo mapeo \( z=1+sT_s \) puede sacar polos fuera del círculo).
+
+## 2 — Discretizar un PI paso a paso con Tustin
+**Paso 1 — el PI en continuo.** Partimos de \( C(s)=K_p+\dfrac{K_i}{s} \) (forma paralela, con \( K_i=K_p/T_i \)). Tiene un polo en el origen (acción integral) y un cero en \( s=-K_i/K_p=-1/T_i \).
+
+**Paso 2 — sustituir Tustin.** Se reemplaza \( s\to\dfrac{2}{T_s}\dfrac{z-1}{z+1} \):
+
+$$ C(z)=K_p+K_i\,\frac{T_s}{2}\,\frac{z+1}{z-1} $$
+
+(el término integral \( K_i/s \) se invierte: \( 1/s\to\tfrac{T_s}{2}\tfrac{z+1}{z-1} \)).
+
+**Paso 3 — combinar sobre denominador común.** Poniendo todo sobre \( z-1 \):
+
+$$ C(z)=\frac{K_p(z-1)+K_i\tfrac{T_s}{2}(z+1)}{z-1}
+=\frac{\big(K_p+K_i\tfrac{T_s}{2}\big)z-\big(K_p-K_i\tfrac{T_s}{2}\big)}{z-1} $$
+
+Definiendo los coeficientes \( b_0=K_p+K_i\tfrac{T_s}{2} \), \( b_1=-(K_p-K_i\tfrac{T_s}{2}) \):
+
+$$ C(z)=\frac{b_0+b_1 z^{-1}}{1-z^{-1}} $$
+
+**Paso 4 — pasar a ecuación en diferencias.** Con \( U(z)=C(z)E(z) \), multiplicando en cruz \( (1-z^{-1})U(z)=(b_0+b_1z^{-1})E(z) \), y recordando que \( z^{-1} \) es un retardo de una muestra:
+
+$$ \boxed{\;u[n]=u[n-1]+b_0\,e[n]+b_1\,e[n-1]\;} $$
+
+Es la forma implementable: la salida actual se actualiza con la anterior más una combinación del error actual y el previo. El \( u[n-1] \) realiza el integrador (el polo en \( z=1 \)).
+
+**Paso 5 — comprobar el cero.** El cero de \( C(z) \) está en \( z=-b_1/b_0=\dfrac{K_p-K_i T_s/2}{K_p+K_i T_s/2} \). Con \( K_p=12{,}6 \), \( T_i=40\,\text{ms} \) (\( K_i=315 \)) y \( T_s=100\,\mu\text{s} \) da \( z\approx0{,}9975 \): muy cerca de \( z=1 \), coherente con un cero lento a \( 25\,\text{rad/s} \). El mapeo bilineal del cero coincide hasta la cuarta cifra con \( e^{-T_s/T_i} \), confirmando que el efecto integral se conserva.
 
 ## Cuándo y por qué se usa
 En toda implementación digital (DSP/FPGA/micro) de PI, PR, filtros y observadores. Decide el

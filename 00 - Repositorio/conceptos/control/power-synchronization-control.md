@@ -51,6 +51,23 @@ la red; fue propuesto originalmente para **HVDC** en red débil.
 
 <div class="cfig"><img src="figuras/power-synchronization-control-sync.png" alt="sincronizacion de primer orden del PSC ante un escalon de potencia"><div class="cap">El PSC genera el ángulo integrando el error de potencia ($\dot\delta=K_{psc}(P^*-P)$), sin PLL. Linealizado en el punto de operación da un sistema de primer orden con polo en $s=-K_{psc}K_s$: la potencia sigue a $P^*$ sin oscilación. Por no medir la fase de la red, opera estable donde la PLL de un GFL fallaría (red muy débil).</div></div>
 
+## 1 — Linealización del lazo P→δ: el polo de primer orden \( -K_{psc}K_s \)
+**Paso 1 — el lazo de sincronización.** El ángulo de salida se genera integrando el error de potencia activa, sin PLL:
+$$ \dot\delta=K_{psc}\,(P^*-P) $$
+
+**Paso 2 — cómo el ángulo mueve la potencia.** La potencia transferida a la red a través de la reactancia total es \( P=\dfrac{EV_g}{X}\sin\delta \). En un punto de operación \( \delta_0 \), una pequeña variación \( \tilde\delta=\delta-\delta_0 \) la perturba según la derivada (par sincronizante):
+$$ \tilde P=\frac{\partial P}{\partial\delta}\Big|_{\delta_0}\tilde\delta=\underbrace{\frac{EV_g}{X}\cos\delta_0}_{K_s}\;\tilde\delta $$
+\( K_s \) es positivo mientras \( \delta_0<90° \): más ángulo entrega más potencia.
+
+**Paso 3 — cerrar el lazo en pequeña señal.** Con \( P^* \) constante, \( \widetilde{(P^*-P)}=-\tilde P=-K_s\tilde\delta \). Sustituyendo en el lazo:
+$$ \dot{\tilde\delta}=K_{psc}\,(-K_s\,\tilde\delta)=-K_{psc}K_s\,\tilde\delta $$
+
+**Paso 4 — el polo.** Es una ecuación diferencial lineal de **primer orden**. En Laplace, \( s\tilde\delta=-K_{psc}K_s\tilde\delta \), cuya raíz es
+$$ \boxed{\;s=-K_{psc}\,K_s,\qquad K_s=\frac{EV_g\cos\delta_0}{X}\;} $$
+Un único polo real negativo (mientras \( \delta_0<90° \) → \( K_s>0 \)): la sincronización es **monótona, sin oscilación**, con constante de tiempo \( \tau=1/(K_{psc}K_s) \). No hay segundo estado (a diferencia del VSM, que con la inercia \( J \) es de 2º orden y puede oscilar). El polo se ajusta con \( K_{psc} \): más ganancia, sincronización más rápida.
+
+**Paso 5 — los dos riesgos.** Si \( \delta_0\to90° \), \( \cos\delta_0\to0 \) → \( K_s\to0 \) → el polo se acerca al origen: par sincronizante mínimo, casi se pierde el sincronismo. Y la limitación de corriente, que actúa bajando \( E \), reduce \( K_s\propto E \): mueve el polo y, con retardos, puede inestabilizar en red muy débil. Por eso se diseña con \( \delta_0<30\text{–}45° \) y la limitación coordinada con \( E \).
+
 ## Cuándo y por qué se usa
 Convertidores HVDC, almacenamiento y renovables en redes muy débiles (SCR < 1.5) donde la PLL
 falla. Alternativa más simple que el VSM (sin ecuación de oscilación explícita) cuando no se

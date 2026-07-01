@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [sincronizar convertidores en paralelo usando un oscilador no lineal virtual]
 tags: [voc, dvoc, oscilador-virtual, sincronizacion, no-lineal, despacho, grid-forming, avanzado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-07-01
 relacionados: [grid-forming-vs-following, vsm-inercia, power-synchronization-control, matching-control, droop-control]
 referencias:
   - "Johnson et al., Synthesizing Virtual Oscillators to Control Islanded Inverters, IEEE TPEL 2016"

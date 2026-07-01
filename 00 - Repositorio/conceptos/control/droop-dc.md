@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [repartir corriente entre fuentes de un bus DC sin comunicaciones]
 tags: [droop-dc, reparto-carga, bus-dc, resistencia-virtual, microrred-dc, intermedio]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-30
 relacionados: [droop-control, control-tension-bus-dc, dinamica-bus-dc, control-jerarquico-microrred, microrred-hibrida-ac-dc]
 referencias:
   - "Guerrero et al., Hierarchical Control of Droop-Controlled AC and DC Microgrids, IEEE TIE 2011"
@@ -38,6 +38,29 @@ distorsionan el reparto; \( R_d\gg R_{line} \) lo mitiga, o se compensa en el se
 droop **adaptativo** (función del SoC para equilibrar baterías) y droop no lineal.
 
 <div class="cfig"><img src="figuras/droop-dc-reparto.png" alt="curvas V-I de droop DC y reparto de corriente"><div class="cap">Cada convertidor impone una recta $V_{dc}=V_{dc}^*-R_d I_o$. Como todos comparten el mismo $V_{bus}$, el reparto de corriente queda fijado por las pendientes: $I_1/I_2=R_{d2}/R_{d1}$ (aquí 2:1). Más $R_d$ mejora el reparto pero hunde más la tensión con la carga.</div></div>
+
+## 1 — De dos rectas V–I al reparto de corriente
+**Paso 1 — la recta de cada fuente.** Cada convertidor \( i \) impone una característica lineal entre la tensión que entrega y la corriente que da:
+$$ V_{dc}=V_{dc}^*-R_{d,i}\,I_{o,i} $$
+Es una recta de ordenada en el origen \( V_{dc}^* \) (tensión en vacío) y pendiente \( -R_{d,i} \). Cuanto más carga, más cae la tensión.
+
+**Paso 2 — el nudo común fuerza un único \( V_{dc} \).** Todas las unidades cuelgan del mismo bus, así que en régimen permanente comparten **la misma tensión** \( V_{dc} \). Para dos fuentes con igual \( V_{dc}^* \):
+$$ V_{dc}=V_{dc}^*-R_{d,1}I_{o,1}=V_{dc}^*-R_{d,2}I_{o,2} $$
+
+**Paso 3 — cancelar e invertir.** Restando \( V_{dc}^* \) de ambos lados queda \( R_{d,1}I_{o,1}=R_{d,2}I_{o,2} \), de donde
+$$ \boxed{\;\frac{I_{o,1}}{I_{o,2}}=\frac{R_{d,2}}{R_{d,1}}\;} $$
+El reparto es **inversamente proporcional** a la resistencia de droop: la unidad con menor \( R_d \) (recta más plana) carga más. Con \( R_{d,1}=2R_{d,2} \) sale \( I_{o,1}/I_{o,2}=1/2 \): la primera da la mitad de corriente que la segunda. La pendiente de droop hace de "ganancia de reparto" sin que las unidades se comuniquen — solo "ven" la tensión común del bus, igual que el droop AC reparte por la frecuencia común.
+
+## 2 — Cómo la resistencia de cable distorsiona el reparto
+**Paso 1 — el cable se suma en serie.** Entre los bornes del convertidor \( i \) y el nudo común hay un cable de resistencia \( R_{line,i} \). La tensión en el **nudo** es la del convertidor menos la caída del cable:
+$$ V_{bus}=\underbrace{V_{dc}^*-R_{d,i}I_{o,i}}_{\text{bornes}}-R_{line,i}I_{o,i}=V_{dc}^*-(R_{d,i}+R_{line,i})\,I_{o,i} $$
+La resistencia efectiva de droop vista desde el bus es \( R_{d,i}+R_{line,i} \), no \( R_{d,i} \).
+
+**Paso 2 — el reparto real.** Repitiendo el paso 3 del apartado anterior con esa resistencia efectiva:
+$$ \frac{I_{o,1}}{I_{o,2}}=\frac{R_{d,2}+R_{line,2}}{R_{d,1}+R_{line,1}} $$
+El reparto deseado \( R_{d,2}/R_{d,1} \) solo se recupera si \( R_{line,i}\ll R_{d,i} \). Si \( R_d \) es pequeño y comparable a \( R_{line} \), el cableado (asimétrico entre unidades) decide el reparto y lo desequilibra.
+
+**Paso 3 — las dos salidas.** De aquí el compromiso de la ficha: subir \( R_d \) para que \( R_d\gg R_{line} \) ancla el reparto al diseño, **pero** hunde más la tensión con la carga (\( \Delta V=R_d I_{max} \)). La regulación perdida la repone el **secundario** sumando \( \delta V \) a \( V_{dc}^* \) (ver [[control-jerarquico-microrred]]), que también puede compensar el sesgo de \( R_{line} \) sin tener que subir \( R_d \).
 
 ## Cuándo y por qué se usa
 En microrredes DC y en el subsistema DC de la [[microrred-hibrida-ac-dc|microrred híbrida]] (data

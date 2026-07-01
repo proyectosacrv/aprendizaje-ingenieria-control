@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance, 03-DataCenter-IA]
 objetivos: [evaluar la estabilidad de la interacción fuente-carga por sus impedancias sin re-simular, y entender por qué aparece la inestabilidad]
 tags: [impedancia, nyquist, pasividad, resistencia-negativa, dq, secuencia, mirror-frequency, red-debil, SCR, oscilaciones]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-16
+fecha_actualizacion: 2026-06-30
 relacionados: [respuesta-frecuencia-ss, red-thevenin-scr, medicion-impedancia-inyeccion, marco-dq, componentes-simetricas, analisis-modal, pll-srf, interaccion-pll-red-debil]
 referencias:
   - "Sun, Impedance-Based Stability Criterion for Grid-Connected Inverters, IEEE TPEL 2011"
@@ -22,6 +22,20 @@ Método para decidir la estabilidad de la interacción entre dos subsistemas el�
 
 ## Planteamiento genérico (dos puertos)
 Cualquier interconexión se modela como un puerto "fuente" con impedancia de salida Z_fuente(s) y un puerto "carga" con admitancia de entrada Y_carga(s) (o impedancia Z_carga). Si ambos son estables por separado, la estabilidad del conjunto depende solo del cociente de sus impedancias en el punto de conexión. En convertidores trifásicos el puerto es un sistema MIMO 2×2 (en dq), así que el criterio escalar de Middlebrook se generaliza al Nyquist de una matriz. La convención de signos importa: la admitancia de salida de un equipo que inyecta corriente se define Y = −∂i/∂v en el PCC (convención de fuente).
+
+## 1 — De dónde sale el cociente Zo/Zred (Middlebrook) y el margen
+**Paso 1 — el divisor en el punto de conexión.** Modela la fuente como Thévenin (tensión ideal \( V_s \) detrás de \( Z_o \)) cargada por una impedancia de entrada \( Z_{in} \) (la red o la etapa carga). La tensión en el nudo de conexión es un divisor:
+$$ V=V_s\cdot\frac{Z_{in}}{Z_o+Z_{in}}=V_s\cdot\frac{1}{1+Z_o/Z_{in}} $$
+
+**Paso 2 — aparece el lazo menor.** Saca factor común \( Z_{in} \) en el denominador y define el **minor loop gain** \( T_m=Z_o/Z_{in} \):
+$$ V=V_s\cdot\frac{1}{1+T_m},\qquad T_m(s)=\frac{Z_o(s)}{Z_{in}(s)} $$
+Esta es la forma exacta de una FDT de lazo cerrado \( \tfrac{1}{1+T} \): el conjunto fuente–carga se comporta como un sistema realimentado cuya ganancia de lazo es el cociente de impedancias. Por hipótesis \( V_s \) (la fuente sola) ya es estable; toda nueva inestabilidad al conectar la carga entra por el factor \( 1/(1+T_m) \).
+
+**Paso 3 — el criterio.** \( 1/(1+T_m) \) introduce polos inestables si y solo si \( T_m(s) \) **rodea \( -1 \)** en el plano de Nyquist. Equivalentemente, basta con que \( |Z_o|\ll|Z_{in}| \) en todo \( \omega \) (entonces \( |T_m|\ll1 \) y nunca se acerca a \( -1 \)): ese es el criterio conservador de **Middlebrook**. En el caso convertidor–red, con \( Z_o\to Z_{red} \) (impedancia de salida de la fuente = red) y \( 1/Z_{in}\to Y_{inv} \) (admitancia del equipo), el lazo es \( T_m=Z_{red}\,Y_{inv} \) — el \( L(s) \) de la Parte 1.
+
+**Paso 4 — dónde se juega y el margen.** \( |T_m|=1 \) ocurre justo donde \( |Z_o| \) **corta** a \( |Z_{in}| \) (cruce de magnitudes). Ahí el margen es lo que falte para \( -180° \):
+$$ \text{MF}=180°+\angle T_m(j\omega_{c})=180°+\big(\angle Z_o-\angle Z_{in}\big)\Big|_{\omega_c} $$
+Una **red débil** (SCR bajo) sube \( |Z_{red}| \) y mueve \( \omega_c \) a una banda donde la diferencia de fases \( \angle Z_o-\angle Z_{in} \) puede acercarse a \( \pm180° \) → margen escaso → oscilación. En sistemas trifásicos \( Z \) es una matriz \( 2\times2 \) (dq) y "rodear \( -1 \)" pasa a ser el Nyquist generalizado de los **autovalores** de \( T_m \), que es lo que desarrolla la Parte 1.
 
 ## Parte 1 — criterio exacto (Nyquist generalizado)
 Con el equipo modelado como admitancia de salida Y_inv(s) (2×2) y la red como impedancia Z_red(s), el minor loop gain es:

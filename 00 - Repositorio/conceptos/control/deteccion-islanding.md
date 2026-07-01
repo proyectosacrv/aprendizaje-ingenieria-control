@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [detectar la separación de la red y desconectar el convertidor en tiempo normativo]
 tags: [islanding, anti-islanding, deteccion, OUF, OUV, NDZ, grid-code, intermedio]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-07-01
 relacionados: [pll-srf, fault-ride-through, servicios-red-soporte, calidad-potencia]
 referencias:
   - "IEEE Std 1547-2018, Standard for Interconnection and Interoperability of DER"

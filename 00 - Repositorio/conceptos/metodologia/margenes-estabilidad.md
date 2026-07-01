@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [decidir la estabilidad de un lazo desde el Bode de la ganancia de lazo y cuantificar cuánto margen queda antes de inestabilizarse]
 tags: [margen-fase, margen-ganancia, M_s, bode, estabilidad, robustez, nyquist]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-17
+fecha_actualizacion: 2026-06-30
 relacionados: [diagrama-bode, criterio-nyquist, funciones-sensibilidad, loop-shaping, robustez-parametrica, impedancia-salida-estabilidad]
 referencias:
   - "Aström, Murray, Feedback Systems, Princeton 2008"
@@ -60,6 +60,35 @@ $$ M_s=\max_\omega |S(j\omega)|=\max_\omega \frac{1}{|1+L(j\omega)|}, \qquad \te
 Un retardo puro \( e^{-s\tau} \) no cambia la magnitud pero resta fase \( \omega\tau \). El PM dice cuánto retardo aguanta el lazo antes de inestabilizarse:
 $$ \tau_{max}=\frac{\mathrm{PM\ (rad)}}{\omega_c} $$
 Es el chequeo clave en control digital: el retardo de cómputo más el de PWM (del orden de \( 1.5\,T_s \)) debe ser bastante menor que \( \tau_{max} \).
+
+## 1 — De dónde sale \( \mathrm{PM}\approx100\,\zeta \)
+**Paso 1 — el lazo canónico de segundo orden.** Tómese la ganancia de lazo prototipo de dos polos (un integrador y un polo, el caso de un PI bien planteado o de un doble integrador amortiguado):
+$$ L(s)=\frac{\omega_n^2}{s\,(s+2\zeta\omega_n)} $$
+En lazo cerrado da \( T(s)=\dfrac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2} \), el segundo orden estándar con amortiguamiento \( \zeta \) y frecuencia natural \( \omega_n \). Así el PM del lazo abierto queda ligado al \( \zeta \) del lazo cerrado.
+
+**Paso 2 — frecuencia de cruce de ganancia.** \( \omega_c \) cumple \( |L(j\omega_c)|=1 \):
+$$ |L(j\omega_c)|=\frac{\omega_n^2}{\omega_c\sqrt{\omega_c^2+(2\zeta\omega_n)^2}}=1 \;\Rightarrow\; \omega_c^2\big(\omega_c^2+4\zeta^2\omega_n^2\big)=\omega_n^4 $$
+Resolviendo la bicuadrática en \( (\omega_c/\omega_n)^2 \):
+$$ \left(\frac{\omega_c}{\omega_n}\right)^2=\sqrt{1+4\zeta^4}-2\zeta^2 $$
+
+**Paso 3 — fase en el cruce y margen de fase.** La fase de \( L \) es \( \angle L(j\omega_c)=-90^\circ-\arctan\!\dfrac{\omega_c}{2\zeta\omega_n} \). Por definición \( \mathrm{PM}=180^\circ+\angle L(j\omega_c) \), luego
+$$ \mathrm{PM}=90^\circ-\arctan\frac{\omega_c}{2\zeta\omega_n}=\arctan\frac{2\zeta\omega_n}{\omega_c} $$
+y sustituyendo \( \omega_c \) del Paso 2:
+$$ \boxed{\;\mathrm{PM}=\arctan\frac{2\zeta}{\sqrt{\sqrt{1+4\zeta^4}-2\zeta^2}}\;} $$
+
+**Paso 4 — la aproximación lineal.** Para \( \zeta \) pequeño/moderado el radical \( \to1 \) y \( \arctan x\approx x \) (en rad), así que \( \mathrm{PM}\approx\arctan(2\zeta)\approx2\zeta \) rad \( =2\zeta\cdot\frac{180}{\pi}\approx114.6\,\zeta \) grados. Ajustando a la curva exacta en el rango útil \( \zeta\in[0.3,0.7] \) la pendiente baja, y la regla de bolsillo que mejor encaja es
+$$ \boxed{\;\mathrm{PM}\,[^\circ]\approx100\,\zeta\;} $$
+
+**Paso 5 — verificación numérica.** Evaluando la fórmula exacta del Paso 3:
+
+| \( \zeta \) | PM exacto | \( 100\zeta \) | sobreoscilación \( M_p \) |
+|---|---|---|---|
+| 0.30 | 33.3° | 30° | 37% |
+| 0.45 | 47.6° | 45° | 21% |
+| 0.63 | 61.1° | 63° | 8% |
+| 0.70 | 65.2° | 70° | 5% |
+
+La regla \( \mathrm{PM}\approx100\zeta \) acierta a ±3° hasta \( \zeta\approx0.6 \) y se queda algo corta después (conservadora). El \( M_p \) es \( e^{-\pi\zeta/\sqrt{1-\zeta^2}} \): de ahí la guía PM 45°↔20% y PM 65–70°↔apenas sobreoscila.
 
 ## Cuándo y por qué se usa
 Tras comprobar la estabilidad nominal: los márgenes dicen si el diseño aguanta variaciones de planta, retardos y errores de modelo. Es el chequeo imprescindible antes de validar en hardware. En problemas de interacción convertidor-red el equivalente es el criterio de impedancia / Nyquist generalizado (ver [[impedancia-salida-estabilidad]]).

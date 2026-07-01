@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [relacionar amortiguamiento y frecuencia natural con la respuesta]
 tags: [segundo-orden, amortiguamiento, frecuencia-natural, sobreimpulso, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-11
+fecha_actualizacion: 2026-07-01
 relacionados: [sistema-primer-orden, polos-ceros, metricas-desempeno, funcion-transferencia]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"

@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [interconectar subsistemas y reducirlos a una función de transferencia equivalente]
 tags: [diagrama-bloques, algebra-bloques, interconexion, lazo-cerrado, basico]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-07-01
 relacionados: [funcion-transferencia, realimentacion, control-cascada, error-regimen-permanente]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"

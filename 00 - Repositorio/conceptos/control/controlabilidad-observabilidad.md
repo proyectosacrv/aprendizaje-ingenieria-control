@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [saber si se pueden gobernar y estimar todos los estados de un sistema]
 tags: [controlabilidad, observabilidad, espacio-estados, gramian, kalman, intermedio]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-30
 relacionados: [representacion-espacio-estados, asignacion-polos-lqr, variables-estado, funcion-transferencia]
 referencias:
   - "Ogata, Ingeniería de Control Moderna, Pearson"
@@ -32,6 +32,27 @@ detectable). La pérdida de rango suele venir de **cancelaciones polo-cero** ocu
 \( G(s)=C(sI-A)^{-1}B \).
 
 <div class="cfig"><img src="figuras/controlabilidad-observabilidad-kalman.png" alt="descomposicion de Kalman en cuatro subsistemas"><div class="cap">Descomposición de Kalman: cada modo cae en uno de cuatro grupos según se pueda gobernar (controlable) y/o estimar (observable). Solo el bloque controlable+observable admite diseño completo; un modo no controlable o no observable inestable hace el diseño inviable (no estabilizable / no detectable).</div></div>
+
+## 1 — De dónde sale la matriz \( \mathcal{C}=[B\ AB\ \dots\ A^{n-1}B] \)
+**Paso 1 — el estado alcanzado por la entrada.** La solución de \( \dot{\mathbf{x}}=A\mathbf{x}+B\mathbf{u} \) con \( \mathbf{x}(0)=0 \) es la integral de convolución con la exponencial matricial:
+
+$$ \mathbf{x}(t)=\int_0^{t} e^{A(t-\tau)}B\,\mathbf{u}(\tau)\,d\tau $$
+
+Controlable = este integral puede alcanzar **cualquier** \( \mathbf{x}(t) \) eligiendo \( \mathbf{u} \). Es decir, los vectores generados por \( e^{A\xi}B \) (al variar \( \xi \)) deben **abarcar todo** \( \mathbb{R}^n \).
+
+**Paso 2 — desarrollar la exponencial.** Por definición \( e^{A\xi}=\sum_{k=0}^{\infty}\frac{\xi^k}{k!}A^k \). Entonces \( e^{A\xi}B \) es una combinación de los vectores \( B,\,AB,\,A^2B,\,A^3B,\dots \) con coeficientes escalares \( \xi^k/k! \). El subespacio alcanzable es exactamente \( \mathrm{span}\{A^kB:\ k\ge0\} \).
+
+**Paso 3 — truncar por Cayley-Hamilton.** El teorema de Cayley-Hamilton dice que \( A \) satisface su propio polinomio característico de grado \( n \), luego \( A^n \) (y toda potencia superior) es combinación lineal de \( I,A,\dots,A^{n-1} \). Por tanto \( A^nB,A^{n+1}B,\dots \) **no añaden** direcciones nuevas: el subespacio alcanzable se genera ya con las \( n \) primeras potencias.
+
+**Paso 4 — el criterio de rango.** Reuniendo esos generadores en una matriz \( n\times(n\cdot m) \):
+
+$$ \mathcal{C}=[\,B\ \ AB\ \ A^2B\ \dots\ A^{n-1}B\,] $$
+
+El espacio alcanzable es \( \mathrm{Im}(\mathcal{C}) \). Se llena todo \( \mathbb{R}^n \) si y solo si:
+
+$$ \boxed{\;\mathrm{rank}\,\mathcal{C}=n\;} $$
+
+**Paso 5 — observabilidad por dualidad.** El mismo argumento aplicado a reconstruir \( \mathbf{x}(0) \) desde \( \mathbf{y}=C\mathbf{x} \): derivando la salida, \( y=Cx \), \( \dot y=CAx \), \( \ddot y=CA^2x \), …, hasta \( CA^{n-1}x \) (otra vez Cayley-Hamilton trunca). El estado se despeja si esas filas son independientes, es decir \( \mathrm{rank}\,\mathcal{O}=n \) con \( \mathcal{O}=[C;CA;\dots;CA^{n-1}] \). Es el problema **dual**: \( (A,C) \) observable \( \iff (A^\top,C^\top) \) controlable, lo que usa el [[observador-estados]] para calcular \( L \).
 
 ## Cuándo y por qué se usa
 Antes de diseñar realimentación de estado o un observador: la [[asignacion-polos-lqr|asignación de

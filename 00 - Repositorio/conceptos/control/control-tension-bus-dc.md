@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [mantener constante la tensión del bus DC regulando el intercambio de potencia]
 tags: [bus-dc, lazo-externo, balance-energia, rectificador-activo, back-to-back, intermedio]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-30
 relacionados: [control-cascada, dinamica-bus-dc, convertidor-vsc, controlador-pid]
 referencias:
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
@@ -36,6 +36,50 @@ rechazo. La **separación de bandas** es crítica: el lazo de tensión debe ser 
 el de corriente (factor ~5–10) y, en monofásico, más lento que el rizado de \( 2\omega \).
 
 <div class="cfig"><img src="figuras/control-tension-bus-dc-escalon.png" alt="tension del bus DC ante un escalon de carga con y sin feedforward"><div class="cap">Tras un escalón de carga, el PI solo deja caer $V_{dc}$ hasta que su integrador rehace el balance de potencia; el feedforward de la potencia de carga aporta esa potencia de inmediato y la caída casi desaparece. El lazo se controla sobre $v_{dc}^2$ (energía) para que la planta sea lineal exacta.</div></div>
+
+## 1 — Por qué se controla \( v_{dc}^2 \) y no \( v_{dc} \): linealizar el integrador de energía
+**Paso 1 — el balance de energía es exacto.** La energía almacenada en el condensador es \( E=\tfrac12 C v_{dc}^2 \). Su derivada es la potencia neta que entra al bus:
+
+$$ \frac{dE}{dt}=P_{in}-P_{out}\equiv P $$
+
+Esto es una ley física exacta, sin aproximaciones.
+
+**Paso 2 — la planta en \( v_{dc} \) es no lineal.** Si se elige \( v_{dc} \) como variable controlada, hay que derivar \( E \) por la regla de la cadena:
+
+$$ \frac{dE}{dt}=\frac{d}{dt}\!\left(\tfrac12 C v_{dc}^2\right)=C\,v_{dc}\,\dot v_{dc}=P \quad\Longrightarrow\quad \dot v_{dc}=\frac{P}{C\,v_{dc}} $$
+
+La planta \( v_{dc}\!\leftarrow\!P \) tiene a \( v_{dc} \) **multiplicando** (en el denominador): la ganancia del integrador depende del propio estado. Es un sistema **no lineal**; un PI diseñado para \( V_{dc0} \) ve otra ganancia cuando \( v_{dc} \) se aleja.
+
+**Paso 3 — cambio de variable \( u=v_{dc}^2 \).** Definimos la nueva variable de control \( u\equiv v_{dc}^2 \). Su derivada es:
+
+$$ \dot u=\frac{d(v_{dc}^2)}{dt}=2\,v_{dc}\,\dot v_{dc} $$
+
+Sustituyendo en el balance de energía \( \tfrac12 C\,\dot u = \tfrac12 C\cdot 2 v_{dc}\dot v_{dc}=C v_{dc}\dot v_{dc}=P \):
+
+$$ \boxed{\;\frac{C}{2}\,\dot u = P \quad\Longleftrightarrow\quad \frac{u(s)}{P(s)}=\frac{2}{C\,s}\;} $$
+
+La planta es ahora un **integrador puro lineal exacto**, sin dependencia del punto de operación: ganancia \( 2/(Cs) \) constante para cualquier \( v_{dc} \). Por eso el lazo trabaja sobre \( v_{dc}^{*2}-v_{dc}^2 \) en vez de \( v_{dc}^*-v_{dc} \): no es una preferencia, es lo que vuelve la planta invariante y permite un PI con margen garantizado en todo el rango.
+
+**Paso 4 — comprobación de la linealización clásica.** Si en vez del cambio de variable se linealiza \( \dot v_{dc}=P/(C v_{dc}) \) en torno a \( V_{dc0} \) con \( v_{dc}=V_{dc0}+\tilde v_{dc} \), \( P=\tilde P \) pequeña, se obtiene \( C V_{dc0}\,\dot{\tilde v}_{dc}=\tilde P \), planta \( 1/(C V_{dc0}\,s) \). Es lineal **solo cerca** de \( V_{dc0} \); el enfoque en \( u=v_{dc}^2 \) la hace exacta en todo punto, que es la ventaja decisiva durante arranques y huecos.
+
+## 2 — Sintonía del PI de tensión por asignación de cruce
+**Paso 1 — lazo abierto.** Con la planta lineal \( G(s)=2/(Cs) \) y un PI \( C(s)=K_{pv}\bigl(1+\tfrac{1}{T_{iv}s}\bigr) \), la ganancia de lazo es
+
+$$ L(s)=K_{pv}\!\left(1+\frac{1}{T_{iv}s}\right)\frac{2}{Cs} $$
+
+**Paso 2 — dominio del término proporcional en el cruce.** Se elige \( 1/T_{iv}\ll\omega_{cv} \) (cero del PI una década por debajo del cruce) para que en \( \omega_{cv} \) el PI se comporte casi como ganancia pura \( K_{pv} \). Entonces el módulo de lazo en el cruce es
+
+$$ |L(j\omega_{cv})|\approx K_{pv}\frac{2}{C\,\omega_{cv}}=1 $$
+
+**Paso 3 — despejar la ganancia.** De \( |L|=1 \):
+
+$$ \boxed{\;K_{pv}=\frac{C\,\omega_{cv}}{2}\;} $$
+
+**Paso 4 — números del ejemplo.** Con \( C=10\,\text{mF} \) y \( f_{cv}=200\,\text{Hz} \Rightarrow \omega_{cv}=2\pi\cdot200=1257\,\text{rad/s} \):
+
+$$ K_{pv}=\frac{0.01\times1257}{2}=6.3\ \text{(en base }P\text{–}v_{dc}^2) $$
+
+y el tiempo integral \( T_{iv}\approx10/\omega_{cv}\approx8\,\text{ms} \) deja el cero una década por debajo, aportando el margen de fase. La regla \( \omega_{cv}\approx\omega_{ci}/5 \) (ver [[control-cascada]]) garantiza que el lazo interno de corriente sea "instantáneo" para este lazo; y \( \omega_{cv}<2\omega_{red} \) evita realimentar el rizado de \( 100\,\text{Hz} \) como referencia de corriente.
 
 ## Cuándo y por qué se usa
 En el lado red de cualquier rectificador activo / convertidor back-to-back (el del usuario), en

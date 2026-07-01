@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [anular errores periódicos rechazando todos los armónicos de una frecuencia]
 tags: [repetitivo, periodico, armonicos, modelo-interno, plug-in, thd, avanzado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-06-30
 relacionados: [controlador-resonante, controlador-pid, discretizacion-controladores, error-regimen-permanente, fft-analisis-espectral]
 referencias:
   - "Hara et al., Repetitive Control System: A New Type Servo System for Periodic Exogenous Signals, IEEE TAC 1988"
@@ -39,6 +39,27 @@ periódicos ciclo a ciclo. Coste: la convergencia tarda **varios periodos** y re
 perturbaciones no periódicas.
 
 <div class="cfig"><img src="figuras/control-repetitivo-peine.png" alt="respuesta en magnitud del modelo interno periodico con picos en los armonicos"><div class="cap">Magnitud del modelo interno $e^{-sT}/(1-e^{-sT})$: un peine de resonancias con ganancia alta en la fundamental y en TODOS sus armónicos a la vez, con un solo retardo realimentado. Equivale a infinitos resonantes en paralelo, lo que anula el error periódico ciclo a ciclo.</div></div>
+
+## 1 — Por qué \( 1/(1-e^{-sT}) \) rechaza la fundamental y todos sus armónicos
+**Paso 1 — el principio del modelo interno.** Para anular en régimen permanente el error frente a una señal, el lazo debe contener un **generador interno** de esa señal: un bloque cuyos polos coincidan con los modos de la perturbación. En términos de control, ganancia infinita a esas frecuencias hace que el error a ellas tienda a cero (cualquier error las excitaría sin límite, lo que el lazo no permite en equilibrio). Para una constante, ese generador es el integrador \( 1/s \); para una senoide \( \omega_0 \), el resonante \( s/(s^2+\omega_0^2) \). ¿Y para una señal **periódica** cualquiera de periodo \( T \)?
+
+**Paso 2 — el generador de periodo \( T \).** Una señal periódica de periodo \( T \) cumple \( x(t)=x(t-T) \). El bloque que "memoriza un periodo y lo realimenta" es un retardo \( e^{-sT} \) en lazo positivo:
+
+$$ y(t)=u(t)+y(t-T)\quad\Longrightarrow\quad Y(s)=U(s)+e^{-sT}Y(s)\quad\Longrightarrow\quad \frac{Y(s)}{U(s)}=\frac{1}{1-e^{-sT}} $$
+
+(la variante \( e^{-sT}/(1-e^{-sT}) \) solo desplaza la salida un periodo; los polos son los mismos).
+
+**Paso 3 — localizar los polos.** Los polos están donde el denominador se anula:
+
+$$ 1-e^{-sT}=0 \;\Rightarrow\; e^{-sT}=1 \;\Rightarrow\; -sT=j\,2\pi k,\quad k\in\mathbb{Z} $$
+
+$$ \boxed{\;s=j\,k\,\frac{2\pi}{T}=j\,k\,\omega_0,\quad k=0,\pm1,\pm2,\dots\;} $$
+
+Hay un polo en \( k=0 \) (la componente DC), uno en la fundamental \( \omega_0=2\pi/T \) y uno en **cada** armónico \( k\omega_0 \), todos sobre el eje imaginario.
+
+**Paso 4 — ganancia infinita en cada armónico.** En \( s=jk\omega_0 \) el denominador \( 1-e^{-jk\omega_0 T}=1-e^{-j2\pi k}=1-1=0 \), de modo que \( |G_{rc}(jk\omega_0)|\to\infty \). El Bode es un **peine** de resonancias: un solo retardo realimentado coloca ganancia infinita en infinitas frecuencias equiespaciadas. Por eso un único bloque equivale a infinitos [[controlador-resonante|resonantes]] en paralelo (uno por armónico) pero con coste de cómputo de una sola memoria de \( N=T/T_s \) muestras.
+
+**Paso 5 — por qué eso anula el error periódico.** Una perturbación periódica de periodo \( T \) tiene su espectro **exactamente** en \( \{k\omega_0\} \) (serie de Fourier). El modelo interno tiene ganancia infinita justo en esas frecuencias, así que el error en régimen permanente en cada armónico se anula. La contrapartida: como la corrección se construye memorizando el ciclo anterior, la convergencia tarda **varios periodos** y el bloque no ayuda frente a perturbaciones no periódicas (cuyo espectro no cae en el peine). El filtro \( Q(z)<1 \) baja la ganancia en alta frecuencia para robustez, a costa de no anular del todo los armónicos altos.
 
 ## Cuándo y por qué se usa
 Cuando la perturbación/​referencia es periódica y rica en armónicos: inversores de tensión (UPS/CVCF)

@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [entender de dónde sale el polinomio de Taylor, cómo se deduce término a término y cuánto error comete al truncarlo]
 tags: [taylor, aproximacion, linealizacion, serie, basico]
 fecha_creacion: 2026-06-27
-fecha_actualizacion: 2026-06-27
+fecha_actualizacion: 2026-07-01
 relacionados: [linealizacion-teoria, frecuencias-segundo-orden, factor-calidad-q, resonancia-rlc, linealizacion-numerica]
 referencias:
   - "Apostol, Calculus, Vol. 1"

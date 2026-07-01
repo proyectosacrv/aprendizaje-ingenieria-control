@@ -31,6 +31,25 @@ estabilidad lineal deja de aplicar y se estudia por simulación temporal.
 
 <div class="cfig"><img src="figuras/current-limiting-falta.png" alt="corriente en falta con y sin limite"><div class="cap">Ante un hueco de red, un grid-forming sin límite inyecta una corriente de falta enorme (≈4.76 pu) que destruiría los semiconductores; la saturación de la magnitud de la referencia la acota a $I_{max}$≈1.5 pu. Es un fenómeno de gran señal: rompe la linealidad y se estudia por simulación temporal.</div></div>
 
+## 1 — El clamping del módulo \( \sqrt{i_d^2+i_q^2} \): por qué por magnitud y no por eje
+**Paso 1 — la corriente trifásica como un fasor en dq.** Un sistema trifásico equilibrado de corriente se representa en el marco \( dq \) por dos componentes \( (i_d,i_q) \). Estas no son dos corrientes independientes: son las proyecciones de un único vector cuyo **módulo** es la amplitud de pico de la corriente de fase y cuyo argumento es su fase:
+
+$$ I=\lVert\mathbf{i}\rVert=\sqrt{i_d^2+i_q^2},\qquad \varphi=\arctan\frac{i_q}{i_d} $$
+
+Lo que daña los semiconductores es la **amplitud de pico por fase**, es decir, exactamente este módulo. La restricción física es por tanto \( \sqrt{i_d^{*2}+i_q^{*2}}\le I_{max} \), una circunferencia de radio \( I_{max} \) en el plano \( (d,q) \).
+
+**Paso 2 — proyectar de vuelta sobre el círculo.** Cuando la referencia que pide el lazo de tensión cae fuera del círculo (\( \lVert\mathbf{i}^*\rVert>I_{max} \)), hay que devolverla al borde conservando su dirección (su fase). El punto del círculo más cercano en dirección es el del mismo ángulo: se escala el vector por el factor
+
+$$ s=\frac{I_{max}}{\lVert\mathbf{i}^*\rVert}=\frac{I_{max}}{\sqrt{i_d^{*2}+i_q^{*2}}}\le1 $$
+
+$$ \boxed{\;\mathbf{i}^*\leftarrow s\,\mathbf{i}^*=I_{max}\,\frac{\mathbf{i}^*}{\lVert\mathbf{i}^*\rVert}\;} $$
+
+**Paso 3 — comprobar que preserva la fase.** Tras escalar, \( i_d^*\!\leftarrow\!s\,i_d^* \), \( i_q^*\!\leftarrow\!s\,i_q^* \). El nuevo argumento es \( \arctan\dfrac{s\,i_q^*}{s\,i_d^*}=\arctan\dfrac{i_q^*}{i_d^*}=\varphi \): **idéntico**. El nuevo módulo es \( s\,\lVert\mathbf{i}^*\rVert=I_{max} \). La corriente queda en \( I_{max} \) con la misma fase: misma relación P/Q, solo más pequeña.
+
+**Paso 4 — por qué NO saturar cada eje por separado.** Si se hiciera \( i_d^*\!\leftarrow\!\text{sat}(i_d^*,I_{max}) \) e \( i_q^*\!\leftarrow\!\text{sat}(i_q^*,I_{max}) \) de forma independiente, el límite efectivo sería un **cuadrado** \( [-I_{max},I_{max}]^2 \), no un círculo. Dos problemas: (a) en la esquina la magnitud llega a \( \sqrt2\,I_{max} \), un 41 % por encima del límite real; (b) saturar un eje y no el otro **cambia el ángulo** \( \varphi \) (cada eje se recorta en distinta proporción), distorsionando la fase de la corriente —y con ella el reparto P/Q justo en plena falta—. Por eso se satura la magnitud y se reescalan ambos ejes con el mismo \( s \).
+
+**Paso 5 — anti-windup acoplado.** Mientras \( s<1 \), la referencia entregada es menor que la que pide el PI de tensión; su integrador seguiría acumulando error (windup). Por eso, durante la saturación se congelan/recortan los integradores del lazo externo (ver código), de modo que al despejar la falta no haya un sobreimpulso por el término integral cargado.
+
 ## Cuándo y por qué se usa
 Siempre en convertidores reales. El reto abierto en grid-forming: limitar **sin** perder el
 carácter formador ni la sincronización (un límite duro puede hacer que el inversor "siga" la

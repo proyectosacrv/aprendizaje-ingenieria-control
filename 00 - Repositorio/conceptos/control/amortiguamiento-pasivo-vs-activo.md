@@ -8,7 +8,7 @@ proyectos: [01-GFM-Impedance, 02-GFL-Impedance]
 objetivos: [comparar el amortiguamiento físico (resistencias) con el amortiguamiento por control software y elegir cuál usar]
 tags: [amortiguamiento, pasivo, activo, damping, resistencia-virtual, perdidas, lcl, bus-dc, intermedio]
 fecha_creacion: 2026-06-17
-fecha_actualizacion: 2026-06-17
+fecha_actualizacion: 2026-06-30
 relacionados: [filtro-lcl, resonancia-rlc, antiresonancia, dinamica-bus-dc, control-cascada, compensacion-retardo]
 referencias:
   - "Dannehl et al., Investigation of Active Damping Approaches for LCL Filters, IEEE TIA 2010"
@@ -38,6 +38,48 @@ Variantes para reducir esas pérdidas: \( R_d \) en paralelo con \( L_2 \), o un
 En vez de una resistencia física, se realimenta una variable medida con una ganancia que hace que el convertidor se comporte como si hubiera una resistencia. En el \( LCL \) lo habitual es realimentar la **corriente del condensador** \( i_{C_f}=i_1-i_2 \) a la tensión de referencia con ganancia \( K_{ad} \):
 $$ v_i = v_{i,PI} - K_{ad}\,(i_1 - i_2) $$
 Sustituyendo en la dinámica de \( i_1 \), el término \( -K_{ad}\,i_1 \) actúa como una resistencia en serie con \( L_1 \): emula una \( R_d \) **sin** caída óhmica real, por lo que no disipa potencia. La ganancia \( K_{ad} \) (en ohmios) se elige para el \( \zeta \) objetivo barriendo el lugar de polos (desarrollo completo en [[filtro-lcl]]). Su límite es el **retardo de cómputo + PWM** (\( \approx 1.5\,T_s \)): si la resonancia está cerca de \( f_s/2 \), el retardo desfasa la realimentación y el damping pierde eficacia o se vuelve negativo (ver [[compensacion-retardo]]).
+
+## 1 — De dónde sale \( \zeta(R_d) \): la resistencia que mueve los polos resonantes
+**Paso 1 — el par resonante sin amortiguar.** El lazo serie \( L_1\!-\!C_f\!-\!L_2 \) presenta una resonancia. Visto desde la corriente que oscila entre las dos ramas inductivas, la inductancia efectiva es el paralelo \( L_1\|L_2=L_1L_2/(L_1+L_2) \) resonando con \( C_f \). La pulsación natural es
+
+$$ \omega_{res}=\frac{1}{\sqrt{(L_1\|L_2)\,C_f}}=\sqrt{\frac{L_1+L_2}{L_1\,L_2\,C_f}} $$
+
+Sin disipación, el par de polos está sobre el eje imaginario en \( \pm j\omega_{res} \): \( \zeta\approx0 \), pico infinito.
+
+**Paso 2 — insertar \( R_d \) en serie con \( C_f \).** La impedancia de la rama del condensador pasa de \( 1/(sC_f) \) a \( R_d+1/(sC_f) \). El polinomio característico del lazo resonante (la malla \( L_1\|L_2 \), \( C_f \), \( R_d \)) toma la forma canónica de segundo orden:
+
+$$ s^2+\frac{R_d}{L_1\|L_2}\,s+\omega_{res}^2 = s^2+2\zeta\omega_{res}\,s+\omega_{res}^2 $$
+
+donde el término en \( s \) lo aporta exclusivamente \( R_d \) (sin él, ese coeficiente es nulo y \( \zeta=0 \)).
+
+**Paso 3 — identificar \( \zeta \).** Igualando el coeficiente del término lineal:
+
+$$ 2\zeta\omega_{res}=\frac{R_d}{L_1\|L_2}=R_d\,\frac{L_1+L_2}{L_1L_2} \quad\Longrightarrow\quad \zeta=\frac{R_d}{2\omega_{res}}\cdot\frac{L_1+L_2}{L_1L_2} $$
+
+**Paso 4 — sustituir \( \omega_{res} \) y cerrar.** Metiendo \( \omega_{res}=\sqrt{(L_1+L_2)/(L_1L_2C_f)} \):
+
+$$ \zeta=\frac{R_d}{2}\cdot\frac{L_1+L_2}{L_1L_2}\cdot\sqrt{\frac{L_1L_2C_f}{L_1+L_2}}=\frac{R_d}{2}\sqrt{\frac{C_f(L_1+L_2)}{L_1L_2}} $$
+
+$$ \boxed{\;\zeta=\tfrac12\,R_d\sqrt{\frac{C_f(L_1+L_2)}{L_1L_2}}=\tfrac12\,R_d\,C_f\,\omega_{res}\;} $$
+
+El amortiguamiento es **lineal en \( R_d \)**: cada ohmio empuja los polos resonantes a la izquierda de \( \zeta\approx0 \) hacia \( \zeta \) útil. Con la regla óptima \( R_d=1/(3\omega_{res}C_f) \) se obtiene un valor concreto: \( \zeta=\tfrac12\cdot\tfrac{1}{3\omega_{res}C_f}\cdot C_f\omega_{res}=\tfrac{1}{6}\approx0.167 \), un compromiso entre acotar el pico y no añadir demasiada pérdida ni estropear la atenuación a \( f_{sw} \).
+
+## 2 — Amortiguamiento activo: \( K_{ad} \) emula una \( R_d \) virtual
+**Paso 1 — la ley de realimentación.** Se realimenta la corriente del condensador \( i_{C_f}=i_1-i_2 \) restándola de la tensión de referencia con ganancia \( K_{ad} \) (en ohmios):
+
+$$ v_i=v_{i,PI}-K_{ad}\,(i_1-i_2) $$
+
+**Paso 2 — la dinámica de la rama \( L_1 \).** La tensión aplicada al inductor del lado convertidor es \( v_i-v_{C_f} \), de modo que
+
+$$ L_1\frac{di_1}{dt}=v_i-v_{C_f}=v_{i,PI}-K_{ad}(i_1-i_2)-v_{C_f} $$
+
+**Paso 3 — el término \( -K_{ad}\,i_1 \) es una resistencia.** Reordenando y agrupando el término proporcional a \( i_1 \):
+
+$$ L_1\frac{di_1}{dt}+K_{ad}\,i_1 = v_{i,PI}-v_{C_f}+K_{ad}\,i_2 $$
+
+El lado izquierdo es idéntico al de un inductor \( L_1 \) **en serie con una resistencia \( K_{ad} \)**: la realimentación coloca una resistencia virtual \( R_{vir}=K_{ad} \) en la rama de \( L_1 \), exactamente donde haría falta una física para amortiguar. La diferencia: \( K_{ad} \) no produce caída óhmica real (\( i_1^2K_{ad} \) no se disipa en calor, es una manipulación de la referencia), por eso **no hay pérdidas**.
+
+**Paso 4 — equivalencia de damping y su límite.** Sustituyendo \( R_{vir}=K_{ad} \) en el papel que jugaba \( R_d \), el par resonante adquiere un \( \zeta \) análogo al del caso pasivo; \( K_{ad} \) se barre en el lugar de polos para el \( \zeta \) objetivo (desarrollo en [[filtro-lcl]]). El límite es el **retardo de cómputo + PWM** \( \approx1.5\,T_s \): introduce un \( e^{-s\,1.5T_s} \) en la realimentación que, cerca de \( f_s/2 \), desfasa \( K_{ad} \) hasta convertir la resistencia virtual en negativa (anti-damping). Por eso el activo exige que \( f_{res} \) esté holgadamente por debajo de \( f_s/2 \) o un predictor que compense el retardo (ver [[compensacion-retardo]]).
 
 ## Comparativa
 <div class="cfig"><img src="figuras/amortiguamiento-pasivo-vs-activo.png" alt="Izquierda: Bode de i2/vi sin amortiguar, con amortiguamiento pasivo y activo. Derecha: pérdidas frente al amortiguamiento objetivo"><div class="cap">Izquierda: ambos métodos doman el pico de resonancia de forma parecida, pero el pasivo (\(R_d\) serie \(C_f\)) pierde algo de atenuación a alta frecuencia. Derecha: las pérdidas del pasivo crecen con el amortiguamiento buscado (\(P=R_d I_{Cf}^2\)), mientras el activo no disipa (solo coste de cómputo).</div></div>

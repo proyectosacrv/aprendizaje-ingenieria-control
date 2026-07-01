@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [entender y mitigar las oscilaciones por interacción convertidor-red, tanto subsíncronas como de media-alta frecuencia]
 tags: [estabilidad-armonica, oscilaciones-subsincronas, sso, ssci, resonancia, pasividad, resistencia-negativa, multi-convertidor, avanzado]
 fecha_creacion: 2026-06-16
-fecha_actualizacion: 2026-06-16
+fecha_actualizacion: 2026-07-01
 relacionados: [impedancia-salida-estabilidad, clasificacion-estabilidad, interaccion-pll-red-debil, filtro-lcl, red-thevenin-scr, compensacion-retardo, filtro-notch]
 referencias:
   - "Wang, Blaabjerg, Harmonic Stability in Power-Electronic-Based Power Systems, IEEE TPEL 2014"

@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [mantener el convertidor conectado durante huecos y dar soporte de tensión]
 tags: [frt, lvrt, hvrt, hueco-tension, reactiva, grid-code, desequilibrio, avanzado]
 fecha_creacion: 2026-06-09
-fecha_actualizacion: 2026-06-09
+fecha_actualizacion: 2026-07-01
 relacionados: [current-limiting, componentes-simetricas, pll-srf, servicios-red-soporte, droop-control]
 referencias:
   - "ENTSO-E, Requirements for Generators (RfG) / Network Codes"

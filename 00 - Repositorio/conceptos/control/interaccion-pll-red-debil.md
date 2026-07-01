@@ -8,7 +8,7 @@ proyectos: [02-GFL-Impedance]
 objetivos: [entender y evitar la inestabilidad del GFL en red debil]
 tags: [pll, red-debil, SCR, grid-following, oscilaciones, estabilidad]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-08
+fecha_actualizacion: 2026-07-01
 relacionados: [pll-srf, impedancia-salida-estabilidad, grid-forming-vs-following, red-thevenin-scr]
 referencias:
   - "Dong et al., Analysis of Phase-Locked Loop Low-Frequency Stability in DG, IEEE TIE 2015"

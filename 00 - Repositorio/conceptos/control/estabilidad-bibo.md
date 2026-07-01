@@ -8,7 +8,7 @@ proyectos: []
 objetivos: [definir que significa que un sistema sea estable]
 tags: [estabilidad, BIBO, polos, equilibrio, basico]
 fecha_creacion: 2026-06-08
-fecha_actualizacion: 2026-06-12
+fecha_actualizacion: 2026-06-30
 relacionados: [polos-ceros, margenes-estabilidad, analisis-modal, linealizacion-teoria]
 referencias:
   - "Khalil, Nonlinear Systems, Prentice Hall 2002"
@@ -31,6 +31,27 @@ estudia por linealización (ver [[linealizacion-teoria]]) o por métodos de Lyap
 ser estable: interesa el **margen** (cuánto se puede variar antes de inestabilizar).
 
 <div class="cfig"><img src="figuras/estabilidad-bibo-respuestas.png" alt="respuesta estable vs inestable"><div class="cap">Con todos los polos en Re<0 la respuesta decae y queda acotada (izq.); si algún polo tiene Re>0, crece sin límite (der.). Esa es la frontera de la estabilidad.</div></div>
+
+## 1 — Por qué polos en el SPI ⇒ BIBO (vía la convolución)
+**Paso 1 — la salida como convolución.** Para un sistema lineal invariante con respuesta al impulso \( h(t) \), la salida ante cualquier entrada \( u(t) \) es la convolución:
+
+$$ y(t)=\int_0^{t} h(\tau)\,u(t-\tau)\,d\tau $$
+
+**Paso 2 — acotar la salida.** Si la entrada está acotada, \( |u(t)|\le M \) para todo \( t \). Acotamos el valor absoluto de la integral: el módulo de una integral es \( \le \) la integral del módulo, y \( |u(t-\tau)|\le M \):
+
+$$ |y(t)|=\left|\int_0^{t} h(\tau)\,u(t-\tau)\,d\tau\right|\le\int_0^{t}|h(\tau)|\,|u(t-\tau)|\,d\tau\le M\int_0^{\infty}|h(\tau)|\,d\tau $$
+
+**Paso 3 — la condición BIBO.** La salida queda acotada por \( M \) veces una constante **si y solo si** esa integral converge. Esa es la condición exacta de estabilidad BIBO (respuesta al impulso *absolutamente integrable*):
+
+$$ \boxed{\;\int_0^{\infty}|h(\tau)|\,d\tau<\infty\;} $$
+
+**Paso 4 — conectar con los polos.** Para un sistema racional, \( h(t) \) es suma de términos \( t^k e^{p_i t} \), uno por cada polo \( p_i \) (con multiplicidad). El módulo de cada término es \( t^k e^{\mathrm{Re}(p_i)\,t} \). La integral \( \int_0^\infty t^k e^{\mathrm{Re}(p_i)t}\,dt \) converge **únicamente si** \( \mathrm{Re}(p_i)<0 \) (la exponencial decreciente domina cualquier potencia \( t^k \)). Si algún \( \mathrm{Re}(p_i)\ge0 \), ese término no decae y la integral diverge.
+
+**Paso 5 — conclusión.** Por tanto:
+
+$$ \text{BIBO estable}\iff \text{todos los polos cumplen }\mathrm{Re}(p_i)<0 $$
+
+Un solo polo con \( \mathrm{Re}(p_i)\ge0 \) basta para romper la integrabilidad y, por tanto, la estabilidad. Esto explica por qué \( G_2(s)=10/(s^2-2s+5) \) del ejemplo (polos en \( +1\pm j2 \)) crece como \( e^{t}\cos 2t \): el factor \( e^{+t} \) hace divergir la convolución. Es la base del [[criterio-nyquist]] (que cuenta esos polos sin calcularlos) y de [[routh-hurwitz]].
 
 ## Cuándo y por qué se usa
 Es el primer requisito de cualquier diseño de control: un sistema inestable es inutilizable o
