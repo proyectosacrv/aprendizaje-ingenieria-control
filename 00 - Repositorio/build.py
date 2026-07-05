@@ -301,18 +301,20 @@ function uniqOptions(id,key){
 }
 
 function searchScore(d, q){
-  // Devuelve -1 si no hay match; si hay match, un score mayor = más relevante
+  // Devuelve -1 si no hay match; score mayor = más relevante
   if(!q) return 0;
   const titulo = d.titulo.toLowerCase();
   const slug = d.slug.toLowerCase();
   const tags = (d.tags||[]).join(' ').toLowerCase();
-  const cuerpo = d.buscar.toLowerCase();
+  const objetivos = (d.objetivos||[]).join(' ').toLowerCase();
+  const html = (d.html||'').toLowerCase();
   if(titulo === q) return 100;
   if(titulo.startsWith(q)) return 90;
   if(titulo.includes(q)) return 80;
   if(slug.includes(q)) return 70;
   if(tags.includes(q)) return 60;
-  if(cuerpo.includes(q)) return 10;
+  if(objetivos.includes(q)) return 50;
+  if(html.includes(q)) return 10;
   return -1;
 }
 
