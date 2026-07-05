@@ -14742,6 +14742,18 @@ def main():
     if pref is None or "integracion-edos-stiff-analisis".startswith(pref):
         _integracion_edos_stiff_analisis()
         n += 1
+    if pref is None or "hvdc-vsc-topologia-analisis".startswith(pref):
+        _hvdc_vsc_topologia_analisis()
+        n += 1
+    if pref is None or "hvdc-control-potencia-analisis".startswith(pref):
+        _hvdc_control_potencia_analisis()
+        n += 1
+    if pref is None or "hvdc-cable-dc-analisis".startswith(pref):
+        _hvdc_cable_dc_analisis()
+        n += 1
+    if pref is None or "mmc-modelo-control-analisis".startswith(pref):
+        _mmc_modelo_control_analisis()
+        n += 1
     print(f"--- {n} grupo(s) de figuras generados en figuras/")
 
 
@@ -16252,6 +16264,276 @@ def _integracion_edos_stiff_analisis():
                  fontsize=13, fontweight='bold')
     plt.tight_layout()
     _savefig(fig, 'integracion-edos-stiff-analisis')
+
+
+def _hvdc_vsc_topologia_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: configuraciones monopolar vs bipolar
+    ax = axes[0, 0]; ax.axis('off')
+    for y, label, col in [(0.75, 'Monopolar: +Vdc — tierra', 'blue'),
+                          (0.45, 'Bipolar: +Vdc / -Vdc', 'green'),
+                          (0.15, 'Simétrica monopolar: ±Vdc sin tierra', 'orange')]:
+        ax.annotate('', xy=(0.7, y), xytext=(0.3, y),
+                    arrowprops=dict(arrowstyle='->', color=col, lw=2.5))
+        ax.text(0.5, y + 0.07, label, ha='center', fontsize=10, color=col, fontweight='bold')
+    ax.set_xlim([0, 1]); ax.set_ylim([0, 1])
+    ax.set_title('Configuraciones HVDC-VSC')
+
+    # Panel 2: forma de onda MMC con N niveles
+    ax = axes[0, 1]
+    t = np.linspace(0, 0.02, 2000); f0 = 50
+    ref = np.sin(2 * np.pi * f0 * t)
+    for N, col, lab in [(4, 'r', 'N=4'), (10, 'g', 'N=10'), (50, 'b', 'N=50')]:
+        levels = np.linspace(-1, 1, 2 * N + 1)
+        v_out = np.array([levels[np.argmin(np.abs(levels - r))] for r in ref])
+        ax.plot(t * 1000, v_out, color=col, lw=1.5, alpha=0.8, label=lab)
+    ax.plot(t * 1000, ref, 'k--', lw=1.5, label='Referencia')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Tensión (pu)')
+    ax.set_title('Salida MMC para distintos N'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 3: THD vs número de SMs
+    ax = axes[1, 0]
+    N_arr = np.array([2, 4, 8, 16, 32, 64, 128, 256])
+    thd_approx = 100 / N_arr
+    ax.loglog(N_arr, thd_approx, 'b-o', lw=2, markersize=6)
+    ax.axhline(0.5, color='r', ls='--', label='THD < 0.5 % (objetivo)')
+    ax.set_xlabel('Número de SMs por brazo N'); ax.set_ylabel('THD tensión (%)')
+    ax.set_title('THD vs número de submódulos'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 4: corriente de circulación con/sin CCSC
+    ax = axes[1, 1]
+    t2 = np.linspace(0, 0.02, 1000)
+    i_circ_uncontrolled = 0.15 * np.cos(2 * 2 * np.pi * 50 * t2)
+    i_circ_controlled = 0.008 * np.cos(2 * 2 * np.pi * 50 * t2 + 0.2)
+    ax.plot(t2 * 1000, i_circ_uncontrolled, 'r-', lw=2, label='i_circ sin CCSC')
+    ax.plot(t2 * 1000, i_circ_controlled, 'b-', lw=2, label='i_circ con CCSC')
+    ax.axhline(0, color='k', ls='--', alpha=0.5)
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Corriente (pu)')
+    ax.set_title('Corriente de circulación: sin/con CCSC'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('HVDC-VSC: topología, MMC y corriente de circulación', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, 'hvdc-vsc-topologia-analisis')
+
+
+def _hvdc_control_potencia_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyBboxPatch
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: estructura de control en cascada
+    ax = axes[0, 0]; ax.axis('off')
+    blocks = [
+        ('P*/Q*\nVdc*/Vac*', 0.10, 0.5, 'lightyellow'),
+        ('Outer\nLoop PI', 0.32, 0.5, 'lightblue'),
+        ('id*/iq*', 0.54, 0.5, 'lightyellow'),
+        ('Inner\nLoop PI', 0.76, 0.5, 'lightblue'),
+        ('VSC\nMMC', 0.92, 0.5, 'lightgreen'),
+    ]
+    for label, x, y, col in blocks:
+        ax.add_patch(FancyBboxPatch((x - 0.08, y - 0.12), 0.16, 0.24,
+                     boxstyle='round,pad=0.02', facecolor=col, edgecolor='navy'))
+        ax.text(x, y, label, ha='center', va='center', fontsize=9, fontweight='bold')
+    for i in range(len(blocks) - 1):
+        ax.annotate('', xy=(blocks[i + 1][1] - 0.08, 0.5), xytext=(blocks[i][1] + 0.08, 0.5),
+                    arrowprops=dict(arrowstyle='->', color='navy', lw=1.5))
+    ax.text(0.5, 0.2, 'BW outer ~50 Hz     BW inner ~1 kHz', ha='center', fontsize=9, color='gray')
+    ax.set_xlim([0, 1]); ax.set_ylim([0.05, 0.95]); ax.set_title('Estructura de control VSC-HVDC')
+
+    # Panel 2: respuesta de Vdc ante perturbación de P
+    ax = axes[0, 1]
+    t = np.linspace(0, 1.5, 1000)
+    Vdc_nom = 1.0
+    Vdc_ctrl = np.where(t > 0.2,
+                        1 - 0.05 * (1 - np.exp(-(t - 0.2) / 0.1)) + 0.02 * np.exp(-(t - 0.2) / 0.3),
+                        1.0)
+    Vdc_no = np.where(t > 0.2, 1.0 + 0.3 * (1 - np.exp(-(t - 0.2) / 0.3)), 1.0)
+    ax.plot(t, Vdc_ctrl, 'b-', lw=2, label='Con control Vdc')
+    ax.plot(t, Vdc_no, 'r--', lw=2, label='Sin control Vdc')
+    ax.axhline(Vdc_nom, color='k', ls=':', alpha=0.7, label='Nominal')
+    ax.axvline(0.2, color='gray', ls=':')
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Vdc (pu)')
+    ax.set_title('Respuesta Vdc ante perturbación de P'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 3: droop DC — curvas P-Vdc para 3 terminales
+    ax = axes[1, 0]
+    Vdc_arr = np.linspace(0.9, 1.1, 200)
+    Vdc0 = 1.0
+    for P0, kd, col, lab in [(-0.8, 5, 'b', 'Terminal 1 (gen)'),
+                              (0.3, 3, 'g', 'Terminal 2 (carga)'),
+                              (0.5, 4, 'r', 'Terminal 3 (carga)')]:
+        P = P0 + kd * (Vdc_arr - Vdc0)
+        ax.plot(Vdc_arr, P, color=col, lw=2, label=lab)
+    ax.axhline(0, color='k', lw=0.5); ax.axvline(Vdc0, color='k', ls='--', alpha=0.5)
+    ax.set_xlabel('Vdc (pu)'); ax.set_ylabel('P (pu)')
+    ax.set_title('Droop DC: 3 terminales MTDC'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 4: FRT — Vdc durante falta AC en terminal inversor
+    ax = axes[1, 1]
+    t3 = np.linspace(0, 1, 1000)
+    Vac = np.ones(len(t3)); Vac[(t3 > 0.2) & (t3 < 0.4)] = 0.2
+    Vdc_frt = np.ones(len(t3))
+    mask_fault = (t3 > 0.2) & (t3 < 0.4)
+    mask_rec = t3 > 0.4
+    Vdc_frt[mask_fault] = 1 + 0.15 * (1 - np.exp(-(t3[mask_fault] - 0.2) / 0.03))
+    Vdc_frt[mask_rec] = 1 + 0.15 * np.exp(-(t3[mask_rec] - 0.4) / 0.1)
+    P_chopper = np.zeros(len(t3))
+    P_chopper[mask_fault] = np.clip((Vdc_frt[mask_fault] - 1.05) * 8, 0, 0.8)
+    ax.plot(t3, Vac, 'b-', lw=2, label='Vac (pu)')
+    ax.plot(t3, Vdc_frt, 'r-', lw=2, label='Vdc (pu)')
+    ax.plot(t3, P_chopper, 'g--', lw=2, label='P_chopper (pu)')
+    ax.axhline(1.05, color='orange', ls=':', label='Límite Vdc')
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Amplitud (pu)')
+    ax.set_title('FRT: Vdc durante falta AC'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Control HVDC-VSC: cascada, Vdc, droop MTDC y FRT', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, 'hvdc-control-potencia-analisis')
+
+
+def _hvdc_cable_dc_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    L = 120e-3; C = 60e-6; R = 3.6; Vdc_kV = 640.0
+    Zc = np.sqrt(L / C)
+    fres = 1 / (2 * np.pi * np.sqrt(L * C))
+    tau = R * C
+    W_MJ = 0.5 * C * (Vdc_kV * 1e3) ** 2 / 1e6
+
+    # Panel 1: parámetros del cable (texto)
+    ax = axes[0, 0]; ax.axis('off')
+    lines = ['Cable 300 km, ±320 kV, 500 MW:',
+             f'  R = {R} Ω   L = {L * 1000:.0f} mH   C = {C * 1e6:.0f} µF',
+             f'  Zc = √(L/C) = {Zc:.1f} Ω',
+             f'  τ_RC = R·C = {tau * 1000:.0f} ms',
+             f'  f_res = 1/(2π√LC) = {fres:.1f} Hz',
+             f'  Energía almacenada = {W_MJ:.1f} MJ',
+             '',
+             'Modelo π concentrado:',
+             '  dIdc/dt = (V1−V2−R·Idc)/L',
+             '  dV1/dt = (I_VSC1−Idc)/(C/2)',
+             '  dV2/dt = (Idc−I_VSC2)/(C/2)']
+    for i, line in enumerate(lines):
+        ax.text(0.05, 0.95 - i * 0.09, line, transform=ax.transAxes,
+                fontsize=9, va='top', family='monospace')
+    ax.set_title('Parámetros del cable DC')
+
+    # Panel 2: respuesta Vdc ante escalón de carga
+    ax = axes[0, 1]
+    t = np.linspace(0, 1.5, 1000)
+    Vdc_resp = np.where(
+        t > 0.3,
+        1 - 0.05 * (1 - np.exp(-(t - 0.3) / 0.2)) * (1 + 0.3 * np.cos(2 * np.pi * fres * (t - 0.3)) * np.exp(-(t - 0.3) / 0.15)),
+        1.0)
+    ax.plot(t, Vdc_resp, 'b-', lw=2, label='Vdc (pu)')
+    ax.axvline(0.3, color='gray', ls=':')
+    ax.axhline(1.0, color='k', ls='--', alpha=0.5)
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Vdc (pu)')
+    ax.set_title('Respuesta Vdc ante escalón de carga'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 3: impedancia del cable (resonancia LC)
+    ax = axes[1, 0]
+    w = np.logspace(0, 4, 1000)
+    s = 1j * w
+    Z_cable = R + s * L + 1 / (s * C)
+    Z_C_only = np.abs(1 / (s * C))
+    Z_L_only = np.abs(s * L)
+    ax.loglog(w / (2 * np.pi), Z_C_only, 'r--', lw=1.5, label='|1/jωC|')
+    ax.loglog(w / (2 * np.pi), Z_L_only, 'b--', lw=1.5, label='|jωL|')
+    ax.loglog(w / (2 * np.pi), np.abs(Z_cable), 'g-', lw=2, label='|Z_cable|')
+    ax.axvline(fres, color='orange', ls='--', lw=2, label=f'f_res={fres:.0f} Hz')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Impedancia (Ω)')
+    ax.set_title('Resonancia LC del cable DC'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 4: corriente de falta DC
+    ax = axes[1, 1]
+    t_fault = np.linspace(0, 0.05, 500)
+    i_fault_A = (Vdc_kV * 1e3) / Zc * np.sin(2 * np.pi * fres * t_fault) * np.exp(-t_fault * R / (2 * L))
+    i_rated_A = 500e6 / (Vdc_kV * 1e3)
+    ax.plot(t_fault * 1000, i_fault_A / i_rated_A, 'r-', lw=2, label='i_falta (pu)')
+    ax.axhline(1, color='b', ls='--', label='Corriente nominal')
+    ax.axhline(10, color='orange', ls=':', label='Límite IGBT (~10 pu)')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Corriente (pu)')
+    ax.set_title('Corriente de falta bipolar DC'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Cable DC para HVDC: modelo π, resonancia y falta', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, 'hvdc-cable-dc-analisis')
+
+
+def _mmc_modelo_control_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyBboxPatch
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    t = np.linspace(0, 0.04, 4000); f0 = 50; w0 = 2 * np.pi * f0
+
+    # Panel 1: energía de los brazos (variación a w0 y 2w0)
+    ax = axes[0, 0]
+    W_upper = 1.0 + 0.08 * np.cos(w0 * t) + 0.04 * np.cos(2 * w0 * t)
+    W_lower = 1.0 - 0.08 * np.cos(w0 * t) + 0.04 * np.cos(2 * w0 * t)
+    ax.plot(t * 1000, W_upper, 'b-', lw=2, label='Brazo superior')
+    ax.plot(t * 1000, W_lower, 'r-', lw=2, label='Brazo inferior')
+    ax.axhline(1.0, color='k', ls='--', alpha=0.5, label='Energía media')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Energía normalizada')
+    ax.set_title('Energía de los brazos del MMC'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 2: corriente de circulación con/sin CCSC
+    ax = axes[0, 1]
+    i_circ_no = 0.15 * np.cos(2 * w0 * t) + 0.05 * np.cos(4 * w0 * t)
+    i_circ_yes = 0.008 * np.cos(2 * w0 * t + 0.2)
+    ax.plot(t * 1000, i_circ_no, 'r-', lw=2, label='Sin CCSC')
+    ax.plot(t * 1000, i_circ_yes, 'b-', lw=2, label='Con CCSC')
+    ax.axhline(0, color='k', ls='--', alpha=0.5)
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('i_circ (pu)')
+    ax.set_title('Corriente de circulación MMC'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 3: jerarquía de control MMC
+    ax = axes[1, 0]; ax.axis('off')
+    layers = [
+        ('Lazo externo (P/Q/Vdc/Vac)\nBW ~50 Hz', 0.82, 'lightyellow'),
+        ('Lazo de corriente AC (id/iq)\nBW ~1 kHz', 0.62, 'lightblue'),
+        ('CCSC (i_circ → 0)\nBW ~300 Hz @ 2ω0', 0.42, 'lightgreen'),
+        ('Balanceo de condensadores\n(sorting, cada Ts)', 0.22, 'lightsalmon'),
+        ('NLM / PS-PWM (modulación)', 0.05, 'lavender'),
+    ]
+    for label, y, col in layers:
+        ax.add_patch(FancyBboxPatch((0.05, y), 0.9, 0.16,
+                     boxstyle='round,pad=0.02', facecolor=col, edgecolor='navy'))
+        ax.text(0.5, y + 0.08, label, ha='center', va='center', fontsize=9)
+    for i in range(len(layers) - 1):
+        ax.annotate('', xy=(0.5, layers[i + 1][1] + 0.16),
+                    xytext=(0.5, layers[i][1]),
+                    arrowprops=dict(arrowstyle='->', color='navy', lw=1.5))
+    ax.set_xlim([0, 1]); ax.set_ylim([0, 1]); ax.set_title('Jerarquía de control del MMC')
+
+    # Panel 4: balanceo de tensiones de los SMs
+    ax = axes[1, 1]
+    np.random.seed(42)
+    N_sm = 10
+    t_bal = np.linspace(0, 0.1, 500)
+    for k in range(N_sm):
+        drift = (k - N_sm / 2) * 0.003
+        Vc_unbal = 1.0 + drift * t_bal + 0.05 * np.sin(w0 * t_bal + k * 0.5)
+        ax.plot(t_bal * 1000, Vc_unbal, 'r-', lw=0.8, alpha=0.4)
+    for k in range(N_sm):
+        Vc_bal = 1.0 + 0.03 * np.exp(-t_bal / 0.01) * np.sin(w0 * t_bal + k * 0.5)
+        ax.plot(t_bal * 1000, Vc_bal, 'b-', lw=0.8, alpha=0.4)
+    ax.plot([], [], 'r-', lw=2, label='Sin balanceo')
+    ax.plot([], [], 'b-', lw=2, label='Con balanceo')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('V_C (pu)')
+    ax.set_title('Balanceo de tensiones de los SMs'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('MMC: energía de brazos, CCSC y jerarquía de control', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, 'mmc-modelo-control-analisis')
 
 
 if __name__ == "__main__":
