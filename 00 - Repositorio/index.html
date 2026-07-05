@@ -213,9 +213,25 @@ function uniqOptions(id,key){
     const o=document.createElement('option'); o.value=v; o.textContent=(CATL[v]||v); el.appendChild(o);});
 }
 
+function searchScore(d, q){
+  // Devuelve -1 si no hay match; si hay match, un score mayor = más relevante
+  if(!q) return 0;
+  const titulo = d.titulo.toLowerCase();
+  const slug = d.slug.toLowerCase();
+  const tags = (d.tags||[]).join(' ').toLowerCase();
+  const cuerpo = d.buscar.toLowerCase();
+  if(titulo === q) return 100;
+  if(titulo.startsWith(q)) return 90;
+  if(titulo.includes(q)) return 80;
+  if(slug.includes(q)) return 70;
+  if(tags.includes(q)) return 60;
+  if(cuerpo.includes(q)) return 10;
+  return -1;
+}
+
 function matches(d){
   const q=$('#q').value.trim().toLowerCase();
-  if(q && !d.buscar.includes(q) && !d.titulo.toLowerCase().includes(q)) return false;
+  if(q && searchScore(d, q) < 0) return false;
   for(const [id,key] of [['#fcat','categoria'],['#ftipo','tipo'],['#fniv','nivel']]){
     const v=$(id).value; if(v && d[key]!==v) return false;
   }
@@ -229,9 +245,14 @@ function matches(d){
 
 function render(){
   const sort=$('#sort').value;
+  const q=$('#q').value.trim().toLowerCase();
   let r=D.filter(matches);
-  r.sort((a,b)=> sort==='titulo'? a.titulo.localeCompare(b.titulo)
-    : (b.fecha_actualizacion||'').localeCompare(a.fecha_actualizacion||''));
+  if(q){
+    r.sort((a,b)=> searchScore(b,q) - searchScore(a,q));
+  } else {
+    r.sort((a,b)=> sort==='titulo'? a.titulo.localeCompare(b.titulo)
+      : (b.fecha_actualizacion||'').localeCompare(a.fecha_actualizacion||''));
+  }
   const tot=D.length,
         ndom=D.filter(d=>getStatus(d.slug)==='dominado').length,
         nvis=D.filter(d=>getStatus(d.slug)==='visto').length;
