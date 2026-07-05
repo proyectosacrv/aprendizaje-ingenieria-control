@@ -92,6 +92,62 @@ energía en torno a \( f_{sw} \) y sus bandas laterales. La fundamental de red e
 - Fuga espectral al usar FFT con ventana no entera de periodos (ver [[muestreo-aliasing]]).
 - Olvidar que un sistema lineal solo escala/desfasa cada armónico (no crea frecuencias nuevas).
 
+## 3 — Cálculo de coeficientes paso a paso
+
+Tomamos la señal cuadrada de periodo \( T \), amplitud ±1: \( x(t) = \text{sgn}(\sin(\omega_0 t)) \), con \( \omega_0 = 2\pi/T \). Por simetría impar solo hay coeficientes de seno. Calculando \( b_n \) directamente:
+
+$$ b_n = \frac{2}{T}\int_0^T x(t)\sin(n\omega_0 t)\,dt = \frac{4}{n\pi} \quad (n \text{ impar}), \qquad b_n = 0 \quad (n \text{ par}) $$
+
+La serie resultante es:
+$$ x(t) = \frac{4}{\pi}\!\left(\sin\omega_0 t + \frac{1}{3}\sin 3\omega_0 t + \frac{1}{5}\sin 5\omega_0 t + \cdots\right) $$
+
+**Fenómeno de Gibbs.** En las discontinuidades de la señal cuadrada, la suma parcial de \( N \) términos presenta una sobreoscilación de aproximadamente el 9 % de la amplitud, independientemente del número de armónicos \( N \). Aumentar \( N \) reduce la anchura del pico pero no su altura: es un comportamiento intrínseco de la convergencia puntual de series de Fourier en discontinuidades.
+
+## 4 — Transformada de Fourier y serie: relación
+
+**Serie vs. transformada.** Para una señal periódica de periodo \( T \), la serie de Fourier genera un espectro **discreto** con líneas en \( f_n = n/T \) (armónicos). Para una señal aperiódica, la transformada de Fourier produce un espectro **continuo**:
+$$ X(f) = \int_{-\infty}^{\infty} x(t)\,e^{-j2\pi ft}\,dt $$
+
+**Teorema de Parseval.** La energía se conserva entre dominios:
+$$ \frac{1}{T}\int_0^T x^2(t)\,dt = \sum_{n=-\infty}^{\infty} |c_n|^2 $$
+La potencia media en tiempo es igual a la suma de las potencias de todos los armónicos.
+
+**RMS a partir de la serie.** Usando Parseval directamente:
+$$ X_{rms} = \sqrt{\sum_{n=-\infty}^{\infty} |c_n|^2} = \sqrt{|c_0|^2 + 2\sum_{n=1}^{\infty}|c_n|^2} $$
+para señal real (donde \( c_{-n} = c_n^* \)). Esto permite calcular el RMS de una señal armónica sin integrar en tiempo.
+
+## 5 — DFT y FFT en Python
+
+**DFT.** La versión discreta de la transformada de Fourier:
+$$ X[k] = \sum_{n=0}^{N-1} x[n]\,e^{-j2\pi kn/N}, \qquad k = 0, 1, \ldots, N-1 $$
+
+**FFT.** El algoritmo de Cooley-Tukey reduce el coste de la DFT de \( O(N^2) \) a \( O(N \log N) \) cuando \( N \) es potencia de dos. En Python, `numpy.fft.rfft` calcula la mitad positiva del espectro para señales reales.
+
+**Resolución frecuencial.** \( \Delta f = f_s/N \). Para mejorar la resolución se aumenta \( N \) (más muestras) o se reduce \( f_s \) (menor frecuencia de muestreo), con el compromiso habitual de aliasing.
+
+**Leakage espectral.** Si la señal no es exactamente periódica en la ventana de análisis (duración \( N/f_s \)), la energía del pico se "derrama" hacia frecuencias adyacentes. Solución: multiplicar por una ventana (Hanning, Blackman) antes de la FFT; se sacrifica resolución frecuencial a cambio de minimizar el leakage.
+
+## 6 — Aplicación en análisis de armónicos de convertidores
+
+**Espectro de una señal PWM.** Una señal PWM con índice de modulación \( m \) y frecuencia de conmutación \( f_{sw} \) contiene:
+- Componente fundamental a \( f_0 = 50 \) Hz (o 60 Hz).
+- Portadora y sus armónicos en \( f_{sw} \), \( 2f_{sw} \), ...
+- Bandas laterales en \( f_{sw} \pm k f_0 \), \( 2f_{sw} \pm k f_0 \), ..., donde \( k \) es impar para PWM sinusoidal.
+
+**Ventana de análisis.** Para resolver la fundamental con precisión se necesitan al menos \( N_{ciclos} \geq 10 \) períodos de la fundamental. Con \( f_0 = 50 \) Hz y \( f_s = 20\,\text{kHz} \), una ventana de 0.1 s contiene 5 ciclos de fundamental y 2000 puntos: suficiente para resolver hasta \( f_{sw}/2 \).
+
+**Armónicos subsincrónicos (SSO).** En sistemas HVDC y parques eólicos, frecuencias entre 10 y 45 Hz (subsincrónicos) pueden excitar modos de oscilación del sistema mecánico o del control. La FFT con ventana larga (varios segundos) permite identificarlos con resolución suficiente para distinguirlos de la fundamental.
+
+**Herramienta en Python:**
+```python
+from scipy.fft import rfft, rfftfreq
+X = rfft(x_signal)
+freqs = rfftfreq(len(x_signal), 1/fs)
+amplitude = np.abs(X) * 2 / len(x_signal)
+```
+
+<div class="cfig"><img src="../figuras/series-fourier-analisis.png" alt="Reconstruccion de Fourier, espectro de amplitudes, FFT de PWM y efecto de ventana"><div class="cap">Superior izquierdo: reconstrucción de la onda cuadrada con 1, 5 y 20 armónicos — el fenómeno de Gibbs persiste en los flancos. Superior derecho: espectro de amplitudes (solo armónicos impares, decaimiento 1/n). Inferior izquierdo: espectro FFT de una señal PWM con portadora a 2 kHz y bandas laterales. Inferior derecho: efecto de la ventana — rectangular genera leakage severo; Hanning lo suprime.</div></div>
+
 ## Conceptos relacionados
 - [[fft-analisis-espectral]] · [[transformada-laplace]] · [[diagrama-bode]] · [[calidad-potencia]] · [[muestreo-aliasing]]
 

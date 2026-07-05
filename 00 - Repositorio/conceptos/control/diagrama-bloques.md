@@ -88,6 +88,73 @@ ganancia unidad en la banda del externo.
 - Confundir lazo abierto \( L \) con lazo cerrado \( T \).
 - Reducir lazos acoplados como si fueran independientes.
 
+## 3 — Álgebra de diagramas de bloques
+
+Las cuatro reglas cubren cualquier topología plana:
+
+**Serie (cascada).** \( G_{total} = G_1 G_2 \). La salida de \( G_1 \) es la entrada de \( G_2 \); la función de transferencia compuesta es el producto.
+
+**Paralelo.** \( G_{total} = G_1 \pm G_2 \). Ambos bloques reciben la misma entrada; sus salidas se suman o restan.
+
+**Realimentación.** Con planta \( G \) y sensor \( H \):
+$$ G_{total} = \frac{G}{1 \pm GH} $$
+El signo \( + \) corresponde a realimentación negativa (estabilizadora típica), el \( - \) a positiva.
+
+**Movimiento de nodo sumador o de ramificación.** Para mover un sumador *antes* de un bloque \( G \): dividir la señal que se suma por \( G \) (o multiplica si se mueve *después*). Para mover un punto de bifurcación *después* de \( G \): multiplicar la señal bifurcada por \( G \). Estas equivalencias preservan exactamente la función de transferencia global.
+
+## 4 — Función de transferencia de lazo cerrado
+
+Para el lazo estándar con controlador \( C(s) \), planta \( G(s) \) y sensor \( H(s) \):
+$$ T(s) = \frac{C(s)G(s)}{1 + C(s)G(s)H(s)} $$
+
+Definiendo la ganancia de lazo \( L = C(s)G(s)H(s) \), surgen las funciones de sensibilidad:
+
+- **Sensibilidad:** \( S = \dfrac{1}{1+L} \) — cuánto se atenúa una perturbación en el lazo.
+- **Sensibilidad complementaria:** \( T = \dfrac{L}{1+L} \) — cómo se transmite la referencia.
+- **Identidad fundamental:** \( S + T = 1 \) — una mejora en \( S \) implica degradación en \( T \) y viceversa.
+
+**Rechazo de perturbación en la planta.** Si una perturbación \( D \) entra a la salida de la planta:
+$$ \frac{Y}{D} = \frac{G}{1+CG} = S \cdot G $$
+El lazo reduce la perturbación en \( 1+L \) en la banda donde \( |L| \gg 1 \).
+
+**Rechazo de ruido en la medida.** Si un ruido \( N \) se suma a la señal medida:
+$$ \frac{Y}{N} = -T = -\frac{L}{1+L} $$
+El lazo transmite el ruido de medida con ganancia \( |T| \); como \( S + T = 1 \), no se puede tener a la vez gran atenuación de perturbaciones y gran atenuación de ruido en la misma frecuencia.
+
+## 5 — Diagramas de señal (Mason)
+
+El **grafo de flujo de señal** representa las señales del sistema como **nodos** y las ganancias directas entre ellos como **ramas** dirigidas. Cada lazo de realimentación queda visible como un ciclo en el grafo.
+
+**Fórmula de Mason.** La ganancia total entre la entrada y la salida es:
+$$ T = \frac{\sum_k M_k \Delta_k}{\Delta} $$
+donde:
+- \( M_k \): ganancia del \( k \)-ésimo camino directo (producto de las ganancias de sus ramas).
+- \( \Delta \): determinante del grafo.
+- \( \Delta_k \): cofactor del camino \( k \) (determinante del subgrafo que no toca el camino \( k \)).
+
+**Determinante del grafo:**
+$$ \Delta = 1 - \sum_i L_i + \sum_{i,j\,\text{no tocan}} L_i L_j - \sum_{i,j,k\,\text{no tocan}} L_i L_j L_k + \cdots $$
+donde \( L_i \) es la ganancia de cada lazo individual. Los términos alternados en signo provienen de lazos que no comparten ningún nodo.
+
+**Ventaja práctica.** Para sistemas con múltiples lazos cruzados (convertidores multivariable, cascadas complejas), Mason permite hallar \( T \) sin reducir gráficamente el diagrama paso a paso: basta enumerar caminos directos y lazos.
+
+## 6 — Diagrama de bloques del lazo de corriente dq
+
+En un convertidor trifásico controlado en el marco dq, la planta es el filtro RL: \( G(s) = 1/(Ls+R) \) por canal. El esquema completo incluye:
+
+1. **Referencia:** \( i_d^* \), \( i_q^* \) → controladores PI → tensiones de modulación \( v_d^* \), \( v_q^* \).
+2. **Planta:** la tensión aplicada a \( L \) y \( R \) produce la corriente \( i_d \), \( i_q \).
+
+**Acoplamiento entre canales.** La inductancia en el marco dq introduce los términos \( \omega_0 L i_q \) (en el canal d) y \( -\omega_0 L i_d \) (en el canal q). Sin cancelación, la función de transferencia cruzada \( G_{dq}(s) \neq 0 \): una perturbación en el canal d genera respuesta en el canal q y viceversa.
+
+**Feedforward de desacoplamiento.** Se añaden señales de feedforward que cancelan exactamente el acoplamiento:
+- Canal d: sumar \( +\omega_0 L \hat{i}_q \) a la salida del PI.
+- Canal q: sumar \( -\omega_0 L \hat{i}_d \) a la salida del PI.
+
+Con feedforward activo y estimación precisa de \( \omega_0 L \), cada canal opera como un lazo de corriente SISO independiente \( G(s) = 1/(Ls+R) \), lo que simplifica el diseño del PI al de un sistema de primer orden. Sin feedforward, el acoplamiento actúa como perturbación que degrada la respuesta transitoria y aumenta el sobreimpulso cruzado.
+
+<div class="cfig"><img src="../figuras/diagrama-bloques-analisis.png" alt="Algebra de bloques, lazo dq con y sin feedforward, sensibilidades S y T, rechazo de perturbacion"><div class="cap">Panel superior izquierdo: resumen del álgebra de bloques y funciones de sensibilidad. Superior derecho: efecto del feedforward de acoplamiento dq — con FF los canales quedan desacoplados. Inferior izquierdo: módulo de S y T del lazo de corriente; obsérvese S+T=1 (línea verde). Inferior derecho: respuesta ante perturbación atenuada por el lazo cerrado.</div></div>
+
 ## Conceptos relacionados
 - [[funcion-transferencia]] · [[realimentacion]] · [[control-cascada]] · [[funciones-sensibilidad]]
 

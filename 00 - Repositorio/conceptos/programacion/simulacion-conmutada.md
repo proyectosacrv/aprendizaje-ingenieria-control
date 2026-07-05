@@ -95,3 +95,137 @@ diferencia de baja frecuencia entre ambas debe ser < 1–2 %.
 ## Referencias
 - Mohan, Undeland, Robbins, *Power Electronics*.
 - Maksimovic et al., *Modeling and Simulation of Power Electronic Converters*, Proc. IEEE 2001.
+
+## 3 — Simulación nivel conmutación: dinámica rígida y solver adecuado
+
+La simulación conmutada modela los interruptores como elementos binarios \( s_x(t) \in \{0,1\} \): cuando el comparador PWM cruza la portadora triangular, el estado del interruptor cambia instantáneamente y la topología del circuito se modifica.
+
+Esto genera un sistema **rígido** (stiff): la constante de tiempo de la corriente a través del inductor durante la conducción (\( \tau = L/R \sim \text{ms} \)) coexiste con los transitorios de conmutación (\( \sim \text{ns–}\mu\text{s} \)) y con el rizado triangular a \( f_{sw} \). Para un integrador explícito (RK45, Euler forward), el paso máximo es:
+
+$$ h_{max} < \frac{2}{|\lambda_{max}|} \approx \frac{1}{10\,f_{sw}} $$
+
+Para \( f_{sw} = 5\,\text{kHz} \): \( h_{max} < 20\,\mu\text{s} \). En la práctica se usa \( h = 1\,\mu\text{s} \) (factor 20 de margen). La integración de 1 segundo de operación requiere \( 10^6 \) pasos, frente a los \( 10^4 \) del modelo promediado: ratio 100×.
+
+Un solver con **detección de eventos** (zero-crossing del comparador) es más eficiente: avanza con pasos grandes entre conmutaciones y reduce el paso solo en la vecindad del flanco. PLECS y Simulink/Simscape implementan esto automáticamente.
+
+## 4 — Evento de conmutación: detección precisa del cruce del comparador
+
+El instante de conmutación \( t^* \) ocurre cuando la señal de modulación \( m(t) \) cruza la portadora \( c(t) \): \( m(t^*) = c(t^*) \).
+
+**Detección por bisección:** partiendo de un intervalo \( [t_a, t_b] \) donde se sabe que hay un cruce (\( f(t_a) \cdot f(t_b) < 0 \) con \( f(t) = m(t) - c(t) \)), el método de bisección reduce el intervalo a la mitad en cada iteración:
+
+$$ t_{mid} = \frac{t_a + t_b}{2};\quad \text{si } f(t_a)\cdot f(t_{mid}) < 0 \Rightarrow t_b = t_{mid}, \text{ si no } t_a = t_{mid} $$
+
+Tras \( n \) iteraciones, el error en el instante de conmutación es \( |t^* - t_{mid}| < (t_b - t_a)/2^n \). Para pasar de un intervalo de 1 µs a precisión de 1 ps: \( n = \log_2(10^6) \approx 20 \) iteraciones. Esta precisión sub-nanosegundo es innecesaria para control pero importante para cálculo de pérdidas de conmutación.
+
+**Error de ciclo de trabajo por paso de integración fijo:** un error \( \Delta t \) en el instante del flanco equivale a un error de ciclo de trabajo \( \Delta d = \Delta t \cdot f_{sw} \) y a una tensión de error \( \Delta V = V_{dc} \cdot \Delta d \). Para \( \Delta t = h = 1\,\mu\text{s} \), \( f_{sw} = 5\,\text{kHz} \): \( \Delta d = 0.005 \Rightarrow \Delta V = 0.5\,\%\, V_{dc} \). Aceptable para control; inaceptable para medición de THD con < 0.1% de error.
+
+$$ \boxed{\Delta d = h \cdot f_{sw};\quad \Delta V = V_{dc} \cdot h \cdot f_{sw};\quad \text{para }h = 1\,\mu\text{s},\;f_{sw}=5\,\text{kHz}: \Delta V = 0.5\,\%\,V_{dc}} $$
+
+## 5 — Herramientas y paso de tiempo: PLECS, Simulink, Python
+
+**PLECS (Plexim):** simulador especializado en electrónica de potencia. Usa detección de eventos para los conmutadores; el modelo de componentes incluye pérdidas de conmutación (mapa de \( E_{on}, E_{off} \) vs \( I, V \)). Estándar de facto en la industria de convertidores.
+
+**Simulink/Simscape:** Simscape Electrical incluye componentes de electrónica de potencia con event detection. El bloque Specialized Power Systems (antiguo SimPowerSystems) usa paso variable con detección de conmutación. Integración con Simulink facilita el diseño de control y la generación de código.
+
+**Python (scipy.integrate):** implementación manual con `solve_ivp` usando `events` para detectar los cruces. Más flexible para modelos propios pero más lento que los simuladores especializados:
+
+```python
+from scipy.integrate import solve_ivp
+
+def comparator_event(t, x, m_func, carrier_func):
+    return m_func(t) - carrier_func(t)
+comparator_event.terminal = False
+comparator_event.direction = 0  # cruces en ambas direcciones
+
+sol = solve_ivp(rhs, (0, T_sim), x0, method='LSODA',
+                events=comparator_event, max_step=1e-5)
+```
+
+**Regla práctica:** \( T_{sim} \leq T_{sw}/100 \) para resolver el rizado correctamente sin detección de eventos; con detección de eventos, el paso medio puede ser 10× mayor manteniendo la misma precisión.
+
+## 6 — Compromiso precisión vs velocidad: cuándo usar cada modelo
+
+La elección entre modelo conmutado y promediado es una decisión de ingeniería, no de perfección:
+
+| Objetivo | Modelo recomendado | Paso típico |
+|---|---|---|
+| Diseño del controlador | Promediado linealizado | 50–100 µs |
+| Validación de transitorios grandes | Promediado no lineal | 10–50 µs |
+| Verificar THD, rizado, armónicos | Conmutado | 0.1–1 µs |
+| Pérdidas de conmutación | Conmutado con mapa de pérdidas | 0.1–1 µs |
+| HIL (tiempo real) | Conmutado en FPGA | 0.5–2 µs |
+
+El modelo promediado es **100× más rápido** que el conmutado (ratio de pasos de tiempo). Para un estudio de Monte Carlo con 500 realizaciones de 10 s cada una, el promediado tarda minutos; el conmutado tardaría días. Por eso el diseño siempre se hace en el promediado y el conmutado solo se usa para **validación final** y para obtener el espectro de armónicos con [[fft-analisis-espectral]].
+
+$$ \boxed{\frac{t_{CPU,\text{conmutado}}}{t_{CPU,\text{promediado}}} \approx \frac{h_{promediado}}{h_{conmutado}} \approx \frac{f_{sw}/10}{f_{sw}/100} = 10 \times \frac{f_{sw}}{f_{control}}} $$
+
+<div class="cfig"><img src="../figuras/simulacion-conmutada-analisis.png" alt="señal conmutada vs promediada, error vs Tsim, coste computacional y comparativa simuladores"><div class="cap">Comparativa conmutado vs promediado: el conmutado reproduce el rizado a fsw; el promediado da la trayectoria suave. El error en la fundamental aumenta con el paso h (aliasing de la conmutación). El coste computacional del conmutado es ~100× mayor, justificado solo para validación final y cálculo de THD.</div></div>
+
+## 7 — Implementacion Python: conmutado con eventos
+
+```python
+import numpy as np
+from scipy.integrate import solve_ivp
+
+def portadora_triangular(t, fsw):
+    """Portadora triangular PWM: 0..1 en cada periodo Tsw."""
+    Tsw = 1.0 / fsw
+    phase = (t % Tsw) / Tsw
+    return 2 * phase if phase < 0.5 else 2 * (1 - phase)
+
+def rhs_conmutado(t, x, d_ref, L, R, Vdc, fsw):
+    """Buck: x=[iL]. carrier = portadora triangular."""
+    iL = x[0]
+    s = 1.0 if d_ref > portadora_triangular(t, fsw) else 0.0
+    diL = (s * Vdc - R * iL) / L
+    return [diL]
+
+def event_comparator(t, x, d_ref, L, R, Vdc, fsw):
+    """Evento: cruce del comparador -> cambio de estado."""
+    return d_ref - portadora_triangular(t, fsw)
+event_comparator.terminal = False; event_comparator.direction = 0
+
+# Parametros
+L, R, Vdc, fsw = 2e-3, 0.1, 400.0, 5000.0
+d_ref = 0.6
+t_end = 0.01
+
+sol = solve_ivp(
+    lambda t, x: rhs_conmutado(t, x, d_ref, L, R, Vdc, fsw),
+    (0, t_end), [0.0],
+    method='LSODA', max_step=1.0/fsw/20,
+    events=lambda t, x: event_comparator(t, x, d_ref, L, R, Vdc, fsw),
+    rtol=1e-6, atol=1e-8
+)
+t_sw = sol.t; iL_sw = sol.y[0]
+
+# Rizado teorico
+delta_iL_teo = Vdc * d_ref * (1 - d_ref) / (L * fsw)
+# Rizado simulado (ultimos 3 periodos)
+mask = t_sw >= t_end - 3/fsw
+delta_iL_sim = iL_sw[mask].max() - iL_sw[mask].min()
+print(f"Rizado teorico: {delta_iL_teo:.2f} A, simulado: {delta_iL_sim:.2f} A, "
+      f"error: {abs(delta_iL_sim-delta_iL_teo)/delta_iL_teo*100:.1f}%")
+```
+
+La amplitud del rizado de corriente teorica para un buck es:
+
+$$ \Delta i_L = \frac{V_{dc} \cdot d \cdot (1-d)}{L \cdot f_{sw}} $$
+
+Para los parametros del ejemplo: \( \Delta i_L = 400 \times 0.6 \times 0.4 / (2\times10^{-3} \times 5000) = 9.6\,\text{A} \). La simulacion conmutada con deteccion de eventos deberia dar < 2% de error respecto a este valor.
+
+## 8 — Limites del modelo promediado: cuando diverge del conmutado
+
+El modelo promediado es valido mientras:
+1. \( f_{control} \ll f_{sw}/2 \): el ancho de banda del control es mucho menor que la mitad de la frecuencia de conmutacion.
+2. La profundidad de modulacion \( d \in (0.05, 0.95) \): cerca de los limites, el modulador satura y el modelo promediado no captura el clipping.
+3. Los tiempos muertos son pequenos frente al periodo de conmutacion: \( t_{dead} < 0.05 \cdot T_{sw} \).
+
+Cuando estas condiciones no se cumplen, la divergencia entre el conmutado y el promediado puede ser significativa incluso en baja frecuencia:
+
+**Efecto del tiempo muerto:** el tiempo muerto \( t_{dead} \) introduce una tension de error media de:
+
+$$ \overline{\Delta v}_{dead} = \frac{2\,t_{dead}}{T_{sw}} \cdot V_{dc} \cdot \text{sign}(i_L) $$
+
+Para \( t_{dead} = 2\,\mu\text{s} \), \( T_{sw} = 200\,\mu\text{s} \), \( V_{dc} = 400\,\text{V} \): \( \overline{\Delta v} = 8\,\text{V} \) — un error de ciclo de trabajo del 2% que el promediado ignora. Esto explica las diferencias en la tension de salida de regimen entre el modelo promediado y el conmutado que se observan en la practica.

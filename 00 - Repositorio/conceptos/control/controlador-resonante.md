@@ -101,6 +101,63 @@ ganancia 40–80 dB sobre \( K_p \). HC hasta el 13º armónico en filtros activ
 - Apilar muchos HC sin vigilar la pérdida acumulada de margen de fase.
 - Olvidar el límite/anti-windup del actuador (también aplica a resonantes).
 
+## 3 — Función de transferencia del resonante (PR)
+
+**PR ideal.** El término resonante tiene polos exactamente en el eje imaginario:
+$$ C_{PR}(s) = K_p + \frac{2K_i s}{s^2 + \omega_0^2} $$
+En \( s = j\omega_0 \) el denominador se anula → ganancia infinita → error nulo en régimen permanente. La sensibilidad a variaciones de \( \omega_0 \) es también infinita: cualquier desviación de frecuencia elimina la cancelación.
+
+**PR con ancho de banda reducido.** Para tolerar variaciones de \( \omega_0 \), se desplazan los polos ligeramente a la izquierda añadiendo \( 2\omega_c s \):
+$$ C_{PR}(s) = K_p + \frac{2K_i \omega_c s}{s^2 + 2\omega_c s + \omega_0^2} $$
+La ganancia de pico vale ahora \( K_p + K_i \) (finita), y el ancho de banda del resonante es \( \approx 2\omega_c \). El parámetro \( \omega_c \approx 5\text{–}20\,\text{rad/s} \) controla la selectividad: más pequeño → más selectivo pero más sensible a desviaciones de \( \omega_0 \); más grande → más robusto pero menor rechazo.
+
+**Discretización (Tustin).** La transformación bilineal con \( s = \frac{2}{T_s}\frac{z-1}{z+1} \) da la forma aproximada:
+$$ C_{PR}(z) \approx K_p + \frac{2K_i \omega_c T_s (z+1)}{(z-1)^2 + 2\omega_c T_s (z-1) + \omega_0^2 T_s^2 (z+1)^2/4} $$
+Se recomienda el *prewarp* en \( \omega_0 \) para que el pico de ganancia caiga exactamente en la frecuencia deseada tras la discretización.
+
+## 4 — Controlador PR multi-armónico
+
+Para seguir o rechazar una señal periódica en todos sus armónicos significativos, se suman resonantes a cada frecuencia armónica:
+$$ C(s) = K_p + \sum_{h \in \{1,3,5,\ldots\}} \frac{2K_{ih} \omega_c s}{s^2 + 2\omega_c s + (h\omega_0)^2} $$
+
+Cada resonante \( h \) aporta un pico de ganancia en \( h\omega_0 \) con amplitud \( K_p + K_{ih} \), garantizando error nulo a esa frecuencia en régimen permanente. Las ganancias \( K_{ih} \) pueden elegirse independientemente para cada armónico: los armónicos de mayor orden suelen tener \( K_{ih} \) más pequeño para no degradar el margen de fase cerca del cruce de ganancia.
+
+**Efecto sobre el lazo:** cada resonante añadido reduce el margen de fase en la vecindad de su pico. Con 4–6 resonantes es habitual acumular 10–20° de pérdida de fase; debe verificarse con `ct.margin()` o diagrama de Bode del lazo abierto.
+
+## 5 — Comparación PR vs PI en la práctica
+
+| Aspecto | PI (marco dq) | PR (marco αβ) |
+|---|---|---|
+| Error en DC | Nulo | Nulo (termo proporcional) |
+| Error en \( \omega_0 \) | Nulo (integrador equivalente en dq) | Nulo (resonante en \( \omega_0 \)) |
+| Necesita PLL/dq | Sí | No (trabaja directamente en αβ) |
+| Armónicos | Requiere resonantes en dq o HC | Suma resonantes en \( h\omega_0 \) |
+| Sensibilidad a \( \omega_0 \) | Baja (PLL la compensa) | Moderada (controlada por \( \omega_c \)) |
+
+**Equivalencia matemática.** El PR en αβ es la imagen del PI en dq: bajo la transformación \( s \to s + j\omega_0 \) (rotación del marco), un integrador \( K_i/s \) se convierte en el resonante \( K_i s / (s^2 + \omega_0^2) \). Por eso el PR ideal en αβ es estrictamente equivalente al PI en dq para señales sinusoidales balanceadas.
+
+**Ventaja práctica del PR.** En sistemas monofásicos no existe la transformada dq natural. El PR opera directamente sobre la señal monofásica sin necesidad de construir un sistema de referencia ficticio: simplifica la implementación y elimina la dependencia del lazo de corriente respecto a la PLL.
+
+**Inconveniente.** El PR sintonizado en \( \omega_0 \) fijo es sensible a variaciones de la frecuencia de red (±0.5–1 Hz en redes débiles). La solución es actualizar \( \omega_0 \) dinámicamente tomando la medida de la PLL o del detector de frecuencia.
+
+## 6 — Implementación y sintonización
+
+**Ganancia \( K_i \).** Determina la velocidad con que el resonante elimina el error en \( \omega_0 \). Una regla práctica es:
+$$ K_i \approx \frac{\omega_c}{2 G_0(\omega_0)} $$
+donde \( G_0(\omega_0) \) es el módulo de la planta a \( \omega_0 \). Para la planta \( 1/(Ls+R) \) en 50 Hz, \( |G_0| = 1/\sqrt{R^2 + (\omega_0 L)^2} \).
+
+**Procedimiento:**
+1. Diseñar \( K_p \) como un controlador P para el ancho de banda y margen de fase deseados.
+2. Fijar \( \omega_c \) según la tolerancia a variaciones de frecuencia (típico 5–15 rad/s).
+3. Calcular \( K_i \) con la fórmula anterior y ajustar para que el margen de fase no baje de 30°.
+4. Para cada armónico adicional: añadir resonante en \( h\omega_0 \), verificar margen acumulado.
+
+**Verificación de THD.** La corriente inyectada debe cumplir THD < 2 % (norma IEEE 1547) o < 5 % (IEC 61000-3-2 clase A). Medir con FFT de la corriente en estado estacionario; si algún armónico supera el límite, aumentar \( K_{ih} \) o añadir el resonante correspondiente.
+
+**Anti-aliasing discreto.** El polo en \( \omega_0 \) debe satisfacer \( \omega_0 \ll \omega_s/2 \) para que el resonante discreto tenga comportamiento correcto. Para \( \omega_0 = 2\pi \times 50\,\text{rad/s} \) y \( f_s = 10\,\text{kHz} \), la relación es \( \omega_0 / (\omega_s/2) \approx 0.01 \): no hay problema. En cambio, para un armónico de 13° (650 Hz) y \( f_s = 4\,\text{kHz} \): la relación sube a 0.32, y el prewarp en Tustin se vuelve crítico.
+
+<div class="cfig"><img src="../figuras/controlador-resonante-analisis.png" alt="Bode PR ideal y con BW, PR multi-armonico, comparacion THD PI vs PR, sensibilidad a variacion de frecuencia"><div class="cap">Superior izquierdo: Bode del PR ideal (pico infinito) y con ancho de banda \(\omega_c=10\) rad/s (pico finito). Superior derecho: PR multi-armónico con resonantes en 1°, 3°, 5° y 7° — picos de ganancia en cada armónico. Inferior izquierdo: comparativa de THD entre PI en dq y PR multi-armónico — los armónicos 3° y 5° quedan suprimidos. Inferior derecho: sensibilidad a variación de frecuencia de red — el PR ideal es frágil ante ±1 Hz; el PR con \(\omega_c\) mantiene la ganancia suficiente.</div></div>
+
 ## Conceptos relacionados
 - [[controlador-pid]] · [[marco-dq|transformada de Clarke]] · [[filtro-lcl|amortiguamiento activo]] · [[discretizacion-controladores]]
 

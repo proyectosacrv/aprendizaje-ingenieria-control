@@ -118,3 +118,85 @@ def linearize(f, g, xe, ue, eps=1e-6):
 
 ## Referencias
 - Khalil, *Nonlinear Systems*, cap. 4.
+
+---
+
+## 3 — Diferencias finitas para el Jacobiano
+
+**Diferencia hacia adelante** (primer orden, error \( O(h) \)):
+
+$$ \frac{\partial f_i}{\partial x_j} \approx \frac{f_i(\mathbf{x}+h\mathbf{e}_j)-f_i(\mathbf{x})}{h} $$
+
+Requiere solo una evaluación adicional por columna, pero el error de truncamiento decrece lentamente: para minimizarlo hay que tomar \( h \approx \sqrt{\varepsilon_{mach}} \approx 1.5\times10^{-8} \).
+
+**Diferencia central** (segundo orden, error \( O(h^2) \)):
+
+$$ \frac{\partial f_i}{\partial x_j} \approx \frac{f_i(\mathbf{x}+h\mathbf{e}_j)-f_i(\mathbf{x}-h\mathbf{e}_j)}{2h} $$
+
+Cancela el término de primer orden de la serie de Taylor. El paso óptimo es mayor (\( h \approx \varepsilon_{mach}^{1/3} \approx 6\times10^{-6} \)) y el error mínimo es \( O(\varepsilon_{mach}^{2/3}) \approx 3.7\times10^{-11} \), dos órdenes de magnitud mejor que la diferencia hacia adelante.
+
+**Derivada compleja (complex-step):** evalúa la función con argumento complejo \( x+ih \) y toma la parte imaginaria:
+
+$$ \frac{\partial f}{\partial x} \approx \frac{\mathrm{Im}[f(x+ih)]}{h} $$
+
+No hay cancelación de dígitos porque la perturbación es en el eje imaginario: el error es puramente de truncamiento \( O(h^2) \) y funciona con \( h \sim 10^{-200} \) en float64. Requiere que \( f \) sea analítica y acepte números complejos.
+
+**Regla de elección de \( h \):**
+
+| Método | \( h \) óptimo | Error mínimo |
+|--------|---------------|--------------|
+| Hacia adelante | \( \sqrt{\varepsilon_{mach}} \approx 1.5\times10^{-8} \) | \( O(\varepsilon_{mach}^{1/2}) \) |
+| Central | \( \varepsilon_{mach}^{1/3} \approx 6\times10^{-6} \) | \( O(\varepsilon_{mach}^{2/3}) \) |
+| Complex-step | cualquier \( h \ll 1 \) | \( O(h^2) \) arbitrariamente pequeño |
+
+<div class="cfig"><img src="../figuras/linealizacion-numerica-analisis.png" alt="Errores de diferencias finitas y Jacobiano numérico"><div class="cap">Error de diferencias finitas vs paso h (paneles superiores): la diferencia hacia adelante tiene mínimo a h≈√ε; la diferencia central a h≈ε^(1/3); el complex-step no muestra cancelación de dígitos. Panel inferior izquierdo: error del Jacobiano numérico en un sistema 2D. Panel inferior derecho: respuesta lineal vs no-lineal ante escalón pequeño.</div></div>
+
+## 4 — Matrices de estado \( A, B, C, D \) numéricas
+
+Para el sistema \( \dot{\mathbf{x}}=\mathbf{f}(\mathbf{x},\mathbf{u}) \), \( \mathbf{y}=\mathbf{g}(\mathbf{x},\mathbf{u}) \), en el punto de operación \( (\mathbf{x}_0,\mathbf{u}_0) \):
+
+$$ A_{ij} = \left.\frac{\partial f_i}{\partial x_j}\right|_{x_0,u_0}, \quad B_{ij} = \left.\frac{\partial f_i}{\partial u_j}\right|_{x_0,u_0}, \quad C_{ij} = \left.\frac{\partial g_i}{\partial x_j}\right|_{x_0,u_0}, \quad D_{ij} = \left.\frac{\partial g_i}{\partial u_j}\right|_{x_0,u_0} $$
+
+Se calculan todos con diferencias centrales usando la función `linearize` del apartado *Ejemplo de código*.
+
+**Verificación por eigenvalores.** Los eigenvalores de \( A \) son los polos del sistema linealizado. Si se dispone de un modelo analítico de referencia, deben coincidir con error relativo \( < 1\,\% \) cuando la no-linealidad es suave y \( h \) está bien elegido.
+
+**Tolerancia práctica.** Para convertidores de potencia con saturaciones suaves (droop, limitadores de corriente), el error en los eigenvalores dominantes es típicamente \( < 0.1\,\% \) con diferencias centrales y \( \varepsilon=10^{-6} \).
+
+## 5 — Linealización de convertidores en dq
+
+El vector de estado de un VSC con PLL y lazo de corriente es, por ejemplo:
+
+$$ \mathbf{x} = [i_d,\; i_q,\; v_{dc},\; \theta_{pll},\; \xi_d,\; \xi_q]^\top $$
+
+donde \( \xi_{d,q} \) son los estados del integrador del PI de corriente.
+
+**Perturbación del punto de operación.** Se perturban individualmente \( \Delta V_{dc} \), \( \Delta i_d \), \( \Delta \omega_{pll} \) para construir las columnas correspondientes de \( A \). La perturbación de la entrada \( \Delta v_{ref} \) construye las columnas de \( B \).
+
+**Código Python — función genérica:**
+
+```python
+def linearize(f, x0, u0, eps=1e-6):
+    """Diferencias centrales. f: callable(x, u) -> array."""
+    n, m = len(x0), len(u0)
+    A = np.zeros((n, n)); B = np.zeros((n, m))
+    for j in range(n):
+        h = eps * max(1.0, abs(x0[j])); e = np.zeros(n); e[j] = h
+        A[:, j] = (f(x0+e, u0) - f(x0-e, u0)) / (2*h)
+    for j in range(m):
+        h = eps * max(1.0, abs(u0[j])); e = np.zeros(m); e[j] = h
+        B[:, j] = (f(x0, u0+e) - f(x0, u0-e)) / (2*h)
+    return A, B
+```
+
+**Validación.** Ante un escalón pequeño \( \Delta u = 0.01\,\mathrm{p.u.} \), la respuesta del modelo lineal \( \dot{\Delta x}=A\Delta x+B\Delta u \) debe coincidir con la simulación no-lineal con error \( < 2\,\% \) durante los primeros ciclos (antes de que la no-linealidad acumule divergencia).
+
+## 6 — Errores y precauciones
+
+**Paso \( h \) demasiado pequeño.** Al restar \( f(x+h) - f(x-h) \), si \( h \to 0 \), ambos valores son casi idénticos en punto flotante y la resta pierde dígitos significativos (cancelación catastrófica). El error de redondeo crece como \( \varepsilon_{mach}/(2h) \).
+
+**Paso \( h \) demasiado grande.** El término de truncamiento de la serie de Taylor (del orden \( h^2 f'''/6 \) para diferencias centrales) domina: la derivada numérica refleja la curvatura de \( f \), no solo su pendiente en \( x_0 \).
+
+**Punto de operación en singularidad.** Si \( A \) es singular (determinante nulo) el sistema tiene un modo no observable o no controlable en ese punto; los eigenvalores en cero no indican estabilidad ni inestabilidad — requieren análisis de orden superior (forma normal de Birkhoff).
+
+**Sistemas rígidos (stiff).** Si algunos eigenvalores de \( A \) tienen \( |\mathrm{Re}(\lambda)| \gg 1 \), los estados asociados varían en escalas de tiempo muy distintas. La integración numérica del modelo no-lineal para calcular la perturbación debe usarse entonces con un integrador implícito (p.ej. `solve_ivp` con `method='Radau'`), o directamente evaluar \( f \) en el equilibrio sin simular en el tiempo.

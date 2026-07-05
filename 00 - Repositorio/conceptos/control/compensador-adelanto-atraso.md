@@ -117,6 +117,43 @@ Por etapa de adelanto: \( \alpha \le 10 \) (\( \phi_{max}\lesssim 55^\circ \)); 
 - Colocar el cero/polo del lag cerca de \( \omega_c \) → resta fase donde más duele.
 - Olvidar reescalar \( K_c \) tras añadir el compensador (el cruce se mueve).
 
+## 4 — Diseño paso a paso del compensador de adelanto
+
+**Paso 1 — calcular la fase adicional necesaria.** Evaluar el margen de fase actual a la frecuencia de cruce deseada \( \omega_c^* \); la fase a aportar es:
+$$ \phi_{max} = PM_{deseado} - PM_{actual} + 5° $$
+El margen extra de 5° compensa la ligera caída de fase producida al reescalar la ganancia tras el compensador.
+
+**Paso 2 — calcular el factor \( \alpha \).** La relación polo-cero del compensador:
+$$ \alpha = \frac{p}{z} = \frac{1+\sin\phi_{max}}{1-\sin\phi_{max}} $$
+El máximo aporte de fase del compensador ocurre en \( \omega_{max}=\sqrt{zp} \).
+
+**Paso 3 — ubicar \( \omega_{max} \) en la nueva frecuencia de cruce.** Para que el máximo aporte de fase coincida con el nuevo cruce: \( \omega_{max} = \omega_c^* \). Entonces \( T = 1/(\omega_c^*\sqrt{\alpha}) \), y el compensador es \( C(s) = (\alpha T s + 1)/(Ts + 1) \).
+
+**Paso 4 — reescalar la ganancia.** El compensador aporta \( +\sqrt{\alpha} \) de ganancia en \( \omega_{max} \), lo que desplaza el cruce. Reducir \( K_c \) en \( 1/\sqrt{\alpha} \) restaura el cruce en \( \omega_c^* \). Resultado: el PM real es aproximadamente \( PM_{actual} + \phi_{max} \).
+
+## 5 — Compensador de atraso: reducción del error en régimen
+
+El compensador de atraso coloca un cero-polo por debajo de \( \omega_c \) con \( z > p \):
+$$ C_{lag}(s) = \frac{s/z + 1}{s/p + 1}, \quad z, p \ll \omega_c \quad (\text{factor 10 mínimo}) $$
+
+La ganancia DC del compensador es \( K_{dc} = z/p > 1 \), que aumenta el coeficiente de error de posición \( K_v \) en ese mismo factor, reduciendo el error en régimen permanente. Como la fase del compensador en \( \omega_c \) es pequeña y negativa (la fase de atraso a esa frecuencia es \( \approx-5° \)), el PM se reduce ligeramente. Para compensarlo se aumenta la ganancia \( K_c \) marginalmente.
+
+**Diseño rápido:** elegir \( p = \omega_c/10 \) y \( z = K_{dc} \cdot p \); ajustar \( K_{dc} \) según la reducción de error deseada.
+
+## 6 — Aplicación: lazo de tensión del inversor
+
+El lazo de tensión de un inversor con filtro LC tiene como planta aproximada el condensador de filtro:
+$$ G_v(s) \approx \frac{1}{C_f s} \quad \text{(integradora)} $$
+
+Un controlador PI actúa como compensador de atraso puro con cero en \( s = -1/T_i \):
+$$ C_v(s) = K_p\!\left(1 + \frac{1}{T_i s}\right) = K_p\,\frac{T_i s + 1}{T_i s} $$
+
+**Criterio de separación de escalas:** el lazo de tensión debe ser unas 10 veces más lento que el lazo de corriente interno: \( \omega_{cv} \approx \omega_{ci}/10 \). Esta separación garantiza que cuando el lazo de tensión genera \( i^* \), el lazo de corriente ya está en régimen y la corriente sigue fielmente la referencia.
+
+**Verificación:** PM > 45° en el lazo de tensión; \( t_s < 20\,\text{ms} \) ante perturbación de carga; ausencia de sobreoscilación de tensión superior al 5 % ante un escalón de carga del 100 %.
+
+<div class="cfig"><img src="../figuras/compensador-adelanto-atraso-analisis.png" alt="Compensador adelanto-atraso: Bode, ratio alfa, efecto del escalón y margen de fase vs Kp"><div class="cap">Superior izquierdo: Bode del compensador de adelanto (fase positiva en la banda media) y de atraso (fase negativa, ganancia DC > 1). Superior derecho: ratio α en función del adelanto de fase máximo — α crece exponencialmente con φ_max. Inferior izquierdo: respuesta al escalón con y sin compensador de adelanto — el mayor PM produce menor sobreoscilación. Inferior derecho: margen de fase aproximado en función de Kp — la zona verde es la región de diseño válida.</div></div>
+
 ## Conceptos relacionados
 - [[loop-shaping]] · [[lugar-raices]] · [[diagrama-bode]] · [[margenes-estabilidad]] · [[controlador-pid]]
 

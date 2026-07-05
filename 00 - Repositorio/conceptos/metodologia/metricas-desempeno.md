@@ -87,6 +87,74 @@ ts = t[np.where(np.abs(y-y[-1])>0.02*y[-1])[0][-1]]   # banda del 2%
 - **01 (GFM)**: modo de potencia 3.3 Hz con \( \zeta=0.40 \) (objetivo cumplido).
 - **02 (GFL)**: modo de la PLL 21 Hz con \( \zeta=0.71 \).
 
+## 3 — Métricas en el dominio del tiempo
+
+Las métricas integrales del error se calculan sobre la respuesta al escalón y permiten cuantificar el desempeño con un único número:
+
+**IAE (Integral of Absolute Error):** acumula el error en valor absoluto con peso uniforme.
+
+$$ \text{IAE} = \int_0^\infty |e(t)|\,dt $$
+
+Penaliza errores pequeños y grandes por igual; es fácil de calcular y tiene sentido físico directo (área del error).
+
+**ISE (Integral of Squared Error):** eleva al cuadrado el error, penalizando mucho más los errores grandes.
+
+$$ \text{ISE} = \int_0^\infty e^2(t)\,dt $$
+
+Produce controladores más agresivos (respuesta más rápida con mayor sobreimpulso) porque el cuadrado amplifica los picos del error.
+
+**ITAE (Integral of Time-weighted Absolute Error):** pondera el error con el tiempo transcurrido, penalizando los errores tardíos.
+
+$$ \text{ITAE} = \int_0^\infty t\,|e(t)|\,dt $$
+
+Un sobreimpulso inicial aporta poco (el tiempo es pequeño); un error que persiste a \( t = 10\,\text{s} \) aporta mucho. El ITAE favorece respuestas sin oscilación tardía, lo que lo hace especialmente útil para sistemas de seguimiento de referencia en control de potencia.
+
+**ITSE (Integral of Time-weighted Squared Error):**
+
+$$ \text{ITSE} = \int_0^\infty t\,e^2(t)\,dt $$
+
+Combinación del peso temporal (ITAE) con la penalización cuadrática (ISE): produce controladores con respuesta intermedia.
+
+## 4 — Métricas en el dominio de la frecuencia
+
+Las métricas frecuenciales miden el comportamiento del lazo cerrado en función de la frecuencia de excitación:
+
+**Ancho de banda \( \omega_{bw} \):** frecuencia a la que \( |T(j\omega)| = -3\,\text{dB} \) (función de transferencia lazo cerrado). Es la velocidad del lazo: un sistema con \( \omega_{bw} = 100\,\text{rad/s} \) sigue referencias hasta ~16 Hz.
+
+**Pico de resonancia \( M_r = \max_\omega |T(j\omega)| \):** relacionado con el amortiguamiento del modo dominante. Para un segundo orden, \( M_r = 1/(2\zeta\sqrt{1-\zeta^2}) \) para \( \zeta < 0.707 \). Un \( M_r > 2 \) indica amortiguamiento insuficiente.
+
+**Márgenes de ganancia (GM) y de fase (PM):** distancia del lazo abierto a la inestabilidad. Son las métricas de robustez por excelencia (ver [[margenes-estabilidad]]). Un \( PM > 45° \) y \( GM > 6\,\text{dB} \) son requisitos mínimos habituales.
+
+**Sensibilidad máxima \( M_s = \|S\|_\infty \):** el pico de la función de sensibilidad \( S = 1/(1+L) \). Cuantifica la robustez frente a incertidumbres: \( M_s < 2 \) (\( < 6\,\text{dB} \)) es el criterio habitual. Se relaciona con los márgenes: \( GM \geq M_s/(M_s-1) \) y \( PM \geq 2\arcsin(1/(2M_s)) \).
+
+## 5 — Métricas de calidad de potencia
+
+Para convertidores conectados a la red, se añaden métricas específicas de calidad de la potencia suministrada:
+
+**THD de corriente:** la distorsión armónica total de la corriente inyectada en la red debe ser inferior al 5 % (IEEE 519) para sistemas de distribución:
+
+$$ \text{THD}_I = \frac{\sqrt{\sum_{h=2}^{\infty} I_h^2}}{I_1} \times 100\,\% $$
+
+**Factor de potencia:** \( FP = P/S = P/(\sqrt{P^2+Q^2}) \). Un FP bajo significa que el convertidor consume reactiva de la red innecesariamente. El objetivo habitual es \( FP > 0.95 \).
+
+**Desequilibrio de tensión (VUF):** \( VUF = V_{neg}/V_{pos} \times 100\,\% \), donde \( V_{neg} \) y \( V_{pos} \) son las componentes de secuencia negativa y positiva (ver [[componentes-simetricas]]). La norma EN 50160 exige \( VUF < 2\,\% \) para redes de baja tensión.
+
+**Flicker:** medida de la variación rápida de la tensión que causa molestias visuales en la iluminación. Se cuantifica con \( P_{st} \) (severidad de corto plazo, 10 min) y \( P_{lt} \) (largo plazo, 2 h). Los límites normativos son \( P_{st} < 1.0 \) y \( P_{lt} < 0.65 \) (EN 50160).
+
+## 6 — Compromiso entre métricas
+
+Las métricas no son independientes y maximizar una suele empeorar otra:
+
+**IAE vs ISE:** el ISE selecciona controladores más agresivos (mayor \( K_p \)) que minimizan el pico del error a costa de mayor sobreimpulso. El IAE es más conservador. Para control de potencia donde el sobreimpulso puede disparar protecciones, IAE o ITAE son preferibles.
+
+**ITAE:** es la métrica más adecuada para sistemas de seguimiento de referencia en control de potencia, porque refleja el coste acumulado de un error que persiste mientras la carga no se equilibra.
+
+**Diagrama de Pareto BW vs PM:** existe un tradeoff fundamental entre velocidad del lazo (ancho de banda) y robustez (margen de fase). Aumentar el ancho de banda reduciendo la ganancia cruzada del lazo abierto reduce el PM disponible. La frontera de Pareto muestra los diseños que maximizan BW para cada PM mínimo dado: no existe un diseño que sea simultáneamente el más rápido y el más robusto.
+
+**Ejemplo numérico:** optimizar \( K_p, T_i \) de un PI minimizando ITAE con restricción \( PM > 45° \). El ITAE sin restricción puede dar \( PM = 30° \) (inestable en la práctica); añadir la restricción mueve la solución a un controlador más lento pero robusto. Este es el problema de diseño multiobjetivo típico del ajuste de un PI de control de corriente.
+
+<div class="cfig"><img src="../figuras/metricas-desempeno-analisis.png" alt="Métricas de desempeño: IAE/ISE/ITAE comparadas, diagrama de Pareto BW vs PM, y calidad de potencia vs carga"><div class="cap">Cuatro paneles: respuestas al escalón para distintos amortiguamientos con las métricas visualizadas; gráfico de barras comparando IAE, ISE e ITAE para cada caso; diagrama de Pareto entre ancho de banda y margen de fase; curvas de THD de corriente y factor de potencia en función del nivel de carga.</div></div>
+
 ## Conceptos relacionados
 - [[especificaciones-control]] · [[analisis-modal]] · [[funciones-sensibilidad]] · [[margenes-estabilidad]]
 

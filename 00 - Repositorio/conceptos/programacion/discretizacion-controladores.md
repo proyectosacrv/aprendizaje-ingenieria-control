@@ -127,3 +127,76 @@ Margen de fase a reservar por el muestreo: 5–15°.
 ## Referencias
 - Aström, Wittenmark, *Computer-Controlled Systems*, 1997.
 - Franklin, Powell, *Digital Control of Dynamic Systems*.
+
+---
+
+## 3 — Métodos de discretización
+
+**Euler hacia adelante (FE):** \( s \to (z-1)/T_s \). Mapa: \( z = 1 + sT_s \). El semiplano izquierdo continuo se mapea a un círculo de radio \( 1/2 \) centrado en \( z = 1/2 \): para polos continuos rápidos (\( |s|T_s > 2 \)), el mapa cae fuera del círculo unitario. **Puede inestabilizar polos continuos estables** si \( T_s \) es grande respecto al polo.
+
+**Euler hacia atrás (BE):** \( s \to (z-1)/(zT_s) \). Mapa: \( z = 1/(1-sT_s) \). El semiplano izquierdo se mapea al interior de un círculo de radio \( 1/2 \) centrado en \( z = 1/2 \): **siempre estable** (polo continuo estable → polo discreto estable). Sin embargo, distorsiona la dinámica transitoria: los polos se desplazan hacia el origen, lo que acelera artificialmente la respuesta.
+
+**Bilineal (Tustin):** \( s \to 2(z-1)/(T_s(z+1)) \). El eje \( j\omega \) continuo se mapea biyectivamente al círculo unitario \( |z|=1 \): **preserva la respuesta en frecuencia** hasta \( \omega_s/2 \). Es el método estándar para PI, PR y filtros en control de convertidores.
+
+**Prewarping de Tustin:** si se quiere coincidencia exacta a una frecuencia crítica \( \omega_c \) (p.ej. la frecuencia de resonancia del filtro LCL):
+
+$$ s \to \frac{\omega_c}{\tan(\omega_c T_s/2)} \cdot \frac{z-1}{z+1} $$
+
+Esto fuerza \( G_{discreto}(e^{j\omega_c T_s}) = G_{continuo}(j\omega_c) \) exactamente, a costa de mayor distorsión en otras frecuencias.
+
+<div class="cfig"><img src="../figuras/discretizacion-controladores-analisis.png" alt="Métodos de discretización: plano z, warping, retardo y escalón discreto"><div class="cap">Panel superior izquierdo: mapeo de polos al plano z para los tres métodos (FE, BE, Tustin). Superior derecho: warping de frecuencia de Tustin — la frecuencia continua se comprime hacia π/Ts. Inferior izquierdo: pérdida de margen de fase por retardo de cómputo (1, 2 y 3 muestras). Inferior derecho: respuesta al escalón de segundo orden en continuo vs discreto para distintos Ts.</div></div>
+
+## 4 — Mapeo de polos y ceros
+
+**Polo continuo → polo discreto.** El mapeo exacto es \( z = e^{sT_s} \). Para un polo real en \( s = -a \):
+
+$$ z = e^{-aT_s} \in (0, 1) \quad\text{(estable si } a > 0 \text{)} $$
+
+Para \( T_s < 1/(10a) \) (el polo es "lento" respecto al periodo de muestreo), todos los métodos son precisos. Para \( T_s > 1/(5a) \), Tustin y BE son preferibles a FE.
+
+**Cero discreto de Tustin.** Al discretizar \( C(s) \) con un cero en \( s = -b \) mediante Tustin, el cero se mapea a:
+
+$$ z_{cero} = -\frac{1 - T_s b/2}{1 + T_s b/2} $$
+
+Si \( b > 0 \) (cero en semiplano izquierdo continuo), el cero discreto puede caer en \( z < -1 \): fuera del círculo unitario, creando un sistema discreto de **no-fase mínima**. Esto ocurre cuando \( b \) es grande (cero rápido) y \( T_s \) no es suficientemente pequeño.
+
+**ZOH.** El retenedor de orden cero modela exactamente el comportamiento del D/A: mantiene el valor de la muestra constante durante \( T_s \). Preserva el polo continuo con el mapa exacto \( z = e^{sT_s} \), pero introduce ceros adicionales que no corresponden a ningún cero del sistema continuo (ceros de ZOH): pueden ser de no-fase mínima.
+
+## 5 — Efecto del retardo y antialiasing
+
+**Retardo de cómputo.** El procesador tarda un tiempo \( T_d \) (típicamente \( 1 \) a \( 1.5 \) muestras) en calcular la salida del control a partir de las medidas. Este retardo se modela como \( z^{-k} \) (con \( k \) muestras enteras) y produce una pérdida de fase:
+
+$$ \Delta\phi = -k\omega T_s \quad\text{(radianes)} = -k \cdot 360° \cdot \frac{f}{f_s} $$
+
+A la frecuencia de cruce \( f_c = 1\,\text{kHz} \) con \( f_s = 10\,\text{kHz} \) y \( k=1 \): \( \Delta\phi = -36° \). Con \( k=2 \): \( -72° \). Por eso el ancho de banda del controlador debe ser \( < f_s/10 \) para que el retardo no consuma todo el margen de fase disponible.
+
+**Filtro antialiasing.** Antes del ADC debe haber un filtro pasa-bajas analógico con frecuencia de corte \( f_{cutoff} \approx f_s/4 \) para atenuar las señales por encima de la frecuencia de Nyquist (\( f_s/2 \)). Sin este filtro, componentes de alta frecuencia se pliegan (alias) sobre el espectro útil y aparecen como señales de baja frecuencia falsas.
+
+**Alias.** Una señal a frecuencia \( f \) muestreada a \( f_s \) aparece como señal a \( f_{alias} = |f - n f_s| \), donde \( n \) es el entero más cercano. Si \( f = 9.5\,\text{kHz} \) y \( f_s = 10\,\text{kHz} \): alias a \( 500\,\text{Hz} \), justo en la banda de control.
+
+**Regla práctica.** Mantener la frecuencia de muestreo \( f_s \geq 20 f_{bw} \) (20 veces el ancho de banda del controlador). Esto garantiza \( < 18° \) de pérdida de fase por retardo de cómputo de 1 muestra.
+
+## 6 — Implementación en punto fijo vs flotante
+
+**Punto flotante (float32/float64).** Implementación directa: los coeficientes \( b_0, b_1, a_1 \) se usan tal cual sin escalado. Overflow solo con exponentes extremos (\( > 10^{38} \) en float32). Es el estándar en DSPs modernos y microcontroladores de 32 bits (Cortex-M4/M7 con FPU).
+
+**Punto fijo (Q15, Q31).** Los coeficientes deben escalarse para caber en el rango del registro. En Q15 (15 bits fraccionarios): rango \( [-1, 1) \), resolución \( 2^{-15} \approx 3\times10^{-5} \). Si el coeficiente supera este rango, hay que reducir la escala del numerador y ajustar la escala de la salida.
+
+**Acumuladores.** Al multiplicar dos valores Q15 se obtiene un resultado Q30; al acumular N multiplicaciones, el resultado puede crecer hasta Q30+\( \log_2 N \) bits. Usar acumuladores de doble precisión (32 o 64 bits) para la suma antes de redondear al formato de salida.
+
+**Código ejemplo — PI con Tustin en Python:**
+
+```python
+def pi_tustin(Kp, Ki, Ts):
+    """Devuelve coeficientes b0, b1, a1 para u[n] = a1*u[n-1] + b0*e[n] + b1*e[n-1]"""
+    b0 = Kp + Ki * Ts / 2
+    b1 = -(Kp - Ki * Ts / 2)
+    a1 = 1.0  # polo en z=1 (integrador)
+    return b0, b1, a1
+
+# Implementación en el loop de control:
+# u[n] = u[n-1] + b0*e[n] + b1*e[n-1]
+b0, b1, _ = pi_tustin(Kp=12.6, Ki=315, Ts=1e-4)
+```
+
+El factor \( b_0 = K_p + K_i T_s/2 \approx K_p \) para \( K_i T_s/2 \ll K_p \): la ganancia proporcional domina el coeficiente de entrada. El factor \( b_1 \approx -K_p \): la acción integral es la diferencia entre la muestra actual y la anterior, dividida por \( T_s \).

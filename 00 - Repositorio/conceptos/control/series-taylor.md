@@ -108,6 +108,89 @@ Nada en esta derivación usa que \( f \) sea \( e^{-x} \) o \( \sqrt{1-x} \): so
 
 <div class="cfig"><img src="figuras/series-taylor-aprox.png" alt="comparacion de e^-x y su aproximacion de Taylor de orden 1, 2 y 3 mostrando como mejora la aproximacion cerca de x=0 y se degrada lejos"><div class="cap">\(e^{-x}\) (negro) frente a sus polinomios de Taylor de orden 1, 2 y 3 en \(a=0\): cerca de \(x=0\) todos coinciden con la curva real; lejos, cada orden adicional retrasa un poco más dónde empieza a separarse, pero todos acaban divergiendo.</div></div>
 
+## 4 — Serie de Taylor para funciones de varias variables y el jacobiano
+
+**Extensión a dos variables.** Para \( f(x,y) \) derivable en \( (x_0, y_0) \), la expansión de Taylor a primer orden es:
+
+$$ f(x,y) \approx f(x_0,y_0) + \frac{\partial f}{\partial x}\bigg|_{(x_0,y_0)}\Delta x + \frac{\partial f}{\partial y}\bigg|_{(x_0,y_0)}\Delta y + O(\Delta^2) $$
+
+donde \( \Delta x = x - x_0 \) y \( \Delta y = y - y_0 \). El término de primer orden es el **gradiente** de \( f \) evaluado en el punto de operación: un vector fila que contiene las derivadas parciales.
+
+**Extensión vectorial: el jacobiano.** Para un sistema de \( n \) funciones de \( n \) variables \( \dot{\mathbf{x}} = \mathbf{f}(\mathbf{x}) \), la linealización alrededor del punto de equilibrio \( \mathbf{x}_0 \) produce:
+
+$$ \Delta\dot{\mathbf{x}} = J\,\Delta\mathbf{x}, \qquad J_{ij} = \frac{\partial f_i}{\partial x_j}\bigg|_{\mathbf{x}_0} $$
+
+La matriz \( J \) es el **jacobiano** de \( \mathbf{f} \), la extensión matricial del concepto de derivada para funciones vectoriales. Los autovalores de \( J \) determinan la estabilidad local del punto de equilibrio:
+- Si todos los autovalores tienen parte real negativa: el equilibrio es estable.
+- Si algún autovalor tiene parte real positiva: el equilibrio es inestable.
+- Si algún autovalor está sobre el eje imaginario: hay que ir al análisis no lineal (Lyapunov).
+
+**El jacobiano 8×8 del GFM.** Un modelo simplificado de GFM con droop tiene 8 estados: \( (\theta, \omega, P_{filtrada}, Q_{filtrada}, \varphi_d, \varphi_q, \gamma_d, \gamma_q) \) donde \( \varphi \) son los integradores del lazo de corriente y \( \gamma \) los del lazo de tensión. La linealización alrededor del punto de operación \( (\theta_0, \omega_0, P_0, Q_0, \dots) \) produce un jacobiano \( 8\times8 \) cuyos autovalores dan los modos del sistema: el modo electromecánico lento (droop, \( \approx 1\text{–}10\,\text{Hz} \)), los modos del lazo de corriente (rápido, \( \approx 0.5\text{–}2\,\text{kHz} \)) y los modos del filtro LCL.
+
+## 5 — El radio de convergencia práctico: cuándo la linealización falla
+
+**El error de la aproximación lineal de \( P(\delta) = (EV/X)\sin\delta \).** La linealización a primer orden alrededor de \( \delta_0 \) da:
+
+$$ P(\delta) \approx P_0 + K_s \Delta\delta, \qquad P_0 = \frac{EV}{X}\sin\delta_0, \qquad K_s = \frac{EV}{X}\cos\delta_0 $$
+
+El error relativo de esta aproximación para una perturbación \( \Delta\delta \) es:
+
+$$ \epsilon_{rel} = \frac{|P_{exacta} - P_{lineal}|}{P_{max}} = \left|\sin(\delta_0+\Delta\delta) - \sin\delta_0 - \cos\delta_0\,\Delta\delta\right| $$
+
+Usando la expansión de Taylor de \( \sin(\delta_0+\Delta\delta) \):
+
+$$ \sin(\delta_0+\Delta\delta) = \sin\delta_0 + \cos\delta_0\,\Delta\delta - \frac{\sin\delta_0}{2}\,\Delta\delta^2 - \frac{\cos\delta_0}{6}\,\Delta\delta^3 + \dots $$
+
+Así que el primer error es el término cuadrático:
+
+$$ \epsilon_{rel} \approx \frac{\sin\delta_0}{2}\,\Delta\delta^2 $$
+
+Para un umbral de error del 10% (\( \epsilon_{rel} < 0.1 \)):
+
+$$ \Delta\delta_{max} = \sqrt{\frac{0.2}{\sin\delta_0}} $$
+
+- Para \( \delta_0 = 30° \): \( \Delta\delta_{max} = \sqrt{0.2/0.5} = 0.632\,\text{rad} = 36.2° \). La aproximación es buena para perturbaciones de hasta ±36°.
+- Para \( \delta_0 = 45° \): \( \Delta\delta_{max} = \sqrt{0.2/0.707} = 0.532\,\text{rad} = 30.5° \). El margen se reduce al aumentar \( \delta_0 \).
+- Para \( \delta_0 = 60° \): \( \Delta\delta_{max} = \sqrt{0.2/0.866} = 0.481\,\text{rad} = 27.5° \).
+
+**Regla práctica.** La linealización de \( P(\delta) \) es fiable (error < 10%) para \( |\Delta\delta| < 30° \) si \( \delta_0 < 30° \), y menos fiable para puntos de operación con ángulos altos (\( \delta_0 > 45° \)). En diseño de sistemas de potencia se suele limitar \( \delta_0 < 35° \) para tener margen de linealización razonable.
+
+**Punto de linealización vs estabilidad transitoria.** La linealización solo es válida localmente cerca de \( \delta_0 \). Para perturbaciones grandes (cortocircuito, pérdida de generación), el sistema puede salir del dominio de validez de la linealización y hay que usar el análisis de la curva \( P\text{–}\delta \) no lineal (criterio del área igual, análisis de Lyapunov).
+
+## 6 — Diseño iterativo: precisión de la linealización para el GFM del proyecto 01
+
+Parámetros: \( E = V = 1\,\text{pu} \), \( X = 0.2\,\text{pu} \) (reactancia total), \( P_{max} = EV/X = 5\,\text{pu} \).
+
+**Punto de operación 1: \( P_{ref} = 0.3\,\text{pu} \).**
+
+$$ \delta_0 = \arcsin\!\left(\frac{P_{ref}}{P_{max}}\right) = \arcsin(0.3/5) = \arcsin(0.06) \approx 3.44° $$
+
+Para \( \Delta P = 0.1\,\text{pu} \), la perturbación en ángulo es \( \Delta\delta = \Delta P / K_s \), con \( K_s = P_{max}\cos\delta_0 \approx 5 \times 0.998 = 4.99\,\text{pu/rad} \):
+
+$$ \Delta\delta = 0.1/4.99 = 0.020\,\text{rad} = 1.15° $$
+
+Error relativo: \( \epsilon \approx \sin(3.44°)/2 \times (0.020)^2 \approx 0.060/2 \times 4\times10^{-4} \approx 1.2\times10^{-5} \) → error despreciable.
+
+**Punto de operación 2: \( P_{ref} = 0.5\,\text{pu} \).**
+
+$$ \delta_0 = \arcsin(0.5/5) = \arcsin(0.10) \approx 5.74° $$
+
+\( K_s = 5\cos(5.74°) \approx 4.975\,\text{pu/rad} \); \( \Delta\delta \approx 0.1/4.975 = 0.0201\,\text{rad} = 1.15° \).
+
+Error relativo: \( \epsilon \approx \sin(5.74°)/2 \times (0.0201)^2 \approx 0.010/2 \times 4\times10^{-4} \approx 2\times10^{-6} \) → error aún menor.
+
+**Punto de operación 3: \( P_{ref} = 0.7\,\text{pu} \).**
+
+$$ \delta_0 = \arcsin(0.7/5) = \arcsin(0.14) \approx 8.05° $$
+
+\( K_s = 5\cos(8.05°) \approx 4.951\,\text{pu/rad} \); \( \Delta\delta \approx 0.1/4.951 = 0.0202\,\text{rad} \).
+
+Error relativo: \( \epsilon \approx \sin(8.05°)/2 \times (0.0202)^2 \approx 3\times10^{-6} \) → igualmente despreciable.
+
+**Conclusión.** Para los ángulos de operación típicos de este GFM (\( \delta_0 < 10° \)), la linealización de \( P(\delta) \) introduce errores menores de \( 10^{-5} \) para perturbaciones de \( \Delta P = 0.1\,\text{pu} \). El modelo lineal es excelente para diseño de controladores en torno al punto de operación nominal. Solo pierde validez ante perturbaciones grandes (> 20° de oscilación de ángulo), que corresponden a situaciones de falta grave o pérdida de gran generación.
+
+<div class="cfig"><img src="../figuras/series-taylor-analisis.png" alt="Series de Taylor: sin(x), P(delta), CPL y error de linealización"><div class="cap">(a) sin(x) y sus aproximaciones de Taylor de orden 1, 3, 5, 7: cada orden adicional extiende la validez a un rango mayor. (b) P(δ)=EV/X·sin(δ) y la linealización en δ₀=15°, 30°, 45°: el error crece con δ₀. (c) La CPL i=P/V y su linealización: pendiente negativa (resistencia negativa virtual). (d) Error de linealización del GFM vs ángulo de operación.</div></div>
+
 ## Cuándo y por qué se usa
 Siempre que una expresión exacta es transcendente o no lineal y hace falta una fórmula cerrada y manejable: linealizar un sistema no lineal para diseñar un control lineal, simplificar \( 1-e^{-x} \) a \( x \), o \( \sqrt{1-\zeta^2} \) a \( 1-\zeta^2/2 \). Siempre a costa de un error que crece al alejarse del punto de expansión, y que conviene cuantificar (con el resto \( R_n \) o, más sencillo en la práctica, comparando numéricamente la aproximación con el valor exacto, como se hace en [[factor-calidad-q]]).
 
@@ -149,6 +232,67 @@ print(np.exp(-x), P)                  # deben casi coincidir cerca de x=0
 - Confundir "más términos siempre ayuda" con "siempre converge": fuera del radio de convergencia, añadir términos puede empeorar la aproximación.
 - Olvidar que el orden del primer término descartado es el que manda en el error, no el número de términos conservados en sí.
 - Mezclar el punto de expansión \( a \) con el punto de operación final \( x \): la serie es buena cerca de \( a \), no cerca de donde a uno le gustaría que fuera buena.
+
+## 7 — Linealización mediante Taylor: Jacobiano y perturbaciones pequeñas
+
+Para un sistema vectorial \(\dot{\mathbf{x}} = f(\mathbf{x}, \mathbf{u})\), la linealización alrededor del punto de equilibrio \((\mathbf{x}_0, \mathbf{u}_0)\) usa el Jacobiano:
+
+$$\dot{\Delta\mathbf{x}} \approx \underbrace{\frac{\partial f}{\partial \mathbf{x}}\bigg|_{\mathbf{x}_0,\mathbf{u}_0}}_{A}\,\Delta\mathbf{x} + \underbrace{\frac{\partial f}{\partial \mathbf{u}}\bigg|_{\mathbf{x}_0,\mathbf{u}_0}}_{B}\,\Delta\mathbf{u}$$
+
+El error de la linealización es \(O(\|\Delta\mathbf{x}\|^2)\): para perturbaciones pequeñas \(\|\Delta\mathbf{x}\| \ll 1\), el sistema linealizado es una buena aproximación. Para perturbaciones grandes (p.ej. cortocircuito), la no linealidad domina y el modelo lineal falla.
+
+**Ejemplo: convertidor GFM con droop.** El modelo no lineal incluye \(P = (EV/X)\sin(\delta)\). Alrededor de \(\delta_0\):
+
+$$\Delta P \approx \underbrace{\frac{EV}{X}\cos\delta_0}_{K_s}\,\Delta\delta$$
+
+El Jacobiano para el sistema [δ, ω] es \(A = \begin{pmatrix}0 & 1 \\ -K_s/(m_p J) & -D/(m_p J)\end{pmatrix}\), con autovalores \(\lambda = -\zeta\omega_n \pm j\omega_n\sqrt{1-\zeta^2}\).
+
+## 8 — Aproximación de Padé para retardos
+
+El retardo puro \(e^{-sT}\) no es racional, pero se puede aproximar por una función racional usando Padé de orden (m,n):
+
+$$e^{-sT} \approx \frac{N_m(s)}{D_n(s)}$$
+
+La aproximación de Padé (1,1) es la más usada en control de convertidores:
+
+$$e^{-sT} \approx \frac{1 - sT/2}{1 + sT/2}$$
+
+Esta tiene el mismo módulo unitario que el retardo exacto (es una función todo-paso) y la misma fase hasta el primer orden. El error de fase:
+
+$$\phi_{error} = \angle e^{-j\omega T} - \angle\frac{1-j\omega T/2}{1+j\omega T/2} \approx \frac{(\omega T)^3}{12}$$
+
+Error < 5% para \(|\omega T| < 2\), es decir, para frecuencias hasta \(f < 1/(\pi T)\). Para \(T = 100\,\mu\text{s}\) (\(f_s = 10\,\text{kHz}\)): válido hasta \(f < 3.2\,\text{kHz}\) — cubre todo el rango de interés del control.
+
+## 9 — Radio de convergencia y singularidades
+
+La serie de Taylor de \(f(x)\) converge para \(|x - a| < R\), donde \(R\) es la distancia desde el punto de expansión \(a\) hasta la singularidad más cercana en el plano complejo:
+
+$$R = |a - z_{sing,nearest}|$$
+
+**Ejemplos relevantes:**
+- \(1/(1+s/\omega_p)\): singularidad en \(s = -\omega_p\); la serie en \(s=0\) converge para \(|s| < \omega_p\).
+- \(\sqrt{1-\zeta^2}\): singularidades en \(\zeta = \pm 1\); la serie en \(\zeta=0\) converge para \(|\zeta| < 1\) — toda la banda de sistemas subamortiguados.
+- \(\ln(1+x)\): singularidad en \(x = -1\); la serie en \(x=0\) converge solo para \(|x| < 1\).
+
+Para el control de convertidores, la variable de perturbación suele satisfacer \(|\Delta x| < 0.1\,\text{pu}\) en condiciones normales → bien dentro del radio de convergencia de las linealizaciones típicas.
+
+## 10 — Taylor en modelos de convertidores: buck linealizado y perturbación de ciclo de trabajo
+
+El convertidor buck con control de ciclo de trabajo \(d\) tiene el modelo en valor promediado:
+
+$$v_o = d\cdot V_{dc}$$
+
+Para una perturbación \(\hat{d}\) alrededor del ciclo de trabajo nominal \(D_0\):
+
+$$\hat{v}_o = V_{dc}\,\hat{d}$$
+
+Esta es exactamente la linealización de primer orden. El término de segundo orden \((\hat{d})^2 V_{dc}/2\) solo importa para perturbaciones grandes (\(|\hat{d}| > 0.05\)).
+
+**Modelo dinámico linealizado del buck (control de modo corriente):**
+
+$$\frac{\hat{v}_o(s)}{\hat{d}(s)} = \frac{V_{dc}/LC}{s^2 + s/(RC) + 1/(LC)}$$
+
+El denominador es el polinomio de segundo orden del LCsalida, con \(\zeta = 1/(2R)\sqrt{L/C}\). Este modelo es válido para \(|\hat{v}_o| \ll V_{dc}\) — condición que el lazo de control debe garantizar en régimen permanente.
 
 ## Uso en proyectos
 - 01 / 02: la linealización del modelo no lineal en el punto de operación ([[linealizacion-teoria]]) y las aproximaciones de \( \omega_d\approx\omega_n \) y \( 1-e^{-4\pi\zeta}\approx4\pi\zeta \) en la deducción de \( Q=1/(2\zeta) \) ([[factor-calidad-q]]) son aplicaciones directas de esta serie.

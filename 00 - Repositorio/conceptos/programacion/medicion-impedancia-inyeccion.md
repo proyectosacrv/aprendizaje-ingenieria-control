@@ -97,3 +97,68 @@ mientras no haya saturación (si entra el current limiting, deja de ser lineal).
 
 ## Referencias
 - Roinila et al., medición de respuesta en frecuencia de convertidores.
+
+---
+
+## 3 — Método de inyección de señal
+
+**Inyección de la perturbación.** Se superpone una señal senoidal de tensión en el punto de medida:
+
+$$ v_p(t) = A\sin(\omega t), \quad \omega = 2\pi f_p $$
+
+La amplitud \( A \) es un compromiso entre relación señal/ruido (requiere \( A \) grande) y linealidad del sistema (requiere \( A \) pequeña). En convertidores de potencia, \( A \approx 1\text{–}5\,\% \) del valor nominal garantiza ambas condiciones.
+
+**Medición de tensión y corriente.** Se registran simultáneamente \( v(t) \) e \( i(t) \) en el punto de inyección. La impedancia se calcula como:
+
+$$ Z(j\omega) = \frac{V(j\omega)}{I(j\omega)} $$
+
+donde \( V(j\omega) \) e \( I(j\omega) \) son los fasores a frecuencia \( f_p \) obtenidos por DFT.
+
+**Amplitud de perturbación.** La elección práctica de \( A \) depende del nivel de ruido \( v_{ruido,rms} \) y de la impedancia esperada:
+
+$$ \text{SNR} \approx \frac{A \cdot |Z(f_p)|}{v_{ruido,rms}} > 20\,\text{dB} $$
+
+<div class="cfig"><img src="../figuras/medicion-impedancia-inyeccion-analisis.png" alt="Medición de impedancia por inyección de señal"><div class="cap">Panel superior izquierdo: señal inyectada y respuesta en corriente. Superior derecho: espectro DFT mostrando el tono inyectado. Inferior izquierdo: comparación impedancia teórica vs medida en barrido de frecuencia. Inferior derecho: coherencia del barrido — válido solo donde γ²>0.9.</div></div>
+
+## 4 — DFT y sincronización
+
+**Ventana coherente.** La DFT asume señales periódicas. Si la ventana de análisis no contiene exactamente \( N_{ciclos} \) períodos completos de la señal inyectada, aparece **fuga espectral**: energía de la frecuencia de inyección se dispersa hacia frecuencias vecinas, contaminando la estimación del fasor.
+
+**Condición de coherencia:**
+
+$$ T_{ventana} = \frac{N_{ciclos}}{f_p} \quad (N_{ciclos} \in \mathbb{Z}^+) $$
+
+Si no se puede garantizar coherencia (p.ej. el muestreo no es síncrono con la inyección), se aplica una **ventana de Hanning** que atenúa la fuga a costa de reducir la resolución espectral.
+
+**Rango de frecuencias analizables:**
+- Mínimo: \( f_{min} = f_p \) (una resolución de la DFT)
+- Máximo: \( f_{max} \approx f_{sw}/2 \) (Nyquist del muestreo de control)
+- Límite práctico: evitar frecuencias múltiplos de \( f_0=50\,\text{Hz} \) donde el ruido de red es mayor
+
+**Supresión de interarmónicos.** El muestreo coherente con la señal inyectada asegura que los armónicos del convertidor (múltiplos de \( f_{sw} \)) caen en bins separados de la DFT, sin solaparse con \( f_p \).
+
+## 5 — Analizador de impedancias en lazo cerrado
+
+**Inyección en el lazo de control.** Al inyectar la perturbación después del regulador (entre el control y el modulador), se mide la impedancia de lazo cerrado \( Z_{cl}(j\omega) \). Esta es la magnitud relevante para el criterio de estabilidad de Middlebrook.
+
+**Inyección en la red.** Al inyectar en la red (entre el convertidor y el transformador), se mide \( Z_{grid}(j\omega) \), útil para detectar variaciones del SCR sin interrumpir la operación.
+
+**Separación fuente/carga.** Para separar la impedancia de la fuente \( Z_s \) de la de la carga \( Z_l \), se realizan dos inyecciones en puntos distintos o una perturbación diferencial; la combinación lineal de las respuestas da cada impedancia por separado.
+
+**Criterio de validez de la medición:** el SNR debe superar 20 dB en la frecuencia de análisis. Por debajo de este umbral el fasor estimado tiene error angular \( > 5.7° \), que puede confundirse con una variación real de impedancia.
+
+## 6 — Herramientas Python y aplicación práctica
+
+**Estimación espectral con ruido.** Para señales ruidosas, `scipy.signal.welch` calcula la densidad espectral de potencia (PSD) promediando sobre ventanas solapadas de Welch, reduciendo la varianza de la estimación de \( |Z|^2 \) a costa de resolución temporal.
+
+**Coherencia.** El índice de coherencia entre tensión y corriente indica la fiabilidad de la estimación de impedancia:
+
+$$ \gamma^2(f) = \frac{|S_{vi}(f)|^2}{S_{vv}(f)\,S_{ii}(f)} \in [0,1] $$
+
+Un valor \( \gamma^2 > 0.9 \) indica que al menos el 90% de la varianza de la corriente a esa frecuencia se explica por la tensión inyectada: la medición es válida. Valores menores indican ruido excesivo, no-linealidades, o que la señal inyectada es demasiado débil.
+
+**Aplicación en bus DC de data center.** Para caracterizar la estabilidad de un bus DC con cargas de potencia constante (CPL) se mide \( Z_{bus}(j\omega) \) a distintas cargas:
+1. Inyectar una perturbación de tensión \( \Delta v_{dc} \) a la frecuencia de interés.
+2. Medir la corriente de respuesta \( \Delta i_{dc} \).
+3. Calcular \( Z_{bus}(j\omega) = \Delta V_{dc}(j\omega)/\Delta I_{dc}(j\omega) \).
+4. Verificar el **criterio de Middlebrook**: el sistema es estable si \( |Z_{source}(j\omega)| < |Z_{load}(j\omega)| \) para toda \( \omega \). Si la CPL hace que \( Z_{load} \) tenga parte real negativa y su módulo sea menor que \( Z_{source} \), hay riesgo de oscilación.

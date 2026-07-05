@@ -114,3 +114,79 @@ esperado con \( M_s<2 \) y margen al límite > 20–30 %.
 ## Referencias
 - Skogestad, Postlethwaite, *Multivariable Feedback Control*, 2005.
 - Saltelli et al., *Global Sensitivity Analysis*, 2008.
+
+---
+
+## 3 — Barrido 1D y curvas de sensibilidad
+
+**Procedimiento.** Se elige un parámetro \( p \in [p_{min}, p_{max}] \) con \( N \) puntos logarítmicamente espaciados (si el rango cubre varios órdenes) o linealmente espaciados (si el rango es estrecho). Para cada punto se calculan los indicadores de interés: eigenvalores, margen de fase (PM), ancho de banda (\( \omega_c \)), o pico de sensibilidad \( M_s \).
+
+**Representación.** Curvas del tipo `plt.semilogx(p_arr, PM_arr)` con:
+- Zona sombreada verde: región de cumplimiento (\( PM > 45° \))
+- Línea roja discontinua: límite del requisito
+- Marcador vertical: valor nominal del parámetro
+
+**Detección de bifurcaciones.** Una bifurcación de Hopf ocurre cuando un par de eigenvalores complejos conjugados cruza el eje imaginario: \( \mathrm{Re}(\lambda_i(\theta)) = 0 \) con \( \mathrm{Im}(\lambda_i) \neq 0 \). En el barrido aparece como un cambio de signo en \( \mathrm{Re}(\lambda_{dominante}) \). Una bifurcación de silla-nodo (fold) ocurre cuando un eigenvalue real cruza el origen.
+
+**Regla práctica.** Usar al menos 100 puntos en el barrido para no perder franjas de inestabilidad estrechas (ver sección *Errores comunes*).
+
+<div class="cfig"><img src="../figuras/barrido-parametrico-analisis.png" alt="Barrido paramétrico 1D, 2D y trayectoria de eigenvalores"><div class="cap">Panel superior izquierdo: margen de fase vs Kp con zona verde de cumplimiento. Superior derecho: mapa de estabilidad 2D en el espacio (Kp, Ti). Inferior izquierdo: trayectoria de eigenvalores (verde=estable, rojo=inestable) durante barrido de ganancia. Inferior derecho: respuesta al escalón para distintos Kp.</div></div>
+
+## 4 — Barrido 2D: mapa de estabilidad
+
+**Configuración.** Dos parámetros: \( p_1 \in [a_1, b_1] \) con \( N_1 \) puntos, \( p_2 \in [a_2, b_2] \) con \( N_2 \) puntos. Para cada par \( (p_1^i, p_2^j) \) se calcula la métrica de estabilidad (PM, \( \|S\|_\infty \), \( \max\mathrm{Re}(\lambda) \)) y se almacena en una matriz \( N_2 \times N_1 \).
+
+**Visualización:**
+
+```python
+KP, TI = np.meshgrid(Kp_arr, Ti_arr)
+PM = calcular_pm(KP, TI)  # vectorizado o con doble bucle
+plt.contourf(Kp_arr, Ti_arr, PM, levels=20, cmap='RdYlGn')
+plt.contour(Kp_arr, Ti_arr, PM, levels=[45], colors='white', lw=2)  # frontera PM=45°
+```
+
+**La línea de nivel \( \max\mathrm{Re}(\lambda)=0 \)** (o \( PM=45° \)) es la frontera de estabilidad: divide el espacio de parámetros en región estable y región inestable.
+
+**Coste computacional.** El barrido 2D tiene coste \( O(N_1 N_2) \) evaluaciones. Para \( N_1 = N_2 = 50 \), son 2500 evaluaciones de eigenvalores. Si cada evaluación tarda \( 1\,\text{ms} \), el total es \( \approx 2.5\,\text{s} \). Para modelos más costosos, paralelizar con `concurrent.futures.ProcessPoolExecutor` o `joblib.Parallel`.
+
+## 5 — Optimización paramétrica del controlador
+
+**Formulación.** El problema de diseño óptimo del controlador puede plantearse como:
+
+$$ \min_{K_p, T_i} \|T(s)\|_\infty \quad \text{sujeto a} \quad PM > 45°, \quad \omega_c > \omega_{min} $$
+
+donde \( T = (I+GC)^{-1}GC \) es la función de transferencia de lazo cerrado.
+
+**Algoritmo de optimización global.** Para evitar mínimos locales, usar `scipy.optimize.differential_evolution`:
+
+```python
+from scipy.optimize import differential_evolution
+bounds = [(0.1, 100), (0.001, 1)]   # [Kp, Ti]
+result = differential_evolution(objetivo, bounds, tol=1e-4, seed=42)
+```
+
+**Espacio de búsqueda.** Para un PI de corriente de VSC:
+- \( K_p \in [0.1, 100] \): rango de una decade antes y después del valor nominal
+- \( T_i \in [0.001, 1]\,\text{s} \): desde control muy agresivo (1 ms) a muy lento (1 s)
+
+**Post-proceso.** Trazar la curva de Pareto entre velocidad de respuesta (\( \omega_c \)) y robustez (\( PM \)) permite elegir el punto de diseño óptimo según el requisito del sistema. Un PM alto suele costar ancho de banda.
+
+## 6 — Barrido en lazo de hardware en el loop (HiL)
+
+**Automatización.** Python puede controlar un simulador en tiempo real (OPAL-RT, Typhoon HiL) vía scripting para lanzar barridos automáticos de parámetros del controlador:
+1. Escribir el parámetro \( K_p \) en el registro del simulador.
+2. Ejecutar la simulación durante \( T_{sim} \) segundos.
+3. Capturar las formas de onda y calcular el PM/sobreoscilación.
+4. Repetir para el siguiente punto del barrido.
+
+**Almacenamiento.** Con `h5py`, las matrices de resultados se guardan en formato HDF5, eficiente para lectura/escritura de grandes arrays numéricos:
+
+```python
+import h5py
+with h5py.File('barrido_kp.h5', 'w') as f:
+    f.create_dataset('Kp', data=Kp_arr)
+    f.create_dataset('PM', data=PM_arr)
+    f.create_dataset('escalones', data=escalones_3D)  # shape: (N_Kp, N_t)
+```
+
+**Criterio de parada automático.** Si un punto del barrido produce oscilación sostenida (indicada por \( \max\mathrm{Re}(\lambda) > 0 \) o por la amplitud de las formas de onda superando un umbral), el punto se marca como inestable y el barrido continúa sin interrumpirse. Esto permite mapear toda la frontera de estabilidad, no solo la región segura.

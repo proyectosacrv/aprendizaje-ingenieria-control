@@ -92,3 +92,70 @@ Malla logarítmica (p.ej. 0.1 Hz–5 kHz, 300–2000 puntos). Usar `solve`, no `
 
 ## Referencias
 - Skogestad, Postlethwaite, *Multivariable Feedback Control*, 2005.
+
+---
+
+## 3 — De la representación en espacio de estados a la FdT
+
+La función de transferencia del sistema \( \dot{x}=Ax+Bu \), \( y=Cx+Du \) se obtiene en el dominio de Laplace por:
+
+$$ \mathbf{G}(s) = \mathbf{C}(s\mathbf{I}-\mathbf{A})^{-1}\mathbf{B} + \mathbf{D} $$
+
+**Evaluación numérica eficiente.** Para cada frecuencia \( \omega \), en lugar de invertir explícitamente la matriz, se resuelve el sistema lineal:
+
+$$ (j\omega \mathbf{I} - \mathbf{A})\,\mathbf{X} = \mathbf{B}\mathbf{U} \quad\Rightarrow\quad \mathbf{G}(j\omega) = \mathbf{C}\,\mathbf{X} + \mathbf{D} $$
+
+En Python: `X = np.linalg.solve(1j*w*np.eye(n) - A, B)` seguido de `G = C @ X + D`. Esto evita la inversión matricial simbólica y es numéricamente más estable (factorización LU directa).
+
+**Sistema MIMO.** Para un sistema de \( p \) salidas y \( m \) entradas, \( \mathbf{G}(j\omega) \) es una matriz \( p\times m \). El elemento \( G_{ij}(j\omega) \) es la respuesta en frecuencia desde la entrada \( j \) a la salida \( i \). En el convertidor VSC en coordenadas dq, la planta es \( 2\times2 \) con acoplamiento cruzado.
+
+<div class="cfig"><img src="../figuras/respuesta-frecuencia-ss-analisis.png" alt="Respuesta en frecuencia desde espacio de estados"><div class="cap">Panel superior izquierdo: Bode calculado directamente con np.linalg.solve. Superior derecho: valores singulares de planta MIMO 2×2. Inferior izquierdo: pérdida de fase por retardo de cómputo Td. Inferior derecho: validación modelo vs medida con ruido.</div></div>
+
+## 4 — Diagrama de Bode desde matrices de estado
+
+**Algoritmo.** Para cada frecuencia \( \omega_k \) de la malla logarítmica \( [\omega_{min}, \omega_{max}] \):
+
+1. Resolver \( (j\omega_k I - A) X_k = B \) con `np.linalg.solve`.
+2. Calcular \( G_k = C X_k + D \).
+3. Extraer módulo: \( |G_k| \) (dB = \( 20\log_{10}|G_k| \)); fase: \( \angle G_k \) (grados).
+
+**Margen de fase.** Se busca la frecuencia de cruce de ganancia \( \omega_c \) donde \( |G(j\omega_c)| = 1 \):
+
+$$ PM = 180° + \angle G(j\omega_c) $$
+
+**Margen de ganancia.** Se busca \( \omega_{pc} \) donde \( \angle G(j\omega_{pc}) = -180° \):
+
+$$ GM = \frac{1}{|G(j\omega_{pc})|} \quad (\text{en dB: } -20\log_{10}|G(j\omega_{pc})|) $$
+
+**Herramienta alternativa.** `scipy.signal.bode(sys)` acepta instancias de `StateSpace` o `TransferFunction` y devuelve arrays de magnitud y fase. Para MIMO usar la evaluación directa con `solve`.
+
+## 5 — Respuesta en frecuencia de convertidores
+
+**Modelo dq del VSC.** La planta en coordenadas dq es una matriz \( 2\times2 \) con acoplamiento cruzado:
+
+$$ G_{dq}(j\omega) = \frac{1}{R+j\omega L}\begin{bmatrix}1 & -j\omega_0 L/R \\ j\omega_0 L/R & 1\end{bmatrix} \approx \frac{1}{R+j\omega L} \mathbf{I}_{2\times2} + \text{acoplamiento} $$
+
+El término fuera de la diagonal es \( \pm\omega_0 L \), que a \( f=50\,\text{Hz} \) equivale a una reactancia significativa.
+
+**Desacoplamiento feedforward.** Se añaden términos \( \pm\omega_0 L \, i_{q,d} \) a la salida del regulador para cancelar el acoplamiento cruzado. La planta desacoplada es diagonal, lo que simplifica el diseño del PI de corriente a dos lazos SISO independientes.
+
+**Respuesta en frecuencia del lazo cerrado.** El pico de resonancia \( M_p = \|T\|_\infty \) (donde \( T=(I+GC)^{-1}GC \)) está relacionado con el margen de fase por \( M_p \approx 1/(2\zeta) \). Un pico \( > 6\,\text{dB} \) indica margen de fase \( < 29° \): problema de robustez ante variación de inductancia.
+
+**Medición experimental.** En operación real se inyecta una señal de frecuencia variable en la referencia \( v_{ref} \) o \( i_{ref} \) y se mide la respuesta; la relación entrada-salida construye el Bode medido.
+
+## 6 — Validación cruzada modelo-medida
+
+**Procedimiento.** Se inyecta una perturbación senoidal de amplitud pequeña (1-5% del nominal) en la referencia y se mide la respuesta en estado estacionario. La relación fasorial a cada frecuencia construye el Bode experimental.
+
+**Criterio de aceptación.** Diferencias \( > 3\,\text{dB} \) en ganancia o \( > 15° \) en fase indican un error de modelado: posibles causas son el retardo de cómputo/modulación no modelado, saturaciones activas, o no-linealidades del convertidor.
+
+**Retardo de cálculo.** Un retardo puro \( T_d \) añade fase:
+
+$$ G_{delay}(s) = e^{-sT_d} \approx \frac{1-sT_d/2}{1+sT_d/2} \quad\text{(aproximación de Padé primer orden)} $$
+
+A \( f_c = 1\,\text{kHz} \) y \( T_d = 100\,\mu\text{s} \), la pérdida de fase es \( \Delta\phi = 2\pi f_c T_d \cdot 180°/\pi \approx 36° \): impacto severo que debe incluirse en el modelo.
+
+**Fuentes de discrepancia típicas:**
+- Retardo de muestreo y ZOH: \( \approx T_s/2 \) adicional.
+- Filtros antialiasing del ADC: atenúan la respuesta cerca de \( f_s/4 \).
+- Saturación del modulador PWM: modifica la ganancia efectiva a amplitudes grandes.

@@ -111,3 +111,181 @@ mag = 2*np.abs(X)/np.sum(np.hanning(len(x)))   # amplitud corregida por ventana
 ## Referencias
 - Oppenheim, Schafer, *Discrete-Time Signal Processing*.
 - Harris, *On the Use of Windows for Harmonic Analysis with the DFT*, 1978.
+
+## 3 — Resolución, leakage y ventanas espectrales
+
+La **resolución frecuencial** \( \Delta f = f_s/N \) es el inverso de la duración total de la ventana \( T = N/f_s \). Para resolver dos tonos separados \( \delta f = 5\,\text{Hz} \) (e.g., 50 Hz y 55 Hz): \( T > 1/\delta f = 200\,\text{ms} \Rightarrow N > 200\,\text{ms} \times f_s \).
+
+**Comparativa de ventanas:**
+
+| Ventana | Lóbulo principal | Lóbulo lateral | Uso |
+|---|---|---|---|
+| Rectangular | Más estrecho (1 bin) | -13 dB | Solo si la señal es coherente |
+| Hann (Hanning) | 2 bins | -31 dB | Uso general, armónicos de red |
+| Hamming | 2 bins | -41 dB | Comunicaciones |
+| Blackman | 3 bins | -57 dB | Cuando el leakage es crítico |
+| Flat-top | 4 bins | -93 dB | Calibración de amplitudes |
+
+**Corrección de amplitud:** cada ventana atenúa la señal; la amplitud del pico debe dividirse por la **ganancia coherente** CG \( = \sum_n w_n / N \):
+- Rectangular: CG = 1.0
+- Hann: CG = 0.5
+- Blackman: CG ≈ 0.42
+
+$$ A_k = \frac{2|X_k|}{N \cdot \text{CG}} = \frac{2|X_k|}{\sum_n w_n} $$
+
+Sin esta corrección, la THD calculada puede estar subestimada en un factor de 2 (para ventana Hann).
+
+## 4 — STFT y espectrograma: análisis tiempo-frecuencia
+
+La **STFT (Short-Time Fourier Transform)** aplica la FFT a ventanas deslizantes de longitud \( L \) con solapamiento \( H \) (hop size), obteniendo un espectro local para cada posición temporal:
+
+$$ X(n, k) = \sum_{m=0}^{L-1} x(nH + m)\, w(m)\, e^{-j2\pi km/L} $$
+
+El **compromiso tiempo-frecuencia** es fundamental: ventanas cortas (\( L \) pequeño) dan buena resolución temporal pero mala frecuencial; ventanas largas dan buena resolución frecuencial pero mala temporal. Este trade-off es el principio de incertidumbre de Heisenberg-Gabor:
+
+$$ \Delta t \cdot \Delta f \geq \frac{1}{4\pi} $$
+
+**Parámetros típicos para análisis de convertidores:**
+- Resolución frecuencial < 5 Hz: \( L > f_s / 5 \). Para \( f_s = 10\,\text{kHz} \): \( L > 2000 \) muestras.
+- Resolución temporal < 10 ms: \( H < 100 \) muestras.
+- Solapamiento del 75%: buen compromiso entre densidad temporal y suavidad del espectrograma.
+
+**Aplicación:** detectar interarmónicos (frecuencias no múltiplo de \( f_1 \)) en convertidores durante transitorios, e.g., la frecuencia de oscilación de un modo SSO (Sub-Synchronous Oscillation) que aparece durante un transitorio de red.
+
+## 5 — Welch y PSD: estimación robusta del espectro de potencia
+
+El **periodograma de Welch** reduce la varianza del estimador espectral dividiendo la señal en \( K \) segmentos con solapamiento del 50%, calculando el periodograma de cada uno y promediando:
+
+$$ \hat{S}_{Welch}(f_k) = \frac{1}{K} \sum_{i=1}^{K} |X_i(f_k)|^2 $$
+
+La varianza del estimador se reduce en un factor \( \approx K/1.5 \) respecto al periodograma simple (el 1.5 es el factor de solapamiento del 50%). Con \( K = 10 \) segmentos, la varianza se reduce ~6.7 veces, equivalente a la desviación estándar dividida por \( \sqrt{6.7} \approx 2.6 \).
+
+**PSD (Power Spectral Density):** el Welch da la PSD en unidades de \( \text{V}^2/\text{Hz} \) o \( \text{A}^2/\text{Hz} \). Para señales de ruido estacionario es el estimador estándar; para armónicos deterministas, el periodograma de una sola ventana larga es mejor (no tiene ruido aleatorio que promediar).
+
+```python
+from scipy.signal import welch
+f, Pxx = welch(x, fs=fs, window='hann', nperseg=1024, noverlap=512)
+# Pxx en V²/Hz; para amplitud RMS: sqrt(Pxx * df)
+```
+
+## 6 — SSO e interarmónicos en convertidores PWM
+
+Los convertidores de potencia generan un espectro específico que el análisis FFT debe identificar correctamente:
+
+**Armónicos de conmutación:** en un VSC de dos niveles con portadora triangular a \( f_{sw} \), el espectro de la tensión de salida (antes del filtro) tiene componentes a:
+
+$$ f_{h} = m \cdot f_{sw} \pm n \cdot f_1, \quad m = 1, 2, 3, \ldots;\; n = 0, 1, 2, \ldots $$
+
+Las bandas laterales más importantes son \( f_{sw} \pm 2f_1 \) (índice de modulación impar) y \( 2f_{sw} \pm f_1 \).
+
+**Interarmónicos y SSO:** las oscilaciones sub-síncronas (SSO) generan componentes a frecuencias como \( f_1 \pm f_{SSO} \) (p.ej. 50 ± 12 Hz = 38 Hz y 62 Hz). Estas componentes no son múltiplos de \( f_1 \) — son interarmónicos. Para detectarlas se necesita \( \Delta f < f_{SSO}/10 \approx 1.2\,\text{Hz} \Rightarrow T > 833\,\text{ms} \) de registro.
+
+**Ventana de 10 ciclos (IEC 61000-4-7):** para medición normativa de armónicos de red, se usa una ventana de exactamente 10 ciclos de \( f_1 \) (200 ms a 50 Hz). Esta es la ventana de muestreo coherente que pone toda la energía fundamental en un único bin y separa perfectamente los armónicos 50, 100, 150... Hz.
+
+$$ \boxed{T_{ventana} = 10/f_1 = 200\,\text{ms (50 Hz)};\quad \Delta f = 1/T = 5\,\text{Hz};\quad\text{armónicos en bins }k=1,2,3,\ldots} $$
+
+<div class="cfig"><img src="../figuras/fft-analisis-espectral-analisis.png" alt="comparativa ventanas, espectrograma STFT, PSD Welch y espectro de convertidor PWM"><div class="cap">Análisis espectral avanzado: comparativa de ventanas (Rectangular vs Hann vs Blackman) mostrando el leakage, espectrograma STFT de un transitorio, PSD de Welch vs periodograma simple, y espectro de un convertidor PWM con armónicos de conmutación y bandas laterales.</div></div>
+
+## 7 — Implementacion Python completa para medicion normativa de THD
+
+```python
+import numpy as np
+
+def calcular_thd_normativo(i_pcc, fs, f1=50.0, N_ciclos=10, h_max=50):
+    """
+    Calcula THD de corriente segun IEC 61000-4-7 con ventana de N ciclos.
+
+    Parametros
+    ----------
+    i_pcc : array, corriente en el PCC muestreada a fs Hz
+    fs    : float, frecuencia de muestreo (Hz)
+    f1    : float, frecuencia fundamental (Hz, def. 50)
+    N_ciclos : int, numero de ciclos de f1 en la ventana (def. 10)
+    h_max : int, maximo orden armonico a calcular (def. 50)
+
+    Retorna
+    -------
+    dict con: THD_pct, I1, Ih (array de amplitudes), frecuencias
+    """
+    N = int(round(N_ciclos * fs / f1))
+    if len(i_pcc) < N:
+        raise ValueError(f"Se necesitan >= {N} muestras, se tienen {len(i_pcc)}")
+
+    # usar el ultimo bloque de N muestras (regimen permanente)
+    x = i_pcc[-N:]
+
+    # muestreo coherente si fs es multiplo de f1 (ideal)
+    # de lo contrario, ventana Hann para reducir leakage
+    coherente = abs((fs / f1) - round(fs / f1)) < 0.01
+    if coherente:
+        w = np.ones(N)
+        ganancia = N
+    else:
+        w = np.hanning(N)
+        ganancia = np.sum(w)
+
+    X = np.fft.rfft(x * w)
+    f_bins = np.fft.rfftfreq(N, 1.0/fs)
+    amps = 2.0 * np.abs(X) / ganancia
+
+    # fundamental
+    idx1 = np.argmin(np.abs(f_bins - f1))
+    I1 = amps[idx1]
+
+    # armonicos 2..h_max
+    Ih = np.zeros(h_max - 1)
+    f_harm = np.zeros(h_max - 1)
+    for h in range(2, h_max + 1):
+        fh = h * f1
+        idx_h = np.argmin(np.abs(f_bins - fh))
+        Ih[h - 2] = amps[idx_h]
+        f_harm[h - 2] = fh
+
+    THD_pct = np.sqrt(np.sum(Ih**2)) / I1 * 100
+
+    return {
+        'THD_pct': THD_pct,
+        'I1': I1,
+        'Ih': Ih,
+        'f_harm': f_harm,
+        'pass_thd': THD_pct < 5.0,
+        'pass_individual': all(Ih[:9] / I1 * 100 < 4.0),  # h<11: limite 4%
+        'coherente': coherente,
+    }
+
+# Verificar cumplimiento IEEE 519-2022
+def verificar_ieee519(Ih_pct, h_orders, Isc_IL_ratio):
+    """
+    Compara cada armonico con el limite individual de IEEE 519-2022.
+    Isc_IL_ratio = I_cortocircuito / I_carga
+    """
+    if Isc_IL_ratio < 20:
+        limites = {(0,11): 4.0, (11,17): 2.0, (17,23): 1.5, (23,35): 0.6, (35,1000): 0.3}
+    elif Isc_IL_ratio < 50:
+        limites = {(0,11): 7.0, (11,17): 3.5, (17,23): 2.5, (23,35): 1.0, (35,1000): 0.5}
+    else:
+        limites = {(0,11): 12.0, (11,17): 5.5, (17,23): 5.0, (23,35): 2.0, (35,1000): 1.0}
+
+    resultados = []
+    for h, Ih in zip(h_orders, Ih_pct):
+        lim = next(v for (a,b), v in limites.items() if a < h <= b)
+        resultados.append({'h': h, 'Ih_pct': Ih, 'limite': lim, 'pass': Ih <= lim})
+    return resultados
+```
+
+## 8 — Aplicacion en medicion de impedancia por inyeccion
+
+La FFT es la base del metodo de medicion de impedancia por inyeccion de pequena senal (ver [[medicion-impedancia-inyeccion]]). El proceso es:
+
+1. Inyectar una senal de perturbacion de pequena amplitud \( v_{inj}(t) = A_{inj} \sin(2\pi f_{inj} t) \) en el lazo de tension o de corriente.
+2. Medir la respuesta \( \Delta v(t) \) y \( \Delta i(t) \) con alta resolucion frecuencial.
+3. Calcular la impedancia en la frecuencia de inyeccion:
+
+$$ Z(f_{inj}) = \frac{\Delta V(f_{inj})}{\Delta I(f_{inj})} = \frac{\text{FFT}[\Delta v](f_{inj})}{\text{FFT}[\Delta i](f_{inj})} $$
+
+La precision del resultado depende de:
+- **Amplitud de la inyeccion:** debe ser suficientemente pequena para no excitar la no linealidad (\( < 5\,\% \) de la amplitud de la fundamental) pero suficientemente grande para tener una buena SNR (\( > 20\,\text{dB} \)).
+- **Coherencia de la ventana:** el numero de periodos de la senal de inyeccion en la ventana debe ser entero para evitar leakage.
+- **Promediado:** promediar varias mediciones reduce la varianza del estimador y elimina el efecto del ruido de medicion.
+
+La funcion `calcular_thd_normativo` anterior puede adaptarse directamente para la medicion de impedancia cambiando la senyal de entrada por \( \Delta v \) o \( \Delta i \).

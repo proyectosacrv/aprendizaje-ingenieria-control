@@ -109,6 +109,65 @@ def bus_dc_dynamics(vdc, P1, P2, C, Ploss=0.0):
   perturbación y oscila.
 - Chopper de frenado ausente: ante hueco de red el lado-red no evacúa y \( V_{dc} \) se dispara.
 
+## 3 — Modelo en dq del back-to-back
+
+Cada VSC se modela en el marco de referencia dq síncrono (ver [[marco-dq]]). Para el VSC1 (grid-side converter, GSC), la ecuación vectorial del filtro de acoplamiento \( L \) con resistencia de pérdidas \( R \) es:
+
+$$ L\,\frac{d}{dt}\begin{pmatrix}i_d\\i_q\end{pmatrix} = \begin{pmatrix}v_{d,conv}\\v_{q,conv}\end{pmatrix} - \begin{pmatrix}v_{d,grid}\\v_{q,grid}\end{pmatrix} - \begin{pmatrix}R & -\omega_0 L\\ \omega_0 L & R\end{pmatrix}\begin{pmatrix}i_d\\i_q\end{pmatrix} $$
+
+Los términos de acoplamiento cruzado \( \pm\omega_0 L i_{q,d} \) se cancelan con desacoplo feedforward (ver [[desacoplo-dq]]), reduciendo cada eje a un lazo PI independiente. El reparto habitual de tareas es:
+
+- **VSC1 (GSC):** regula la tensión del bus DC (eje d) y la potencia reactiva hacia la red (eje q). La referencia de corriente \( i_d^* \) viene del lazo externo de \( V_{dc} \).
+- **VSC2 (MSC, machine-side converter):** regula el par eléctrico y el flujo (si es una máquina síncrona de imanes permanentes, PMSG) o la tensión y frecuencia de una carga pasiva. Su referencia de par sigue la curva MPPT del generador.
+
+El desacoplo entre VSC1 y VSC2 es completo a nivel eléctrico: el único nexo es la potencia que fluye por el bus DC.
+
+## 4 — Control del bus DC
+
+La variable de control natural del bus DC es \( v_{dc}^2 \) (proporcional a la energía), cuya dinámica es lineal respecto a la potencia:
+
+$$ \frac{d}{dt}\left(\frac{1}{2}C_{dc}v_{dc}^2\right) = P_{VSC1} - P_{losses} - P_{VSC2} $$
+
+Definiendo \( w = v_{dc}^2 \), la planta del lazo de tensión DC es un integrador puro: \( \dot{w} = (2/C_{dc})(P_{in} - P_{out}) \). Un controlador PI con esta planta es el diseño estándar:
+
+$$ i_{d,VSC1}^* = \frac{C_{dc}}{2V_{dc0}}\left(K_p(v_{dc}^*{}^2 - v_{dc}^2) + K_i\int(v_{dc}^*{}^2 - v_{dc}^2)\,dt\right) $$
+
+**Balance de potencia:** \( P_{VSC1} + P_{VSC2} = P_{losses} \). En régimen permanente, el GSC debe evacuar exactamente la potencia que inyecta el MSC. Cualquier desbalance deriva \( v_{dc} \).
+
+**Separación de escalas:** el ancho de banda del lazo DC debe ser unas 10 veces menor que el del lazo de corriente:
+
+$$ \omega_{dc} \approx \frac{\omega_{ci}}{10} $$
+
+Esta separación garantiza que cuando el lazo DC genera una referencia de corriente \( i_d^* \), el lazo de corriente ya está establecido y la corriente real sigue fielmente la referencia. Si los anchos de banda se solapan, el lazo DC ve la dinámica del lazo de corriente como parte de su planta y el diseño del PI se complica.
+
+## 5 — Aplicación en eólica DFIG y PMSG
+
+El back-to-back es la topología estándar para aerogeneradores de velocidad variable de potencia media-alta:
+
+**PMSG (generador síncrono de imanes permanentes):** el VSC2 rectifica la potencia del generador operando a velocidad variable (seguimiento MPPT con par \( T_{ref} = K_{opt}\omega_r^2 \)). El VSC1 inyecta potencia a la red a frecuencia fija (50 Hz), manteniendo el bus DC. Todo el flujo de potencia pasa por el back-to-back: es un **full-converter** (Tipo 4). El desacoplo es total: la frecuencia del generador es independiente de la de la red.
+
+**DFIG (generador de inducción doblemente alimentado):** solo una fracción de la potencia total (la potencia de deslizamiento \( P_{slip} = s \cdot P_{total} \), con \( s \) el deslizamiento, típ. ±30 %) fluye por el back-to-back vía el rotor. El estátor se conecta directamente a la red. Esto reduce el tamaño del convertidor al 30 % de la potencia nominal, una ventaja económica importante en aerogeneradores multi-MW.
+
+**FRT (Fault Ride-Through):** durante un hueco de tensión de red, el VSC1 no puede evacuar potencia (la tensión de red es baja); el bus DC sube. Las estrategias son:
+1. **Chopper de freno (braking resistor):** disipa el exceso de potencia en una resistencia conectada al bus DC, limitando la sobretensión.
+2. **Limitación de potencia del VSC2:** reduce \( P_{VSC2} \) para no sobrecargar el bus DC; implica reducir el par del generador y cambiar el punto de operación.
+
+## 6 — Pérdidas y eficiencia
+
+Las pérdidas de un VSC se dividen en dos componentes principales:
+
+**Pérdidas de conducción** en los semiconductores (IGBT, SiC MOSFET): proporcionales a \( I^2 R_{on} \), donde \( R_{on} \) es la resistencia de conducción en directa. Dominan a alta corriente (alta carga).
+
+**Pérdidas de conmutación** proporcionales a la energía por conmutación \( E_{sw} \) y a la frecuencia de conmutación \( f_s \): \( P_{sw} = E_{sw} \cdot f_s \). Dominan a alta frecuencia y a tensión de bus elevada.
+
+**Pérdidas de cobre** en el filtro de acoplamiento: \( P_{Cu} = R_{filtro} \cdot \langle i^2 \rangle \), donde \( \langle i^2 \rangle \) es el valor cuadrático medio de la corriente, incluyendo el rizado de conmutación.
+
+La eficiencia típica es del 97–98 % por convertidor individual, lo que da una eficiencia total del back-to-back de 94–96 %. Este valor depende fuertemente de la frecuencia de conmutación, la tecnología de semiconductores (Si vs SiC) y el punto de carga.
+
+**Gestión térmica:** la temperatura de unión \( T_j \) de los semiconductores debe mantenerse por debajo de \( T_{j,max} \) (tipicalmente 150–175 °C para Si, 175–200 °C para SiC). La resistencia térmica unión-disipador \( R_{th,j-h} \) fija la temperatura de unión: \( T_j = T_{h} + P_{loss} \cdot R_{th,j-h} \). El límite térmico, no el eléctrico, es frecuentemente el que impone la corriente máxima continua del convertidor.
+
+<div class="cfig"><img src="../figuras/convertidor-back-to-back-analisis.png" alt="Modelo y control del convertidor back-to-back: esquema de potencias, bus DC, eficiencia y FRT"><div class="cap">Cuatro paneles: esquema de flujo de potencia del back-to-back con VSC1 y VSC2; respuesta de la tensión del bus DC ante un escalón de referencia; curva de eficiencia en función de la carga para cada convertidor y el sistema completo; comportamiento de potencias y tensión DC durante un hueco de tensión (FRT).</div></div>
+
 ## Conceptos relacionados
 - [[convertidor-vsc]] · [[dinamica-bus-dc]] · [[control-tension-bus-dc]] · [[eolica-mppt]]
 

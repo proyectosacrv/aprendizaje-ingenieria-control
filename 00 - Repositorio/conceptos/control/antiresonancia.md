@@ -132,8 +132,272 @@ Regla de oro de colocación: el par de ceros (valle) debe quedar por debajo del 
 - Realimentar i1 (lado fuente) controla bien esa corriente pero deja la corriente de red i2 (la que de verdad importa para la red) regulada solo de forma indirecta; suele necesitarse un lazo externo más lento sobre i2 o sobre la tensión.
 - En digital, el retardo de cómputo desplaza la fase y puede comerse la ventaja del cero si la antiresonancia está muy cerca de la frecuencia de Nyquist.
 
+## 3 — La antiresonancia en el LCL: de dónde sale \( f_{ar}=1/(2\pi\sqrt{L_2C_f}) \)
+
+La admitancia de entrada del filtro LCL vista desde \( v_i \) —es decir, la transferencia \( i_1/v_i \)— tiene un cero (un valle en el Bode) a la frecuencia donde la rama \( C_f \) en **paralelo** con \( L_2 \) presenta impedancia infinita, bloqueando el flujo de \( i_1 \).
+
+**Circuito equivalente en pequeña señal.** Anulando la fuente de red (\( v_{PCC}\to0 \)), el nudo intermedio del LCL ve \( C_f \) en paralelo con \( L_2 \) (más sus resistencias parásitas). La admitancia de ese paralelo es:
+
+$$ Y_{par}(s) = sC_f + \frac{1}{sL_2 + R_2} = \frac{1 + s C_f R_2 + s^2 L_2 C_f}{sL_2 + R_2} $$
+
+El numerador de \( i_1/v_i \) es proporcional a \( Y_{par} \), así que sus ceros coinciden con los ceros del numerador de \( Y_{par} \):
+
+$$ 1 + s^2 L_2 C_f = 0 \;\;(\text{sin } R_2) \;\Rightarrow\; s = \pm j\omega_{ar}, \quad \omega_{ar} = \frac{1}{\sqrt{L_2 C_f}} $$
+
+$$ \boxed{f_{ar} = \frac{1}{2\pi\sqrt{L_2 C_f}}} $$
+
+**Por qué solo \( L_2 \) y \( C_f \), no \( L_1 \).** La inductancia \( L_1 \) está en serie con el nudo: su valor desplaza la frecuencia de resonancia \( f_{res} \) pero **no** cambia dónde se anula la admitancia del paralelo \( C_f\|L_2 \). Por eso \( f_{ar} \) depende únicamente de \( L_2 \) y \( C_f \).
+
+**Relación con la resonancia.** La pulsación de resonancia del LCL es \( \omega_{res} = \sqrt{(L_1+L_2)/(L_1 L_2 C_f)} \). El ratio:
+
+$$ \frac{f_{res}}{f_{ar}} = \frac{\omega_{res}}{\omega_{ar}} = \frac{\sqrt{(L_1+L_2)/(L_1 L_2 C_f)}}{1/\sqrt{L_2 C_f}} = \sqrt{\frac{(L_1+L_2)L_2}{L_1 L_2}} = \sqrt{1 + \frac{L_2}{L_1}} $$
+
+Espera — ese sería \( \sqrt{1+L_2/L_1} \). Re-haciendo: \( \omega_{res}/\omega_{ar} = \sqrt{(L_1+L_2)/(L_1 L_2 C_f)} \cdot \sqrt{L_2 C_f} = \sqrt{(L_1+L_2)/(L_1)} = \sqrt{1+L_2/L_1} \). Alternativamente, con \( r = L_2/L_1 \):
+
+$$ \frac{f_{res}}{f_{ar}} = \sqrt{1 + \frac{L_2}{L_1}} = \sqrt{1+r} \quad \Rightarrow \quad f_{ar} < f_{res}\text{ siempre (el valle precede al pico)} $$
+
+## 4 — La antiresonancia vs resonancia: la ratio \( f_{res}/f_{ar} \)
+
+**Demostración paso a paso.**
+
+*Paso 1.* \( f_{ar} = \frac{1}{2\pi\sqrt{L_2 C_f}} \) (del cero del numerador de \( i_1/v_i \)).
+
+*Paso 2.* \( f_{res} = \frac{1}{2\pi}\sqrt{\frac{L_1+L_2}{L_1 L_2 C_f}} \) (del par de polos del denominador común del LCL).
+
+*Paso 3.* La ratio:
+
+$$ \frac{f_{res}}{f_{ar}} = \frac{\sqrt{(L_1+L_2)/(L_1 L_2 C_f)}}{1/\sqrt{L_2 C_f}} = \sqrt{\frac{(L_1+L_2) L_2 C_f}{L_1 L_2 C_f}} = \sqrt{\frac{L_1+L_2}{L_1}} = \sqrt{1+\frac{L_2}{L_1}} $$
+
+*Paso 4.* Sea \( r = L_2/L_1 \). Entonces \( f_{res}/f_{ar} = \sqrt{1+r} > 1 \) para todo \( r > 0 \), lo que confirma que **siempre \( f_{ar} < f_{res} \)**.
+
+**Implicación de diseño.** Para que el repunte de fase de los ceros llegue justo antes del pico de los polos, conviene que la ratio sea cercana a 1 (cero y polo próximos). Eso ocurre cuando \( r = L_2/L_1 \ll 1 \), es decir, \( L_2 \ll L_1 \). En la práctica se usa \( L_2 \approx L_1/4 \) a \( L_1/3 \), que da \( f_{res}/f_{ar} \approx 1.12 \) a \( 1.15 \): el valle y el pico están separados apenas un 12–15 %, suficientemente juntos para que el repunte de fase ayude, pero separados para distinguirlos.
+
+## 5 — La antiresonancia como filtro natural y comparación con el notch activo
+
+**La antiresonancia natural ya atenúa sin componentes adicionales.** A la frecuencia \( f_{ar} \), la corriente \( i_1 \) cae a un mínimo (teóricamente cero sin resistencias, muy bajo con resistencias parásitas). Esto significa que **el armónico de frecuencia \( f_{ar} \) ya se atenúa por sí solo** en la fuente del convertidor, sin añadir ningún filtro externo. Si un armónico de conmutación cae cerca de \( f_{ar} \), el LCL ya lo rechaza de forma natural.
+
+**Comparación con el filtro notch activo.**
+
+| Aspecto | Antiresonancia natural del LCL | Notch activo en el lazo |
+|---|---|---|
+| Implementación | Gratis: resultado de los componentes L2, Cf | Requiere diseño e implementación software |
+| Posición | Fija: \( f_{ar}=1/(2\pi\sqrt{L_2C_f}) \) (puede variar con T, tolerancias) | Ajustable por software, puede compensar deriva |
+| Objetivo | Atenúa naturalmente en \( f_{ar} \) | Cancela el pico en \( f_{res} \) o en \( f_{ar} \) según diseño |
+| Qué cancela | El flujo de corriente \( i_1 \) a \( f_{ar} \) | El pico de resonancia del lazo |
+| Efecto en fase | Aporta +180° de fase al cruzar \( f_{ar} \) | Añade un par de ceros donde se coloca |
+| Robustez | Depende de tolerancias de L2 y Cf | Puede re-sintonizarse si cambian los parámetros |
+
+El notch activo puede colocarse exactamente en \( f_{ar} \) para profundizar la atenuación natural, o en \( f_{res} \) para cancelar el pico de resonancia. La antiresonancia natural es la primera línea de defensa; el notch es la segunda, más precisa pero más compleja.
+
+## 6 — Diseño iterativo: LCL con L₁=2mH, L₂=0.5mH, Cf=10µF
+
+Parámetros del proyecto 01: \( L_1=2\,\text{mH} \), \( L_2=0.5\,\text{mH} \), \( C_f=10\,\mu\text{F} \), \( f_{sw}=10\,\text{kHz} \), \( T_s=100\,\mu\text{s} \).
+
+**Paso 1 — calcular \( f_{ar} \).**
+
+$$ f_{ar} = \frac{1}{2\pi\sqrt{0.5\times10^{-3}\cdot10\times10^{-6}}} = \frac{1}{2\pi\sqrt{5\times10^{-9}}} = \frac{1}{2\pi\cdot70.7\times10^{-6}} \approx 2{,}251\,\text{Hz} $$
+
+**Paso 2 — calcular \( f_{res} \).**
+
+$$ f_{res} = \frac{1}{2\pi}\sqrt{\frac{(2+0.5)\times10^{-3}}{2\times0.5\times10^{-6}\cdot10\times10^{-6}}} = \frac{1}{2\pi}\sqrt{\frac{2.5\times10^{-3}}{10^{-8}}} = \frac{1}{2\pi}\sqrt{250000} \approx 2{,}526\,\text{Hz} $$
+
+**Paso 3 — verificar \( f_{ar} < f_{sw}/2 \) y \( f_{res} < f_{sw}/2 \).**
+
+$$ f_{sw}/2 = 5{,}000\,\text{Hz} \quad\Rightarrow\quad f_{ar} = 2{,}251\,\text{Hz} < 5{,}000\,\text{Hz} \;\checkmark \quad f_{res} = 2{,}526\,\text{Hz} < 5{,}000\,\text{Hz} \;\checkmark $$
+
+Ratio: \( f_{res}/f_{ar} = 2526/2251 \approx 1.12 \approx \sqrt{1+L_2/L_1} = \sqrt{1+0.25} = 1.118 \) — verificado.
+
+**Paso 4 — atenuación a \( f_{sw} \).**
+
+Para el LCL sin amortiguamiento, la atenuación asintótica por encima de \( f_{res} \) es −60 dB/dec (tercer orden). A \( f_{sw} = 10\,\text{kHz} \), que está a una década por encima de \( f_{res} \approx 2.5\,\text{kHz} \):
+
+$$ \text{Atenuación} \approx 60\,\text{dB/dec} \times \log_{10}(10000/2526) \approx 60 \times 0.597 \approx 36\,\text{dB} $$
+
+Es decir, el rizado de conmutación a \( f_{sw} \) se atenúa aproximadamente 36 dB (factor ≈ 63) más que la fundamental. Para ondulaciones mayores puede necesitarse aumentar Cf o L2.
+
+<div class="cfig"><img src="../figuras/antiresonancia-analisis.png" alt="Análisis de antiresonancia en el LCL: Bode, admitancia, efecto de L2 y ratio fres/far"><div class="cap">(a) Bode de i_L2/v_i e i_L1/v_i: el pico de resonancia en f_res y el valle en f_ar. (b) Admitancia del paralelo C_f||L_2: el cero coincide con f_ar. (c) Efecto de L_2 en f_ar: reducir L_2 sube la antiresonancia. (d) Ratio f_res/f_ar = √(1+L_2/L_1) siempre mayor que 1.</div></div>
+
+## 7 — Cancelación de polos/ceros en \(\omega_{AR}\): por qué es frágil
+
+La idea más simple de tratar la antiresonancia/resonancia del LCL es cancelar el par polo-cero con un cero-polo del controlador:
+
+$$C(s) \leftarrow C(s)\cdot\frac{s^2 + \omega_{res}^2}{s^2 + 2\zeta_c\omega_{res}s + \omega_{res}^2}$$
+
+**Por qué es frágil:**
+1. La frecuencia \(\omega_{res} = \sqrt{(L_1+L_2)/(L_1 L_2 C_f)}\) depende de \(L_2\) que varía con la inductancia de red \(L_g\). Una variación de \(L_g\) del 50% desplaza \(\omega_{res}\) un 30% → el cero del controlador ya no cancela el polo.
+2. La cancelación de polos/ceros inestables (o polos del semiplano derecho) está prohibida: producen modos ocultos que crecen internamente aunque la salida medida parezca estable.
+3. Los polos resonantes poco amortiguados (\(\zeta < 0.05\)) son cuasi-inestables: pequeñas perturbaciones los excitan y tardan mucho en disiparse incluso "cancelados" por el controlador.
+
+**Alternativa correcta:** en lugar de cancelar, añadir amortiguamiento mediante realimentación o elementos pasivos que muevan los polos hacia la izquierda en el plano complejo.
+
+## 8 — Amortiguamiento activo por realimentación de \(i_{Cf}\): resistencia virtual sin pérdidas
+
+La corriente del condensador \(i_{Cf} = C_f \dot{v}_C\) es proporcional a la derivada de la tensión del condensador. Realimentarla al modulador crea una resistencia virtual en paralelo con \(C_f\):
+
+$$u_{AD} = K_d\,i_{Cf}$$
+
+El efecto en la función de transferencia del LCL: añade un término de amortiguamiento en la resonancia sin resistencia física. El factor de amortiguamiento resultante:
+
+$$\zeta_{AD} \approx \frac{K_d}{2}\sqrt{\frac{C_f}{L_1+L_2}}$$
+
+Para el LCL del proyecto 01 (\(L_1=2\,\text{mH}\), \(L_2=1\,\text{mH}\), \(C_f=20\,\mu\text{F}\), \(\omega_{res}=2\pi\cdot1130\,\text{rad/s}\)):
+
+$$K_d = 2\zeta_{AD}\sqrt{(L_1+L_2)/C_f} = 2\times0.3\times\sqrt{3\times10^{-3}/20\times10^{-6}} = 2\times0.3\times12.25 \approx 7.35\,\Omega$$
+
+**Ventajas:** sin pérdidas; ajustable por software; no añade componentes. **Desventaja:** amplifica el ruido de medición de \(i_{Cf}\); necesita filtrado adecuado.
+
+## 9 — Amortiguamiento por \(\dot{v}_C\): equivalencia y ruido
+
+Realimentar \(\dot{v}_C\) (derivada de la tensión del condensador) equivale a conectar una resistencia en serie con \(C_f\). La equivalencia:
+
+$$R_{d,eq} = K_{dv}\cdot C_f\,\omega_{res}$$
+
+Comparación con \(i_{Cf}\) AD:
+- Ambos mueven los polos resonantes hacia la izquierda.
+- El AD por \(\dot{v}_C\) amplifica el ruido ×10 más que el AD por \(i_{Cf}\) porque la derivada magnifica el contenido de alta frecuencia.
+- Para frecuencias de muestreo bajas (\(f_s < 10f_{res}\)), el AD por \(i_{Cf}\) es más robusto.
+
+**Necesidad de filtrado:** si se usa \(\dot{v}_C\), añadir un filtro paso bajo con \(f_{corte} \approx 3f_{res}\) antes de la ganancia \(K_{dv}\). Esto introduce un retardo adicional que puede reducir el margen de estabilidad.
+
+## 10 — Diseño sistemático del AD: de \(\omega_{res}\) a \(\zeta_{AD}\)
+
+**Algoritmo de diseño:**
+
+1. Calcular la frecuencia de resonancia del LCL:
+$$\omega_{res} = \sqrt{\frac{L_1+L_2}{L_1 L_2 C_f}}$$
+
+2. Fijar el objetivo de amortiguamiento \(\zeta_{AD} \in [0.2, 0.5]\) (valores menores dejan el pico demasiado alto; mayores añaden retardo).
+
+3. Calcular la ganancia de AD:
+$$K_d = 2\zeta_{AD}\sqrt{\frac{L_1+L_2}{C_f}}$$
+
+4. Verificar en el diagrama de Bode que el pico residual es \(< 20\,\text{dB}\) y el margen de fase del lazo de corriente cerrado con AD es \(> 30°\).
+
+5. Verificar la sensibilidad: variar \(C_f\) y \(L_2\) en ±30% y comprobar que \(\zeta_{AD,min} > 0.1\).
+
+**Condición de estabilidad del AD con retardo digital:** la frecuencia de resonancia debe satisfacer \(f_{res} < f_s/6\) para que el retardo de un paso de muestreo no produzca amortiguamiento negativo.
+
+## 11 — Sensibilidad de \(f_{ar}\) a variaciones de parámetros
+
+La frecuencia de antiresonancia \(f_{ar}=1/(2\pi\sqrt{L_2C_f})\) depende de \(L_2\) y \(C_f\). Las fuentes de variación:
+
+- **Tolerancias de fabricación:** los condensadores de film tienen tolerancias ±10–20 %; los inductores bobinados ±5–10 %. Una variación del ±10 % en \(C_f\) desplaza \(f_{ar}\) en \(\mp5\%\).
+- **Inductancia de red \(L_g\):** en algunas formulaciones, \(L_g\) se añade en serie con \(L_2\) modificando la frecuencia de antiresonancia a \(f_{ar}'=1/(2\pi\sqrt{(L_2+L_g)C_f})\). Cuando la red es débil (\(L_g\sim L_2\)), \(f_{ar}\) puede bajar un 30 % respecto al diseño nominal, acercándose peligrosamente al ancho de banda del lazo de corriente.
+- **Temperatura:** la capacidad de los condensadores electrolíticos varía hasta ±30 % con la temperatura. En condensadores de film la variación es menor (<5 %), pero en entornos industriales con temperatura variable sigue siendo relevante.
+
+**Margen de diseño recomendado.** Asegurar que el ancho de banda del lazo de corriente \(f_{ci}\) sea al menos un octavo por debajo de \(f_{ar,min}\):
+
+$$f_{ci} < \frac{f_{ar,min}}{2} = \frac{f_{ar,nom}}{2\sqrt{1+\delta_{L2}+\delta_{Cf}}}$$
+
+donde \(\delta_{L2}\) y \(\delta_{Cf}\) son los máximos incrementos relativos de \(L_2\) y \(C_f\).
+
+## 12 — La antiresonancia en sistemas mecánicos: eje flexible de dos masas
+
+El mismo fenómeno ocurre en accionamientos con acoplamiento elástico entre el motor y la carga (eje flexible). El modelo de dos masas \(J_m,\,J_l\) acopladas por un eje de rigidez \(K_s\):
+
+$$J_m\ddot{\theta}_m = T_m - K_s(\theta_m-\theta_l), \quad J_l\ddot{\theta}_l = K_s(\theta_m-\theta_l) - T_l$$
+
+La función de transferencia de la velocidad del motor \(\omega_m\) a par de motor \(T_m\) tiene un par de ceros (antiresonancia mecánica) en:
+
+$$f_{ar,mec}=\frac{1}{2\pi}\sqrt{\frac{K_s}{J_l}}$$
+
+y un par de polos (resonancia de torsión) en:
+
+$$f_{res,mec}=\frac{1}{2\pi}\sqrt{K_s\left(\frac{1}{J_m}+\frac{1}{J_l}\right)}$$
+
+Por el mismo argumento que en el LCL: realimentar \(\omega_m\) (velocidad del motor, que tiene antiresonancia) es más estable que realimentar \(\omega_l\) (velocidad de la carga, sin antiresonancia) al cerrar el lazo de velocidad.
+
+## 13 — Notch en el lazo de corriente: diseño e impacto en el margen de fase
+
+Cuando la antiresonancia natural del LCL no es suficiente para proteger el margen de fase (p.ej. si \(f_{ar}\approx f_{ci}\)), se añade un filtro notch sintonizado en \(f_{res}\):
+
+$$N(s) = \frac{s^2+2\zeta_n\omega_{res}s+\omega_{res}^2}{s^2+2\zeta_d\omega_{res}s+\omega_{res}^2}, \quad \zeta_n\ll\zeta_d$$
+
+El notch introduce dos ceros cerca de \(j\omega_{res}\) que bajan la ganancia del lazo en esa frecuencia, evitando la inestabilidad. El coste: el notch añade fase negativa fuera de la resonancia. Para \(\zeta_n=0.01\) y \(\zeta_d=0.5\):
+
+- Ganancia en \(f_{res}\): \(-20\log_{10}(\zeta_d/\zeta_n)\approx-34\,\text{dB}\) (el pico queda acotado).
+- Fase adicional en \(f_{ci}\): si \(f_{ci}\ll f_{res}\), la pérdida de fase es despreciable; si \(f_{ci}\approx0.5f_{res}\), la pérdida puede ser 10–20°.
+
+**Criterio de sintonía.** Centrar el notch exactamente en \(f_{res}\) y no en \(f_{ar}\): el notch cancela el pico de resonancia (polos), no el valle de antiresonancia (ceros). Usar \(\zeta_d\approx0.3\text{–}0.5\) para suavizar el impacto en fase; \(\zeta_n\) tan pequeño como el conocimiento de \(f_{res}\) lo permite.
+
+## 14 — Diseño iterativo: elegir entre realimentar i1, i2 o notch en i2
+
+**Situación.** LCL con \(L_1=2\,\text{mH}\), \(L_2=1\,\text{mH}\), \(C_f=10\,\mu\text{F}\): \(f_{ar}=1.59\,\text{kHz}\), \(f_{res}=1.95\,\text{kHz}\). \(f_{sw}=10\,\text{kHz}\), \(f_{ci}=800\,\text{Hz}\).
+
+**Opción A — realimentar i1.** El lazo ve los ceros en \(f_{ar}=1.59\,\text{kHz}\) antes del pico en \(f_{res}=1.95\,\text{kHz}\). Los ceros aportan \(+180°\) justo donde el pico hundiría la fase. El PM en \(f_{ci}=800\,\text{Hz}\) (lejos de la resonancia) es ≈45°: estable con margen holgado. Desventaja: i1 no es la variable que interesa para la red; la corriente inyectada es i2.
+
+**Opción B — realimentar i2 sin notch.** La fase cae a \(-270°\) al cruzar \(f_{res}\). Si el lazo tiene ganancia suficiente en \(f_{res}\), inestabilidad. Con PM<15° en \(f_{ci}\): marginal.
+
+**Opción C — realimentar i2 con notch en \(f_{res}\).** El notch con \(\zeta_n=0.02\), \(\zeta_d=0.5\) reduce el pico 28 dB. El PM en \(f_{ci}\) mejora a ≈35°: aceptable pero con robustez reducida ante deriva de \(f_{res}\). Si \(L_g\) varía ±50 %, \(f_{res}\) se mueve ±20 % y el notch pierde eficacia.
+
+**Conclusión.** Para el proyecto 01, se elige la opción A (realimentar i1) porque ofrece el mayor margen y robustez sin filtros adicionales. El lazo externo más lento sobre la tensión del condensador regula indirectamente la corriente de red i2.
+
+## 15 — Efecto de la inductancia de red \(L_g\) en \(f_{ar}\) y \(f_{res}\)
+
+Cuando el LCL está conectado a una red real con inductancia \(L_g\) (inductancia de cortocircuito del PCC), la inductancia efectiva de lado red pasa de \(L_2\) a \(L_2+L_g\). Esto modifica tanto la frecuencia de antiresonancia como la de resonancia:
+
+$$f_{ar}' = \frac{1}{2\pi\sqrt{(L_2+L_g)C_f}}, \quad f_{res}' = \frac{1}{2\pi}\sqrt{\frac{L_1+L_2+L_g}{L_1(L_2+L_g)C_f}}$$
+
+Para el LCL del proyecto con \(L_g=0.5\,\text{mH}\) (SCR≈20):
+
+$$f_{ar}' = \frac{1}{2\pi\sqrt{(0.5+0.5)\times10^{-3}\cdot10^{-5}}} = \frac{1}{2\pi\sqrt{10^{-8}}} = \frac{1}{2\pi\times10^{-4}} \approx 1{,}592\,\text{Hz}$$
+
+Comparado con \(f_{ar}=2{,}251\,\text{Hz}\) sin red: la adición de \(L_g\) **baja la antiresonancia** en un 29 %. Si el lazo de corriente estaba sintonizado con \(f_{ci}<f_{ar,nom}\), la nueva \(f_{ar}'\) puede quedar más cerca del ancho de banda, reduciendo el margen de fase.
+
+**Consecuencia de diseño.** Incluir \(L_{g,max}\) en el cálculo de \(f_{ar,min}\) durante el diseño del filtro LCL y del lazo de corriente, para garantizar que el margen de fase se mantiene en el peor caso de red.
+
+## 16 — Comprobación rápida: la antiresonancia en el Bode medido
+
+En un convertidor real, la medición de la función de transferencia lazo abierto \(G(j\omega)\) mediante inyección sinusoidal permite localizar \(f_{ar}\) y \(f_{res}\) experimentalmente:
+
+1. **Inyectar** una perturbación de corriente \(\hat{i}\) en el lazo de corriente (entre el controlador y la planta).
+2. **Medir** la respuesta de corriente \(\hat{i}_1\) o \(\hat{i}_2\) en el lazo abierto.
+3. **Calcular** \(G(f_k)=\hat{i}_{out}/\hat{i}_{inyec}\) para cada frecuencia barrida.
+4. **Identificar** el valle (mínimo en magnitud → \(f_{ar}\)) y el pico (máximo → \(f_{res}\)).
+
+**Indicador de desviación.** Si la \(f_{ar}\) medida difiere >10 % de la calculada con los parámetros nominales de diseño, es señal de que \(L_g\) real o \(C_f\) real difiere de los valores usados en el diseño. Recalibrar el notch o el amortiguamiento activo según los valores medidos.
+
 ## Uso en proyectos
 - 01 / 02 (filtro LCL): el lazo interno de corriente se cierra sobre i1 precisamente porque su antiresonancia a ≈1.1 kHz aporta el margen de fase que i2 no tiene; sobre esa base se añade el amortiguamiento activo.
+
+## 17 — Tabla de resumen: antiresonancia en distintos sistemas
+
+| Sistema | Antiresonancia en | Causa | Variable a realimentar |
+|---|---|---|---|
+| Filtro LCL | \(f_{ar}=1/(2\pi\sqrt{L_2C_f})\) | Bloqueo de \(C_f\|L_2\) | \(i_1\) (corriente de convertidor) |
+| Eje flexible 2 masas | \(f_{ar}=\sqrt{K_s/J_l}/(2\pi)\) | Absorción por masa de carga | \(\omega_m\) (velocidad de motor) |
+| Filtro LC salida | \(f_{ar}=1/(2\pi\sqrt{LC})\) | Paralelo \(L\|C\) | \(v_{out}\) (tensión de salida) |
+| Bus DC con cable | \(f_{ar}=1/(2\pi\sqrt{L_{cable}C_{bus}})\) | Resonancia cable-bus | \(v_{DC}\) (tensión de bus) |
+| Resonador de Helmholtz | \(f_{ar}\) acústico | Cavidad resonante auxiliar | Presión en el punto de medida |
+
+La regla universal: la antiresonancia (ceros) aparece **siempre que una rama resonante en paralelo bloquea la señal a cierta frecuencia**. La variable óptima de realimentación es la que tiene el par de ceros (antiresonancia) justo por debajo del par de polos (resonancia).
+
+## 18 — Ejemplo de código: calcular f_ar y f_res del LCL y verificar el margen
+
+```python
+import numpy as np
+from scipy import signal
+
+def lcl_params(L1, L2, Cf, R1=0, R2=0):
+    """Calcula f_ar, f_res y zeta_ar del filtro LCL."""
+    w_ar = 1/np.sqrt(L2*Cf)
+    w_res = np.sqrt((L1+L2)/(L1*L2*Cf))
+    zeta_ar = (R2/2)*np.sqrt(Cf/L2) if R2 > 0 else 0
+    return dict(f_ar=w_ar/(2*np.pi), f_res=w_res/(2*np.pi),
+                zeta_ar=zeta_ar, ratio=w_res/w_ar)
+
+# LCL del proyecto 01
+res = lcl_params(L1=2e-3, L2=0.5e-3, Cf=10e-6, R1=0.05, R2=0.05)
+print(f"f_ar  = {res['f_ar']:.0f} Hz")
+print(f"f_res = {res['f_res']:.0f} Hz")
+print(f"ratio f_res/f_ar = {res['ratio']:.3f} (esperado √(1+L2/L1)={np.sqrt(1+0.25):.3f})")
+print(f"zeta_ar = {res['zeta_ar']:.4f}")
+
+# Verificar que f_ci < f_ar / 2 (margen de diseño)
+f_ci = 800  # Hz
+assert f_ci < res['f_ar']/2, f"f_ci={f_ci}Hz supera f_ar/2={res['f_ar']/2:.0f}Hz!"
+print(f"Margen OK: f_ci={f_ci}Hz < f_ar/2={res['f_ar']/2:.0f}Hz")
+```
 
 ## Conceptos relacionados
 - [[resonancia-rlc]] · [[filtro-lcl]] · [[polos-ceros]] · [[diagrama-bode]] · [[lugar-raices]] · [[control-cascada]] · [[filtro-notch]]

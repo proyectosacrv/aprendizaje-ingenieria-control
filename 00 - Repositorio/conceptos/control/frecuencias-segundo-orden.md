@@ -123,6 +123,54 @@ wn_, zeta_ = abs(s), -s.real/abs(s)
 ## Uso en proyectos
 - 01 / 02 (filtro LCL): el par resonante del LCL se describe con estas tres frecuencias; con amortiguamiento parásito (\( \zeta\approx0.005 \)) las tres son ≈ \( \omega_{res} \); tras amortiguamiento activo (\( \zeta\approx0.1\text{–}0.3 \)) empiezan a separarse y el pico baja. La derivación de \( \omega_n \) y \( \zeta \) del LCL con resistencias está en [[filtro-lcl]].
 
+## 4 — Parámetros de rendimiento: cálculo explícito
+
+Para el sistema de segundo orden estándar \( T(s) = \omega_n^2 / (s^2 + 2\zeta\omega_n s + \omega_n^2) \), los parámetros de la respuesta al escalón tienen expresiones cerradas:
+
+**Tiempo de pico:**
+$$ t_p = \frac{\pi}{\omega_d} = \frac{\pi}{\omega_n\sqrt{1-\zeta^2}} $$
+
+**Sobreoscilación porcentual:**
+$$ M_p = e^{-\pi\zeta/\sqrt{1-\zeta^2}} \times 100\,\% \quad (\zeta < 1) $$
+Para \( \zeta = 0.5 \): \( M_p \approx 16.3\,\% \); para \( \zeta = 0.707 \): \( M_p \approx 4.3\,\% \).
+
+**Tiempo de establecimiento al 2 %:**
+$$ t_s \approx \frac{4}{\zeta\omega_n} $$
+Esta regla del envolvente de la exponencial es precisa para \( 0.2 \leq \zeta \leq 0.8 \).
+
+**Tiempo de subida (10 % al 90 %):** \( t_r \approx 1.8/\omega_n \) para \( \zeta \approx 0.7 \). Hay un compromiso fundamental: reducir \( t_r \) (aumentar \( \omega_n \)) tiende a aumentar \( M_p \) (si no se ajusta \( \zeta \) a la vez).
+
+## 5 — Segundo orden como modelo del lazo de corriente
+
+El lazo de corriente cerrado con un PI se puede aproximar como un sistema de segundo orden. Con planta \( G(s) = 1/(Ls+R) \) y controlador PI \( C(s) = K_p + K_i/s \):
+
+$$ T_{ci}(s) = \frac{K_p s/L + K_i/L}{s^2 + (R+K_p)/L\,s + K_i/L} = \frac{\omega_{ci}^2(s/z_{ci}+1)}{s^2 + 2\zeta_{ci}\omega_{ci}s + \omega_{ci}^2} $$
+
+Identificando: \( \omega_{ci} = \sqrt{K_i/L} \) y \( \zeta_{ci} = (R+K_p)/(2\sqrt{K_i L}) \). Para la **cancelación polo-cero IMC**, se elige \( K_i/K_p = R/L \) (cero del PI cancela el polo de la planta), lo que simplifica la FT cerrada a un primer orden:
+
+$$ T_{ci}(s) \approx \frac{1}{\tau_{ci}s + 1}, \quad \tau_{ci} = L/K_p $$
+
+**Elección \( \zeta = 0.707 \):** mínima sobreoscilación aceptable con máxima velocidad. El lazo de tensión externo ve el lazo de corriente como un polo de primer orden \( 1/(\tau_{ci}s+1) \), válido en la banda de trabajo del lazo de tensión (\( \omega_{cv} \ll 1/\tau_{ci} \)).
+
+## 6 — Resonancia y pico de lazo cerrado
+
+Para \( \zeta < 1/\sqrt{2} \approx 0.707 \), la FT cerrada presenta un pico de resonancia:
+
+**Frecuencia del pico:**
+$$ \omega_r = \omega_n\sqrt{1-2\zeta^2} $$
+
+**Altura del pico:**
+$$ M_r = \frac{1}{2\zeta\sqrt{1-\zeta^2}} $$
+
+Para \( \zeta = 0.2 \): \( M_r \approx 2.55 \) (+8.1 dB); para \( \zeta = 0.5 \): \( M_r \approx 1.15 \) (+1.2 dB); para \( \zeta = 0.707 \): no hay pico (\( M_r = 1 \), respuesta máximamente plana).
+
+**Ancho de banda:**
+$$ \omega_{bw} = \omega_n\sqrt{(1-2\zeta^2)+\sqrt{4\zeta^4-4\zeta^2+2}} $$
+
+**Aplicación al filtro LCL:** la resonancia del LCL actúa como un pico de lazo cerrado si no se amortigua. Con \( \zeta_{LCL} \approx 0.005 \) (sin amortiguamiento), \( M_r \approx 100 \) (40 dB): el pico domina la respuesta y hace inestable el lazo si cae dentro de la banda de control. El amortiguamiento activo eleva \( \zeta \) a 0.1–0.3 reduciendo el pico a 1.7–5.1 dB.
+
+<div class="cfig"><img src="../figuras/frecuencias-segundo-orden-analisis.png" alt="Sistema de segundo orden: diagrama de polos, Mp y ts vs zeta, respuesta al escalon y pico de resonancia"><div class="cap">Superior izquierdo: lugar de los polos en función de ζ — a medida que ζ crece desde 0 los polos se alejan del eje imaginario y se aproximan al real. Superior derecho: sobreoscilación Mp y tiempo de establecimiento ts en función de ζ — el óptimo ζ=0.707 equilibra ambas. Inferior izquierdo: respuesta al escalón para cuatro valores de ζ. Inferior derecho: pico de resonancia del lazo cerrado — solo existe para ζ < 0.707.</div></div>
+
 ## Conceptos relacionados
 - [[respuesta-segundo-orden]] · [[resonancia-rlc]] · [[filtro-lcl]] · [[polos-ceros]] · [[diagrama-bode]]
 

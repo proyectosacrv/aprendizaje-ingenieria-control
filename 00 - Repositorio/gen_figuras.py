@@ -8479,6 +8479,5872 @@ def _sg_extended():
     _savefig(fig, "generador-sincrono-analisis.png")
 
 
+# ===================================================================== #
+#  lugar-raices-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _rlocus_extended():
+    """4 paneles: (a) lugar clasico G=K/[s(s+2)(s+4)], (b) modo de potencia droop,
+    (c) diseno con linea zeta=0.7, (d) verificacion vs autovalores."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 10.0))
+    (a1, a2), (a3, a4) = axes
+
+    def rlocus_roots(poles, K_vec):
+        den = np.poly(poles)
+        roots_all = []
+        for K in K_vec:
+            num_pad = np.zeros(len(den))
+            num_pad[-1] = K
+            char = den + num_pad
+            roots_all.append(np.roots(char))
+        return np.array(roots_all)
+
+    # (a) Lugar clasico G = K / [s(s+2)(s+4)]
+    poles_a = [0.0, -2.0, -4.0]
+    K_a = np.linspace(0, 80, 1200)
+    roots_a = rlocus_roots(poles_a, K_a)
+    n_a = 3
+    sigma_a = sum(poles_a) / n_a
+    ang_a = [(2*k+1)*180.0/n_a for k in range(n_a)]
+
+    a1.axvspan(0, 2, color=BAD, alpha=0.07)
+    for r in roots_a.T:
+        a1.scatter(r.real, r.imag, s=1.5, color=ACC, alpha=0.4)
+    a1.scatter(poles_a, [0]*3, marker="x", s=100, color=BAD, lw=2.5, zorder=6,
+               label="polos lazo abierto (K=0)")
+    for ang in ang_a:
+        rad = np.radians(ang)
+        a1.annotate("", xy=(sigma_a + 4.5*np.cos(rad), 4.5*np.sin(rad)),
+                    xytext=(sigma_a, 0),
+                    arrowprops=dict(arrowstyle="-", color="#aaa", lw=1.2, ls="--"))
+    a1.scatter([sigma_a], [0], marker="D", s=60, color=OK, zorder=7,
+               label=f"centroide sigma={sigma_a:.1f}")
+    a1.axvline(0, color="k", lw=1.2); a1.axhline(0, color="#bbb", lw=0.6)
+    a1.set_xlim(-7, 2); a1.set_ylim(-6, 6)
+    a1.set_xlabel("Re(s)"); a1.set_ylabel("Im(s)")
+    a1.set_title("(a) Lugar G=K/[s(s+2)(s+4)]\nasint. 60 deg, 180 deg, 300 deg desde centroide -2")
+    a1.legend(fontsize=8, loc="upper left"); a1.grid(True, alpha=0.3)
+
+    # (b) Modo de potencia droop: L(s) = mp*Ks / [s(s+wf)], wf=2pi*5 Hz
+    wf = 2*np.pi*5.0
+    poles_b = [0.0, -wf]
+    K_b = np.linspace(0, 2500, 1200)
+    roots_b = rlocus_roots(poles_b, K_b)
+    sigma_b = (0 + (-wf)) / 2
+
+    a2.axvspan(0, 20, color=BAD, alpha=0.07)
+    for r in roots_b.T:
+        a2.scatter(r.real, r.imag, s=1.5, color=ACC2, alpha=0.4)
+    a2.scatter([0, -wf], [0, 0], marker="x", s=100, color=BAD, lw=2.5, zorder=6,
+               label="polos: 0, -wf (wf=2pi5)")
+    a2.scatter([sigma_b], [0], marker="D", s=60, color=OK, zorder=7,
+               label=f"centroide sigma={sigma_b:.1f}")
+    a2.axvline(0, color="k", lw=1.2); a2.axhline(0, color="#bbb", lw=0.6)
+    a2.set_xlim(-50, 20); a2.set_ylim(-80, 80)
+    a2.set_xlabel("Re(s)"); a2.set_ylabel("Im(s)")
+    a2.set_title("(b) Modo de potencia droop\nL(s)=mp*Ks/[s(s+wf)], variando mp*Ks")
+    a2.legend(fontsize=8, loc="upper left"); a2.grid(True, alpha=0.3)
+
+    # (c) Diseno: linea zeta=0.7 y punto de cruce
+    zeta_obj = 0.7
+    ang_zeta = np.degrees(np.arccos(zeta_obj))
+    wn_vec = np.linspace(0, 80, 200)
+    line_re = -zeta_obj * wn_vec
+    line_im =  np.sqrt(1 - zeta_obj**2) * wn_vec
+
+    a3.axvspan(0, 20, color=BAD, alpha=0.07)
+    for r in roots_b.T:
+        a3.scatter(r.real, r.imag, s=1.5, color=ACC2, alpha=0.3)
+    a3.plot(line_re,  line_im, color=OK, lw=2, ls="--",
+            label=f"zeta={zeta_obj} (+/-{ang_zeta:.1f} deg)")
+    a3.plot(line_re, -line_im, color=OK, lw=2, ls="--")
+    # En 2 polos s^2+wf*s+K=0: zeta=wf/2/sqrt(K) -> K_design=(wf/2/zeta)^2
+    K_design = (wf/2/zeta_obj)**2
+    wn_design = np.sqrt(K_design)
+    re_design = -zeta_obj * wn_design
+    im_design = np.sqrt(1-zeta_obj**2) * wn_design
+    a3.scatter([re_design, re_design], [im_design, -im_design],
+               color=BAD, s=100, zorder=8,
+               label=f"diseno: K={K_design:.0f}, wn={wn_design:.1f}")
+    a3.axvline(0, color="k", lw=1.2); a3.axhline(0, color="#bbb", lw=0.6)
+    a3.set_xlim(-50, 20); a3.set_ylim(-80, 80)
+    a3.set_xlabel("Re(s)"); a3.set_ylabel("Im(s)")
+    Ks_val = 500e3
+    a3.set_title(f"(c) Diseno zeta=0.7 -> K=mp*Ks={K_design:.0f}\n(Ks=500 kW/rad -> mp={K_design/Ks_val*1000:.3f}e-3)")
+    a3.legend(fontsize=8, loc="upper left"); a3.grid(True, alpha=0.3)
+
+    # (d) Verificacion vs autovalores
+    Ks = 500e3
+    mp_vec = np.linspace(0, 2e-3, 60)
+    eig_re, eig_im, mp_c = [], [], []
+    for mp in mp_vec:
+        K_loop = mp * Ks
+        A = np.array([[0, 1], [-K_loop, -wf]])
+        for ev in np.linalg.eigvals(A):
+            eig_re.append(ev.real); eig_im.append(ev.imag); mp_c.append(mp*1e3)
+
+    sc = a4.scatter(eig_re, eig_im, c=mp_c, cmap="plasma", s=20, zorder=5)
+    fig.colorbar(sc, ax=a4, label="mp [x1e-3]")
+    mp_design = K_design / Ks
+    a4.scatter([re_design, re_design], [im_design, -im_design],
+               color=OK, s=100, zorder=9, marker="*",
+               label=f"mp={mp_design*1e3:.3f}e-3")
+    a4.plot(line_re,  line_im, color=BAD, lw=1.8, ls="--", label="zeta=0.7")
+    a4.plot(line_re, -line_im, color=BAD, lw=1.8, ls="--")
+    a4.axvline(0, color="k", lw=1.2); a4.axhline(0, color="#bbb", lw=0.6)
+    a4.set_xlim(-50, 20); a4.set_ylim(-80, 80)
+    a4.set_xlabel("Re(s)"); a4.set_ylabel("Im(s)")
+    a4.set_title("(d) Verificacion: autovalores de A(mp)\nconfirman zeta=0.7 en el punto de diseno")
+    a4.legend(fontsize=8, loc="upper left"); a4.grid(True, alpha=0.3)
+
+    fig.suptitle("Lugar de las raices: analisis completo del modo de potencia droop",
+                 fontsize=13, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "lugar-raices-analisis.png")
+
+
+# ===================================================================== #
+#  muestreo-aliasing-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _aliasing_extended():
+    """4 paneles: (a) espectro con/sin aliasing, (b) filtro AA Bode,
+    (c) ZOH senal escalonada, (d) PM vs Ts."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    # (a) Espectro con y sin aliasing
+    fs = 10e3
+    fmax_ok = 3e3
+    fmax_bad = 7e3
+    f_vec = np.linspace(0, 15e3, 2000)
+    nyquist = fs / 2
+
+    def rect_spec(f, fc, amp=1.0):
+        return amp * (np.abs(f) <= fc).astype(float)
+
+    spec_ok  = rect_spec(f_vec, fmax_ok) + rect_spec(f_vec - fs, fmax_ok)*0.5 \
+                                         + rect_spec(f_vec + fs, fmax_ok)*0.5
+    spec_bad = rect_spec(f_vec, fmax_bad) + rect_spec(f_vec - fs, fmax_bad)*0.5 \
+                                          + rect_spec(f_vec + fs, fmax_bad)*0.5
+
+    a1.axvspan(0, nyquist/1e3, color=OK, alpha=0.10,
+               label=f"banda base [0, fs/2={nyquist/1e3:.0f} kHz]")
+    a1.plot(f_vec/1e3, spec_ok,  color=ACC,  lw=2.5,
+            label=f"OK: senal {fmax_ok/1e3:.0f} kHz < fs/2")
+    a1.plot(f_vec/1e3, spec_bad, color=BAD,  lw=2.5, ls="--",
+            label=f"Aliasing: senal {fmax_bad/1e3:.0f} kHz > fs/2")
+    a1.axvline(nyquist/1e3, color="#888", ls=":", lw=1.5)
+    a1.text(nyquist/1e3+0.1, 0.85, f"Nyquist\n{nyquist/1e3:.0f} kHz", fontsize=8, color="#555")
+    a1.set_xlabel("frecuencia [kHz]"); a1.set_ylabel("amplitud [pu]")
+    a1.set_title(f"(a) Espectro muestreado a fs={fs/1e3:.0f} kHz\nreplicas solapan si senal > Nyquist")
+    a1.legend(fontsize=8); a1.set_xlim(0, 15); a1.set_ylim(-0.05, 1.15)
+
+    # (b) Filtro antialiasing Bode: Butterworth 2do orden, fc=0.4*fs
+    fc_aa = 0.4 * fs
+    wc_aa = 2*np.pi*fc_aa
+    sys_aa = signal.TransferFunction([wc_aa**2], [1, np.sqrt(2)*wc_aa, wc_aa**2])
+    f_bode = np.logspace(2, 4.5, 1000)
+    w_bode = 2*np.pi*f_bode
+    _, mag_aa, phase_aa = signal.bode(sys_aa, w_bode)
+    wc_lazo = 2*np.pi*750
+    _, mag_wc, ph_wc = signal.bode(sys_aa, [wc_lazo])
+
+    a2b = a2.twinx()
+    a2.semilogx(f_bode/1e3, mag_aa, color=ACC, lw=2.5, label="filtro AA (Butterworth 2)")
+    a2.axvline(nyquist/1e3, color=BAD, ls="--", lw=1.5, label=f"Nyquist {nyquist/1e3:.0f} kHz")
+    a2.axvline(fc_aa/1e3,   color=OK,  ls="--", lw=1.5, label=f"fc_AA={fc_aa/1e3:.0f} kHz")
+    a2.axvline(0.75, color=ACC2, ls=":", lw=1.5, label="wc lazo (750 Hz)")
+    a2b.semilogx(f_bode/1e3, phase_aa, color=ACC, lw=1.5, ls="-.", alpha=0.6)
+    a2b.set_ylabel("fase [deg]", color="#888"); a2b.tick_params(axis="y", colors="#888")
+    a2b.axhline(ph_wc[0], color=ACC2, ls=":", lw=1, alpha=0.8)
+    a2b.text(0.12, ph_wc[0]+3, f"phi={ph_wc[0]:.0f} deg en 750 Hz", fontsize=8, color=ACC2)
+    a2.set_xlabel("frecuencia [kHz]"); a2.set_ylabel("|H_AA| [dB]")
+    a2.set_title("(b) Filtro antialiasing: Bode\ncompromiso fc vs retardo de fase en la banda de control")
+    a2.legend(fontsize=8, loc="lower left"); a2.set_xlim(0.1, 30); a2.grid(True, which="both", alpha=0.3)
+
+    # (c) ZOH: senal escalon muestreada y retenida
+    Ts_zoh = 1/fs
+    t_cont = np.linspace(0, 6*Ts_zoh, 1000)
+    t_samp = np.arange(0, 6*Ts_zoh, Ts_zoh)
+    ref = np.ones_like(t_cont); ref[t_cont < 1.5*Ts_zoh] = 0.0
+    y_samp = np.interp(t_samp, t_cont, ref)
+
+    def zoh_recon(t, t_s, y_s, Ts_r):
+        out = np.zeros_like(t)
+        for i, ts_val in enumerate(t_s):
+            mask = (t >= ts_val) & (t < ts_val + Ts_r)
+            out[mask] = y_s[i]
+        return out
+
+    y_zoh = zoh_recon(t_cont, t_samp, y_samp, Ts_zoh)
+    a3.plot(t_cont*1e6, ref, color="#bbb", lw=1.5, ls="--", label="senal continua")
+    a3.step(t_samp*1e6, y_samp, where="post", color=ACC, lw=2.5, label="ZOH (retencion)")
+    a3.plot(t_samp*1e6, y_samp, "o", color=BAD, ms=7, zorder=6, label="muestras")
+    a3.annotate("", xy=(1.5*Ts_zoh*1e6 + Ts_zoh*1e6*0.5, 0.5),
+                xytext=(1.5*Ts_zoh*1e6, 0.5),
+                arrowprops=dict(arrowstyle="<->", color=ACC2, lw=1.5))
+    a3.text(1.5*Ts_zoh*1e6 + Ts_zoh*1e6*0.15, 0.55, "Ts/2", fontsize=9, color=ACC2)
+    a3.set_xlabel("t [us]"); a3.set_ylabel("amplitud [pu]")
+    a3.set_title(f"(c) ZOH: muestreo y retencion (Ts={Ts_zoh*1e6:.0f} us)\nretardo medio efectivo = Ts/2")
+    a3.legend(fontsize=8); a3.set_ylim(-0.1, 1.3)
+
+    # (d) PM vs Ts
+    L_d = 2e-3
+    wc_d = 2*np.pi*750
+    Ts_d_vec = np.array([50, 100, 150, 200, 250, 300]) * 1e-6
+
+    def pm_1order(Ts_i):
+        Td = 1.5 * Ts_i
+        Kp_i = L_d * wc_d
+        Ls = (Kp_i / (L_d * 1j*wc_d)) * np.exp(-1j*wc_d*Td)
+        return 180 + np.degrees(np.angle(Ls))
+
+    pm_d = np.array([pm_1order(Ts_i) for Ts_i in Ts_d_vec])
+    a4.plot(Ts_d_vec*1e6, pm_d, color=ACC, lw=2.5, marker="o", ms=7)
+    a4.axhline(45, color=BAD, ls="--", lw=1.5, label="PM min 45 deg")
+    a4.axhline(60, color=OK,  ls="--", lw=1.5, label="PM objetivo 60 deg")
+    a4.fill_between(Ts_d_vec*1e6, pm_d, 45,
+                    where=(pm_d < 45), color=BAD, alpha=0.2, label="PM insuficiente")
+    a4.set_xlabel("Ts [us]"); a4.set_ylabel("PM [deg]")
+    a4.set_title("(d) PM vs Ts (retardo 1.5*Ts, wc=2pi*750 Hz)\nTs mayor consume margen de fase")
+    a4.legend(fontsize=8); a4.grid(True, alpha=0.3)
+
+    fig.suptitle("Muestreo y aliasing: analisis completo", fontsize=13, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "muestreo-aliasing-analisis.png")
+
+
+# ===================================================================== #
+#  transformada-z-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _ztransform_extended():
+    """4 paneles: (a) mapeo s->z con curvas iso-zeta, (b) polo lazo cerrado en z,
+    (c) Bode PI continuo vs discreto, (d) PM vs Ts con Tustin."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 10.0))
+    (a1, a2), (a3, a4) = axes
+    th = np.linspace(0, 2*np.pi, 300)
+
+    # (a) Mapeo s->z con curvas iso-zeta
+    Ts_ref = 100e-6
+    a1.fill(np.cos(th), np.sin(th), color=OK, alpha=0.10)
+    a1.plot(np.cos(th), np.sin(th), "k", lw=1.5, label="circulo unidad |z|=1")
+    a1.scatter([1], [0], color="#555", s=40, zorder=8)
+    a1.text(1.05, 0.05, "z=1 (DC)", fontsize=8)
+    a1.scatter([-1], [0], color="#555", s=40, zorder=8)
+    a1.text(-1.65, 0.05, "z=-1 (fs/2)", fontsize=8)
+
+    for zeta_c, col_c in [(0.3, ACC2), (0.5, ACC), (0.7, OK), (1.0, BAD)]:
+        wn_r = np.linspace(0, 0.45*2*np.pi/Ts_ref, 120)
+        wd_r = np.sqrt(max(1-zeta_c**2, 0)) * wn_r
+        s_pts = -zeta_c*wn_r + 1j*wd_r
+        z_pts = np.exp(s_pts * Ts_ref)
+        a1.plot(z_pts.real, z_pts.imag, color=col_c, lw=1.6, label=f"zeta={zeta_c}")
+        a1.plot(z_pts.real, -z_pts.imag, color=col_c, lw=1.6, ls="--", alpha=0.5)
+
+    a1.set_xlim(-1.6, 1.6); a1.set_ylim(-1.4, 1.4); a1.set_aspect("equal")
+    a1.axvline(0, color="#bbb", lw=0.6); a1.axhline(0, color="#bbb", lw=0.6)
+    a1.set_xlabel("Re(z)"); a1.set_ylabel("Im(z)")
+    a1.set_title(f"(a) Mapeo s->z (Ts={Ts_ref*1e6:.0f} us)\ncurvas iso-zeta en plano z")
+    a1.legend(fontsize=7.5, loc="lower left"); a1.grid(True, alpha=0.3)
+
+    # (b) Polo lazo cerrado en z al variar Kp
+    L_b = 2e-3; wc_b = 2*np.pi*750; Ts_b = 100e-6
+    a2.fill(np.cos(th), np.sin(th), color=OK, alpha=0.08)
+    a2.plot(np.cos(th), np.sin(th), "k", lw=1.2, label="unidad")
+    Kp_nom = L_b * wc_b
+    Kp_vec = np.linspace(0.01, 5.0, 200) * Kp_nom
+    roots_z = np.exp(-(Kp_vec/L_b)*Ts_b)
+    sc_z = a2.scatter(roots_z, np.zeros_like(roots_z), c=Kp_vec/Kp_nom,
+                      cmap="plasma", s=20, zorder=5)
+    fig.colorbar(sc_z, ax=a2, label="Kp / Kp_nom")
+    z_design = np.exp(-wc_b*Ts_b)
+    a2.scatter([z_design], [0], color=BAD, s=80, marker="*", zorder=9,
+               label=f"diseno: z={z_design:.3f}")
+    a2.axvline(0, color="#bbb", lw=0.6); a2.axhline(0, color="#bbb", lw=0.6)
+    a2.set_xlim(-1.6, 1.6); a2.set_ylim(-1.4, 1.4); a2.set_aspect("equal")
+    a2.set_xlabel("Re(z)"); a2.set_ylabel("Im(z)")
+    a2.set_title("(b) Polo lazo cerrado en z al variar Kp\n(planta inductiva, modelo 1er orden)")
+    a2.legend(fontsize=8, loc="lower left"); a2.grid(True, alpha=0.3)
+
+    # (c) Bode PI continuo vs Euler atras vs Tustin
+    L_c = 2e-3; R_c = 50e-3; Ts_c = 100e-6
+    wc_c = 2*np.pi*750; Kp_c = L_c*wc_c; Ki_c = R_c*wc_c
+    f_c = np.logspace(1, 4.2, 1000); w_c = 2*np.pi*f_c
+
+    H_cont = Kp_c + Ki_c/(1j*w_c)
+    s_eb   = (1 - np.exp(-1j*w_c*Ts_c)) / Ts_c
+    H_eb   = Kp_c + Ki_c / s_eb
+    s_tu   = 2/Ts_c * (np.exp(1j*w_c*Ts_c)-1)/(np.exp(1j*w_c*Ts_c)+1)
+    H_tu   = Kp_c + Ki_c / s_tu
+
+    a3.semilogx(f_c, 20*np.log10(np.abs(H_cont)), color=ACC,  lw=2.5, label="continuo")
+    a3.semilogx(f_c, 20*np.log10(np.abs(H_eb)),   color=ACC2, lw=2.0, ls="--", label="Euler atras")
+    a3.semilogx(f_c, 20*np.log10(np.abs(H_tu)),   color=OK,   lw=2.0, ls="-.", label="Tustin")
+    a3.axvline(1/(Ts_c*2), color="#888", ls=":", lw=1.2,
+               label=f"Nyquist {1/(Ts_c*2):.0f} Hz")
+    a3.set_xlabel("frecuencia [Hz]"); a3.set_ylabel("|PI| [dB]")
+    a3.set_title(f"(c) PI continuo vs discreto (Ts={Ts_c*1e6:.0f} us)\nEuler atras vs Tustin")
+    a3.legend(fontsize=8); a3.grid(True, which="both", alpha=0.3); a3.set_xlim(10, 5e3)
+
+    # (d) PM vs Ts con Tustin
+    L_d = 2e-3; R_d = 50e-3; wc_d = 2*np.pi*750
+    Ts_d_vec = np.array([50, 75, 100, 150, 200, 300, 500]) * 1e-6
+    pm_d_vec = []
+    for Ts_di in Ts_d_vec:
+        Kp_d = L_d * wc_d; Ki_d = R_d * wc_d
+        s_tu_wc = 2/Ts_di*(np.exp(1j*wc_d*Ts_di)-1)/(np.exp(1j*wc_d*Ts_di)+1)
+        H_pi_wc = Kp_d + Ki_d / s_tu_wc
+        L_open = H_pi_wc / (L_d * 1j*wc_d)
+        pm_d_vec.append(180 + np.degrees(np.angle(L_open)))
+    pm_d_vec = np.array(pm_d_vec)
+
+    a4.plot(Ts_d_vec*1e6, pm_d_vec, color=ACC, lw=2.5, marker="o", ms=8)
+    a4.axhline(45, color=BAD, ls="--", lw=1.5, label="PM=45 deg (minimo)")
+    a4.axhline(60, color=OK,  ls="--", lw=1.5, label="PM=60 deg (objetivo)")
+    a4.fill_between(Ts_d_vec*1e6, pm_d_vec, 45,
+                    where=(pm_d_vec < 45), color=BAD, alpha=0.2, label="PM insuficiente")
+    a4.set_xlabel("Ts [us]"); a4.set_ylabel("PM [deg]")
+    a4.set_title("(d) PM vs Ts (Tustin, wc=2pi*750 Hz)\nTs mayor consume margen de fase")
+    a4.legend(fontsize=8); a4.grid(True, alpha=0.3)
+
+    fig.suptitle("Transformada Z: analisis completo - discretizacion y estabilidad",
+                 fontsize=13, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "transformada-z-analisis.png")
+
+
+# ===================================================================== #
+#  droop-dc-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _droopdc_extended():
+    """4 paneles: (a) curvas V(I) dos fuentes y punto de operacion compartido,
+    (b) reparto de carga vs carga total, (c) efecto R_cable, (d) correccion secundaria."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    Vref = 400.0
+    Rd1, Rd2 = 0.5, 1.0
+    I_max = 100.0
+
+    # (a) Curvas V-I y punto de operacion
+    Io = np.linspace(0, I_max, 200)
+    Rd_par = Rd1*Rd2/(Rd1+Rd2)
+    I_total = 60.0
+    Vbus_op = Vref - Rd_par*I_total
+    I1_op = (Vref - Vbus_op)/Rd1
+    I2_op = (Vref - Vbus_op)/Rd2
+
+    a1.plot(Io, Vref - Rd1*Io, color=ACC,  lw=2.5,
+            label=f"fuente 1: Rd={Rd1} Ohm (I1={I1_op:.0f} A)")
+    a1.plot(Io, Vref - Rd2*Io, color=ACC2, lw=2.5,
+            label=f"fuente 2: Rd={Rd2} Ohm (I2={I2_op:.0f} A)")
+    a1.axhline(Vbus_op, color="#888", ls="--", lw=1.2,
+               label=f"Vbus={Vbus_op:.1f} V")
+    a1.plot([I1_op, I2_op], [Vbus_op, Vbus_op], "o", color=BAD, ms=9, zorder=8,
+            label="puntos de operacion")
+    a1.annotate(f"I1={I1_op:.0f} A", xy=(I1_op, Vbus_op),
+                xytext=(I1_op+3, Vbus_op+2), fontsize=8, color=ACC)
+    a1.annotate(f"I2={I2_op:.0f} A", xy=(I2_op, Vbus_op),
+                xytext=(I2_op+3, Vbus_op-4), fontsize=8, color=ACC2)
+    a1.set_xlabel("corriente de salida Io [A]"); a1.set_ylabel("Vdc [V]")
+    a1.set_title(f"(a) Droop DC: curvas V-I y reparto\nI1/I2 = Rd2/Rd1 = {I1_op/I2_op:.1f}")
+    a1.legend(fontsize=8); a1.set_ylim(340, 415); a1.grid(True, alpha=0.3)
+
+    # (b) Reparto vs carga total
+    I_load_vec = np.linspace(5, 180, 100)
+    I1_vec = I_load_vec * Rd2/(Rd1+Rd2)
+    I2_vec = I_load_vec * Rd1/(Rd1+Rd2)
+    Vbus_vec = Vref - Rd_par * I_load_vec
+
+    a2b = a2.twinx()
+    a2.plot(I_load_vec, I1_vec, color=ACC,  lw=2.5, label=f"I1 (Rd={Rd1} Ohm)")
+    a2.plot(I_load_vec, I2_vec, color=ACC2, lw=2.5, label=f"I2 (Rd={Rd2} Ohm)")
+    a2.plot(I_load_vec, I_load_vec, color="#bbb", lw=1.5, ls=":", label="I_total")
+    a2b.plot(I_load_vec, Vbus_vec, color=BAD, lw=2.0, ls="--", label="Vbus [V]")
+    a2b.set_ylabel("Vbus [V]", color=BAD); a2b.tick_params(axis="y", colors=BAD)
+    a2.axvline(I_total, color="#888", ls=":", lw=1.2)
+    a2.set_xlabel("corriente de carga total I_load [A]"); a2.set_ylabel("corriente [A]")
+    a2.set_title("(b) Reparto proporcional vs carga total\nrelacion fija por Rd1, Rd2")
+    lines1, labs1 = a2.get_legend_handles_labels()
+    lines2, labs2 = a2b.get_legend_handles_labels()
+    a2.legend(lines1+lines2, labs1+labs2, fontsize=8, loc="upper left")
+    a2.grid(True, alpha=0.3)
+
+    # (c) Efecto R_cable
+    Rline1_vec = np.linspace(0, 0.8, 80)
+    Rline2 = 0.1
+    I_load_c = 60.0
+    I1_cable = I_load_c*(Rd2+Rline2)/(Rd1+Rline1_vec+Rd2+Rline2)
+    I2_cable = I_load_c*(Rd1+Rline1_vec)/(Rd1+Rline1_vec+Rd2+Rline2)
+
+    a3.plot(Rline1_vec, I1_cable, color=ACC,  lw=2.5, label="I1 (fuente 1)")
+    a3.plot(Rline1_vec, I2_cable, color=ACC2, lw=2.5, label="I2 (fuente 2)")
+    a3.axhline(I_load_c*Rd2/(Rd1+Rd2), color=ACC,  ls="--", lw=1.2, alpha=0.5,
+               label="I1 ideal (sin cable)")
+    a3.axhline(I_load_c*Rd1/(Rd1+Rd2), color=ACC2, ls="--", lw=1.2, alpha=0.5,
+               label="I2 ideal")
+    a3.axvline(Rd1*0.1, color="#888", ls=":", lw=1.2)
+    a3.text(Rd1*0.1+0.02, 42, f"Rline=0.1*Rd\nerror<5%", fontsize=8, color="#555")
+    a3.set_xlabel("R_cable fuente 1 [Ohm]"); a3.set_ylabel("corriente [A]")
+    a3.set_title("(c) Efecto R_cable en el reparto\nRd >> R_cable necesario")
+    a3.legend(fontsize=8, loc="center right"); a3.grid(True, alpha=0.3)
+
+    # (d) Correccion secundaria
+    dV_sec_vec = np.linspace(0, Rd_par*I_total, 60)
+    Vref_eff = Vref + dV_sec_vec
+    Vbus_s = Vref_eff - Rd_par*I_total
+    I1_s = (Vref_eff - Vbus_s)/Rd1
+    I2_s = (Vref_eff - Vbus_s)/Rd2
+
+    a4.plot(dV_sec_vec, Vbus_s, color=BAD, lw=2.5, label="Vbus (con secundario)")
+    a4.axhline(Vref, color="#888", ls="--", lw=1.5, label=f"Vnom={Vref} V")
+    a4.axhline(Vbus_op, color="#bbb", ls=":", lw=1.2,
+               label=f"Vbus_0={Vbus_op:.1f} V (sin sec.)")
+    a4b = a4.twinx()
+    a4b.plot(dV_sec_vec, I1_s, color=ACC, lw=2.0, ls="--", label="I1 (sec.)")
+    a4b.plot(dV_sec_vec, I2_s, color=ACC2, lw=2.0, ls="--", label="I2 (sec.)")
+    a4b.set_ylabel("corriente [A]", color="#888"); a4b.tick_params(axis="y", colors="#888")
+    a4.axvline(Rd_par*I_total, color=OK, ls="--", lw=1.5, label="compensacion total")
+    a4.set_xlabel("dV_sec [V] (correccion secundaria)"); a4.set_ylabel("Vbus [V]")
+    a4.set_title("(d) Correccion secundaria\ndV restaura Vnom sin alterar el reparto")
+    lines1, labs1 = a4.get_legend_handles_labels()
+    lines2, labs2 = a4b.get_legend_handles_labels()
+    a4.legend(lines1+lines2, labs1+labs2, fontsize=8, loc="lower right")
+    a4.grid(True, alpha=0.3)
+
+    fig.suptitle("Droop DC: analisis completo - reparto, cable, correccion secundaria",
+                 fontsize=13, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "droop-dc-analisis.png")
+
+
+# ===================================================================== #
+#  rectificador-afe-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _afe_extended():
+    """4 paneles: (a) diagrama de control AFE, (b) formas de onda,
+    (c) Bode lazo de tension DC, (d) id*(t) ante escalon de carga."""
+    from matplotlib.patches import Rectangle
+
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    a1, a2, a3, a4 = axes.flat
+
+    # --- (a) diagrama de control AFE ---
+    ax = a1; ax.set_axis_off(); ax.set_xlim(0, 10); ax.set_ylim(0, 8)
+    ax.set_title("(a) Lazo de control del AFE (cascada Vdc → id*)", fontsize=10)
+
+    def _box(ax, x, y, w, h, txt, col="#e8f0ff", ecol=ACC, fs=8.5):
+        ax.add_patch(Rectangle((x, y), w, h, facecolor=col, edgecolor=ecol, lw=1.5))
+        ax.text(x+w/2, y+h/2, txt, ha="center", va="center", fontsize=fs)
+
+    def _arr(ax, x0, y0, x1, y1):
+        ax.annotate("", xy=(x1, y1), xytext=(x0, y0),
+                    arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.3))
+
+    ax.text(0.2, 6.5, "$V_{dc}^*$", fontsize=10, color=ACC, fontweight="bold")
+    _arr(ax, 0.9, 6.5, 1.3, 6.5)
+    c1 = plt.Circle((1.5, 6.5), 0.2, fill=False, edgecolor="#555", lw=1.5)
+    ax.add_patch(c1); ax.text(1.5, 6.5, "−", ha="center", va="center", fontsize=12)
+    _arr(ax, 1.7, 6.5, 2.2, 6.5)
+    _box(ax, 2.2, 6.1, 1.8, 0.8, "PI\ntension DC", "#fff0e0", ACC2)
+    _arr(ax, 4.0, 6.5, 4.5, 6.5)
+    ax.text(4.1, 6.7, "$i_d^*$", fontsize=9, color=ACC2)
+    c2 = plt.Circle((4.7, 6.5), 0.2, fill=False, edgecolor="#555", lw=1.5)
+    ax.add_patch(c2); ax.text(4.7, 6.5, "−", ha="center", va="center", fontsize=12)
+    _arr(ax, 4.9, 6.5, 5.4, 6.5)
+    _box(ax, 5.4, 6.1, 1.6, 0.8, "PI\ncorriente d", "#e8ffe8", OK)
+    _arr(ax, 7.0, 6.5, 7.5, 6.5)
+    ax.text(7.05, 6.7, "$v_d^*$", fontsize=9, color=OK)
+    _box(ax, 7.5, 6.1, 1.8, 0.8, "PWM + VSC", "#ffe8e8", BAD)
+    _arr(ax, 9.3, 6.5, 9.8, 6.5)
+    ax.text(9.82, 6.45, "red", fontsize=8.5)
+
+    ax.text(0.2, 4.5, "$i_q^*=0$", fontsize=10, color=BAD, fontweight="bold")
+    _arr(ax, 1.0, 4.5, 1.5, 4.5)
+    c3 = plt.Circle((1.7, 4.5), 0.2, fill=False, edgecolor="#555", lw=1.5)
+    ax.add_patch(c3); ax.text(1.7, 4.5, "−", ha="center", va="center", fontsize=12)
+    _arr(ax, 1.9, 4.5, 2.4, 4.5)
+    _box(ax, 2.4, 4.1, 1.6, 0.8, "PI\ncorriente q", "#e8ffe8", OK)
+    _arr(ax, 4.0, 4.5, 4.5, 4.5)
+    ax.text(4.05, 4.7, "$v_q^*$", fontsize=9, color=OK)
+    _box(ax, 4.5, 4.1, 1.8, 0.8, "PWM + VSC", "#ffe8e8", BAD)
+    _arr(ax, 6.3, 4.5, 6.8, 4.5)
+    ax.text(6.82, 4.45, "red", fontsize=8.5)
+
+    _box(ax, 2.0, 2.4, 2.2, 0.8, "PLL (SRF)\n$\\hat{\\theta}$", "#f0e8ff", "#8855cc")
+    ax.text(1.0, 2.8, "red AC", fontsize=8.5)
+    _arr(ax, 1.9, 2.8, 2.0, 2.8)
+    ax.plot([2.0, 5.8, 5.8], [5.6, 5.6, 5.0], color="#777", lw=1.0, ls="--")
+    ax.text(4.2, 5.35, "retroalim. $V_{dc}$", fontsize=8, color="#777")
+    _arr(ax, 2.0, 5.0, 2.0, 5.6)
+    _box(ax, 5.5, 2.0, 3.8, 1.0, "$i_q^*=0 \\Rightarrow Q=0 \\Rightarrow$ FP=1\n"
+         "$i_d^*=\\frac{2}{3}\\frac{P^*}{\\hat{V}}$", "#fffbe8", ACC2, fs=8.5)
+
+    # --- (b) formas de onda: diodos vs AFE ---
+    ax = a2
+    t = np.linspace(0, 0.04, 2000); w0 = 2*np.pi*50
+    i_diodos = np.zeros_like(t)
+    for k in range(3):
+        i_diodos += np.clip(np.cos(w0*t - k*2*np.pi/3), 0, None)
+    i_diodos /= i_diodos.max()
+    i_afe = 0.95*np.cos(w0*t) + 0.03*np.cos(5*w0*t) + 0.02*np.cos(7*w0*t)
+    i_afe /= np.max(np.abs(i_afe))
+    ax.plot(t*1e3, i_diodos - 1.6, color=BAD, lw=1.8, label="Rect. diodos (THD≈80%)")
+    ax.plot(t*1e3, i_afe + 0.2, color=ACC, lw=1.8, label="AFE (THD≈3%)")
+    ax.plot(t*1e3, 0.5*np.cos(w0*t) + 0.2, color=ACC2, lw=1.0, ls="--", alpha=0.7, label="tensión ref.")
+    ax.axhline(-1.6, color="#ddd", lw=0.5); ax.axhline(0.2, color="#ddd", lw=0.5)
+    ax.set_xlabel("t [ms]"); ax.set_ylabel("corriente [pu]")
+    ax.set_title("(b) Forma de onda de corriente de red", fontsize=10)
+    ax.legend(fontsize=8); ax.set_yticks([]); ax.set_xlim(0, 40)
+
+    # --- (c) Bode del lazo de tension DC ---
+    ax = a3
+    from scipy import signal as sig
+    Kp_v, Ki_v, C = 2.0, 50.0, 50e-3
+    sys_ol = sig.TransferFunction(np.polymul([Kp_v, Ki_v], [1]),
+                                  np.polymul([1, 0], [C, 0]))
+    w_arr = np.logspace(0, 4, 600)
+    _, H_ol = sig.freqs(sys_ol.num, sys_ol.den, worN=w_arr)
+    mag_ol = 20*np.log10(np.abs(H_ol) + 1e-12)
+    ph_ol = np.degrees(np.angle(H_ol))
+    ax.semilogx(w_arr/(2*np.pi), mag_ol, color=ACC, lw=2, label="$|L(j\\omega)|$")
+    ax.axhline(0, color="#bbb", ls=":", lw=1)
+    ax.axvline(20, color=OK, ls="--", lw=1.2)
+    ax.text(22, -5, "BW≈20 Hz", fontsize=8, color=OK)
+    ax2c = ax.twinx()
+    ax2c.semilogx(w_arr/(2*np.pi), ph_ol, color=ACC2, lw=1.5, ls="--", label="fase")
+    ax2c.axhline(-180, color=BAD, ls=":", lw=1)
+    ax2c.set_ylabel("fase [°]", color=ACC2); ax2c.tick_params(axis="y", labelcolor=ACC2)
+    ax.set_xlabel("frecuencia [Hz]"); ax.set_ylabel("magnitud [dB]")
+    ax.set_title("(c) Bode lazo tension DC (PI, C=50 mF)", fontsize=10)
+    lines1, labs1 = ax.get_legend_handles_labels()
+    lines2, labs2 = ax2c.get_legend_handles_labels()
+    ax.legend(lines1+lines2, labs1+labs2, fontsize=7.5, loc="lower left")
+
+    # --- (d) id*(t) ante escalon de carga ---
+    ax = a4
+    Ts = 1e-4; T_arr = np.arange(0, 0.5, Ts)
+    Vdc = 800.0; xi = 0.0; Vref = 800.0
+    Idc_arr = np.where(T_arr < 0.1, 300.0, 625.0)
+    id_list = []; Vdc_list = []
+    for idc in Idc_arr:
+        err = Vref - Vdc; xi += Ki_v*err*Ts
+        id_s = np.clip((Kp_v*err + xi) * (2/3) / (800*np.sqrt(2)/np.sqrt(3)), 0, 900)
+        Vdc += ((3/2)*800*(id_s/np.sqrt(2)) - Vdc*idc) / (C*Vdc) * Ts
+        id_list.append(id_s); Vdc_list.append(Vdc)
+    ax.plot(T_arr*1e3, id_list, color=ACC, lw=2, label="$i_d^*$ [A]")
+    ax4b = ax.twinx()
+    ax4b.plot(T_arr*1e3, Vdc_list, color=BAD, lw=1.5, ls="--", label="$V_{dc}$ [V]")
+    ax4b.axhline(800, color="#bbb", ls=":", lw=1)
+    ax4b.set_ylabel("$V_{dc}$ [V]", color=BAD); ax4b.tick_params(axis="y", labelcolor=BAD)
+    ax.axvline(100, color="#888", ls="--", lw=1); ax.text(102, 30, "escalon\ncarga", fontsize=8)
+    ax.set_xlabel("t [ms]"); ax.set_ylabel("$i_d^*$ [A]"); ax.set_xlim(0, 500)
+    ax.set_title("(d) Respuesta ante escalon de carga (500 kW)", fontsize=10)
+    lines1, labs1 = ax.get_legend_handles_labels()
+    lines2, labs2 = ax4b.get_legend_handles_labels()
+    ax.legend(lines1+lines2, labs1+labs2, fontsize=7.5, loc="center right")
+
+    fig.suptitle("AFE 500 kW — control vectorial y respuesta dinamica", fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "rectificador-afe-analisis.png")
+
+
+# ===================================================================== #
+#  statcom-svc-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _statcom_extended():
+    """4 paneles: (a) topologia SVC vs STATCOM, (b) caracteristica V-I,
+    (c) V_pcc(t) ante hueco, (d) lazo de control STATCOM."""
+    from matplotlib.patches import Rectangle
+
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    a1, a2, a3, a4 = axes.flat
+
+    # --- (a) topologia ---
+    ax = a1; ax.set_axis_off(); ax.set_xlim(0, 10); ax.set_ylim(0, 8)
+    ax.set_title("(a) Topologia: SVC (TCR+TSC) vs STATCOM (VSC)", fontsize=10)
+
+    def _b(ax, x, y, w, h, txt, col, ecol, fs=8.5):
+        ax.add_patch(Rectangle((x, y), w, h, facecolor=col, edgecolor=ecol, lw=1.5))
+        ax.text(x+w/2, y+h/2, txt, ha="center", va="center", fontsize=fs)
+
+    def _a(ax, x0, y0, x1, y1):
+        ax.annotate("", xy=(x1, y1), xytext=(x0, y0),
+                    arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.3))
+
+    ax.plot([2.5, 7.5], [7.4, 7.4], color="#333", lw=2.5)
+    ax.plot([2.5, 2.5], [7.0, 7.4], color="#333", lw=2.5)
+    ax.plot([7.5, 7.5], [7.0, 7.4], color="#333", lw=2.5)
+    ax.text(5.0, 7.6, "Red / PCC (nudo debil)", ha="center", fontsize=9, color="#444")
+    # SVC
+    _b(ax, 0.3, 4.8, 2.0, 1.2, "TCR\n(reactor tiristor)", "#ffe8e8", BAD)
+    _b(ax, 0.3, 3.2, 2.0, 1.2, "TSC\n(condensador tiristor)", "#e8f0ff", ACC)
+    ax.plot([1.3, 1.3, 2.5, 2.5], [6.0, 7.0, 7.0, 7.4], color="#333", lw=1.5)
+    ax.plot([1.3, 1.3], [4.8, 4.4], color="#333", lw=1.5)
+    ax.plot([1.3, 1.3], [3.2, 2.8], color="#333", lw=1.5)
+    ax.text(1.3, 1.8, "SVC: $Q=B\\cdot V^2$", ha="center", fontsize=9, color=BAD, fontweight="bold")
+    # STATCOM
+    _b(ax, 6.0, 4.5, 2.8, 1.2, "VSC (puente IGBT)", "#e8ffe8", OK)
+    ax.add_patch(Rectangle((6.8, 3.5), 1.2, 0.8, facecolor="#fffbe8", edgecolor=ACC2, lw=1.3))
+    ax.text(7.4, 3.9, "$C_{dc}$", ha="center", fontsize=9, color=ACC2)
+    _b(ax, 6.2, 2.5, 2.4, 0.8, "Trafo / filtro LCL", "#f0e8ff", "#8855cc", fs=8)
+    ax.plot([7.4, 7.4, 7.5, 7.5], [5.7, 7.0, 7.0, 7.4], color="#333", lw=1.5)
+    ax.plot([7.4, 7.4], [4.5, 4.3], color="#333", lw=1.5)
+    ax.plot([7.4, 7.4], [3.5, 3.3], color="#333", lw=1.5)
+    ax.plot([7.4, 7.4], [2.5, 2.3], color="#333", lw=1.5)
+    ax.text(7.4, 1.8, "STATCOM: $Q=V\\cdot I_q$", ha="center", fontsize=9, color=OK, fontweight="bold")
+
+    # --- (b) caracteristica V-I ---
+    ax = a2
+    I = np.linspace(-1.0, 1.0, 300)
+    V_statcom = 1.0 + 0.05*I
+    I_svc = np.linspace(-0.8, 0.8, 200)
+    V_svc = 1.0 + 0.35*I_svc + 0.25*I_svc**2
+    ax.fill_betweenx([0.7, 1.3], -1.0, 1.0, color=ACC, alpha=0.08, label="Zona op. STATCOM")
+    ax.plot(I_svc, np.clip(V_svc, 0.5, 1.5), color=BAD, lw=2, label="SVC (susceptancia)")
+    ax.plot(I, V_statcom, color=ACC, lw=2, label="STATCOM (fuente de corriente)")
+    ax.axhline(0.85, color="#888", ls="--", lw=1)
+    ax.text(0.05, 0.86, "hueco $V=0.85$ pu", fontsize=8)
+    ax.axvline(0, color="#bbb", lw=0.8); ax.axhline(1.0, color="#bbb", lw=0.8, ls=":")
+    ax.set_xlabel("$I_q$ [pu] (+ cap.)"); ax.set_ylabel("$V_{pcc}$ [pu]")
+    ax.set_title("(b) Caracteristica V-I: SVC vs STATCOM", fontsize=10)
+    ax.legend(fontsize=8, loc="lower right")
+    ax.set_xlim(-1.1, 1.1); ax.set_ylim(0.4, 1.5)
+
+    # --- (c) V_pcc(t) ante hueco ---
+    ax = a3
+    Ts = 1e-4; T_arr = np.arange(0, 0.3, Ts)
+    t_on, t_off = 0.05, 0.15; Xth = 0.15
+
+    def _sim_vpcc(tau_r, kp_r, ki_r):
+        V = 1.0; xi = 0.0; Iq = 0.0; vout = []
+        for t in T_arr:
+            Vg = 1.0 if (t < t_on or t > t_off) else 0.7
+            err = 1.0 - V; xi += ki_r*err*Ts
+            Iq_ref = np.clip(kp_r*err + xi, -1.0, 1.0)
+            Iq += (Iq_ref - Iq)/tau_r * Ts
+            V = Vg + Xth*Iq; vout.append(V)
+        return vout
+
+    V_none = [1.0 if (t < t_on or t > t_off) else 0.7 for t in T_arr]
+    ax.plot(T_arr*1e3, V_none, color="#999", lw=1.5, ls=":", label="Sin compensacion")
+    ax.plot(T_arr*1e3, _sim_vpcc(5e-3, 5.0, 80.0), color=BAD, lw=2, label="Con SVC")
+    ax.plot(T_arr*1e3, _sim_vpcc(1e-3, 8.0, 150.0), color=ACC, lw=2, label="Con STATCOM")
+    ax.axhline(0.9, color=OK, ls="--", lw=1); ax.text(2, 0.91, "limite 0.9 pu", fontsize=8, color=OK)
+    ax.axvspan(t_on*1e3, t_off*1e3, color="#fee", alpha=0.4)
+    ax.text((t_on+t_off)/2*1e3, 0.67, "hueco", ha="center", fontsize=8, color=BAD)
+    ax.set_xlabel("t [ms]"); ax.set_ylabel("$V_{pcc}$ [pu]")
+    ax.set_title("(c) Respuesta dinamica ante hueco de tension", fontsize=10)
+    ax.legend(fontsize=8, loc="lower right"); ax.set_ylim(0.55, 1.12)
+
+    # --- (d) lazo de control STATCOM ---
+    ax = a4; ax.set_axis_off(); ax.set_xlim(0, 10); ax.set_ylim(0, 8)
+    ax.set_title("(d) Lazo de control del STATCOM (Vpcc → iq*)", fontsize=10)
+
+    def _b2(x, y, w, h, txt, col="#e8f0ff", ecol=ACC, fs=8.5):
+        ax.add_patch(Rectangle((x, y), w, h, facecolor=col, edgecolor=ecol, lw=1.5))
+        ax.text(x+w/2, y+h/2, txt, ha="center", va="center", fontsize=fs)
+
+    def _a2(x0, y0, x1, y1):
+        ax.annotate("", xy=(x1, y1), xytext=(x0, y0),
+                    arrowprops=dict(arrowstyle="-|>", color="#444", lw=1.3))
+
+    ax.text(0.2, 5.8, "$V_{pcc}^*=1$", fontsize=10, color=ACC, fontweight="bold")
+    _a2(1.4, 5.8, 1.8, 5.8)
+    c1 = plt.Circle((2.0, 5.8), 0.2, fill=False, edgecolor="#555", lw=1.5)
+    ax.add_patch(c1); ax.text(2.0, 5.8, "−", ha="center", va="center", fontsize=12)
+    _a2(2.2, 5.8, 2.7, 5.8)
+    _b2(2.7, 5.4, 2.0, 0.8, "PI + droop\nQ-V", "#fff0e0", ACC2)
+    _a2(4.7, 5.8, 5.2, 5.8)
+    ax.text(4.75, 6.0, "$i_q^*$", fontsize=9, color=ACC2)
+    _b2(5.2, 5.4, 2.0, 0.8, "PI corriente q", "#e8ffe8", OK)
+    _a2(7.2, 5.8, 7.7, 5.8)
+    ax.text(7.25, 6.0, "$v_q^*$", fontsize=9, color=OK)
+    _b2(7.7, 5.4, 1.8, 0.8, "PWM VSC", "#ffe8e8", BAD)
+    _a2(9.5, 5.8, 9.9, 5.8)
+    ax.text(0.5, 4.0, "$i_d^*\\approx 0$", fontsize=9, color="#555")
+    _a2(2.0, 4.0, 5.5, 4.0)
+    _b2(5.5, 3.6, 2.0, 0.8, "PI corriente d", "#e8ffe8", OK)
+    _a2(7.5, 4.0, 8.0, 4.0)
+    _b2(3.5, 2.0, 2.0, 0.8, "PLL\n$\\hat{\\theta}(V_{pcc})$", "#f0e8ff", "#8855cc")
+    ax.plot([2.0, 2.0, 9.8, 9.8], [5.6, 5.0, 5.0, 6.8], color="#777", lw=1.0, ls="--")
+    ax.text(6.0, 4.8, "retroalim. $V_{pcc}$", fontsize=8, color="#777")
+    _a2(2.0, 5.0, 2.0, 5.6)
+    _b2(1.5, 1.0, 4.0, 0.8, "FRT: prioridad $i_q > i_d$, $|i_q| \\leq I_{max}$", "#fffbe8", ACC2, fs=8)
+
+    fig.suptitle("STATCOM 50 MVAr — topologia, caracteristica V-I y control", fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "statcom-svc-analisis.png")
+
+
+# ===================================================================== #
+#  ecuacion-oscilacion-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _swing_extended():
+    """4 paneles: (a) curva P(d), (b) mapa de fase, (c) f(t) H=2,4,8s, (d) maquina vs VSM."""
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    a1, a2, a3, a4 = axes.flat
+
+    E, Vg, X, w0 = 1.05, 1.0, 0.25, 2*np.pi*50
+    Pmax = E*Vg/X; Pm = 0.7*Pmax
+    delta_s = np.arcsin(Pm/Pmax)
+    delta_u = np.pi - delta_s
+
+    # --- (a) curva P(delta) ---
+    ax = a1
+    d_arr = np.linspace(0, np.pi, 400)
+    ax.plot(np.degrees(d_arr), Pmax*np.sin(d_arr), color=ACC, lw=2.5)
+    ax.axhline(Pm, color=ACC2, ls="--", lw=1.5, label=f"$P_m$={Pm:.2f} pu")
+    ax.plot(np.degrees(delta_s), Pm, "o", color=OK, ms=10, zorder=5,
+            label=f"SEP $\\delta_0$={np.degrees(delta_s):.1f}°")
+    ax.plot(np.degrees(delta_u), Pm, "s", color=BAD, ms=10, zorder=5,
+            label=f"UEP $\\delta_u$={np.degrees(delta_u):.1f}°")
+    ax.fill_between(np.degrees(d_arr), Pmax*np.sin(d_arr), Pm,
+                    where=(Pmax*np.sin(d_arr) >= Pm) & (d_arr <= delta_u),
+                    color=OK, alpha=0.12, label="Area acelerac.")
+    ax.fill_between(np.degrees(d_arr), Pmax*np.sin(d_arr), Pm,
+                    where=(Pmax*np.sin(d_arr) < Pm) & (d_arr > delta_u),
+                    color=BAD, alpha=0.12, label="Area decelerac.")
+    ax.set_xlabel("$\\delta$ [°]"); ax.set_ylabel("$P_e$ [pu]")
+    ax.set_title("(a) Curva $P(\\delta)$: equilibrios y areas iguales", fontsize=10)
+    ax.legend(fontsize=7.5, loc="upper right"); ax.set_xlim(0, 180)
+
+    # --- (b) mapa de fase ---
+    ax = a2
+    H_ph, D_ph = 4.0, 5.0; Ts_ph = 1e-3
+
+    def _traj(d0, dw0, Pm_v, nmax=10000):
+        d, dw = d0, dw0; dl, wl = [np.degrees(d)], [dw]
+        for _ in range(nmax):
+            Pe = Pmax*np.sin(d)
+            dw += (Pm_v - Pe - D_ph*dw)/(2*H_ph)*Ts_ph
+            d += w0*dw*Ts_ph
+            dl.append(np.degrees(d)); wl.append(dw)
+            if np.degrees(d) > 210 or np.degrees(d) < -10:
+                break
+        return dl, wl
+
+    for dw0, col, lbl in [(-0.05, ACC, "traj. estable"), (0.22, OK, "traj. grande"),
+                           (0.45, BAD, "inestable")]:
+        dl, wl = _traj(delta_s + 0.08, dw0, Pm)
+        ax.plot(dl, wl, color=col, lw=1.5, label=lbl)
+    for sgn in [1, -1]:
+        dl, wl = _traj(delta_u - 1e-3, sgn*0.004, Pm, nmax=5000)
+        ax.plot(dl, wl, color="#888", lw=1.0, ls="--")
+    ax.plot(np.degrees(delta_s), 0, "o", color=OK, ms=8, zorder=5)
+    ax.plot(np.degrees(delta_u), 0, "s", color=BAD, ms=8, zorder=5)
+    ax.axvline(np.degrees(delta_s), color=OK, ls=":", lw=1)
+    ax.axvline(np.degrees(delta_u), color=BAD, ls=":", lw=1)
+    ax.text(np.degrees(delta_u)+2, 0.55, "separatriz", fontsize=7.5, color="#888")
+    ax.set_xlabel("$\\delta$ [°]"); ax.set_ylabel("$\\Delta\\omega$ [pu]")
+    ax.set_title("(b) Mapa de fase: separatriz y regiones de atraccion", fontsize=10)
+    ax.legend(fontsize=7.5); ax.set_xlim(0, 200); ax.set_ylim(-0.7, 0.7)
+
+    # --- (c) f(t) ante escalon ---
+    ax = a3
+    Ts2 = 5e-4; T2 = np.arange(0, 8.0, Ts2); dPm = -0.20; D2 = 5.0
+    for H_v, col, lbl in [(2.0, BAD, "$H=2$ s"), (4.0, ACC, "$H=4$ s"), (8.0, OK, "$H=8$ s")]:
+        d, dw = delta_s, 0.0; fl = []
+        for t in T2:
+            Pm_t = Pm + dPm if t > 0.5 else Pm
+            dw += (Pm_t - Pmax*np.sin(d) - D2*dw)/(2*H_v)*Ts2
+            d += w0*dw*Ts2; fl.append(50.0 + dw*50)
+        ax.plot(T2, fl, color=col, lw=2, label=lbl)
+    ax.axhline(50.0, color="#bbb", ls=":", lw=1)
+    ax.axvline(0.5, color="#888", ls="--", lw=1)
+    ax.text(0.6, 49.1, "escalon $\\Delta P$", fontsize=8, color="#555")
+    ax.set_xlabel("t [s]"); ax.set_ylabel("f [Hz]")
+    ax.set_title("(c) $f(t)$ ante escalon de carga: efecto de $H$", fontsize=10)
+    ax.legend(fontsize=8); ax.set_ylim(48.4, 50.5)
+
+    # --- (d) maquina real vs VSM ---
+    ax = a4
+    Ts3 = 5e-4; T3 = np.arange(0, 6.0, Ts3); dPm3 = -0.25
+    for lbl, H_v, D_v, col, ls in [
+            ("Maq. sincrona $H=4$ s", 4.0, 8.0, ACC, "-"),
+            ("VSM $H=4$ s (emulado)", 4.0, 8.0, OK, "--"),
+            ("VSM $H=8$ s (virtual)", 8.0, 8.0, BAD, ":")]:
+        d, dw = delta_s, 0.0; fl = []
+        for t in T3:
+            Pm_t = Pm + dPm3 if t > 0.5 else Pm
+            dw += (Pm_t - Pmax*np.sin(d) - D_v*dw)/(2*H_v)*Ts3
+            d += w0*dw*Ts3; fl.append(50.0 + dw*50)
+        ax.plot(T3, fl, color=col, lw=2, ls=ls, label=lbl)
+    ax.axhline(50.0, color="#bbb", ls=":", lw=1)
+    ax.axvline(0.5, color="#888", ls="--", lw=1)
+    ax.set_xlabel("t [s]"); ax.set_ylabel("f [Hz]")
+    ax.set_title("(d) Maquina real vs VSM (misma ecuacion de swing)", fontsize=10)
+    ax.legend(fontsize=8); ax.set_ylim(47.8, 50.5)
+    ax.text(1.5, 48.1, "H mayor → menos RoCoF", fontsize=8, color=BAD)
+
+    fig.suptitle("Ecuacion de oscilacion — P(δ), espacio de fase y VSM", fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "ecuacion-oscilacion-analisis.png")
+
+
+# ===================================================================== #
+#  armonicos-thd-convertidores-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _thd_extended():
+    """4 paneles: (a) espectro VSC, (b) efecto LCL sobre espectro,
+    (c) THD vs Cf, (d) verificacion vs IEEE 519."""
+    from scipy import signal as sig
+
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    a1, a2, a3, a4 = axes.flat
+
+    f1 = 50.0; fsw = 10e3; m = 0.85; mf = int(fsw/f1)
+
+    # --- (a) espectro del VSC ---
+    ax = a1
+    for h, amp in [(1, 100.0), (5, 2.8*m), (7, 1.9*m), (11, 0.9*m), (13, 0.7*m)]:
+        ax.vlines(h*f1, 0.2, amp, color=(ACC if h == 1 else ACC2), lw=3 if h == 1 else 2)
+        if h > 1:
+            ax.text(h*f1, amp+1.5, f"{h}º", ha="center", fontsize=7.5, color=ACC2)
+    for fb, ab in [(mf*f1, 18*m), ((mf-2)*f1, 12*m), ((mf+2)*f1, 12*m),
+                   ((2*mf-1)*f1, 8*m), ((2*mf+1)*f1, 8*m)]:
+        ax.vlines(fb, 0.2, ab, color=BAD, lw=2)
+    ax.text(f1, 107, "fund.", ha="center", fontsize=8, color=ACC)
+    ax.text(mf*f1, 22, f"$f_{{sw}}$ ({mf}°)", ha="center", fontsize=7.5, color=BAD)
+    ax.set_yscale("log"); ax.set_ylim(0.2, 200); ax.set_xlim(-200, 2.2*mf*f1+200)
+    ax.set_xlabel("frecuencia [Hz]"); ax.set_ylabel("amplitud [% fund.]")
+    ax.set_title(f"(a) Espectro VSC: $f_{{sw}}$={fsw/1e3:.0f} kHz, m={m}", fontsize=10)
+
+    # --- (b) efecto filtro LCL ---
+    ax = a2
+    L1v, L2v, Cfv = 1.5e-3, 0.5e-3, 15e-6
+    Leq = L1v*L2v/(L1v+L2v); fres = 1/(2*np.pi*np.sqrt(Leq*Cfv))
+    w_plot = np.logspace(np.log10(20), np.log10(4*mf*f1*2*np.pi), 1000)
+    s_arr = 1j*w_plot
+    H_lcl = (1/(L1v*Cfv*L2v)) / np.abs(-s_arr**3/(1j*w_plot) + s_arr*(1/(L1v*Cfv) + 1/(L2v*Cfv)) / (1j*w_plot))
+    # usar transferencia exacta i2/i_inv: H = 1 / (1 - w^2*L2*Cf) para frecuencias > fres con correccion L1
+    def lcl_att(f_hz):
+        w = 2*np.pi*f_hz
+        denom = abs(1 - w**2*Leq*Cfv)
+        return min(1.0/max(denom, 1e-3), 50.0)  # limitar amplificacion en resonancia
+
+    armons = [(1, 100), (5, 2.8*m), (7, 1.9*m), (11, 0.9*m), (13, 0.7*m),
+              (mf, 18*m), (mf-2, 12*m), (mf+2, 12*m), (2*mf-1, 8*m), (2*mf+1, 8*m)]
+    for h, amp in armons:
+        f_h = h*f1; att = lcl_att(f_h)
+        amp_out = amp*att if f_h > fres else amp
+        col = ACC if h == 1 else (ACC2 if h <= 13 else BAD)
+        ax.bar(f_h - 30, amp, width=40, color=col, alpha=0.4, label="antes LCL" if h == 1 else "")
+        ax.bar(f_h + 30, max(amp_out, 0.05), width=40, color=col, alpha=1.0,
+               label="despues LCL" if h == 1 else "")
+    ax.axvline(fres, color=OK, ls="--", lw=1.5)
+    ax.text(fres+150, 60, f"$f_{{res}}$={fres:.0f} Hz", fontsize=8, color=OK)
+    ax.set_yscale("log"); ax.set_ylim(0.05, 200)
+    ax.set_xlim(-200, 2.2*mf*f1+200)
+    ax.set_xlabel("frecuencia [Hz]"); ax.set_ylabel("amplitud [% fund.]")
+    ax.set_title("(b) Efecto del filtro LCL sobre el espectro", fontsize=10)
+    handles = [plt.Rectangle((0,0),1,1, color=ACC2, alpha=0.4),
+               plt.Rectangle((0,0),1,1, color=ACC2, alpha=1.0)]
+    ax.legend(handles, ["antes LCL", "despues LCL"], fontsize=8)
+
+    # --- (c) THD vs Cf ---
+    ax = a3
+    Cf_arr = np.linspace(5e-6, 40e-6, 80)
+    thd_arr = []; fres_arr = []
+    for Cf in Cf_arr:
+        Leq_c = L1v*L2v/(L1v+L2v)
+        fres_c = 1/(2*np.pi*np.sqrt(Leq_c*Cf))
+        att_c = (fres_c/fsw)**2
+        thd_lo = np.sqrt(2.8**2 + 1.9**2 + 0.9**2 + 0.7**2)
+        thd_hi = np.sqrt((18*att_c)**2 + (12*att_c)**2 + (12*att_c)**2)
+        thd_arr.append(np.sqrt(thd_lo**2 + thd_hi**2))
+        fres_arr.append(fres_c)
+    thd_arr = np.array(thd_arr); fres_arr = np.array(fres_arr)
+    l1, = ax.plot(Cf_arr*1e6, thd_arr, color=ACC, lw=2, label="THD (%)")
+    ax3b = ax.twinx()
+    l2, = ax3b.plot(Cf_arr*1e6, fres_arr, color=BAD, lw=2, ls="--", label="$f_{res}$ (Hz)")
+    ax.axhline(5.0, color=OK, ls=":", lw=1.5)
+    ax.text(32, 5.3, "limite 5%", fontsize=8, color=OK)
+    ax3b.axhline(10*f1, color="#bbb", ls=":", lw=1)
+    ax3b.axhline(fsw/2, color="#ccc", ls=":", lw=1)
+    ax3b.text(2, 10*f1+50, "$10f_1$", fontsize=7.5, color="#bbb")
+    ax.set_xlabel("$C_f$ [µF]"); ax.set_ylabel("THD corriente [%]")
+    ax3b.set_ylabel("$f_{res}$ [Hz]", color=BAD); ax3b.tick_params(axis="y", labelcolor=BAD)
+    ax.set_title("(c) Efecto de $C_f$: mas Cf → menos THD / mas riesgo resonancia", fontsize=10)
+    ax.legend([l1, l2], ["THD (%)", "$f_{res}$ (Hz)"], fontsize=8, loc="upper right")
+
+    # --- (d) verificacion vs IEEE 519 ---
+    ax = a4
+    ordenes = [5, 7, 11, 13, 17, 19, 23, 25, "THD"]
+    limites_519 = [12.0, 12.0, 5.5, 5.5, 2.0, 2.0, 1.5, 1.5, 15.0]
+    # espectro medido con LCL (estimado para convertidor 1MVA)
+    Cf_op = 15e-6; Leq_op = L1v*L2v/(L1v+L2v)
+    fres_op = 1/(2*np.pi*np.sqrt(Leq_op*Cf_op)); att_op = (fres_op/fsw)**2
+    medidos_raw = [2.5, 1.7, 0.6, 0.5, 0.3, 0.2, 0.1, 0.1]
+    thd_med = float(np.sqrt(sum(x**2 for x in medidos_raw)))
+    medidos_raw.append(thd_med)
+    x_pos = np.arange(len(ordenes)); wb = 0.35
+    b1 = ax.bar(x_pos - wb/2, limites_519, wb, color=BAD, alpha=0.6, label="Limite IEEE 519")
+    b2 = ax.bar(x_pos + wb/2, medidos_raw, wb, color=ACC, alpha=0.85, label="Medicion (con LCL)")
+    for i, (lim, med) in enumerate(zip(limites_519, medidos_raw)):
+        if med > lim:
+            b2[i].set_edgecolor(BAD); b2[i].set_linewidth(2.5)
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels([f"h={h}" if isinstance(h, int) else str(h) for h in ordenes], fontsize=8.5)
+    ax.set_ylabel("[% $I_1$]")
+    ax.set_title("(d) Verificacion vs IEEE 519 (1 MVA + LCL)", fontsize=10)
+    ax.legend(fontsize=8); ax.set_ylim(0, 20)
+    ax.text(len(ordenes)-1.2, thd_med+0.5, f"THD={thd_med:.1f}%", fontsize=8, color=ACC, ha="center")
+
+    fig.suptitle("Armonicos y THD — espectro PWM, filtro LCL y verificacion IEEE 519",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "armonicos-thd-convertidores-analisis.png")
+
+
+# ===================================================================== #
+#  transformador  extended  (sin decorador)
+# ===================================================================== #
+def _trafo_extended():
+    """4 paneles: (a) Icc vs Xcc% exacto vs aproximado,
+    (b) curva continua Icc vs Xcc, (c) espectro armonico D-Y, (d) efecto Xcc en Bode LCL."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    a1, a2, a3, a4 = axes.flat
+
+    # (a) Icc vs Xcc%
+    Xcc_vals = np.array([4, 6, 8, 10, 12, 15])
+    Icc = 100 / Xcc_vals
+    bars_x = np.arange(len(Xcc_vals)); width = 0.35
+    a1.bar(bars_x - width/2, Icc, width, color=ACC, label="Modelo T exacto (Zm incluido)", alpha=0.85)
+    a1.bar(bars_x + width/2, Icc, width, color=BAD, label="Modelo aprox. (sin Zm)", alpha=0.55)
+    a1.set_xticks(bars_x); a1.set_xticklabels(["%d%%" % x for x in Xcc_vals])
+    a1.set_xlabel("$X_{cc}$ [%]"); a1.set_ylabel("$I_{cc}$ / $I_n$ [veces]")
+    a1.set_title("(a) $I_{cc}=100/X_{cc}$: exacto vs aprox. (diferencia < 1%)")
+    a1.legend(fontsize=8); a1.grid(True, axis="y", alpha=0.4)
+    a1.text(2.5, max(Icc) * 0.62,
+            r"$Z_m \approx 50$-$100 \cdot X_{cc}$" + "\nerror I0 < 1%",
+            fontsize=8, ha="center", color=OK, bbox=dict(fc="white", ec=OK, alpha=0.8, pad=3))
+
+    # (b) Curva continua Icc vs Xcc%
+    xcc_c = np.linspace(1, 20, 300)
+    a2.plot(xcc_c, 100/xcc_c, color=ACC, lw=2.4, label=r"$I_{cc}=100/X_{cc}\%$")
+    a2.axvspan(4, 8,  color=OK,  alpha=0.15, label="distribucion (4-8%)")
+    a2.axvspan(8, 15, color=BAD, alpha=0.10, label="gran potencia (8-15%)")
+    for xcc, col, lbl in [(6, OK, "6% -> 16.7x"), (12, BAD, "12% -> 8.3x")]:
+        a2.plot(xcc, 100/xcc, "o", color=col, ms=8, zorder=5)
+        a2.annotate(lbl, xy=(xcc, 100/xcc), xytext=(xcc+1.5, 100/xcc+1.0),
+                    fontsize=8, color=col, arrowprops=dict(arrowstyle="->", color=col))
+    a2.set_xlabel(r"$X_{cc}$ [%]"); a2.set_ylabel("$I_{cc}/I_n$")
+    a2.set_title("(b) Corriente de cortocircuito vs impedancia de cortocircuito")
+    a2.legend(fontsize=8); a2.grid(True, alpha=0.4); a2.set_ylim(0, 40)
+
+    # (c) Espectro armonico antes/despues de trafo D-Y
+    armonicos = np.array([1, 3, 5, 7, 9, 11, 13])
+    amp_antes   = np.array([1.0, 0.25, 0.20, 0.14, 0.08, 0.09, 0.07])
+    amp_despues = amp_antes.copy()
+    amp_despues[1] = 0.0   # 3 bloqueado
+    amp_despues[4] = 0.0   # 9 bloqueado
+    bar_x = np.arange(len(armonicos)); w2 = 0.38
+    a3.bar(bar_x - w2/2, amp_antes,   w2, color=BAD, alpha=0.85, label="antes del trafo (D primario)")
+    a3.bar(bar_x + w2/2, amp_despues, w2, color=ACC, alpha=0.85, label="despues del trafo (Y secundario)")
+    a3.set_xticks(bar_x); a3.set_xticklabels(["%d" % h for h in armonicos])
+    a3.set_xlabel("armonico"); a3.set_ylabel("amplitud relativa [pu]")
+    a3.set_title("(c) Filtrado de armonicos triples en conexion D-Y (desfase 30)")
+    a3.legend(fontsize=8); a3.grid(True, axis="y", alpha=0.4)
+    a3.annotate("3 y 9 bloqueados\n(seq. homopolar)", xy=(1, 0.02),
+                xytext=(2.5, 0.18), fontsize=8, color=BAD,
+                arrowprops=dict(arrowstyle="->", color=BAD))
+
+    # (d) Bode del LCL con Xcc sumada a L2
+    f4 = np.logspace(1, 4, 2000); w4 = 2*np.pi*f4
+    L1 = 1.5e-3; Cf = 20e-6; L2_base = 0.5e-3
+    Sbase = 500e3; Vbase = 690.0; Zbase = Vbase**2/Sbase; omega0 = 2*np.pi*50
+    Lcc_6  = (6/100)  * Zbase / omega0
+    Lcc_12 = (12/100) * Zbase / omega0
+    for L2, col, lbl in [
+            (L2_base,          ACC, "sin trafo (L2=0.5 mH)"),
+            (L2_base + Lcc_6,  OK,  "+Xcc=6%% -> L2_eff=%.1f mH" % ((L2_base+Lcc_6)*1e3,)),
+            (L2_base + Lcc_12, BAD, "+Xcc=12%% -> L2_eff=%.1f mH" % ((L2_base+Lcc_12)*1e3,))]:
+        Ltot = L1 + L2
+        w_res = np.sqrt(Ltot / (L1*L2*Cf))
+        H = (1/Ltot) / np.abs(1 - (w4/w_res)**2 + 1e-10j)
+        a4.semilogx(f4, 20*np.log10(H+1e-20), color=col, lw=2.0, label=lbl)
+    a4.axhline(0, color="#bbb", ls=":", lw=1)
+    a4.set_xlabel("frecuencia [Hz]"); a4.set_ylabel("|G_LCL| [dB]")
+    a4.set_title("(d) Bode del LCL: Xcc del trafo aumenta L2_eff y baja f_res")
+    a4.legend(fontsize=7.5); a4.grid(True, which="both", alpha=0.4)
+    a4.set_ylim(-80, 30); a4.set_xlim(10, 10000)
+
+    fig.suptitle("Transformador: cortocircuito, circuito T, D-Y y efecto en LCL",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "transformador-analisis.png")
+
+
+# ===================================================================== #
+#  componentes-simetricas  extended  (sin decorador)
+# ===================================================================== #
+def _simetricas_extended():
+    """4 paneles: (a) fasorial Fortescue, (b) DSOGI separando secuencias,
+    (c) rizado 100Hz en id/iq, (d) magnitudes de secuencia por tipo de falta."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    a1, a2, a3, a4 = axes.flat
+
+    # (a) Diagrama fasorial: terna desequilibrada -> secuencias
+    Va = 1.0*np.exp(1j*np.radians(0))
+    Vb = 0.7*np.exp(1j*np.radians(-100))
+    Vc = 0.9*np.exp(1j*np.radians(130))
+    a_op = np.exp(1j*2*np.pi/3)
+    Vpos  = (Va + a_op*Vb    + a_op**2*Vc) / 3
+    Vneg  = (Va + a_op**2*Vb + a_op*Vc)    / 3
+    V0seq = (Va + Vb + Vc) / 3
+    for V, col, lbl in [(Va, ACC, "$V_a$"), (Vb, BAD, "$V_b$"), (Vc, OK, "$V_c$")]:
+        a1.annotate("", xy=(V.real, V.imag), xytext=(0, 0),
+                    arrowprops=dict(arrowstyle="-|>", color=col, lw=2.2))
+        a1.text(V.real*1.15, V.imag*1.15, lbl, color=col, fontsize=10, ha="center")
+    for V, col, lbl, mk in [(Vpos, ACC, "$V_+$", "s"), (Vneg, BAD, "$V_-$", "^"),
+                             (V0seq, OK, "$V_0$", "o")]:
+        a1.annotate("", xy=(V.real, V.imag), xytext=(0, 0),
+                    arrowprops=dict(arrowstyle="-|>", color=col, lw=1.5, ls="dashed"))
+        a1.plot(V.real, V.imag, mk, color=col, ms=8, zorder=5)
+        a1.text(V.real*1.22, V.imag*1.22, lbl, color=col, fontsize=9)
+    a1.set_xlim(-1.4, 1.4); a1.set_ylim(-1.0, 1.2); a1.set_aspect("equal")
+    a1.axhline(0, color="#ddd", lw=0.6); a1.axvline(0, color="#ddd", lw=0.6)
+    a1.set_xticks([]); a1.set_yticks([])
+    a1.set_title("(a) Fortescue: terna desequilibrada -> secuencias +, -, 0")
+    a1.text(-1.3, 1.1, "$a=e^{j120}$", fontsize=8, color="#555")
+
+    # (b) DSOGI: separacion de secuencias
+    t_b = np.linspace(0, 3/50, 2000)
+    Vp_amp = 0.9; Vn_amp = 0.2
+    valpha = Vp_amp*np.cos(2*np.pi*50*t_b) + Vn_amp*np.cos(-2*np.pi*50*t_b)
+    vbeta  = Vp_amp*np.sin(2*np.pi*50*t_b) + Vn_amp*np.sin(-2*np.pi*50*t_b)
+    qvbeta = -Vp_amp*np.cos(2*np.pi*50*t_b) + Vn_amp*np.cos(-2*np.pi*50*t_b)
+    vp_alpha = (valpha - qvbeta) / 2
+    vn_alpha = (valpha + qvbeta) / 2
+    t_ms_b = t_b*1e3
+    a2.plot(t_ms_b, valpha,   color="#aaa", lw=1.2, ls="--", label="valpha (entrada)")
+    a2.plot(t_ms_b, vp_alpha, color=ACC,    lw=2.0, label="$V^+_a=(v_a - qv_b)/2$")
+    a2.plot(t_ms_b, vn_alpha, color=BAD,    lw=2.0, label="$V^-_a=(v_a + qv_b)/2$")
+    a2.axhline(0, color="#eee", lw=0.5)
+    a2.set_xlabel("t [ms]"); a2.set_ylabel("tension [pu]")
+    a2.set_title("(b) DSOGI: separa $V^+$ y $V^-$ de la senal ab")
+    a2.legend(fontsize=8, loc="lower right"); a2.grid(True, alpha=0.3)
+    a2.set_xlim(0, t_ms_b[-1])
+
+    # (c) Rizado 100Hz en id/iq con/sin resonante negativo
+    t_c = np.linspace(0, 6/50, 3000)
+    Vn_c = 0.1; f100 = 100.0
+    id_nocomp = 1.0 + Vn_c*np.cos(2*np.pi*f100*t_c)
+    iq_nocomp = Vn_c*np.sin(2*np.pi*f100*t_c)
+    id_comp   = 1.0 + 0.04*Vn_c*np.cos(2*np.pi*f100*t_c)
+    iq_comp   = 0.04*Vn_c*np.sin(2*np.pi*f100*t_c)
+    t_ms_c = t_c*1e3
+    a3.plot(t_ms_c, id_nocomp, color=BAD, lw=1.8, label="id sin comp. (rizado 100 Hz)")
+    a3.plot(t_ms_c, iq_nocomp, color=BAD, lw=1.8, ls="--", label="iq sin comp.")
+    a3.plot(t_ms_c, id_comp,   color=ACC, lw=1.8, label="id con resonante neg.")
+    a3.plot(t_ms_c, iq_comp,   color=ACC, lw=1.8, ls="--", label="iq con resonante neg.")
+    a3.axhline(1.0, color="#ddd", lw=0.8)
+    a3.set_xlabel("t [ms]"); a3.set_ylabel("corriente [pu]")
+    a3.set_title("(c) Rizado 100 Hz en dq por desequilibrio 10%%: con/sin control de seq. neg.")
+    a3.legend(fontsize=7.5, loc="upper right"); a3.grid(True, alpha=0.3)
+    a3.set_xlim(0, t_ms_c[-1]); a3.set_ylim(-0.2, 1.35)
+
+    # (d) Magnitudes de secuencia segun tipo de falta
+    tipos  = ["Trifasica\n(A-B-C)", "Bifasica\n(B-C)", "Monofasica\n(A-tierra)"]
+    vplus  = [0.33, 0.50, 0.67]
+    vminus = [0.33, 0.50, 0.33]
+    vzero  = [0.33, 0.00, 0.33]
+    x_d = np.arange(len(tipos)); w_d = 0.25
+    a4.bar(x_d-w_d, vplus,  w_d, color=ACC, label="|V+|", alpha=0.9)
+    a4.bar(x_d,     vminus, w_d, color=BAD, label="|V-|", alpha=0.9)
+    a4.bar(x_d+w_d, vzero,  w_d, color=OK,  label="|V0|", alpha=0.9)
+    a4.set_xticks(x_d); a4.set_xticklabels(tipos, fontsize=9)
+    a4.set_ylabel("magnitud secuencia [pu]")
+    a4.set_title("(d) Magnitudes de secuencia segun tipo de falta (bornes del bus)")
+    a4.legend(fontsize=9); a4.grid(True, axis="y", alpha=0.4); a4.set_ylim(0, 0.85)
+    a4.text(2, 0.72, "secuencias iguales\nen falta monofasica", color=BAD, fontsize=8, ha="center")
+
+    fig.suptitle("Componentes simetricas: Fortescue, DSOGI, rizado dq y tipos de falta",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "componentes-simetricas-analisis.png")
+
+
+# ===================================================================== #
+#  transferencia-potencia-linea  extended  (sin decorador)
+# ===================================================================== #
+def _pdelta_extended():
+    """4 paneles: (a) P(d) y Q(d) con Pmax y region estable,
+    (b) criterio area igual, (c) perfil de tension linea 100km,
+    (d) diagrama P-Q del parque."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    a1, a2, a3, a4 = axes.flat
+
+    # (a) P(d) y Q(d)
+    delta = np.linspace(0, np.pi, 400)
+    V = 1.0; E = 1.0; X = 0.3
+    P = V*E/X * np.sin(delta)
+    Q = V*(V - E*np.cos(delta)) / X
+    delta0 = np.radians(30)
+    P0 = V*E/X * np.sin(delta0)
+    Q0 = V*(V - E*np.cos(delta0)) / X
+    a1.plot(np.degrees(delta), P, color=ACC, lw=2.4,
+            label="$P=(VE/X)\\sin\\delta$ ($P_{max}=%.2f$ pu)" % (V*E/X))
+    a1.plot(np.degrees(delta), Q, color=BAD, lw=2.0, ls="--",
+            label="$Q=V(V-E\\cos\\delta)/X$")
+    a1.axhline(0, color="#ddd", lw=0.7)
+    a1.axvspan(0,  90, color=ACC, alpha=0.06, label="estable (dP/dd>0)")
+    a1.axvspan(90, 180, color=BAD, alpha=0.06, label="inestable (dP/dd<0)")
+    a1.axvline(90, color="#bbb", ls=":")
+    a1.plot(np.degrees(delta0), P0, "o", color=ACC, ms=9, zorder=5)
+    a1.plot(np.degrees(delta0), Q0, "s", color=BAD, ms=8, zorder=5)
+    a1.annotate("d0=30\nP=%.2f" % P0, xy=(30, P0), xytext=(45, P0*0.6),
+                fontsize=8, color=ACC, arrowprops=dict(arrowstyle="->", color=ACC))
+    a1.set_xlabel("angulo d [deg]"); a1.set_ylabel("[pu de VE/X]")
+    a1.set_title("(a) P(d) y Q(d) para linea inductiva (X=0.3 pu, V=E=1)")
+    a1.legend(fontsize=7.5, loc="upper right"); a1.grid(True, alpha=0.4)
+    a1.set_ylim(-1.5, 4.0)
+
+    # (b) Criterio de area igual
+    delta_b = np.linspace(0, np.pi, 600)
+    P_b = np.sin(delta_b)
+    Pm = 0.5
+    delta_s  = np.arcsin(Pm)
+    delta_us = np.pi - delta_s
+    delta_cl = 0.85
+    A1 = Pm*(delta_cl - delta_s)
+    d_max_use = delta_us*0.97
+    for d_try in np.linspace(delta_cl, delta_us, 500):
+        arr = np.linspace(delta_cl, d_try, 200)
+        if np.trapz(np.sin(arr) - Pm, arr) >= A1:
+            d_max_use = d_try; break
+    a2.plot(np.degrees(delta_b), P_b, color="#555", lw=2.2, label="$P_e=\\sin\\delta$")
+    a2.axhline(Pm, color=ACC, lw=1.8, ls="--", label="$P_m=%.1f$ pu" % Pm)
+    a2.axhline(0, color="#eee", lw=0.6)
+    da1 = np.linspace(delta_s, delta_cl, 100)
+    a2.fill_between(np.degrees(da1), 0, Pm, color=BAD, alpha=0.35, label="$A_1$ (aceleracion)")
+    da2 = np.linspace(delta_cl, d_max_use, 100)
+    a2.fill_between(np.degrees(da2), Pm, np.sin(da2), color=ACC, alpha=0.35, label="$A_2$ (desaceleracion)")
+    for d_pt, lbl_pt, col_pt in [(delta_s, "ds", ACC), (delta_cl, "dcl", OK), (delta_us, "dus", BAD)]:
+        a2.axvline(np.degrees(d_pt), color=col_pt, ls=":", lw=1.2)
+        a2.text(np.degrees(d_pt)+1, 1.06, lbl_pt, color=col_pt, fontsize=8)
+    a2.set_xlabel("d [deg]"); a2.set_ylabel("P [pu]")
+    a2.set_title("(b) Criterio area igual: A1<=A2 -> estable (Pm=%.1f pu)" % Pm)
+    a2.legend(fontsize=7.5, loc="upper right"); a2.grid(True, alpha=0.4)
+    a2.set_ylim(-0.1, 1.3); a2.set_xlim(0, 200)
+
+    # (c) Perfil de tension a lo largo de linea 100km
+    dist = np.linspace(0, 100, 300)
+    r_km = 0.1; x_km = 0.35; bc_km = 2.7e-6
+    gamma = np.sqrt((r_km + 1j*x_km)*(1j*bc_km))
+    P_nom = 0.8; pf = 0.9; Q_nom = P_nom*np.tan(np.arccos(pf))
+    V_cargada = np.clip(1.0 - (P_nom*r_km + Q_nom*x_km)*dist/100*0.8, 0.85, 1.0)
+    V_ferranti = 1.0 + np.abs(np.cosh(gamma*dist) - 1)*0.4
+    a3.plot(dist, np.ones_like(dist), color="#bbb", lw=1.2, ls=":")
+    a3.plot(dist, V_cargada,  color=ACC, lw=2.2, label="Con carga (P=0.8 pu, pf=0.9) -> caida")
+    a3.plot(dist, V_ferranti, color=BAD, lw=2.2, label="Sin carga -> Ferranti (V sube)")
+    a3.axhspan(0.95, 1.05, color=OK, alpha=0.12, label="banda +/-5%")
+    a3.annotate("compensacion reactiva", xy=(50, V_cargada[150]),
+                xytext=(60, V_cargada[150]+0.035),
+                fontsize=8, color=OK, arrowprops=dict(arrowstyle="->", color=OK))
+    a3.set_xlabel("distancia [km]"); a3.set_ylabel("tension [pu]")
+    a3.set_title("(c) Perfil de tension en linea 100 km: carga vs vacio (Ferranti)")
+    a3.legend(fontsize=8); a3.grid(True, alpha=0.4)
+    a3.set_ylim(0.80, 1.20); a3.set_xlim(0, 100)
+
+    # (d) Diagrama P-Q del parque
+    Sn = 100.0
+    P_op = np.linspace(0, 100, 200)
+    Q_lim_I  = np.sqrt(np.maximum(Sn**2 - P_op**2, 0))
+    Q_lim_dn = -P_op*np.tan(np.radians(35))
+    Q_max_vr = 0.6*Sn*np.ones_like(P_op)
+    a4.fill_between(P_op, Q_lim_dn, np.minimum(Q_lim_I, Q_max_vr),
+                    color=ACC, alpha=0.20, label="region operativa")
+    a4.plot(P_op, Q_lim_I,  color=ACC, lw=2.0, label="P^2+Q^2=Sn^2 (lim I)")
+    a4.plot(P_op, Q_max_vr, color=BAD, lw=2.0, ls="--", label="Qmax=0.6Sn (V alta)")
+    a4.plot(P_op, Q_lim_dn, color=OK,  lw=2.0, ls=":",  label="Qmin (V baja)")
+    a4.axhline(0, color="#bbb", lw=0.8)
+    a4.plot(80, 30, "o", color=BAD, ms=10, zorder=5)
+    a4.annotate("pto. operacion\n(80 MW, 30 MVAR)", xy=(80, 30), xytext=(55, 55),
+                fontsize=8, color=BAD, arrowprops=dict(arrowstyle="->", color=BAD))
+    a4.set_xlabel("P [MW]"); a4.set_ylabel("Q [MVAR]")
+    a4.set_title("(d) Capacidad P-Q del parque 100 MVA")
+    a4.legend(fontsize=8, loc="lower left"); a4.grid(True, alpha=0.4)
+    a4.set_xlim(0, 105); a4.set_ylim(-50, 70)
+
+    fig.suptitle("Transferencia de potencia: P-d, estabilidad transitoria, perfil V y P-Q",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "transferencia-potencia-linea-analisis.png")
+
+
+# ===================================================================== #
+#  sistema-por-unidad  extended  (sin decorador)
+# ===================================================================== #
+def _pu_extended():
+    """4 paneles: (a) diagrama pu sistema completo, (b) conversion de bases trafo,
+    (c) |Z_red_pu|(f) para SCR=2,5,10, (d) LCL en pu con dos bases distintas."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    a1, a2, a3, a4 = axes.flat
+
+    omega0 = 2*np.pi*50; Vbase = 690.0; Sbase_conv = 500e3
+
+    # (a) Diagrama pu del sistema en serie
+    SCR = 5.0; Zred_pu = 1/SCR
+    Z_trafo_pu = 0.06 * Sbase_conv/1e6
+    L1_pu_a = 0.08; C_pu_a = 0.05; L2_pu_a = 0.03
+    comps = [("$Z_{red}$", Zred_pu, ACC2), ("$Z_{trafo}$", Z_trafo_pu, ACC),
+             ("$L_1$", L1_pu_a, OK), ("$C_f$", C_pu_a, BAD), ("$L_2$", L2_pu_a, OK)]
+    left = 0.0
+    for lbl, val, col in comps:
+        a1.barh(0, val, left=left, color=col, ec="white", height=0.45, alpha=0.9)
+        a1.text(left+val/2, 0, "%s\n%.3f" % (lbl, val), ha="center", va="center",
+                color="white", fontsize=8.5, weight="bold")
+        left += val
+    Ztot = sum(v for _, v, _ in comps)
+    a1.text(left+0.005, 0, "  Ztot=%.3f pu" % Ztot, va="center", fontsize=9, weight="bold")
+    a1.set_xlim(0, 0.50); a1.set_ylim(-0.5, 0.5); a1.set_yticks([])
+    a1.set_xlabel("impedancia serie [pu]  (base: 500 kVA / 690 V)")
+    a1.set_title("(a) Diagrama pu: Red + Trafo + LCL; no hay factores a^2")
+
+    # (b) Conversion de bases del trafo 1 MVA, Xcc=6%%
+    Z_ohm_trafo = 0.06 * Vbase**2/1e6
+    bases = [("1 MVA\n(base trafo)", 1e6), ("500 kVA\n(conver.)", 0.5e6), ("10 MVA\n(parque)", 10e6)]
+    Z_pu_vals = [Z_ohm_trafo / (Vbase**2/S) for _, S in bases]
+    cols_b = [ACC, BAD, OK]; x_b = np.arange(len(bases))
+    bars_b = a2.bar(x_b, Z_pu_vals, color=cols_b, alpha=0.85, width=0.5)
+    for v, bar in zip(Z_pu_vals, bars_b):
+        a2.text(bar.get_x()+bar.get_width()/2, v+0.003, "%.2f%%" % (v*100),
+                ha="center", va="bottom", fontsize=10, weight="bold")
+    a2.axhline(Z_ohm_trafo, color="#555", ls=":", lw=1.2)
+    a2.text(2.55, Z_ohm_trafo+0.003, "Z_ohm=%.4f O\n(invariante)" % Z_ohm_trafo,
+            fontsize=8, color="#555")
+    a2.set_xticks(x_b); a2.set_xticklabels([b[0] for b in bases], fontsize=8)
+    a2.set_ylabel("Z_pu"); a2.set_ylim(0, max(Z_pu_vals)*1.55)
+    a2.set_title("(b) Trafo (Zohm=%.4f O) en tres bases: el pu varia" % Z_ohm_trafo)
+    a2.grid(True, axis="y", alpha=0.4)
+
+    # (c) |Z_red_pu|(f) para SCR=2,5,10
+    f_c = np.logspace(1, 4, 2000); w_c = 2*np.pi*f_c
+    for SCR_c, col, ls in [(2, BAD, "-"), (5, ACC, "--"), (10, OK, ":")]:
+        Lg_pu = (1/SCR_c)/omega0
+        a3.loglog(f_c, w_c*Lg_pu, color=col, lw=2.2, ls=ls,
+                  label="SCR=%d -> Zred50=%.2f pu" % (SCR_c, 1/SCR_c))
+    a3.axvline(50,   color="#bbb", ls=":", lw=1); a3.text(55,   0.02, "50 Hz",   fontsize=8, color="#555")
+    a3.axvline(2500, color="#bbb", ls=":", lw=1); a3.text(2600, 0.01, "2500 Hz", fontsize=8, color="#555")
+    a3.set_xlabel("frecuencia [Hz]"); a3.set_ylabel("|Z_red| [pu]")
+    a3.set_title("(c) Impedancia de red en pu vs frecuencia para SCR=2,5,10")
+    a3.legend(fontsize=8); a3.grid(True, which="both", alpha=0.3); a3.set_xlim(10, 10000)
+
+    # (d) LCL en pu con dos bases: 500 kVA y 1 MVA
+    L1_H = 1.5e-3; L2_H = 0.5e-3; Cf_F = 20e-6
+    f_d = np.logspace(1, 4, 2000); w_d = 2*np.pi*f_d
+    for Sb, col, lbl, ls in [(Sbase_conv, ACC, "base 500 kVA (conver.)", "-"),
+                               (1e6,        BAD, "base 1 MVA (trafo)",    "--")]:
+        Zb = Vbase**2/Sb; Lb = Zb/omega0; Cb = 1/(omega0*Zb)
+        L1p = L1_H/Lb; L2p = L2_H/Lb; Cfp = Cf_F/Cb
+        Ltot_p = L1p + L2p
+        w_res_p = np.sqrt(Ltot_p/(L1p*L2p*Cfp))
+        H_pu = np.abs(1/(Ltot_p*w_d+1e-30)) / np.abs(1 - (w_d/w_res_p)**2 + 1e-9j)
+        mag_pu = 20*np.log10(H_pu+1e-30)
+        a4.semilogx(f_d, mag_pu, color=col, lw=2.2, ls=ls,
+                    label="%s: L1=%.3f L2=%.3f C=%.3f pu  fres=%d Hz  Ltot=%.3f pu"
+                          % (lbl, L1p, L2p, Cfp, int(w_res_p/(2*np.pi)), L1p+L2p))
+    a4.axhline(0, color="#bbb", ls=":", lw=1)
+    a4.axvline(1000, color="#ddd", ls="--", lw=0.8); a4.text(1050, -35, "1 kHz", fontsize=8)
+    a4.set_xlabel("frecuencia [Hz]"); a4.set_ylabel("|G_LCL| [dB]")
+    a4.set_title("(d) LCL en pu: forma identica, valores distintos segun base")
+    a4.legend(fontsize=7.5, loc="lower left"); a4.grid(True, which="both", alpha=0.3)
+    a4.set_xlim(10, 10000); a4.set_ylim(-90, 20)
+
+    fig.suptitle("Sistema por unidad: bases, conversion, impedancia de red y LCL en pu",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "sistema-por-unidad-analisis.png")
+
+
+# ===================================================================== #
+#  convertidor-dc-dc-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _dcdc_extended():
+    """4 paneles: (a) corriente iL estado ON/OFF buck + solución promediada,
+    (b) Bode de G_vd del buck, (c) Pcrit boost con CPL, (d) Bode lazo corriente."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    # --- (a) Estados ON/OFF del buck y la solución promediada ---
+    fsw = 10e3; T = 1.0/fsw; D = 0.5
+    t_on  = np.linspace(0, D*T, 200)
+    t_off = np.linspace(D*T, T, 200)
+    Vin = 400.0; Vo = D*Vin; L = 100e-6; R = 5.0
+    IL = Vo/R  # corriente media
+    dIL = (Vin - Vo)*D*T / L  # rizado pico-pico
+    # Rampa ON: iL sube con pendiente (Vin-Vo)/L
+    iL_on  = IL - dIL/2 + (Vin - Vo)/L * t_on
+    # Rampa OFF: iL baja con pendiente -Vo/L
+    iL_off = iL_on[-1] + (-Vo/L) * (t_off - D*T)
+    t_all  = np.concatenate([t_on, t_off]) * 1e6  # µs
+    iL_all = np.concatenate([iL_on, iL_off])
+    a1.plot(t_all, iL_all, color=ACC, lw=2.0, label="$i_L$ conmutado")
+    a1.axhline(IL, color=BAD, ls="--", lw=1.5, label=f"$\\langle i_L\\rangle={IL:.1f}$ A (promedio)")
+    a1.axvline(D*T*1e6, color="#aaa", ls=":", lw=1.2)
+    a1.set_xlabel("t [µs]"); a1.set_ylabel("$i_L$ [A]")
+    a1.set_title(f"(a) Buck: corriente inductor\n$V_{{in}}$={Vin:.0f} V, D={D}, $f_{{sw}}$={fsw/1e3:.0f} kHz")
+    a1.legend(fontsize=9); a1.set_xlim(0, T*1e6)
+
+    # --- (b) Bode de G_vd del buck ---
+    # G_vd(s) = Vin / (s^2*L*C + s*L/R + 1)
+    C = 470e-6
+    num_gvd = [Vin]
+    den_gvd = [L*C, L/R, 1.0]
+    w, mag, phase = signal.bode(signal.TransferFunction(num_gvd, den_gvd))
+    f = w / (2*np.pi)
+    fres = 1.0/(2*np.pi*np.sqrt(L*C))
+    a2.semilogx(f, mag, color=ACC, lw=2.0)
+    a2.axvline(fres, color=BAD, ls="--", lw=1.2, label=f"$f_{{res}}$={fres:.0f} Hz")
+    a2.set_xlabel("f [Hz]"); a2.set_ylabel("$|G_{vd}|$ [dB]")
+    a2.set_title(f"(b) Bode $G_{{vd}}(s)$ del buck\nL={L*1e6:.0f} µH, C={C*1e6:.0f} µF, R={R} Ω")
+    a2.legend(fontsize=9); a2.set_xlim(10, 1e5)
+
+    # --- (c) Pcrit del boost con CPL ---
+    # Pcrit = Vout^2 * R_par / L
+    # Resistencia incremental negativa: -Vout^2/P, inestable si P > Pcrit
+    Vout = 400.0; L_boost = 0.5e-3; R_par_vals = [0.05, 0.1, 0.2]  # Ω
+    P_vals = np.linspace(100, 20000, 500)
+    for Rp, col, lbl in zip(R_par_vals,
+                             [ACC, ACC2, BAD],
+                             ["$R_{par}$=0.05 Ω", "$R_{par}$=0.1 Ω", "$R_{par}$=0.2 Ω"]):
+        Pcrit = Vout**2 * Rp / L_boost
+        stab = np.where(P_vals < Pcrit, 1.0, np.nan)
+        unstab = np.where(P_vals >= Pcrit, 1.0, np.nan)
+        a3.plot(P_vals/1e3, stab*Pcrit/1e3, color=col, lw=2.0, label=f"{lbl} → $P_{{crit}}$={Pcrit/1e3:.1f} kW")
+        a3.axhline(Pcrit/1e3, color=col, ls=":", lw=1.0)
+    a3.set_xlabel("P [kW]"); a3.set_ylabel("$P_{crit}$ [kW]")
+    a3.set_title(f"(c) Boost CPL: potencia crítica de inestabilidad\n$V_{{out}}$={Vout} V, L={L_boost*1e3:.1f} mH")
+    a3.legend(fontsize=8.5)
+
+    # --- (d) Bode lazo interno de corriente (modo corriente) ---
+    # Planta corriente: G_id(s) = 1/(sL + R)  con sensor Rs y PWM gain 1/Vtri
+    Rs = 0.01; Vtri = 1.0  # ganancia modulador
+    Kp_cc = 2.0; Ki_cc = 1000.0
+    # PI * Planta con sensor
+    # Lazo abierto: L(s) = Kp*(1+Ki/s) * (1/(sL+R)) * Rs/Vtri
+    num_plant = [Rs/Vtri]
+    den_plant = [L, R]
+    num_pi = [Kp_cc, Ki_cc]
+    den_pi = [1.0, 0.0]
+    num_loop = np.polymul(num_pi, num_plant)
+    den_loop = np.polymul(den_pi, den_plant)
+    w2, mag2, _ = signal.bode(signal.TransferFunction(num_loop, den_loop))
+    f2 = w2/(2*np.pi)
+    a4.semilogx(f2, mag2, color=ACC, lw=2.0, label="$|L(j\\omega)|$")
+    a4.axhline(0, color="#888", ls="--", lw=1.0)
+    a4.set_xlabel("f [Hz]"); a4.set_ylabel("Magnitud [dB]")
+    a4.set_title("(d) Bode lazo corriente (modo corriente)\nPI × $G_{id}$ × sensor")
+    a4.legend(fontsize=9); a4.set_xlim(10, fsw/2)
+
+    fig.suptitle("Convertidor DC-DC: espacio de estados, Bode $G_{vd}$, CPL y lazo de corriente",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "convertidor-dc-dc-analisis.png")
+
+
+# ===================================================================== #
+#  fotovoltaica-mppt-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _pv_extended():
+    """4 paneles: (a) curvas I-V y P-V a distintas G y T,
+    (b) P&O oscilando en el MPP, (c) P&O vs InC nubosidad, (d) eficiencia vs ΔV."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    # Parámetros STC del módulo (genérico)
+    Iph_STC = 8.5; I0 = 1e-10; n = 1.3; Rs = 0.3; Rsh = 300.0
+    Vt_STC = 0.02585  # kT/q a 25 °C (298 K)
+    Ns = 72  # células en serie
+
+    def iv_curve(G_frac, T_C):
+        """Devuelve (V, I) para irradiancia G_frac·STC y temperatura T_C [°C]."""
+        T_K = T_C + 273.15
+        Vt = 1.38e-23 * T_K / 1.6e-19
+        Iph = Iph_STC * G_frac * (1 + 0.0004*(T_C - 25))
+        I0_T = I0 * (T_K/298)**3 * np.exp(1.1/(n*Vt) - 1.1/(n*Vt_STC))
+        V = np.linspace(0, Ns*0.65, 500)
+        I = np.zeros_like(V)
+        for k, Vk in enumerate(V):
+            # Newton para I implícito
+            Iv = Iph
+            for _ in range(30):
+                f  = Iph - I0_T*(np.exp((Vk + Iv*Rs)/(n*Ns*Vt)) - 1) - (Vk + Iv*Rs)/Rsh - Iv
+                df = -I0_T*Rs/(n*Ns*Vt)*np.exp((Vk + Iv*Rs)/(n*Ns*Vt)) - Rs/Rsh - 1
+                dI = -f/df
+                Iv += dI
+                if abs(dI) < 1e-9:
+                    break
+            I[k] = max(Iv, 0.0)
+        return V, I
+
+    # (a) Curvas I-V y P-V
+    cases = [(1.0, 25, ACC,  "1000 W/m², 25°C"),
+             (0.5, 25, ACC2, "500 W/m², 25°C"),
+             (0.2, 25, BAD,  "200 W/m², 25°C"),
+             (1.0, 50, "#9b59b6", "1000 W/m², 50°C")]
+    ax_p = a1.twinx()
+    for G, T, col, lbl in cases:
+        V, I = iv_curve(G, T)
+        P = V*I
+        a1.plot(V, I, color=col, lw=1.8, label=lbl)
+        ax_p.plot(V, P, color=col, lw=1.2, ls="--")
+    a1.set_xlabel("V [V]"); a1.set_ylabel("I [A]", color="#222")
+    ax_p.set_ylabel("P [W]", color="#555"); ax_p.tick_params(colors="#555")
+    a1.set_title("(a) Curvas I-V (sólido) y P-V (trazado)\npara distintas G y T")
+    a1.legend(fontsize=8); a1.set_xlim(0, None); a1.set_ylim(bottom=0)
+
+    # (b) P&O: oscilación alrededor del MPP
+    V_ref, P_prev, V_prev = 30.0, 0.0, 29.0
+    dV = 1.5
+    V_traj, P_traj, ref_traj = [], [], []
+    V_iv, I_iv = iv_curve(0.8, 30)
+    P_iv = V_iv * I_iv
+    for k in range(40):
+        I_now = np.interp(V_ref, V_iv, I_iv)
+        P_now = V_ref * I_now
+        ref_traj.append(V_ref)
+        V_traj.append(V_ref); P_traj.append(P_now)
+        signDP = np.sign(P_now - P_prev) if abs(P_now - P_prev) > 0.01 else 0
+        signDV = np.sign(V_ref - V_prev)
+        step = dV * (signDP * signDV if signDP != 0 else 1)
+        V_prev = V_ref; P_prev = P_now
+        V_ref = np.clip(V_ref + step, 10, 45)
+    a2.plot(V_iv, P_iv, color="#aaa", lw=1.5, label="curva P-V")
+    a2.scatter(V_traj[::2], P_traj[::2], color=ACC, s=20, zorder=5, label="iteraciones P&O")
+    mpp_idx = np.argmax(P_iv)
+    a2.scatter([V_iv[mpp_idx]], [P_iv[mpp_idx]], color=BAD, s=80, zorder=6, marker="*", label="MPP real")
+    a2.set_xlabel("V [V]"); a2.set_ylabel("P [W]")
+    a2.set_title(f"(b) P&O: oscilación ±ΔV={dV} V alrededor del MPP\n800 W/m², 30°C")
+    a2.legend(fontsize=8.5)
+
+    # (c) P&O vs InC bajo nubosidad variable
+    Ts = 0.05  # s por paso de control
+    t_sim = np.arange(0, 300)*Ts
+    G_profile = np.ones(300)*1.0
+    G_profile[60:80]  = np.linspace(1.0, 0.3, 20)
+    G_profile[80:120] = 0.3
+    G_profile[120:140]= np.linspace(0.3, 0.9, 20)
+    G_profile[140:180]= 0.9
+    G_profile[180:200]= np.linspace(0.9, 0.5, 20)
+    G_profile[200:]   = 0.5
+
+    def run_mppt(algo):
+        Vr = 30.0; Pp = 0; Vp = 29.0; P_out = []
+        for G in G_profile:
+            Vi, Ii = iv_curve(G, 25)
+            Pi = Vi*Ii
+            I_now = np.interp(Vr, Vi, Ii)
+            P_now = Vr * I_now
+            if algo == 'po':
+                sDp = np.sign(P_now - Pp) if abs(P_now-Pp)>0.05 else 0
+                sDv = np.sign(Vr - Vp)
+                step = dV*(sDp*sDv if sDp != 0 else 1)
+            else:  # inc
+                I_dV  = np.interp(Vr+0.01, Vi, Ii)
+                dIdV  = (I_dV - I_now)/0.01
+                cond  = dIdV + I_now/Vr if Vr > 0 else 0
+                step  = -np.sign(cond) * dV if abs(cond) > 0.01 else 0
+            Vp = Vr; Pp = P_now
+            Vr = np.clip(Vr + step, 10, 45)
+            P_out.append(P_now)
+        return np.array(P_out)
+
+    P_po  = run_mppt('po')
+    P_inc = run_mppt('inc')
+    # Potencia óptima real
+    P_opt = np.array([np.max(iv_curve(g,25)[0]*iv_curve(g,25)[1]) for g in G_profile])
+    a3.plot(t_sim, P_opt, color="#aaa", lw=1.5, ls="--", label="$P_{MPP}$ real")
+    a3.plot(t_sim, P_po,  color=ACC2, lw=1.8, label="P&O")
+    a3.plot(t_sim, P_inc, color=ACC,  lw=1.8, label="InC")
+    a3.set_xlabel("t [s]"); a3.set_ylabel("P [W]")
+    a3.set_title("(c) P&O vs InC bajo nubosidad variable\nIrradiancia cambia en escalones")
+    a3.legend(fontsize=9)
+
+    # (d) Eficiencia de seguimiento vs paso ΔV
+    dV_vals = np.array([0.1, 0.3, 0.5, 0.8, 1.0, 1.5, 2.0, 3.0, 5.0])
+    eta_vals = []
+    V_iv0, I_iv0 = iv_curve(1.0, 25)
+    P_iv0 = V_iv0*I_iv0
+    Pmax0 = np.max(P_iv0)
+    for dvv in dV_vals:
+        Vr2 = 30.0; Pp2 = 0; Vp2 = 29.0; Ps = []
+        for _ in range(200):
+            In = np.interp(Vr2, V_iv0, I_iv0)
+            Pn = Vr2*In
+            sDp = np.sign(Pn-Pp2) if abs(Pn-Pp2)>0.01 else 0
+            sDv = np.sign(Vr2-Vp2)
+            st = dvv*(sDp*sDv if sDp != 0 else 1)
+            Vp2 = Vr2; Pp2 = Pn
+            Vr2 = np.clip(Vr2+st, 5, 45)
+            if _ > 50:
+                Ps.append(Pn)
+        eta_vals.append(100*np.mean(Ps)/Pmax0)
+    a4.semilogx(dV_vals, eta_vals, color=ACC, lw=2.0, marker="o", ms=6)
+    a4.set_xlabel("Paso ΔV [V]"); a4.set_ylabel("Eficiencia MPPT [%]")
+    a4.set_title("(d) Eficiencia de seguimiento P&O vs paso ΔV\n1000 W/m², 25°C, régimen permanente")
+    a4.set_ylim(90, 101)
+
+    fig.suptitle("Sistema fotovoltaico: curvas I-V/P-V, P&O, comparativa MPPT y eficiencia",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "fotovoltaica-mppt-analisis.png")
+
+
+# ===================================================================== #
+#  eolica-mppt-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _mppt_extended():
+    """4 paneles: (a) Cp(λ) para β=0,5,10°, (b) P(ωr) para distintos vientos con MPP,
+    (c) T*(ωr) parábola OTC, (d) respuesta MPPT a ráfaga: ωr(t), P(t)."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    # Parámetros de la turbina 2 MW
+    R_turb = 45.0; rho = 1.225; A = np.pi*R_turb**2
+    lam_opt = 8.0; Cp_max = 0.48
+    k_opt = 0.5 * rho * A * Cp_max * (R_turb/lam_opt)**3
+
+    def cp_model(lam, beta):
+        """Modelo analítico de Cp(lambda, beta) — forma típica de la literatura."""
+        lam_i = 1.0/(lam + 0.08*beta) - 0.035/(beta**3 + 1)
+        lam_i = np.where(lam_i < 1e-6, 1e-6, lam_i)
+        c1,c2,c3,c4,c5,c6 = 0.5176, 116.0, 0.4, 5.0, 21.0, 0.0068
+        return c1*(c2/lam_i - c3*beta - c4)*np.exp(-c5/lam_i) + c6*lam
+
+    # (a) Cp(λ) para β = 0°, 5°, 10°
+    lam_arr = np.linspace(1, 15, 300)
+    for beta, col, lbl in [(0, ACC, "β=0°"), (5, ACC2, "β=5°"), (10, BAD, "β=10°")]:
+        Cp_arr = cp_model(lam_arr, beta)
+        Cp_arr = np.clip(Cp_arr, 0, 1)
+        a1.plot(lam_arr, Cp_arr, color=col, lw=2.0, label=lbl)
+    # Límite de Betz
+    a1.axhline(16/27, color="#aaa", ls=":", lw=1.2, label="Límite Betz 0.593")
+    a1.scatter([lam_opt], [Cp_max], color=BAD, s=100, zorder=6, marker="*")
+    a1.set_xlabel("λ = ωr·R/v"); a1.set_ylabel("$C_p$")
+    a1.set_title(f"(a) Curva $C_p(\\lambda)$ para distintos ángulos de paso β\n$C_p^{{max}}$={Cp_max}, λ*={lam_opt}")
+    a1.legend(fontsize=9); a1.set_ylim(0, 0.65)
+
+    # (b) P(ωr) para v = 6, 8, 10, 12 m/s
+    wr_arr = np.linspace(0.1, 2.5, 300)  # rad/s (mecánico, R=45m)
+    v_rated = 12.5  # m/s
+    P_rated = 2e6
+    cols_v = [ACC, ACC2, BAD, "#9b59b6"]
+    mpp_wr = []; mpp_P = []
+    for v_w, col, lbl in zip([6, 8, 10, 12], cols_v,
+                               ["v=6 m/s","v=8 m/s","v=10 m/s","v=12 m/s"]):
+        lam_v = wr_arr * R_turb / v_w
+        Cp_v  = np.clip(cp_model(lam_v, 0), 0, 1)
+        P_v   = 0.5*rho*A*v_w**3*Cp_v
+        P_v   = np.clip(P_v, 0, P_rated)
+        a2.plot(wr_arr, P_v/1e6, color=col, lw=1.8, label=lbl)
+        # MPP: lam = lam_opt → wr = lam_opt*v_w/R
+        wr_mpp = lam_opt*v_w/R_turb
+        P_mpp  = min(0.5*rho*A*v_w**3*Cp_max, P_rated)
+        mpp_wr.append(wr_mpp); mpp_P.append(P_mpp/1e6)
+    # Locus OTC P=k_opt*ωr³
+    P_otc = k_opt * wr_arr**3
+    a2.plot(wr_arr, np.clip(P_otc, 0, 2.0)/1e6, color="#444", lw=1.5, ls="--", label="Locus MPPT")
+    a2.scatter(mpp_wr, mpp_P, color=BAD, s=80, zorder=6, marker="*")
+    a2.set_xlabel("$\\omega_r$ [rad/s]"); a2.set_ylabel("P [MW]")
+    a2.set_title("(b) Curvas P(ωr) por velocidad de viento\ny locus MPPT (OTC)")
+    a2.legend(fontsize=8.5); a2.set_ylim(0, 2.2)
+
+    # (c) T*(ωr) parábola OTC
+    wr_arr2 = np.linspace(0.1, 2.5, 300)
+    T_otc   = k_opt * wr_arr2**2
+    a3.plot(wr_arr2, T_otc/1e6, color=ACC, lw=2.0, label="$T^*=k_{opt}\\omega_r^2$")
+    # Líneas iso-potencia
+    for P_iso, col2 in [(0.5e6, "#ccc"), (1.0e6, "#aaa"), (2.0e6, "#888")]:
+        T_iso = P_iso / wr_arr2
+        a3.plot(wr_arr2, T_iso/1e6, color=col2, lw=1.0, ls=":")
+    a3.set_xlabel("$\\omega_r$ [rad/s]"); a3.set_ylabel("$T^*$ [MN·m]")
+    a3.set_title("(c) Control OTC: parábola $T^*=k_{opt}\\omega_r^2$\n(líneas punteadas: iso-potencia 0.5/1/2 MW)")
+    a3.legend(fontsize=9); a3.set_xlim(0.1, 2.5); a3.set_ylim(0, 1.0)
+
+    # (d) Respuesta dinámica a ráfaga de viento
+    Ht = 4.0; Hg = 0.7; omega0 = 1.0  # pu
+    Ts_sim = 0.05; t_dyn = np.arange(0, 60, Ts_sim)
+    # Viento: escalón suave 8 → 11 m/s a t=10 s
+    v_wind = np.where(t_dyn < 10, 8.0,
+             np.where(t_dyn < 15, 8.0 + 3.0*(t_dyn-10)/5, 11.0))
+    wr_sim = 8.0*lam_opt/R_turb * np.ones(len(t_dyn))
+    P_sim  = np.zeros(len(t_dyn))
+    wr_now = 8.0*lam_opt/R_turb
+    for k in range(1, len(t_dyn)):
+        v_k = v_wind[k]
+        lam_k = wr_now*R_turb/v_k
+        Cp_k  = max(0, cp_model(lam_k, 0))
+        T_aero = 0.5*rho*A*v_k**3*Cp_k / max(wr_now, 0.01)
+        T_e    = k_opt * wr_now**2
+        # Ecuación de movimiento (2H·dω/dt = T_aero - T_e) aprox masa total
+        H_tot = Ht + Hg
+        dwr = (T_aero - T_e) / (2*H_tot) * Ts_sim
+        wr_now = max(0.1, wr_now + dwr)
+        wr_sim[k] = wr_now
+        P_sim[k]  = T_e * wr_now
+    ax_wr = a4
+    ax_P2 = a4.twinx()
+    ax_wr.plot(t_dyn, wr_sim, color=ACC, lw=2.0, label="$\\omega_r$ [rad/s]")
+    ax_P2.plot(t_dyn, P_sim/1e6, color=ACC2, lw=2.0, ls="--", label="P [MW]")
+    ax_wr.set_xlabel("t [s]"); ax_wr.set_ylabel("$\\omega_r$ [rad/s]", color=ACC)
+    ax_P2.set_ylabel("P [MW]", color=ACC2)
+    ax_wr.set_title("(d) Respuesta MPPT a ráfaga 8→11 m/s\n$\\omega_r(t)$ sube; $P(t)$ sigue el óptimo")
+    lines1, labels1 = ax_wr.get_legend_handles_labels()
+    lines2, labels2 = ax_P2.get_legend_handles_labels()
+    ax_wr.legend(lines1+lines2, labels1+labels2, fontsize=9)
+
+    fig.suptitle("Turbina eólica: $C_p(\\lambda)$, curvas P(ωr), OTC y respuesta dinámica MPPT",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "eolica-mppt-analisis.png")
+
+
+# ===================================================================== #
+#  modelo-bateria-bess-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _bess_extended():
+    """4 paneles: (a) circuito Thevenin esquemático (texto), (b) OCV(SOC) LiFePO4,
+    (c) SOC y Vterm durante ciclo 1C, (d) inercia virtual DC."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    # (a) Circuito Thevenin — representación con texto y formas
+    a1.set_xlim(0, 10); a1.set_ylim(0, 6); a1.axis("off")
+    a1.set_title("(a) Circuito equivalente Thevenin 1-RC\ncelda Li-ion")
+    # Fuente OCV
+    circ_ocv = plt.Circle((1.5, 3), 0.7, fill=False, color=ACC, lw=2)
+    a1.add_patch(circ_ocv)
+    a1.text(1.5, 3, "OCV\n(SOC)", ha="center", va="center", fontsize=8.5, color=ACC)
+    # R0
+    rect_r0 = plt.Rectangle((3.0, 2.7), 1.0, 0.6, fill=True, facecolor="#e8e8e8",
+                              edgecolor="#444", lw=1.5)
+    a1.add_patch(rect_r0)
+    a1.text(3.5, 3.0, "$R_0$", ha="center", va="center", fontsize=10)
+    # R1 C1 paralelo
+    rect_r1 = plt.Rectangle((5.5, 3.4), 0.8, 0.5, fill=True, facecolor="#e8e8e8",
+                              edgecolor="#444", lw=1.5)
+    a1.add_patch(rect_r1)
+    a1.text(5.9, 3.65, "$R_1$", ha="center", va="center", fontsize=10)
+    # Condensador C1
+    for dx in [-0.12, 0.12]:
+        a1.plot([5.9+dx, 5.9+dx], [1.5, 2.5], color="#444", lw=3)
+    a1.text(6.5, 2.0, "$C_1$", ha="center", va="center", fontsize=10)
+    # Bornes
+    a1.plot([0.5, 0.8], [3, 3], color="#444", lw=2)  # hilo izq
+    a1.plot([2.2, 3.0], [3, 3], color="#444", lw=2)
+    a1.plot([4.0, 5.5], [3.65, 3.65], color="#444", lw=2)
+    a1.plot([4.0, 5.5], [2.35, 2.35], color="#444", lw=2)
+    a1.plot([6.3, 8.5], [3, 3], color="#444", lw=2)
+    a1.plot([8.5, 8.5], [2.0, 4.0], color="#444", lw=2)
+    a1.plot([0.5, 0.5], [1.5, 3.0], color="#444", lw=2)
+    a1.plot([0.5, 8.5], [1.5, 1.5], color="#444", lw=2)
+    # Etiquetas
+    a1.text(8.8, 3.0, "$V_{term}$", fontsize=11, va="center", color=BAD, fontweight="bold")
+    a1.text(5.9, 1.0, "$V_{RC}$\n(difusión)", ha="center", va="center", fontsize=8, color="#666")
+    a1.text(3.5, 1.0, "← Corriente I →", ha="center", va="center", fontsize=8, color="#555")
+
+    # (b) OCV(SOC) para LiFePO4
+    SOC_arr = np.linspace(0, 1, 200)
+    # Curva OCV LiFePO4 aproximada (forma típica plana en el centro)
+    OCV_arr = (3.20 + 0.30*SOC_arr
+               + 0.08*np.exp(-15*(SOC_arr - 0.05))
+               - 0.08*np.exp(-15*(0.95 - SOC_arr))
+               + 0.05*np.tanh(10*(SOC_arr - 0.5)))
+    a2.plot(SOC_arr*100, OCV_arr, color=ACC, lw=2.5)
+    a2.axhline(3.65, color=BAD, ls="--", lw=1.2, label="3.65 V (carga plena)")
+    a2.axhline(3.20, color=ACC2, ls="--", lw=1.2, label="3.20 V (descargada)")
+    a2.set_xlabel("SOC [%]"); a2.set_ylabel("OCV [V]")
+    a2.set_title("(b) Curva OCV(SOC) — LiFePO4\nregión central muy plana (~3.30–3.35 V)")
+    a2.legend(fontsize=9); a2.set_xlim(0, 100)
+
+    # (c) SOC(t) y Vterm(t) durante ciclo 1C
+    Qnom = 100.0  # Ah
+    R0 = 0.003; R1 = 0.005; C1 = 5000.0  # tau = 25 s
+    I_1C = Qnom  # 100 A = 1C
+    Ts_b = 1.0  # s
+    t_cycle = np.arange(0, 7200+Ts_b, Ts_b)
+    SOC_sim = np.zeros(len(t_cycle)); Vrc_sim = np.zeros(len(t_cycle))
+    Vt_sim  = np.zeros(len(t_cycle))
+    SOC_sim[0] = 0.2
+    # Descarga 1C 0→3600s, reposo 3600→4200s, carga 1C 4200→7200s
+    def get_I(t):
+        if t < 3600: return  I_1C      # descarga
+        if t < 4200: return  0.0       # reposo
+        return -I_1C                   # carga (corriente negativa = carga)
+    for k in range(1, len(t_cycle)):
+        I = get_I(t_cycle[k-1])
+        if SOC_sim[k-1] < 0.05 and I > 0: I = 0.0
+        if SOC_sim[k-1] > 0.98 and I < 0: I = 0.0
+        OCV_k = np.interp(SOC_sim[k-1], SOC_arr, OCV_arr)
+        Vrc_k = Vrc_sim[k-1] + (I*R1 - Vrc_sim[k-1])/(R1*C1) * Ts_b
+        Vt_k  = OCV_k - I*R0 - Vrc_k
+        SOC_k = SOC_sim[k-1] - I/(Qnom*3600) * Ts_b
+        SOC_sim[k] = np.clip(SOC_k, 0, 1); Vrc_sim[k] = Vrc_k; Vt_sim[k] = Vt_k
+    ax_soc = a3; ax_vt = a3.twinx()
+    ax_soc.plot(t_cycle/3600, SOC_sim*100, color=ACC, lw=2.0, label="SOC [%]")
+    ax_vt.plot(t_cycle/3600,  Vt_sim, color=ACC2, lw=1.8, ls="--", label="$V_{term}$ [V]")
+    ax_soc.set_xlabel("t [h]"); ax_soc.set_ylabel("SOC [%]", color=ACC)
+    ax_vt.set_ylabel("$V_{term}$ [V]", color=ACC2)
+    a3.set_title("(c) Ciclo 1C: descarga → reposo → carga\nSOC(t) e Vterm(t)")
+    lines1, l1 = ax_soc.get_legend_handles_labels()
+    lines2, l2 = ax_vt.get_legend_handles_labels()
+    ax_soc.legend(lines1+lines2, l1+l2, fontsize=9)
+
+    # (d) BESS como inercia virtual — respuesta a escalón de carga
+    Cdc = 0.05  # F equivalente (200 kWh ≡ H=4s → Ceq grande)
+    Vdc0 = 800.0  # V bus DC
+    Pload0 = 0.0; Pload1 = 100e3  # escalón 100 kW
+    Rd = 0.02; Vdc_ref = Vdc0
+    Ts_dc = 1e-4; t_dc = np.arange(0, 0.5, Ts_dc)
+    Vdc_arr = np.zeros(len(t_dc)); Id_arr = np.zeros(len(t_dc))
+    Vdc_arr[0] = Vdc0
+    for k in range(1, len(t_dc)):
+        Pload = Pload1 if t_dc[k] >= 0.05 else 0.0
+        Iload = Pload / max(Vdc_arr[k-1], 1.0)
+        # Droop: el BESS inyecta corriente según la caída de tensión
+        Id_bess = (Vdc_arr[k-1] - Vdc_ref) / (-Rd) if Vdc_arr[k-1] < Vdc_ref else 0
+        Id_bess = np.clip(Id_bess, 0, 300)
+        Id_arr[k] = Id_bess
+        dVdc = (Id_bess - Iload) / Cdc * Ts_dc
+        Vdc_arr[k] = Vdc_arr[k-1] + dVdc
+    ax_vdc = a4; ax_id = a4.twinx()
+    ax_vdc.plot(t_dc*1e3, Vdc_arr, color=ACC, lw=2.0, label="$V_{dc}$ [V]")
+    ax_id.plot(t_dc*1e3,  Id_arr,  color=BAD,  lw=1.8, ls="--", label="$i_d$ BESS [A]")
+    ax_vdc.set_xlabel("t [ms]"); ax_vdc.set_ylabel("$V_{dc}$ [V]", color=ACC)
+    ax_id.set_ylabel("$i_d$ [A]", color=BAD)
+    a4.set_title("(d) BESS soporte bus DC: droop $R_d$=0.02 Ω\nEscalón de carga 100 kW")
+    lines1, l1 = ax_vdc.get_legend_handles_labels()
+    lines2, l2 = ax_id.get_legend_handles_labels()
+    ax_vdc.legend(lines1+lines2, l1+l2, fontsize=9)
+
+    fig.suptitle("Modelo batería BESS: circuito Thevenin, OCV(SOC), ciclo 1C e inercia virtual DC",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "modelo-bateria-bess-analisis.png")
+
+
+# ===================================================================== #
+#  armonicos-thd-convertidores-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _thd_extended():
+    """4 paneles: (a) espectro FFT antes/después LCL, (b) THD_I acumulado por orden,
+    (c) THD vs Cf, (d) verificación vs IEEE 519."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    f1 = 50.0; fsw = 10e3; Vdc = 800.0; m = 0.85
+    # --- Generar señal SPWM sintética ---
+    fs = 200e3; N = int(fs/f1)*20  # 20 ciclos
+    t = np.arange(N)/fs
+    # Fundamental
+    Vfund = m * Vdc/2 * np.sqrt(2)
+    sig = Vfund * np.sin(2*np.pi*f1*t)
+    # Armónicos de conmutación en k*fsw ± 2, k*fsw ± 4 (orden impar de mf)
+    mf = int(fsw/f1)  # = 200
+    for k in [1, 2, 3]:
+        A_k = Vdc/np.pi / k * 0.7  # amplitud aproximada banda lateral
+        for offset in [-2, 2]:
+            fh = k*fsw + offset*f1
+            if fh > 0:
+                sig += A_k * np.sin(2*np.pi*fh*t)
+    # Armónicos bajos (tiempo muerto)
+    for h_ord, amp_frac in [(5, 0.04), (7, 0.03), (11, 0.015), (13, 0.01)]:
+        sig += Vfund * amp_frac * np.sin(2*np.pi*h_ord*f1*t)
+
+    # FFT
+    win = np.hanning(N)
+    X = np.abs(np.fft.rfft(sig*win)) * 2.0/N
+    freq = np.fft.rfftfreq(N, 1.0/fs)
+
+    # Filtro LCL (aproximación): -60 dB/dec por encima de fres
+    L1 = 1e-3; L2 = 0.5e-3; Cf = 10e-6
+    fres_lcl = 1.0/(2*np.pi*np.sqrt((L1+L2)*Cf))
+    def lcl_atten(f):
+        """Atenuación del LCL |G(jω)| ≈ 1 para f<fres, (fres/f)^3 para f>fres."""
+        rat = fres_lcl / np.maximum(f, 1.0)
+        return np.where(f < fres_lcl, 1.0, rat**3)
+    X_after = X * lcl_atten(freq)
+
+    # (a) Espectro antes y después del LCL
+    f_kHz = freq/1e3
+    mask = freq <= 35e3
+    a1.semilogy(f_kHz[mask], np.maximum(X[mask], 1e-3), color=BAD, lw=1.5,
+                label="antes del LCL", alpha=0.85)
+    a1.semilogy(f_kHz[mask], np.maximum(X_after[mask], 1e-3), color=ACC, lw=1.5,
+                label="después del LCL", alpha=0.85)
+    a1.axvline(fres_lcl/1e3, color="#aaa", ls=":", lw=1.2,
+               label=f"$f_{{res}}$={fres_lcl/1e3:.1f} kHz")
+    a1.axvline(fsw/1e3, color=ACC2, ls="--", lw=1.2, label=f"$f_{{sw}}$={fsw/1e3:.0f} kHz")
+    a1.set_xlabel("f [kHz]"); a1.set_ylabel("|X(f)| [V]")
+    a1.set_title(f"(a) Espectro SPWM: $f_{{sw}}$={fsw/1e3:.0f} kHz, m={m}\nantes (rojo) y después (azul) del LCL")
+    a1.legend(fontsize=8.5)
+
+    # (b) Contribución por orden al THD (acumulado)
+    I_fund_est = Vfund / 50.0  # corriente estimada (R=50Ω)
+    harm_orders = np.arange(2, 50)
+    thd_contrib = []
+    for h in harm_orders:
+        fh = h*f1
+        idx = np.argmin(np.abs(freq - fh))
+        Ih = X_after[idx] / 50.0
+        thd_contrib.append(Ih)
+    thd_contrib = np.array(thd_contrib)
+    thd_cumul   = 100*np.sqrt(np.cumsum(thd_contrib**2)) / (Vfund/50.0)
+    a2.bar(harm_orders, 100*thd_contrib/(Vfund/50.0), color=ACC, alpha=0.7, label="aporte por orden")
+    a2.plot(harm_orders, thd_cumul, color=BAD, lw=2.0, label="THD acumulado [%]")
+    a2.axhline(5.0, color="#888", ls="--", lw=1.2, label="Límite 5 % IEEE 519")
+    a2.set_xlabel("Orden armónico h"); a2.set_ylabel("[%]")
+    a2.set_title("(b) Contribución por orden al THD_I (tras LCL)\nlos 5º y 7º dominan a baja frecuencia")
+    a2.legend(fontsize=8.5); a2.set_xlim(2, 50)
+
+    # (c) THD vs Cf (mayor Cf → más atenuación → menor THD, pero fres baja)
+    Cf_vals = np.logspace(-6, -4, 40)  # 1 µF … 100 µF
+    thd_cf = []
+    for Cf_v in Cf_vals:
+        fres_v = 1.0/(2*np.pi*np.sqrt((L1+L2)*Cf_v))
+        Ih_sq_sum = 0.0
+        for h in range(2, 60):
+            fh = h*f1
+            A_h = X[np.argmin(np.abs(freq - fh))] if fh <= freq[-1] else 0
+            rat = fres_v/max(fh, 1.0)
+            att = 1.0 if fh < fres_v else rat**3
+            Ih_sq_sum += (A_h*att)**2
+        thd_cf.append(100*np.sqrt(Ih_sq_sum)/(Vfund))
+    a3.semilogx(Cf_vals*1e6, thd_cf, color=ACC, lw=2.0)
+    # Marcar fres para algunos Cf
+    for Cf_mark, col_m in [(5e-6, BAD), (10e-6, ACC2), (50e-6, "#9b59b6")]:
+        fr_m = 1.0/(2*np.pi*np.sqrt((L1+L2)*Cf_mark))
+        a3.scatter([Cf_mark*1e6], [np.interp(Cf_mark*1e6, Cf_vals*1e6, thd_cf)],
+                   color=col_m, s=70, zorder=5, label=f"$C_f$={Cf_mark*1e6:.0f} µF → $f_{{res}}$={fr_m/1e3:.1f} kHz")
+    a3.axhline(5.0, color="#888", ls="--", lw=1.2, label="Límite 5 %")
+    a3.set_xlabel("$C_f$ [µF]"); a3.set_ylabel("THD [%]")
+    a3.set_title("(c) THD vs capacidad de filtro $C_f$\nmayor $C_f$ reduce THD pero baja $f_{res}$")
+    a3.legend(fontsize=8); a3.set_ylim(0, 30)
+
+    # (d) Verificación vs IEEE 519 — barras por orden
+    # IEEE 519: ISC/IL > 100 → límites más relajados  (usamos tabla corta)
+    ieee519_limits = {5: 12.0, 7: 5.5, 11: 5.5, 13: 5.0, 17: 2.0, 19: 1.5, 23: 0.3, 25: 0.3}
+    orders_check = sorted(ieee519_limits.keys())
+    vals_pct = []
+    lims_pct = []
+    for h in orders_check:
+        fh = h*f1
+        idx = np.argmin(np.abs(freq - fh))
+        Ih_pct = 100*X_after[idx]/Vfund
+        vals_pct.append(Ih_pct)
+        lims_pct.append(ieee519_limits[h])
+    x_pos = np.arange(len(orders_check))
+    bars = a4.bar(x_pos, vals_pct, color=[OK if v<l else BAD for v,l in zip(vals_pct, lims_pct)],
+                  alpha=0.8, label="THD individual [%]")
+    a4.plot(x_pos, lims_pct, color="#444", marker="^", ms=8, lw=0, label="Límite IEEE 519 [%]")
+    a4.set_xticks(x_pos); a4.set_xticklabels([str(h) for h in orders_check])
+    a4.set_xlabel("Orden armónico"); a4.set_ylabel("[%]")
+    a4.set_title("(d) Verificación vs IEEE 519-2014\nverde=cumple, rojo=viola (con LCL diseñado)")
+    a4.legend(fontsize=9)
+
+    fig.suptitle("Armónicos y THD: espectro SPWM, contribución por orden, efecto $C_f$ y límites IEEE 519",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "armonicos-thd-convertidores-analisis.png")
+
+
+# ===================================================================== #
+#  antiresonancia — análisis extendido (4 paneles)
+# ===================================================================== #
+def _antires_extended():
+    """4 paneles: (a) Bode iL2/vi con far y fres, (b) admitancia de entrada del LCL,
+    (c) efecto de L2 en far, (d) ratio fres/far vs r=L2/L1."""
+    L1, L2, Cf = 2e-3, 1e-3, 20e-6
+    R1, R2 = 0.05, 0.05
+    f_ar  = 1/(2*np.pi*np.sqrt(L2*Cf))
+    f_res = (1/(2*np.pi))*np.sqrt((L1+L2)/(L1*L2*Cf))
+    f = np.logspace(1, 4.3, 3000); w = 2*np.pi*f
+    s = 1j*w
+
+    # Funciones de transferencia analíticas LCL
+    def lcl_tf(s, L1, L2, Cf, R1, R2):
+        # numerador de i1/vi y i2/vi, denominador común
+        ZCf = R2 + 1.0/(s*Cf)
+        Z2  = R1 + s*L1
+        # admitancia total
+        D = Z2 + ZCf*(s*L2 + ZCf) / (s*L2 + ZCf + ZCf) if False else None
+        # Estado-espacio → usar formulación directa
+        num_i2 = 1.0/(s*L1 + R1 + 1.0/(s*Cf + 1.0/(s*L2+R2)))
+        return num_i2   # no usado, reemplazado por StateSpace
+
+    A = np.array([[-R1/L1, 0,     -1/L1],
+                  [ 0,     -R2/L2, 1/L2],
+                  [ 1/Cf,  -1/Cf,  0  ]])
+    B = np.array([[1/L1], [0], [0]])
+    sys_i2 = signal.StateSpace(A, B, np.array([[0,1,0]]), [[0]])
+    sys_i1 = signal.StateSpace(A, B, np.array([[1,0,0]]), [[0]])
+
+    _, mag_i2, ph_i2 = signal.bode(sys_i2, w)
+    _, mag_i1, ph_i1 = signal.bode(sys_i1, w)
+
+    # Admitancia de entrada Y_in = i1/vi (misma que sys_i1 arriba)
+    # Admitancia analítica del paralelo L2||Cf (rama que produce el cero)
+    Y_par = s*Cf + 1.0/(s*L2 + R2)  # admitancia del paralelo Cf-L2
+    Y_par_dB = 20*np.log10(np.abs(Y_par) + 1e-20)
+
+    fig, axes = plt.subplots(2, 2, figsize=(11.0, 8.0))
+    ax_a, ax_b, ax_c, ax_d = axes[0,0], axes[0,1], axes[1,0], axes[1,1]
+
+    # (a) Bode de i2/vi mostrando far y fres
+    ax_a.semilogx(f, mag_i2, color=ACC, lw=2, label="$i_{L2}/v_i$ (corriente red)")
+    ax_a.semilogx(f, mag_i1, color=ACC2, lw=2, ls="--", label="$i_{L1}/v_i$ (corriente fuente, ref.)")
+    ax_a.axvline(f_ar,  color=ACC2, ls=":", lw=1.5)
+    ax_a.axvline(f_res, color=BAD,  ls="--", lw=1.5)
+    ax_a.text(f_ar*0.93, -65, f"$f_{{ar}}$={f_ar:.0f} Hz", color=ACC2, fontsize=8.5, ha="right")
+    ax_a.text(f_res*1.04, 20, f"$f_{{res}}$={f_res:.0f} Hz", color=BAD, fontsize=8.5)
+    ax_a.set_xlabel("frecuencia [Hz]"); ax_a.set_ylabel("magnitud [dB]")
+    ax_a.set_title("(a) Bode $i_{L2}/v_i$: pico en $f_{res}$, sin valle")
+    ax_a.legend(fontsize=8.5); ax_a.set_ylim(-90, 45)
+
+    # (b) Admitancia de entrada del LCL: cero en far
+    ax_b.semilogx(f, Y_par_dB, color=OK, lw=2, label="$Y_{par}(C_f\\|L_2)$ — el cero")
+    ax_b.semilogx(f, mag_i1, color=ACC2, lw=2, ls="--", label="$i_{L1}/v_i$ — valle en $f_{ar}$")
+    ax_b.axvline(f_ar,  color=ACC2, ls=":", lw=1.5)
+    ax_b.axvline(f_res, color=BAD,  ls="--", lw=1.5)
+    ax_b.text(f_ar*0.93, -5, f"$f_{{ar}}$={f_ar:.0f} Hz", color=ACC2, fontsize=8.5, ha="right")
+    ax_b.set_xlabel("frecuencia [Hz]"); ax_b.set_ylabel("magnitud [dB]")
+    ax_b.set_title("(b) Admitancia $C_f\\|L_2$: infinita en $f_{ar}$ → cero de $i_{L1}$")
+    ax_b.legend(fontsize=8.5); ax_b.set_ylim(-80, 40)
+
+    # (c) Efecto de L2 en far: si L2 baja, far sube
+    L2_vals = np.array([0.5e-3, 1e-3, 2e-3])
+    cols_c = [BAD, ACC, OK]
+    for L2v, col in zip(L2_vals, cols_c):
+        far_v  = 1/(2*np.pi*np.sqrt(L2v*Cf))
+        fres_v = (1/(2*np.pi))*np.sqrt((L1+L2v)/(L1*L2v*Cf))
+        Av = np.array([[-R1/L1, 0,       -1/L1],
+                       [ 0,    -R2/L2v,   1/L2v],
+                       [ 1/Cf, -1/Cf,     0   ]])
+        sys_v = signal.StateSpace(Av, B, np.array([[1,0,0]]), [[0]])
+        _, mag_v, _ = signal.bode(sys_v, w)
+        ax_c.semilogx(f, mag_v, color=col, lw=2,
+                      label=f"$L_2$={L2v*1e3:.1f} mH  ($f_{{ar}}$={far_v:.0f} Hz)")
+        ax_c.axvline(far_v, color=col, ls=":", lw=1.2)
+    ax_c.set_xlabel("frecuencia [Hz]"); ax_c.set_ylabel("magnitud [dB]")
+    ax_c.set_title("(c) Efecto de $L_2$ en $f_{ar}=1/(2\\pi\\sqrt{L_2C_f})$")
+    ax_c.legend(fontsize=8.5); ax_c.set_ylim(-90, 45)
+
+    # (d) Ratio fres/far vs r=L2/L1: verifica la fórmula sqrt(1+1/r)
+    r = np.linspace(0.1, 3.0, 300)
+    ratio_teorico = np.sqrt(1 + 1/r)
+    # verificación numérica para varios r
+    r_pts = np.array([0.25, 0.5, 1.0, 2.0])
+    ratio_num = []
+    for rv in r_pts:
+        L2v = L1*rv
+        far_v  = 1/(2*np.pi*np.sqrt(L2v*Cf))
+        fres_v = (1/(2*np.pi))*np.sqrt((L1+L2v)/(L1*L2v*Cf))
+        ratio_num.append(fres_v/far_v)
+    ax_d.plot(r, ratio_teorico, color=ACC, lw=2, label=r"$\sqrt{1+1/r}$ (analítica)")
+    ax_d.scatter(r_pts, ratio_num, color=BAD, zorder=4, s=60, label="valores numéricos")
+    ax_d.axhline(1.0, color="#aaa", lw=0.8, ls=":")
+    ax_d.set_xlabel("$r = L_2/L_1$"); ax_d.set_ylabel("$f_{res}/f_{ar}$")
+    ax_d.set_title("(d) Ratio $f_{res}/f_{ar}=\\sqrt{1+L_1/L_2}$: siempre >1")
+    ax_d.legend(fontsize=8.5)
+    ax_d.text(1.5, 1.45, r"siempre $f_{ar}<f_{res}$", fontsize=9, color="#555")
+
+    fig.suptitle("Antiresonancia en el LCL: $f_{ar}$, admitancia de entrada y ratio $f_{res}/f_{ar}$",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "antiresonancia-analisis.png")
+
+
+# ===================================================================== #
+#  amortiguamiento-pasivo-vs-activo — análisis extendido (4 paneles)
+# ===================================================================== #
+def _amort_pasivo_activo_extended():
+    """4 paneles: (a) Bode sin amort / Rd_opt / Kad, (b) Q vs Rd,
+    (c) pérdidas en Rd vs ICf, (d) Bode lazo de corriente con Kad: margen de fase."""
+    L1, L2, Cf = 2e-3, 1e-3, 20e-6
+    R1, R2 = 0.05, 0.05
+    w_res = np.sqrt((L1+L2)/(L1*L2*Cf))
+    f_res = w_res/(2*np.pi)
+    Rd_opt = 1/(3*w_res*Cf)
+
+    f = np.logspace(1, 4.3, 3000); w_f = 2*np.pi*f
+    s = 1j*w_f
+
+    # Función de transferencia i2/vi con Rd en serie con Cf
+    def tf_i2_rd(Rd):
+        ZCf_Rd = Rd + 1.0/(s*Cf)
+        Z_par  = ZCf_Rd * (1j*w_f*L2 + R2) / (ZCf_Rd + 1j*w_f*L2 + R2)
+        Ztot   = R1 + 1j*w_f*L1 + Z_par
+        # corriente i2: divisor de corriente
+        i2_norm = ZCf_Rd / (ZCf_Rd + 1j*w_f*L2 + R2) / Ztot
+        return i2_norm
+
+    def tf_i2_kad(Kad):
+        # Kad actúa como resistencia virtual en L1: reemplaza R1 → R1+Kad
+        ZCf = 1.0/(s*Cf)
+        Z_par = ZCf*(1j*w_f*L2 + R2) / (ZCf + 1j*w_f*L2 + R2)
+        Ztot  = (R1+Kad) + 1j*w_f*L1 + Z_par
+        i2_norm = ZCf / (ZCf + 1j*w_f*L2 + R2) / Ztot
+        return i2_norm
+
+    tf0     = tf_i2_rd(0.0)
+    tf_rd   = tf_i2_rd(Rd_opt)
+    tf_kad  = tf_i2_kad(Rd_opt)   # Kad = Rd_opt para comparativa equitativa
+
+    fig, axes = plt.subplots(2, 2, figsize=(11.0, 8.0))
+    ax_a, ax_b, ax_c, ax_d = axes[0,0], axes[0,1], axes[1,0], axes[1,1]
+
+    # (a) Bode i2/vi para los tres casos
+    for tf, col, lab in [(tf0, BAD, "sin amortiguamiento"),
+                         (tf_rd,  ACC,  f"$R_d$={Rd_opt:.2f} Ω (pasivo óptimo)"),
+                         (tf_kad, OK,   f"$K_{{ad}}$={Rd_opt:.2f} Ω (activo)")]:
+        mag = 20*np.log10(np.abs(tf) + 1e-20)
+        ax_a.semilogx(f, mag, color=col, lw=2, label=lab)
+    ax_a.axvline(f_res, color="#888", ls="--", lw=1.2)
+    ax_a.text(f_res*1.04, -25, f"$f_{{res}}$={f_res:.0f} Hz", fontsize=8.5, color="#555")
+    ax_a.set_xlabel("frecuencia [Hz]"); ax_a.set_ylabel("magnitud [dB]")
+    ax_a.set_title("(a) Bode $i_{L2}/v_i$: pasivo vs activo vs sin amortiguamiento")
+    ax_a.legend(fontsize=8); ax_a.set_ylim(-90, 45)
+
+    # (b) Q resultante vs Rd para amortiguamiento pasivo
+    Rd_arr = np.linspace(0.01, 5.0, 400)
+    zeta_arr = 0.5*Rd_arr*np.sqrt(Cf*(L1+L2)/(L1*L2))
+    Q_arr    = 1.0/(2*zeta_arr)
+    ax_b.plot(Rd_arr, Q_arr, color=ACC2, lw=2)
+    ax_b.axvline(Rd_opt, color=BAD, ls="--", lw=1.5)
+    ax_b.axhline(1/(2*(1/(6))), color=OK, ls=":", lw=1.2)
+    ax_b.text(Rd_opt+0.05, Q_arr.max()*0.85, f"$R_d^*$={Rd_opt:.2f} Ω\n$Q$≈3", fontsize=8.5, color=BAD)
+    ax_b.set_xlabel("$R_d$ [Ω]"); ax_b.set_ylabel("$Q = 1/(2\\zeta)$")
+    ax_b.set_title("(b) $Q$ vs $R_d$ — el óptimo da $Q\\approx3$ ($\\zeta\\approx1/6$)")
+    ax_b.set_ylim(0, 15)
+
+    # (c) Pérdidas vs amplitud de ICf
+    Icf_rms = np.linspace(0, 5, 300)   # A
+    for Rd_v, col, lab in [(Rd_opt, ACC, f"$R_d$={Rd_opt:.2f} Ω"),
+                           (2*Rd_opt, BAD, f"$R_d$={2*Rd_opt:.2f} Ω"),
+                           (0, "#aaa", "activo ($K_{{ad}}$): P=0")]:
+        P = Rd_v * Icf_rms**2
+        ax_c.plot(Icf_rms, P, color=col, lw=2, label=lab)
+    ax_c.set_xlabel("$I_{C_f,rms}$ [A]"); ax_c.set_ylabel("$P_{R_d}$ [W]")
+    ax_c.set_title("(c) Pérdidas $P=R_d\\cdot I_{C_f}^2$: activo no disipa")
+    ax_c.legend(fontsize=8.5)
+
+    # (d) Bode lazo de corriente con Kad: margen de fase antes y después
+    # Lazo de corriente: planta (i1/vi con Kad), PI
+    Kp, Ki = 5.0, 1000.0
+    def pi_tf(s): return Kp + Ki/s
+
+    s_d = 1j*w_f
+    # planta i1/vi sin Kad
+    A_m = np.array([[-R1/L1, 0,     -1/L1],
+                    [ 0,    -R2/L2,  1/L2],
+                    [ 1/Cf, -1/Cf,   0  ]])
+    B_m = np.array([[1/L1], [0], [0]])
+    sys_p = signal.StateSpace(A_m, B_m, np.array([[1,0,0]]), [[0]])
+    _, _, _ = signal.bode(sys_p, w_f)
+    # approximación: ZOH retardo 1.5*Ts, Ts=1/10e3
+    Ts = 1/10e3
+    delay = np.exp(-1j*w_f*1.5*Ts)
+
+    for Kad, col, lab in [(0.0, BAD, "sin $K_{ad}$"),
+                          (Rd_opt, OK, f"$K_{{ad}}$={Rd_opt:.2f} Ω")]:
+        ZCf    = 1.0/(s_d*Cf)
+        Zpar   = ZCf*(s_d*L2+R2)/(ZCf+s_d*L2+R2)
+        plant  = 1.0 / ((R1+Kad) + s_d*L1 + Zpar)
+        L_open = pi_tf(s_d) * plant * delay
+        mag_l  = 20*np.log10(np.abs(L_open) + 1e-20)
+        ph_l   = np.angle(L_open, deg=True)
+        # solo magnitud en ax_d
+        ax_d.semilogx(f, ph_l, color=col, lw=2, label=lab)
+    ax_d.axhline(-180, color="#888", ls="--", lw=1)
+    ax_d.axhline(-135, color="#aaa", ls=":", lw=1)
+    ax_d.text(2e3, -133, "−135° (PM=45°)", fontsize=8, color="#777")
+    ax_d.set_xlabel("frecuencia [Hz]"); ax_d.set_ylabel("fase lazo abierto [°]")
+    ax_d.set_title("(d) Fase lazo de corriente: $K_{ad}$ mejora margen de fase en $f_{res}$")
+    ax_d.legend(fontsize=8.5); ax_d.set_ylim(-300, 10)
+
+    fig.suptitle("Amortiguamiento pasivo vs activo: Bode, Q, pérdidas y margen de fase",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "amortiguamiento-pasivo-vs-activo-analisis.png")
+
+
+# ===================================================================== #
+#  deteccion-islanding — análisis extendido (4 paneles)
+# ===================================================================== #
+def _ndz_extended():
+    """4 paneles: (a) NDZ en plano P-Q, (b) f(t) ante islanding con/sin ROCOF,
+    (c) AFD: perturbación de frecuencia, (d) trade-off ROCOF threshold."""
+    from matplotlib.patches import Rectangle, FancyArrowPatch
+    fig, axes = plt.subplots(2, 2, figsize=(11.0, 8.0))
+    ax_a, ax_b, ax_c, ax_d = axes[0,0], axes[0,1], axes[1,0], axes[1,1]
+
+    # (a) NDZ en el plano P-Q
+    dP = np.linspace(-0.5, 0.5, 300)
+    dQ = np.linspace(-0.35, 0.35, 300)
+    DPg, DQg = np.meshgrid(dP, dQ)
+    # OUF: |dP| < 0.15 → f dentro de 47-53 Hz
+    # OUV: |dQ| < 0.06
+    ndz_mask = (np.abs(DPg) < 0.15) & (np.abs(DQg) < 0.06)
+    ax_a.contourf(dP, dQ, ndz_mask.astype(float), levels=[0.5, 1.5], colors=[BAD], alpha=0.25)
+    ax_a.contour(dP, dQ, ndz_mask.astype(float), levels=[0.5], colors=[BAD], linewidths=1.5)
+    ax_a.axhline(0, color="#aaa", lw=0.8); ax_a.axvline(0, color="#aaa", lw=0.8)
+    ax_a.text(0, 0, "NDZ\n(OUF/OUV no\ndetectan)", ha="center", va="center",
+              color=BAD, fontsize=9, weight="bold")
+    ax_a.scatter([0.3], [0.2], color=OK, s=60, zorder=4)
+    ax_a.text(0.31, 0.21, "se detecta", fontsize=8.5, color=OK)
+    ax_a.set_xlabel("$\\Delta P/P$ (→ $\\Delta f$)"); ax_a.set_ylabel("$\\Delta Q/Q$ (→ $\\Delta V$)")
+    ax_a.set_title("(a) Zona de no detección (NDZ): métodos pasivos OUF/OUV")
+
+    # (b) Respuesta de f(t) ante islanding: sin detección vs ROCOF a 200 ms
+    t = np.linspace(0, 1.0, 2000)
+    # Parámetros: DP=0.05 pu, H=5 s, f0=50 Hz
+    H, f0, DP = 5.0, 50.0, 0.05
+    rocof_val = DP*f0/(2*H)      # Hz/s
+    # Sin detección: f(t) deriva linealmente hasta que la carga frena
+    tau_load = 0.5
+    f_nodect = 50.0 + rocof_val * t * np.exp(-t/tau_load)  # deriva amortiguada por la carga
+    # Con ROCOF: dispara a t=0.2 s
+    t_trip = 0.20
+    f_rocof = np.where(t < t_trip, 50.0 + rocof_val*t, np.nan)
+    ax_b.plot(t, f_nodect, color=BAD, lw=2, label="sin detección (se estabiliza en isla)")
+    ax_b.plot(t, f_rocof, color=OK, lw=2.5, label=f"ROCOF: dispara a t={t_trip} s")
+    ax_b.axvline(t_trip, color=OK, ls="--", lw=1.2)
+    ax_b.axhline(50.0, color="#aaa", ls=":", lw=1)
+    thresh_f = 50.0 + 0.5*t_trip
+    ax_b.axhline(thresh_f, color="#888", ls=":", lw=1)
+    ax_b.text(0.55, thresh_f+0.005, f"umbral f={thresh_f:.3f} Hz", fontsize=8, color="#555")
+    ax_b.set_xlabel("t [s]"); ax_b.set_ylabel("frecuencia [Hz]")
+    ax_b.set_title("(b) $f(t)$ ante islanding: ROCOF dispara en 200 ms")
+    ax_b.legend(fontsize=8.5)
+
+    # (c) AFD: perturbación de frecuencia que provoca la deriva en isla
+    t2 = np.linspace(0, 0.5, 2000)
+    f_ref = 50.0 * np.ones_like(t2)
+    # En isla, AFD amplifica la perturbación
+    k_afd = 0.08   # ganancia del SFS
+    # Isla: f(t) con SFS (positive feedback)
+    f_isla_afd = np.zeros_like(t2)
+    f_isla_afd[0] = 50.0
+    dt2 = t2[1]-t2[0]
+    for i in range(1, len(t2)):
+        rocof_i = (f_isla_afd[i-1] - 50.0)*2.0 + 0.05*50.0/(2*5.0)
+        f_isla_afd[i] = f_isla_afd[i-1] + dt2*(rocof_i*(1+k_afd))
+        if f_isla_afd[i] > 52: f_isla_afd[i] = 52.0; break
+    # En red: la red absorbe la perturbación, f queda estable
+    f_red_afd = 50.0 + 0.02*np.sin(2*np.pi*5*t2)*np.exp(-10*t2)
+    ax_c.plot(t2, f_red_afd, color=OK, lw=2, label="en red (AFD absorbido)")
+    ax_c.plot(t2, f_isla_afd, color=BAD, lw=2, label="en isla (AFD amplifica → escapa)")
+    ax_c.axhline(52.0, color="#888", ls="--", lw=1); ax_c.text(0.02, 52.05, "límite OUF 52 Hz", fontsize=8)
+    ax_c.axhline(48.0, color="#888", ls="--", lw=1)
+    ax_c.set_xlabel("t [s]"); ax_c.set_ylabel("frecuencia [Hz]")
+    ax_c.set_title("(c) AFD (Sandia Freq. Shift): en isla la frecuencia escapa del rango")
+    ax_c.legend(fontsize=8.5); ax_c.set_ylim(49.5, 53.5)
+
+    # (d) Trade-off ROCOF threshold: sensibilidad vs falsas alarmas
+    thresh = np.linspace(0.1, 3.0, 300)
+    # tiempo de detección decrece con umbral bajo
+    DP_nominal = 0.05
+    t_det = 2*H*(thresh)/(DP_nominal*f0)    # t_det = thresh / ROCOF_real
+    # falsa alarma: prob proporcional a 1/thresh (normalizada)
+    false_alarm = 1.0/thresh / (1.0/thresh[0])
+    ax_d.plot(thresh, t_det, color=ACC, lw=2, label="tiempo detección [s]")
+    ax_d2 = ax_d.twinx()
+    ax_d2.plot(thresh, false_alarm, color=BAD, lw=2, ls="--", label="falsa alarma [norm.]")
+    ax_d.axvline(0.5, color="#888", ls=":", lw=1.5)
+    ax_d.text(0.52, t_det.max()*0.85, "típico\n0.5 Hz/s", fontsize=8.5, color="#555")
+    ax_d.set_xlabel("umbral ROCOF [Hz/s]"); ax_d.set_ylabel("tiempo detección [s]", color=ACC)
+    ax_d2.set_ylabel("falsa alarma [norm.]", color=BAD)
+    ax_d.set_title("(d) Trade-off umbral ROCOF: sensibilidad vs inmunidad")
+    lines1, labels1 = ax_d.get_legend_handles_labels()
+    lines2, labels2 = ax_d2.get_legend_handles_labels()
+    ax_d.legend(lines1+lines2, labels1+labels2, fontsize=8.5)
+
+    fig.suptitle("Detección de islanding: NDZ, ROCOF, AFD y trade-off de umbral",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "deteccion-islanding-analisis.png")
+
+
+# ===================================================================== #
+#  fenomenos-oscilatorios-red — análisis extendido (4 paneles)
+# ===================================================================== #
+def _sso_extended():
+    """4 paneles: (a) mapa de frecuencias, (b) modo inter-área 0.5 Hz y GFM damping,
+    (c) SSR con y sin compensación serie, (d) resonancia armónica alta frec."""
+    fig, axes = plt.subplots(2, 2, figsize=(11.0, 8.0))
+    ax_a, ax_b, ax_c, ax_d = axes[0,0], axes[0,1], axes[1,0], axes[1,1]
+
+    # (a) Mapa de frecuencias de los distintos fenómenos
+    fenomenos = [
+        (0.1, 2.0, "Oscilaciones inter-área\n(0.1–2 Hz)", ACC),
+        (1.0, 3.0, "Modos locales\n(1–3 Hz)", ACC2),
+        (5.0, 50.0, "SSR / SSCI\n(5–50 Hz)", BAD),
+        (100.0, 3000.0, "Armónica HF\n(100–3000 Hz)", OK),
+    ]
+    for i, (f_lo, f_hi, lab, col) in enumerate(fenomenos):
+        ax_a.barh(i, np.log10(f_hi)-np.log10(f_lo), left=np.log10(f_lo),
+                  color=col, alpha=0.7, height=0.6)
+        ax_a.text(np.log10(f_lo)+0.05, i, lab, va="center", fontsize=8.5, color="#111")
+    ax_a.set_xlim(-1.5, 4.0)
+    ax_a.set_xticks([-1, 0, 1, 2, 3, 4])
+    ax_a.set_xticklabels(["0.1", "1", "10", "100", "1k", "10k"])
+    ax_a.set_xlabel("frecuencia [Hz] (escala log)"); ax_a.set_yticks([])
+    ax_a.set_title("(a) Mapa de fenómenos oscilatorios de red por banda de frecuencia")
+
+    # (b) Modo inter-área de 0.5 Hz y GFM lo amortigua
+    t = np.linspace(0, 6.0, 3000)
+    f_ia = 0.5; zeta_red = 0.02; zeta_gfm = 0.12
+    wd_red = 2*np.pi*f_ia * np.sqrt(1 - zeta_red**2)
+    wd_gfm = 2*np.pi*f_ia * np.sqrt(1 - zeta_gfm**2)
+    p_red = np.exp(-zeta_red*2*np.pi*f_ia*t) * np.sin(wd_red*t)
+    p_gfm = np.exp(-zeta_gfm*2*np.pi*f_ia*t) * np.sin(wd_gfm*t)
+    ax_b.plot(t, p_red, color=BAD, lw=2, label=f"sin GFM ($\\zeta$={zeta_red})")
+    ax_b.plot(t, p_gfm, color=OK,  lw=2, label=f"con GFM ($\\zeta$={zeta_gfm})")
+    ax_b.axhline(0, color="#aaa", lw=0.8)
+    ax_b.set_xlabel("t [s]"); ax_b.set_ylabel("oscilación de potencia $P$ [pu]")
+    ax_b.set_title("(b) Modo inter-área 0.5 Hz: el GFM inyecta amortiguamiento")
+    ax_b.legend(fontsize=8.5)
+
+    # (c) SSR: espectro de corriente con y sin compensación serie
+    N = 4096; dt_c = 1e-3; t_c = np.arange(N)*dt_c
+    f_red = 50.0; comp_pct = 40.0; XL = 1.0; XCs = comp_pct/100*XL
+    fn_sub = f_red*np.sqrt(XCs/XL)   # ~31.6 Hz
+    # con compensación: componente subsíncrona + fundamental
+    cur_comp = (np.sin(2*np.pi*f_red*t_c) +
+                0.3*np.exp(1.5*t_c)*np.sin(2*np.pi*fn_sub*t_c))
+    cur_comp = np.clip(cur_comp, -3, 3)
+    # sin compensación: solo fundamental
+    cur_nocomp = np.sin(2*np.pi*f_red*t_c)
+    from numpy.fft import rfft, rfftfreq
+    F_c  = np.abs(rfft(cur_comp))/N
+    F_nc = np.abs(rfft(cur_nocomp))/N
+    freqs_c = rfftfreq(N, dt_c)
+    mask = freqs_c < 120
+    ax_c.plot(freqs_c[mask], F_nc[mask], color=OK,  lw=2, label="sin comp. serie")
+    ax_c.plot(freqs_c[mask], F_c[mask],  color=BAD, lw=1.5, label=f"con comp. serie ({comp_pct:.0f}%): SSR en {fn_sub:.1f} Hz")
+    ax_c.axvline(fn_sub, color=BAD, ls="--", lw=1.2)
+    ax_c.text(fn_sub+1, F_c[mask].max()*0.55, f"$f_n$={fn_sub:.1f} Hz", fontsize=8.5, color=BAD)
+    ax_c.set_xlabel("frecuencia [Hz]"); ax_c.set_ylabel("amplitud [pu]")
+    ax_c.set_title("(c) SSR: pico subsíncrono con compensación serie activa")
+    ax_c.legend(fontsize=8.5)
+
+    # (d) Resonancia armónica: cable-condensador excitada por PWM
+    f_arr = np.logspace(1, 4.5, 2000)
+    # Resonancia paralela de cable (Lg=1mH) con Cg (capacidad cable 5µF)
+    Lg, Cg = 1e-3, 5e-6
+    f_res_harm = 1/(2*np.pi*np.sqrt(Lg*Cg))
+    w_arr = 2*np.pi*f_arr
+    Znet = np.abs(1j*w_arr*Lg / (1 - w_arr**2*Lg*Cg + 1e-3j*w_arr*Lg))  # resonancia paralela
+    # Espectro PWM: harmónicos en k*fsw +/- m*f0
+    fsw = 2000.0
+    harmonics_pwm = [fsw, fsw-100, fsw+100, 2*fsw]
+    ax_d.semilogy(f_arr, Znet, color=ACC, lw=2, label="$|Z_{red}|$ cable-transformador")
+    ax_d.axvline(f_res_harm, color=BAD, ls="--", lw=1.5)
+    ax_d.text(f_res_harm*1.05, Znet.max()*0.5, f"$f_{{res}}$={f_res_harm:.0f} Hz", fontsize=8.5, color=BAD)
+    for fh in harmonics_pwm:
+        ax_d.axvline(fh, color=OK, ls=":", lw=1.2)
+    ax_d.text(fsw*1.02, 0.02, f"$f_{{sw}}$={fsw:.0f} Hz", fontsize=8, color=OK, rotation=90)
+    ax_d.set_xlabel("frecuencia [Hz]"); ax_d.set_ylabel("|Z| [Ω]")
+    ax_d.set_title(f"(d) Resonancia armónica HF ({f_res_harm:.0f} Hz): cable excitado por PWM")
+    ax_d.legend(fontsize=8.5)
+
+    fig.suptitle("Fenómenos oscilatorios de red: mapa de frecuencias, inter-área, SSR y armónica HF",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "fenomenos-oscilatorios-red-analisis.png")
+
+
+# ===================================================================== #
+#  series-taylor — análisis extendido (4 paneles)
+# ===================================================================== #
+def _taylor_extended():
+    """4 paneles: (a) sin(x) y aprox Taylor ord 1,3,5,7, (b) e^x convergencia,
+    (c) P(delta)=EV/X*sin(delta) y aprox lineal, (d) CPL i=P/V y linealización."""
+    fig, axes = plt.subplots(2, 2, figsize=(11.0, 8.0))
+    ax_a, ax_b, ax_c, ax_d = axes[0,0], axes[0,1], axes[1,0], axes[1,1]
+
+    # (a) sin(x) y aproximaciones de Taylor orden 1, 3, 5, 7
+    x = np.linspace(-np.pi*1.1, np.pi*1.1, 600)
+    sin_exact = np.sin(x)
+    p1 = x
+    p3 = x - x**3/6
+    p5 = x - x**3/6 + x**5/120
+    p7 = x - x**3/6 + x**5/120 - x**7/5040
+    ax_a.plot(x, sin_exact, color="#222", lw=2.5, label="sin(x) exacta")
+    for p, col, lab in [(p1, BAD, "ord 1: $x$"),
+                        (p3, ACC2, "ord 3: $x-x^3/6$"),
+                        (p5, ACC, "ord 5"),
+                        (p7, OK, "ord 7")]:
+        ax_a.plot(x, np.clip(p, -2, 2), color=col, lw=1.8, ls="--", label=lab)
+    ax_a.axhline(0, color="#aaa", lw=0.8); ax_a.axvline(0, color="#aaa", lw=0.8)
+    ax_a.set_ylim(-2, 2); ax_a.set_xlabel("x [rad]"); ax_a.set_ylabel("valor")
+    ax_a.set_title("(a) sin(x): cada orden adicional extiende la validez")
+    ax_a.legend(fontsize=8)
+
+    # (b) e^x y su serie truncada: convergencia vs número de términos
+    x2 = np.linspace(-1, 3, 500)
+    ex_exact = np.exp(x2)
+    orders = [1, 2, 3, 5]
+    cols_b = [BAD, ACC2, ACC, OK]
+    ax_b.plot(x2, ex_exact, color="#222", lw=2.5, label="$e^x$ exacta")
+    from math import factorial
+    for n, col in zip(orders, cols_b):
+        p = sum(x2**k / factorial(k) for k in range(n+1))
+        ax_b.plot(x2, np.clip(p, -1, 25), color=col, lw=1.8, ls="--", label=f"orden {n}")
+    ax_b.set_ylim(-1, 22); ax_b.set_xlabel("x"); ax_b.set_ylabel("$e^x$")
+    ax_b.set_title("(b) $e^x$: convergencia mejora con más términos (cerca de x=0)")
+    ax_b.legend(fontsize=8.5)
+
+    # (c) P(delta)=EV/X*sin(delta) y la aproximación lineal para distintos delta0
+    E, V, X_l = 1.0, 1.0, 0.3
+    P_max = E*V/X_l
+    delta = np.linspace(0, np.pi/2, 400)
+    P_exact = P_max * np.sin(delta)
+    ax_c.plot(np.degrees(delta), P_exact, color="#222", lw=2.5, label="$P(\\delta)=\\frac{EV}{X}\\sin\\delta$")
+    for d0_deg, col in [(15, OK), (30, ACC2), (45, BAD)]:
+        d0 = np.radians(d0_deg)
+        Ks = P_max*np.cos(d0)
+        P0 = P_max*np.sin(d0)
+        P_lin = P0 + Ks*(delta - d0)
+        err_pct = np.abs(P_lin - P_exact)/P_max * 100
+        ax_c.plot(np.degrees(delta), P_lin, color=col, lw=1.8, ls="--",
+                  label=f"lineal $\\delta_0$={d0_deg}° ($K_s$={Ks:.2f})")
+    ax_c.set_xlabel("$\\delta$ [°]"); ax_c.set_ylabel("$P$ [pu]")
+    ax_c.set_title("(c) Linealización de $P(\\delta)$: $K_s=EV/X\\cdot\\cos\\delta_0$")
+    ax_c.legend(fontsize=8.5)
+
+    # (d) CPL: i(V)=P/V y su linealización
+    P_cpl = 1.0   # W (constante)
+    V_range = np.linspace(0.5, 2.0, 400)
+    i_exact = P_cpl / V_range
+    V0 = 1.0; i0 = P_cpl/V0; slope = -P_cpl/V0**2
+    i_lin = i0 + slope*(V_range - V0)
+    ax_d.plot(V_range, i_exact, color="#222", lw=2.5, label="$i=P/V$ (CPL exacta)")
+    ax_d.plot(V_range, i_lin, color=BAD, lw=2, ls="--",
+              label=f"lineal: $i_0-P/V_0^2\\cdot\\Delta V$ ($V_0$={V0})")
+    ax_d.axvline(V0, color="#aaa", ls=":", lw=1)
+    ax_d.scatter([V0], [i0], color=ACC, s=60, zorder=4)
+    ax_d.annotate(f"pto. op.\n$V_0$={V0}, $i_0$={i0:.1f}", xy=(V0, i0),
+                  xytext=(V0+0.3, i0+0.5), fontsize=8.5,
+                  arrowprops=dict(arrowstyle="->", color="#555"))
+    ax_d.set_xlabel("$V$ [pu]"); ax_d.set_ylabel("$i$ [pu]")
+    ax_d.set_title("(d) CPL: pendiente $\\partial i/\\partial V = -P/V_0^2$ (resistencia negativa)")
+    ax_d.legend(fontsize=8.5); ax_d.set_ylim(0, 3.5)
+
+    fig.suptitle("Series de Taylor: sin(x), e^x, linealización de P(δ) y la CPL",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "series-taylor-analisis.png")
+
+
+# ===================================================================== #
+#  virtual-oscillator-control — análisis extendido (4 paneles)
+# ===================================================================== #
+def _voc_extended():
+    """4 paneles: (a) ciclo límite Van der Pol, (b) sincronización 2 VOC,
+    (c) VOC vs droop vs VSM ante escalón, (d) VOC discretizado Ts=100µs."""
+    fig, axes = plt.subplots(2, 2, figsize=(11.0, 8.0))
+    ax_a, ax_b, ax_c, ax_d = axes[0,0], axes[0,1], axes[1,0], axes[1,1]
+
+    # Integrador VOC (Euler)
+    eps_v, w0_v = 1.2, 2*np.pi*50.0
+    dt_fine = 1e-5
+
+    def voc_integrate(v0, dv0, eps, w0, dt, N):
+        vs = np.zeros(N); dvs = np.zeros(N)
+        vs[0], dvs[0] = v0, dv0
+        for i in range(1, N):
+            ddv = eps*(1 - vs[i-1]**2)*dvs[i-1] - w0**2*vs[i-1]
+            dvs[i] = dvs[i-1] + ddv*dt
+            vs[i]  = vs[i-1] + dvs[i-1]*dt
+        return vs, dvs
+
+    # (a) Ciclo límite en plano de fase
+    N_a = int(0.25/dt_fine)
+    for v0, dv0, col, lab in [(0.1, 0, ACC, "inicio dentro ($v_0$=0.1)"),
+                               (2.5, 0, ACC2, "inicio fuera ($v_0$=2.5)")]:
+        vs, dvs = voc_integrate(v0, dv0, eps_v, w0_v, dt_fine, N_a)
+        ax_a.plot(vs, dvs/(w0_v), color=col, lw=1.5, label=lab, alpha=0.85)
+        ax_a.plot(vs[0], dvs[0]/(w0_v), "o", color=col, ms=6)
+    theta_lim = np.linspace(0, 2*np.pi, 300)
+    ax_a.plot(np.cos(theta_lim), np.sin(theta_lim), color="#888", lw=1.5, ls="--", label="ciclo límite ($A$=1)")
+    ax_a.set_xlabel("$v(t)$ [pu]"); ax_a.set_ylabel("$\\dot{v}/\\omega_0$ [pu]")
+    ax_a.set_title("(a) Ciclo límite de Van der Pol: atractor global")
+    ax_a.legend(fontsize=8.5)
+
+    # (b) Sincronización de dos VOC en paralelo
+    dt_b = 1e-5; N_b = int(0.12/dt_b)
+    t_b = np.arange(N_b)*dt_b
+    # VOC 1: empieza en fase 0, VOC 2: empieza en fase pi/3 (60°)
+    vs1, dvs1 = voc_integrate(0.8, 0, eps_v, w0_v, dt_b, N_b)
+    vs2, dvs2 = voc_integrate(np.cos(np.pi/3)*0.9, np.sin(np.pi/3)*w0_v*0.9, eps_v, w0_v, dt_b, N_b)
+    # Acoplamiento débil (corriente de igualación proporcional a diferencia de tensiones)
+    Kcoup = 80.0
+    vs1c = np.zeros(N_b); dvs1c = np.zeros(N_b)
+    vs2c = np.zeros(N_b); dvs2c = np.zeros(N_b)
+    vs1c[0], dvs1c[0] = 0.8, 0.0
+    vs2c[0], dvs2c[0] = np.cos(np.pi/3)*0.9, np.sin(np.pi/3)*w0_v*0.9
+    for i in range(1, N_b):
+        coup = Kcoup*(vs2c[i-1] - vs1c[i-1])
+        ddv1 = eps_v*(1-vs1c[i-1]**2)*dvs1c[i-1] - w0_v**2*vs1c[i-1] + coup
+        ddv2 = eps_v*(1-vs2c[i-1]**2)*dvs2c[i-1] - w0_v**2*vs2c[i-1] - coup
+        dvs1c[i] = dvs1c[i-1] + ddv1*dt_b
+        vs1c[i]  = vs1c[i-1]  + dvs1c[i-1]*dt_b
+        dvs2c[i] = dvs2c[i-1] + ddv2*dt_b
+        vs2c[i]  = vs2c[i-1]  + dvs2c[i-1]*dt_b
+    ax_b.plot(t_b*1e3, vs1c, color=ACC,  lw=1.5, label="VOC 1")
+    ax_b.plot(t_b*1e3, vs2c, color=ACC2, lw=1.5, ls="--", label="VOC 2 (sfasado 60°)")
+    ax_b.set_xlabel("t [ms]"); ax_b.set_ylabel("$v(t)$ [pu]")
+    ax_b.set_title("(b) Sincronización de 2 VOC acoplados sin comunicación")
+    ax_b.legend(fontsize=8.5)
+
+    # (c) Comparativa VOC vs droop vs VSM ante escalón de potencia
+    t3 = np.linspace(0, 0.5, 2000); dt3 = t3[1]-t3[0]
+    # Droop: 1er orden con tau_droop
+    tau_droop = 0.08
+    P_droop = 1.0*(1 - np.exp(-t3/tau_droop))
+    # VSM: 2do orden, H=5s, D=20
+    H_vsm, D_vsm, Ks_vsm = 5.0, 20.0, 50.0
+    wn_vsm = np.sqrt(Ks_vsm*np.pi*50/(2*H_vsm)); zeta_vsm = D_vsm*np.pi*50/(2*H_vsm*wn_vsm*2)
+    # SODEq para VSM
+    P_vsm = np.zeros_like(t3); dP_vsm = np.zeros_like(t3)
+    for i in range(1, len(t3)):
+        ddP = wn_vsm**2*(1-P_vsm[i-1]) - 2*zeta_vsm*wn_vsm*dP_vsm[i-1]
+        dP_vsm[i] = dP_vsm[i-1] + ddP*dt3
+        P_vsm[i]  = P_vsm[i-1]  + dP_vsm[i-1]*dt3
+    # VOC: más rápido con damping inicial positivo
+    tau_voc = 0.025; zeta_voc = 0.35
+    wd_voc = 2*np.pi*50*np.sqrt(1-zeta_voc**2)
+    P_voc  = 1.0 - np.exp(-zeta_voc*2*np.pi*50*t3)*(np.cos(wd_voc*t3)+zeta_voc/np.sqrt(1-zeta_voc**2)*np.sin(wd_voc*t3))
+    P_voc  = np.clip(P_voc, 0, 1.5)
+    ax_c.plot(t3*1e3, P_droop, color=ACC,  lw=2, label="droop (1er orden)")
+    ax_c.plot(t3*1e3, P_vsm,   color=ACC2, lw=2, label="VSM (2do orden)")
+    ax_c.plot(t3*1e3, P_voc,   color=OK,   lw=2, label="VOC (convergencia rápida)")
+    ax_c.axhline(1.0, color="#aaa", ls=":", lw=1); ax_c.text(10, 1.02, "$P^*$", fontsize=9)
+    ax_c.set_xlabel("t [ms]"); ax_c.set_ylabel("$P$ [pu]")
+    ax_c.set_title("(c) VOC vs droop vs VSM ante escalón de potencia (1 MVA)")
+    ax_c.legend(fontsize=8.5); ax_c.set_ylim(0, 1.35)
+
+    # (d) VOC discretizado Ts=100µs vs continuo
+    Ts_d = 100e-6; N_d = int(0.04/Ts_d)
+    vs_cont, dvs_cont = voc_integrate(0.5, 0.1*w0_v, eps_v, w0_v, dt_fine, int(0.04/dt_fine))
+    t_cont = np.arange(len(vs_cont))*dt_fine
+    vs_disc = np.zeros(N_d); dvs_disc = np.zeros(N_d)
+    vs_disc[0], dvs_disc[0] = 0.5, 0.1*w0_v
+    for i in range(1, N_d):
+        ddv = eps_v*(1-vs_disc[i-1]**2)*dvs_disc[i-1] - w0_v**2*vs_disc[i-1]
+        dvs_disc[i] = dvs_disc[i-1] + ddv*Ts_d
+        vs_disc[i]  = vs_disc[i-1]  + dvs_disc[i-1]*Ts_d
+    t_disc = np.arange(N_d)*Ts_d
+    ax_d.plot(vs_cont, dvs_cont/w0_v, color=OK,  lw=1.5, label="continuo ($dt$=10 µs)")
+    ax_d.plot(vs_disc, dvs_disc/w0_v, color=BAD, lw=1.5, ls="--", label="discreto ($T_s$=100 µs)")
+    ax_d.plot(np.cos(theta_lim), np.sin(theta_lim), color="#888", lw=1.5, ls=":", label="ciclo límite")
+    ax_d.set_xlabel("$v$ [pu]"); ax_d.set_ylabel("$\\dot{v}/\\omega_0$ [pu]")
+    ax_d.set_title("(d) VOC discretizado: $T_s$=100 µs vs continuo en plano de fase")
+    ax_d.legend(fontsize=8.5)
+
+    fig.suptitle("Virtual Oscillator Control: ciclo límite, sincronización, comparativa y discretización",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "virtual-oscillator-control-analisis.png")
+
+
+# ===================================================================== #
+#  semiconductores-potencia-analisis  (sin decorador)
+# ===================================================================== #
+def _semipow():
+    """4 paneles: (a) pérdidas conducción vs I, (b) P_sw vs f_sw, (c) T_j vs P_diss, (d) SOA."""
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    axes = axes.ravel()
+
+    # (a) pérdidas de conducción vs corriente
+    I = np.linspace(0, 600, 300)
+    Rds_on = 3e-3; Vce_sat = 2.0; rCE = 5e-3
+    P_mos = Rds_on * I**2
+    P_igbt = Vce_sat * (I / np.pi) + rCE * (I / 2)**2
+    ax = axes[0]
+    ax.plot(I, P_mos/1e3, color=ACC, lw=2, label=r"SiC MOSFET ($R_{ds}$=3 mΩ)")
+    ax.plot(I, P_igbt/1e3, color=BAD, lw=2, label=r"IGBT ($V_{ce,sat}$=2 V)")
+    ax.set_xlabel("Corriente de pico $\\hat{I}$ [A]")
+    ax.set_ylabel("$P_{cond}$ [kW]")
+    ax.set_title("(a) Pérdidas de conducción vs corriente")
+    ax.legend(fontsize=9)
+
+    # (b) P_sw vs f_sw
+    fsw = np.linspace(1e3, 30e3, 300)
+    Esw_igbt = 25e-3 * (1100/900)   # J escalado a 1100 V
+    Esw_sic  = 5e-3  * (1100/900)
+    ax = axes[1]
+    ax.plot(fsw/1e3, 6*Esw_igbt*fsw/1e3, color=BAD, lw=2, label="IGBT 1700 V (6 módulos)")
+    ax.plot(fsw/1e3, 6*Esw_sic*fsw/1e3,  color=ACC, lw=2, label="SiC 1700 V (6 módulos)")
+    ax.axvline(10, color="#888", ls="--", lw=1.2); ax.text(10.3, 1, "$f_{sw}$=10 kHz", fontsize=8)
+    ax.set_xlabel("$f_{sw}$ [kHz]")
+    ax.set_ylabel("$P_{sw,total}$ [kW]")
+    ax.set_title("(b) Pérdidas de conmutación $P_{sw} \\propto f_{sw}$")
+    ax.legend(fontsize=9)
+
+    # (c) T_j vs P_diss para distintos R_th
+    P = np.linspace(0, 3000, 300); T_amb = 40.0
+    for Rth, ls, lbl in [(0.05, "-", "$R_{th}$=0.05 °C/W"), (0.10, "--", "$R_{th}$=0.10 °C/W"),
+                          (0.20, ":", "$R_{th}$=0.20 °C/W")]:
+        axes[2].plot(P, T_amb + Rth*P, lw=2, ls=ls, label=lbl)
+    axes[2].axhline(150, color=BAD, lw=1.5, ls="--"); axes[2].text(200, 152, "$T_{j,max}$=150 °C", fontsize=8, color=BAD)
+    axes[2].set_xlabel("Potencia disipada $P_{diss}$ [W]")
+    axes[2].set_ylabel("$T_j$ [°C]")
+    axes[2].set_title("(c) Temperatura de unión vs pérdidas totales")
+    axes[2].legend(fontsize=9)
+
+    # (d) SOA simplificado: I vs V con límites
+    V = np.linspace(0, 1400, 300)
+    I_dc  = np.where(V < 1200, 600, 0)
+    I_pul = np.where(V < 1200, 1200, 0)
+    I_th  = np.where(V < 600,  600 - V*0.5, 0)
+    ax = axes[3]
+    ax.fill_between(V, 0, I_pul, where=(V<1200), color=OK,  alpha=0.18, label="Zona segura (pulso)")
+    ax.fill_between(V, 0, I_dc,  where=(V<1200), color=ACC, alpha=0.25, label="Zona segura (DC)")
+    ax.fill_between(V, 0, I_th,  where=(V<600),  color=BAD, alpha=0.18, label="Límite térmico")
+    ax.set_xlabel("$V_{CE}$ [V]"); ax.set_ylabel("$I_C$ [A]")
+    ax.set_title("(d) Safe Operating Area (SOA) del IGBT 1200 V")
+    ax.legend(fontsize=9); ax.set_xlim(0, 1400); ax.set_ylim(0, 1400)
+
+    fig.suptitle("Semiconductores de potencia: pérdidas, temperatura y SOA", fontweight="bold")
+    fig.tight_layout()
+    _savefig(fig, "semiconductores-potencia-analisis.png")
+
+
+# ===================================================================== #
+#  topologias-multinivel-analisis  (sin decorador)
+# ===================================================================== #
+def _multilev():
+    """4 paneles: (a) tensión NPC 3L vs 2L, (b) espectro THD, (c) pérdidas comparativa, (d) desequilibrio neutro."""
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    axes = axes.ravel()
+
+    t = np.linspace(0, 2/50, 2000); w0 = 2*np.pi*50; Vdc = 1000.0
+
+    # (a) tensión de salida NPC 3L vs 2L (cuantificada)
+    m = 0.9; ref = m * np.sin(w0*t)
+    # 2 niveles: comparar con portadora triangular 5 kHz
+    fc = 5000; N_sw = int(fc/50)
+    carr = signal.sawtooth(2*np.pi*fc*t, width=0.5)
+    v2L = np.where(ref > carr, Vdc/2, -Vdc/2)
+    # 3 niveles NPC simplificado: 3 estados
+    v3L = np.zeros_like(t)
+    for i, r in enumerate(ref):
+        if r > 0.5:
+            v3L[i] = Vdc/2
+        elif r > -0.5:
+            v3L[i] = 0.0
+        else:
+            v3L[i] = -Vdc/2
+    axes[0].plot(t*1e3, v2L/Vdc, color=BAD, lw=0.8, alpha=0.8, label="2 niveles")
+    axes[0].plot(t*1e3, v3L/Vdc, color=ACC, lw=1.2, label="NPC 3 niveles")
+    axes[0].plot(t*1e3, ref, "k--", lw=1.2, label="referencia")
+    axes[0].set_xlabel("t [ms]"); axes[0].set_ylabel("$v_{out}/V_{dc}$")
+    axes[0].set_title("(a) Tensión de salida: 2L vs NPC 3L")
+    axes[0].legend(fontsize=9); axes[0].set_xlim(0, 40)
+
+    # (b) THD vs número de niveles a fsw constante
+    niveles = np.array([2, 3, 5, 7, 11, 17])
+    thd = 80.0 / (niveles - 1)**1.8
+    axes[1].bar(np.arange(len(niveles)), thd, color=[BAD,ACC,OK,OK,OK,OK], alpha=0.8)
+    axes[1].set_xticks(np.arange(len(niveles))); axes[1].set_xticklabels([str(n) for n in niveles])
+    axes[1].axhline(5, color=BAD, ls="--", lw=1.5, label="límite 5% THD")
+    axes[1].set_xlabel("Número de niveles n"); axes[1].set_ylabel("THD tensión [%]")
+    axes[1].set_title("(b) THD vs niveles a igual $f_{sw}$=5 kHz")
+    axes[1].legend(fontsize=9)
+
+    # (c) pérdidas comparativas 2L vs NPC a fsw=5 kHz
+    categorias = ["$P_{sw}$ 2L", "$P_{cond}$ 2L", "$P_{sw}$ NPC", "$P_{cond}$ NPC"]
+    vals = [15, 5, 7, 8]; colors = [BAD, BAD, ACC, ACC]
+    axes[2].bar(categorias, vals, color=colors, alpha=0.8)
+    axes[2].set_ylabel("Pérdidas [kW] (1 MVA, 5 kHz)")
+    axes[2].set_title("(c) Comparativa pérdidas 2L vs NPC 3L")
+    for i, v in enumerate(vals):
+        axes[2].text(i, v+0.2, f"{v} kW", ha="center", fontsize=9)
+
+    # (d) desequilibrio del punto neutro y corrección
+    cyc = np.linspace(0, 4*np.pi, 500)
+    Vn_sin = 0.0 + 0.08*np.sin(cyc) + 0.03*np.sin(3*cyc)
+    Vn_corr = 0.02*np.sin(cyc)
+    axes[3].plot(cyc/np.pi, Vn_sin*100,  color=BAD, lw=2, label="Sin control de neutro")
+    axes[3].plot(cyc/np.pi, Vn_corr*100, color=OK,  lw=2, label="Con control (inyección 3ª arm.)")
+    axes[3].axhline(0, color="#888", lw=0.8)
+    axes[3].set_xlabel("ciclos [π]"); axes[3].set_ylabel("ΔV neutro [% $V_{dc}$]")
+    axes[3].set_title("(d) Desequilibrio del punto neutro y corrección")
+    axes[3].legend(fontsize=9)
+
+    fig.suptitle("Topologías multinivel: formas de onda, THD, pérdidas y balanceo", fontweight="bold")
+    fig.tight_layout()
+    _savefig(fig, "topologias-multinivel-analisis.png")
+
+
+# ===================================================================== #
+#  impedancia-reactancia-analisis  (sin decorador)
+# ===================================================================== #
+def _zxext():
+    """4 paneles: (a) XL y XC vs f, (b) |Z_LCL|, (c) impedancia pu vs Ω, (d) Z_red vs Z_LCL."""
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    axes = axes.ravel()
+    f = np.logspace(1, 4.5, 600); w = 2*np.pi*f
+
+    L1, L2, Cf = 2e-3, 0.5e-3, 25e-6
+    Zbase = 400**2 / 1e6   # 0.16 Ω para 1 MVA, 400 V
+
+    # (a) reactancias XL y XC vs frecuencia
+    XL = w * L1; XC = 1/(w * Cf)
+    axes[0].loglog(f, XL, color=ACC, lw=2, label=f"$X_L = \\omega L_1$ ($L_1$={L1*1e3:.0f} mH)")
+    axes[0].loglog(f, XC, color=BAD, lw=2, label=f"$X_C = 1/\\omega C_f$ ($C_f$={Cf*1e6:.0f} μF)")
+    fres = 1/(2*np.pi*np.sqrt(L1*Cf)); axes[0].axvline(fres, color="#888", ls="--", lw=1.2)
+    axes[0].text(fres*1.1, 0.1, f"$f_{{res}}$={fres:.0f} Hz", fontsize=8)
+    axes[0].set_xlabel("f [Hz]"); axes[0].set_ylabel("Reactancia [Ω]")
+    axes[0].set_title("(a) Reactancias $X_L$ y $X_C$ vs frecuencia")
+    axes[0].legend(fontsize=9)
+
+    # (b) |Z_LCL| mostrando resonancia y antiresonancia
+    ZL1 = 1j*w*L1; ZL2 = 1j*w*L2; ZCf = 1/(1j*w*Cf)
+    ZLCL = ZL1 + ZCf*ZL2/(ZCf + ZL2)   # entrada del LCL (L2 || Cf en la salida)
+    axes[1].loglog(f, np.abs(ZLCL), color=ACC, lw=2, label="|$Z_{LCL}$| entrada")
+    fres_lcl = 1/(2*np.pi*np.sqrt((L1+L2)/(L1*L2*Cf)*L1*L2))
+    axes[1].axvline(fres_lcl, color=BAD, ls="--", lw=1.2)
+    axes[1].text(fres_lcl*1.05, 0.02, f"$f_{{res,LCL}}$≈{fres_lcl:.0f} Hz", fontsize=8, color=BAD)
+    axes[1].set_xlabel("f [Hz]"); axes[1].set_ylabel("|Z| [Ω]")
+    axes[1].set_title("(b) Impedancia de entrada del LCL: resonancia")
+    axes[1].legend(fontsize=9)
+
+    # (c) impedancia en pu vs Ω para distintas potencias base
+    f50 = 50.0; w50 = 2*np.pi*f50
+    Lvals = [2e-3, 5e-3, 10e-3]
+    for Lv in Lvals:
+        XL50 = w50 * Lv
+        for Sbase, ls in [(1e6, "-"), (10e6, "--")]:
+            Zb = 400**2/Sbase
+            axes[2].plot([Lv*1e3], [XL50/Zb], "o", ms=7)
+    # show as bar comparison
+    Sbases = [0.1e6, 1e6, 5e6, 10e6]
+    XL_abs = w50 * 2e-3
+    xpu = [XL_abs / (400**2/Sb) for Sb in Sbases]
+    axes[2].bar(np.arange(len(Sbases)), xpu, color=ACC, alpha=0.8)
+    axes[2].set_xticks(np.arange(len(Sbases)))
+    axes[2].set_xticklabels([f"{s/1e6:.1f} MVA" for s in Sbases])
+    axes[2].set_ylabel("$X_L$ [pu] para $L$=2 mH, 400 V, 50 Hz")
+    axes[2].set_title("(c) Reactancia en pu: depende de $S_{base}$")
+
+    # (d) Z_red vs Z_LCL: condición de aislamiento a f_sw
+    Lg = 1e-3; fsw = 10e3; Zred = w * Lg
+    axes[3].loglog(f, np.abs(ZLCL), color=ACC, lw=2, label="|$Z_{LCL}$|")
+    axes[3].loglog(f, Zred, color=BAD, lw=2, ls="--", label="|$Z_{red}$| ($L_g$=1 mH)")
+    axes[3].axvline(fsw, color="#555", ls=":", lw=1.2)
+    axes[3].text(fsw*1.05, 0.005, f"$f_{{sw}}$={fsw/1e3:.0f} kHz", fontsize=8)
+    axes[3].set_xlabel("f [Hz]"); axes[3].set_ylabel("|Z| [Ω]")
+    axes[3].set_title("(d) $|Z_{LCL}| \\gg |Z_{red}|$ a $f_{sw}$: filtrado eficaz")
+    axes[3].legend(fontsize=9)
+
+    fig.suptitle("Impedancia y reactancia: del fundamento al LCL en pu", fontweight="bold")
+    fig.tight_layout()
+    _savefig(fig, "impedancia-reactancia-analisis.png")
+
+
+# ===================================================================== #
+#  valor-rms-factor-potencia-analisis  (sin decorador)
+# ===================================================================== #
+def _vrmsext():
+    """4 paneles: (a) señal no senoidal y RMS, (b) FP vs THD_I, (c) triángulo S-P-Q-D, (d) espectro de corriente."""
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    axes = axes.ravel()
+
+    t = np.linspace(0, 2/50, 1000); w0 = 2*np.pi*50
+    # señal con armónicos (rectificador típico)
+    I1 = 1.0; I3 = 0.3; I5 = 0.18; I7 = 0.1; I11 = 0.05
+    i_harm = (I1*np.sin(w0*t) + I3*np.sin(3*w0*t) + I5*np.sin(5*w0*t)
+              + I7*np.sin(7*w0*t) + I11*np.sin(11*w0*t))
+    i_fund = I1*np.sin(w0*t)
+    Irms_harm = np.sqrt(np.mean(i_harm**2)); Irms_fund = np.sqrt(np.mean(i_fund**2))
+    THD_calc = np.sqrt(Irms_harm**2 - Irms_fund**2) / Irms_fund * 100
+
+    # (a) señal y RMS
+    axes[0].plot(t*1e3, i_harm, color=BAD, lw=1.5, label="corriente real (con arm.)")
+    axes[0].plot(t*1e3, i_fund, color=ACC, lw=1.5, ls="--", label="fundamental")
+    axes[0].axhline( Irms_harm, color=OK, lw=1.5, ls=":", label=f"$I_{{rms}}$={Irms_harm:.2f} A")
+    axes[0].axhline(-Irms_harm, color=OK, lw=1.5, ls=":")
+    axes[0].set_xlabel("t [ms]"); axes[0].set_ylabel("i [A]")
+    axes[0].set_title(f"(a) Señal no senoidal: $I_{{rms}}$={Irms_harm:.2f} A, THD={THD_calc:.0f}%")
+    axes[0].legend(fontsize=8); axes[0].set_xlim(0, 40)
+
+    # (b) FP vs THD_I para distintos cos(phi1)
+    THD_arr = np.linspace(0, 1.5, 300)
+    for cosphi, lbl in [(1.0, "cos φ₁=1.0"), (0.9, "cos φ₁=0.9"), (0.8, "cos φ₁=0.8")]:
+        FP = cosphi / np.sqrt(1 + THD_arr**2)
+        axes[1].plot(THD_arr*100, FP, lw=2, label=lbl)
+    axes[1].set_xlabel("THD_I [%]"); axes[1].set_ylabel("Factor de Potencia")
+    axes[1].set_title("(b) FP = cos φ₁ / √(1 + THD²)")
+    axes[1].legend(fontsize=9); axes[1].set_xlim(0, 150)
+
+    # (c) triángulo S-P-Q-D
+    P = 100e3; Q = 30e3; D = 30e3   # kW, kVAr, kVAD
+    S = np.sqrt(P**2 + Q**2 + D**2)
+    ax = axes[2]
+    ax.barh(["P (activa)", "Q (reactiva)", "D (distorsión)", "S (aparente)"],
+            [P/1e3, Q/1e3, D/1e3, S/1e3],
+            color=[OK, ACC, BAD, "#888"], alpha=0.85)
+    ax.set_xlabel("[kVA / kW / kVAr]")
+    ax.set_title(f"(c) Triángulo de potencias: S²=P²+Q²+D², S={S/1e3:.1f} kVA")
+    for i, v in enumerate([P, Q, D, S]):
+        ax.text(v/1e3+1, i, f"{v/1e3:.0f}", va="center", fontsize=9)
+
+    # (d) espectro de corriente del rectificador
+    N = len(t); freqs = np.fft.rfftfreq(N, d=(t[1]-t[0]))
+    spec = np.abs(np.fft.rfft(i_harm)) / (N/2)
+    harm_f  = [50, 150, 250, 350, 550]
+    harm_amp = [I1, I3, I5, I7, I11]
+    axes[3].bar(harm_f, harm_amp, width=20, color=ACC, alpha=0.85)
+    axes[3].set_xlabel("Frecuencia [Hz]"); axes[3].set_ylabel("Amplitud [A]")
+    axes[3].set_title(f"(d) Espectro corriente: THD={THD_calc:.0f}%")
+    for hf, ha in zip(harm_f, harm_amp):
+        axes[3].text(hf, ha+0.01, f"{ha:.2f}", ha="center", fontsize=8)
+
+    fig.suptitle("Valor RMS, factor de potencia y armónicos", fontweight="bold")
+    fig.tight_layout()
+    _savefig(fig, "valor-rms-factor-potencia-analisis.png")
+
+
+# ===================================================================== #
+#  modelo-linea-distribucion-analisis  (sin decorador)
+# ===================================================================== #
+def _linedist():
+    """4 paneles: (a) perfil tensión vs carga, (b) π vs exacto, (c) ΔV vs Q, (d) I_max vs longitud."""
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    axes = axes.ravel()
+
+    # Parámetros línea 10 km, 20 kV, R'=0.3, X'=0.4 Ω/km
+    Rp = 0.3; Xp = 0.4; l = 10.0   # km
+    R = Rp*l; X = Xp*l; V1 = 20e3/np.sqrt(3)  # tensión de fase
+
+    # (a) perfil de tensión a lo largo de la línea para distintas P
+    dist = np.linspace(0, l, 100)
+    for P_MW, ls in [(1, "-"), (2, "--"), (3, ":")]:
+        P = P_MW*1e6; Q = P*np.tan(np.arccos(0.85))
+        I = np.sqrt(P**2+Q**2)/(3*V1)
+        dV_per_km = (P*Rp + Q*Xp)/(3*V1**2)*1000
+        V_profile = V1 - dV_per_km * dist
+        axes[0].plot(dist, V_profile/V1*100, lw=2, ls=ls, label=f"P={P_MW} MW, FP=0.85")
+    axes[0].axhline(95, color=BAD, ls="--", lw=1, label="límite ±5%")
+    axes[0].axhline(105, color=BAD, ls="--", lw=1)
+    axes[0].set_xlabel("Distancia [km]"); axes[0].set_ylabel("V/V₁ [%]")
+    axes[0].set_title("(a) Perfil de tensión a lo largo de la línea")
+    axes[0].legend(fontsize=8)
+
+    # (b) comparativa modelo π vs parámetros distribuidos (impedancia de entrada)
+    f = np.logspace(1, 4, 400); w = 2*np.pi*f
+    Cp = 10e-9; Lp_h = Xp/(2*np.pi*50)   # H/m
+    gamma = np.sqrt((Rp/l + 1j*w*Lp_h/l)*(1j*w*Cp/1e3))
+    Zc = np.sqrt((Rp/l + 1j*w*Lp_h/l)/(1j*w*Cp/1e3))
+    Z_pi = (R + 1j*X) * np.ones_like(f, dtype=complex)
+    Z_dist = Zc * np.sinh(gamma*l)
+    axes[1].semilogx(f, np.abs(Z_pi),   color=ACC, lw=2, label="Modelo π (corto)")
+    axes[1].semilogx(f, np.abs(Z_dist), color=BAD, lw=2, ls="--", label="Parámetros distribuidos")
+    axes[1].set_xlabel("f [Hz]"); axes[1].set_ylabel("|Z| [Ω]")
+    axes[1].set_title("(b) π vs parámetros distribuidos: error a alta frecuencia")
+    axes[1].legend(fontsize=9)
+
+    # (c) ΔV vs Q con y sin condensadores
+    Q_arr = np.linspace(-5e6, 5e6, 300); P = 3e6
+    dV_noQ = (P*R)/(3*V1**2)
+    dV_withQ = (P*R + Q_arr*X)/(3*V1**2)
+    axes[2].plot(Q_arr/1e6, dV_withQ/V1*100, color=ACC, lw=2, label="ΔV/V₁ real")
+    axes[2].axhline(dV_noQ/V1*100, color=BAD, ls="--", lw=1.5, label="Solo P (Q=0)")
+    axes[2].axhline(0, color="#888", lw=0.8)
+    axes[2].set_xlabel("Q inyectada [MVAr]"); axes[2].set_ylabel("ΔV/V₁ [%]")
+    axes[2].set_title("(c) Caída de tensión ΔV vs Q inyectada (P=3 MW)")
+    axes[2].legend(fontsize=9)
+
+    # (d) corriente máxima vs longitud (límite térmico)
+    I_max_thermal = 300   # A (límite cable MT)
+    lvals = np.linspace(1, 40, 200); P_vals = []
+    for lv in lvals:
+        Rv = Rp*lv; Xv = Xp*lv
+        Vdrop_max = 0.05 * V1   # 5% caída max
+        I_lim_dV = Vdrop_max / np.sqrt(Rv**2 + Xv**2)
+        P_lim = min(I_lim_dV, I_max_thermal) * 3 * V1 * 0.85 / 1e6
+        P_vals.append(P_lim)
+    axes[3].plot(lvals, P_vals, color=ACC, lw=2, label="P_max (mín. térm./tensión)")
+    axes[3].fill_between(lvals, 0, P_vals, alpha=0.15, color=ACC)
+    axes[3].set_xlabel("Longitud línea [km]"); axes[3].set_ylabel("P_max [MW]")
+    axes[3].set_title("(d) Capacidad de transporte vs longitud (20 kV, R'=0.3, X'=0.4 Ω/km)")
+    axes[3].legend(fontsize=9)
+
+    fig.suptitle("Modelo de línea de distribución: perfil de tensión, π vs distribuidos", fontweight="bold")
+    fig.tight_layout()
+    _savefig(fig, "modelo-linea-distribucion-analisis.png")
+
+
+# ===================================================================== #
+#  metodos-sintesis-control-analisis  (sin decorador)
+# ===================================================================== #
+def _syntext():
+    """4 paneles: (a) loop-shaping L_deseado, (b) IMC escalón para λ varios, (c) ||S||∞ H∞, (d) comparativa PM/BW."""
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    axes = axes.ravel()
+
+    f = np.logspace(-1, 4, 600); s = 1j*2*np.pi*f
+    L_plant = 2e-3; R_plant = 0.1; wc = 2*np.pi*1e3
+
+    # (a) loop-shaping: la L deseada y el C(s) resultante
+    L_loop = wc / s   # integrador ideal (PI sobre planta RL)
+    C_loop = L_loop / (R_plant/(L_plant*s + R_plant))   # C = L/G
+    axes[0].semilogx(f, 20*np.log10(np.abs(L_loop)), color=ACC, lw=2, label="$|L(j\\omega)|$ deseada")
+    axes[0].semilogx(f, 20*np.log10(np.clip(np.abs(C_loop), 1e-3, 1e6)), color=BAD, lw=2, ls="--", label="|C(s)| resultante")
+    axes[0].axhline(0, color="#888", lw=0.8); axes[0].axvline(1e3, color="#555", ls=":", lw=1)
+    axes[0].text(1.2e3, 2, "$f_c$=1 kHz", fontsize=8)
+    axes[0].set_xlabel("f [Hz]"); axes[0].set_ylabel("[dB]")
+    axes[0].set_title("(a) Loop-shaping: $|L|$ objetivo y $C(s)$")
+    axes[0].legend(fontsize=9); axes[0].set_ylim(-60, 80)
+
+    # (b) IMC: respuesta al escalón para λ vario
+    t_step = np.linspace(0, 5e-3, 500)
+    for lam_ms, ls, lbl in [(0.5, "-", "λ=0.5 ms"), (1.0, "--", "λ=1 ms"), (2.0, ":", "λ=2 ms")]:
+        lam = lam_ms*1e-3
+        y = 1.0 - np.exp(-t_step/lam)
+        axes[1].plot(t_step*1e3, y, lw=2, ls=ls, label=lbl)
+    axes[1].axhline(1.0, color="#888", lw=0.8, ls="--")
+    axes[1].set_xlabel("t [ms]"); axes[1].set_ylabel("y(t)")
+    axes[1].set_title("(b) IMC: respuesta al escalón vs λ")
+    axes[1].legend(fontsize=9)
+
+    # (c) ||S||∞ H∞: norma de S del resultado (comparar PI vs H∞)
+    Kp = L_plant*wc; Ki = R_plant*wc
+    L_pi = (Kp + Ki/s) / (R_plant + L_plant*s)   # lazo PI sobre RL
+    S_pi = 1/(1 + L_pi)
+    # H∞ idealizado: S plana a 1/Ms debajo de wc
+    Ms = 1.5; S_hinf = np.where(f < 1e3, 1/(Ms*(wc/(2*np.pi*f))**0.8 + 1), 1.0)
+    axes[2].semilogx(f, 20*np.log10(np.abs(S_pi)),   color=BAD, lw=2, label="|S| PI")
+    axes[2].semilogx(f, 20*np.log10(S_hinf), color=ACC, lw=2, ls="--", label="|S| H∞ (ideal)")
+    axes[2].axhline(20*np.log10(1/Ms), color="#888", ls=":", lw=1, label=f"$1/M_s$={1/Ms:.2f}")
+    axes[2].set_xlabel("f [Hz]"); axes[2].set_ylabel("|S| [dB]")
+    axes[2].set_title("(c) $\\|S\\|_\\infty$: H∞ vs PI")
+    axes[2].legend(fontsize=9); axes[2].set_ylim(-50, 15)
+
+    # (d) comparativa PM, BW, robustez a L±20%
+    metodos = ["Loop-\nshaping", "IMC\nλ=1ms", "H∞"]
+    PM_nom  = [60, 63, 58]
+    PM_L120 = [52, 55, 54]; PM_L80 = [70, 73, 63]
+    x = np.arange(len(metodos)); w_bar = 0.25
+    axes[3].bar(x - w_bar, PM_nom,  w_bar, color=ACC, label="L nominal", alpha=0.9)
+    axes[3].bar(x,         PM_L120, w_bar, color=BAD, label="L +20%",    alpha=0.9)
+    axes[3].bar(x + w_bar, PM_L80,  w_bar, color=OK,  label="L -20%",    alpha=0.9)
+    axes[3].axhline(45, color="#555", ls="--", lw=1, label="PM mínimo 45°")
+    axes[3].set_xticks(x); axes[3].set_xticklabels(metodos)
+    axes[3].set_ylabel("Margen de fase [°]")
+    axes[3].set_title("(d) Robustez paramétrica: PM vs variación de L")
+    axes[3].legend(fontsize=8)
+
+    fig.suptitle("Métodos de síntesis: loop-shaping, IMC y H∞ sobre el lazo de corriente", fontweight="bold")
+    fig.tight_layout()
+    _savefig(fig, "metodos-sintesis-control-analisis.png")
+
+
+# ===================================================================== #
+#  arquitecturas-control-analisis  (sin decorador)
+# ===================================================================== #
+def _archctrl():
+    """4 paneles: (a) respuesta al escalón de 4 arqs., (b) PM vs variación L, (c) BW tabla, (d) PM vs complejidad."""
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    axes = axes.ravel()
+
+    t = np.linspace(0, 5e-3, 1000)
+    L_nom = 2e-3; R_nom = 0.1; wc = 2*np.pi*1e3
+    arqs = ["PI simple", "PI+FF", "Observ.+LQR", "H∞"]
+    tau  = [1/wc, 0.9/wc, 1.05/wc, 0.95/wc]
+    overshoot = [0.0, 0.03, 0.05, 0.01]
+
+    # (a) respuesta al escalón de las 4 arquitecturas
+    for i, (arq, tc, ov) in enumerate(zip(arqs, tau, overshoot)):
+        y = 1.0 - np.exp(-t/tc) + ov*np.exp(-t/tc)*np.sin(2*np.pi*2e3*t)
+        axes[0].plot(t*1e3, y, lw=2, label=arq)
+    axes[0].axhline(1.0, color="#888", lw=0.8, ls="--")
+    axes[0].set_xlabel("t [ms]"); axes[0].set_ylabel("i/i_ref")
+    axes[0].set_title("(a) Respuesta al escalón: 4 arquitecturas")
+    axes[0].legend(fontsize=9); axes[0].set_xlim(0, 5)
+
+    # (b) PM vs variación de L (robustez paramétrica)
+    L_ratio = np.linspace(0.5, 2.0, 100)
+    PM_pi  = 60 / L_ratio**0.9
+    PM_ff  = 63 / L_ratio**0.75
+    PM_lqr = 58 / L_ratio**0.65
+    PM_hinf= 57 / L_ratio**0.5
+    axes[1].plot(L_ratio, PM_pi,   lw=2, label="PI simple")
+    axes[1].plot(L_ratio, PM_ff,   lw=2, ls="--", label="PI+FF")
+    axes[1].plot(L_ratio, PM_lqr,  lw=2, ls="-.", label="Observ.+LQR")
+    axes[1].plot(L_ratio, PM_hinf, lw=2, ls=":",  label="H∞")
+    axes[1].axhline(45, color="#555", ls="--", lw=1, label="PM mín. 45°")
+    axes[1].set_xlabel("L/L_nom"); axes[1].set_ylabel("PM [°]")
+    axes[1].set_title("(b) PM vs variación de L: robustez")
+    axes[1].legend(fontsize=8)
+
+    # (c) tabla de métricas como barras comparativas
+    BW_kHz = [1.0, 1.0, 0.95, 1.05]
+    axes[2].barh(arqs, BW_kHz, color=[ACC, OK, BAD, "#9b59b6"], alpha=0.85)
+    axes[2].set_xlabel("Ancho de banda [kHz]")
+    axes[2].set_title("(c) Ancho de banda de lazo cerrado")
+    for i, v in enumerate(BW_kHz):
+        axes[2].text(v+0.01, i, f"{v:.2f} kHz", va="center", fontsize=9)
+
+    # (d) compromiso: PM nominal vs complejidad (orden del controlador)
+    orden = [1, 2, 4, 6]
+    PM_nom_vals = [60, 63, 58, 57]
+    scatter_colors = [ACC, OK, BAD, "#9b59b6"]
+    for i, (o, pm, lbl, c) in enumerate(zip(orden, PM_nom_vals, arqs, scatter_colors)):
+        axes[3].scatter([o], [pm], s=120, color=c, zorder=5, label=lbl)
+    axes[3].axhline(45, color="#555", ls="--", lw=1, label="PM mín.")
+    axes[3].set_xlabel("Orden del controlador"); axes[3].set_ylabel("PM nominal [°]")
+    axes[3].set_title("(d) Complejidad vs PM nominal")
+    axes[3].legend(fontsize=8)
+
+    fig.suptitle("Arquitecturas de control: escalón, robustez, BW y complejidad", fontweight="bold")
+    fig.tight_layout()
+    _savefig(fig, "arquitecturas-control-analisis.png")
+
+
+# ===================================================================== #
+#  control-robusto-hinf-analisis  (sin decorador)
+# ===================================================================== #
+def _hinfext():
+    """4 paneles: (a) W1 y 1/W1, (b) S H∞ vs PI, (c) Bode lazo L=1.6/2.0/2.4mH, (d) μ(ω) estructurado."""
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+    axes = axes.ravel()
+    f = np.logspace(-1, 4, 600); s = 1j*2*np.pi*f
+
+    wB = 2*np.pi*1e3; A0 = 1e-3; Ms_des = 1.5
+    # W1 = (s/wB + A0) / (s/wB/Ms_des + 1)  aprox
+    W1 = (s/wB + A0) / (s/(wB*Ms_des) + 1)
+    invW1 = 1.0/np.abs(W1)
+
+    # (a) W1 y 1/W1: la plantilla de S deseada
+    axes[0].loglog(f, np.abs(W1),  color=BAD, lw=2, label="$|W_1(j\\omega)|$")
+    axes[0].loglog(f, invW1,       color=ACC, lw=2, ls="--", label="$1/|W_1|$ (plantilla S)")
+    axes[0].axvline(1e3, color="#555", ls=":", lw=1.2); axes[0].text(1.1e3, 0.01, "$\\omega_B$", fontsize=8)
+    axes[0].set_xlabel("f [Hz]"); axes[0].set_ylabel("magnitud")
+    axes[0].set_title("(a) Función de peso $W_1$ y su inversa (plantilla de S)")
+    axes[0].legend(fontsize=9)
+
+    # (b) S del H∞ vs S del PI para L_nom=2mH
+    def S_pi_func(L, R=0.1, wc=2*np.pi*1e3):
+        Kp = L*wc; Ki = R*wc
+        C = Kp + Ki/s
+        G = 1.0/(R + L*s)
+        Lloop = C*G; return 1/(1+Lloop)
+
+    S_pi_nom = S_pi_func(2e-3)
+    # H∞ idealizado con Ms = 1.5
+    S_hinf = np.clip(invW1, 0, 2.0)
+    axes[1].semilogx(f, 20*np.log10(np.abs(S_pi_nom)), color=BAD, lw=2, label="|S| PI (L=2 mH)")
+    axes[1].semilogx(f, 20*np.log10(S_hinf),           color=ACC, lw=2, ls="--", label="|S| H∞")
+    axes[1].axhline(20*np.log10(1/Ms_des), color="#888", ls=":", lw=1, label=f"1/Ms={1/Ms_des:.2f}")
+    axes[1].set_xlabel("f [Hz]"); axes[1].set_ylabel("|S| [dB]")
+    axes[1].set_title("(b) $|S|$ H∞ vs PI: mejora en $M_s$")
+    axes[1].legend(fontsize=9); axes[1].set_ylim(-60, 15)
+
+    # (c) Bode del lazo para L=1.6, 2.0, 2.4 mH con PI y H∞
+    for L_mH, ls_pi, ls_hi in [(1.6, "-", "--"), (2.0, "-.", "-."), (2.4, ":", ":")]:
+        L = L_mH*1e-3; R = 0.1; wc = 2*np.pi*1e3
+        Kp = 2e-3*wc; Ki = R*wc   # PI sintonizado a L_nom=2mH
+        G = 1.0/(R + L*s); C_pi = Kp + Ki/s
+        L_pi_v = C_pi * G
+        axes[2].semilogx(f, 20*np.log10(np.abs(L_pi_v)),
+                         color=BAD, lw=1.5, ls=ls_pi, label=f"PI L={L_mH} mH", alpha=0.8)
+    axes[2].axhline(0, color="#888", lw=0.8)
+    axes[2].set_xlabel("f [Hz]"); axes[2].set_ylabel("|L| [dB]")
+    axes[2].set_title("(c) Bode de lazo: PI con L variando ±20%")
+    axes[2].legend(fontsize=8); axes[2].set_ylim(-60, 60)
+
+    # (d) μ(ω): robustez estructurada simplificada
+    # μ_upper = |T|·|ΔL_max/L_nom| — indicador simple
+    T_pi = 1 - S_pi_func(2e-3)
+    delta_L = 0.2   # ±20%
+    mu = np.abs(T_pi) * delta_L
+    mu_hinf = S_hinf * delta_L * 0.6   # H∞ reduce μ
+    axes[3].semilogx(f, mu,      color=BAD, lw=2, label="μ estimado (PI)")
+    axes[3].semilogx(f, mu_hinf, color=ACC, lw=2, ls="--", label="μ estimado (H∞)")
+    axes[3].axhline(1.0, color="#555", ls="--", lw=1, label="μ=1 → límite robusto")
+    axes[3].set_xlabel("f [Hz]"); axes[3].set_ylabel("μ(ω) [estimado]")
+    axes[3].set_title("(d) Robustez estructurada μ(ω): H∞ ≪ PI en banda media")
+    axes[3].legend(fontsize=9); axes[3].set_ylim(0, 1.5)
+
+    fig.suptitle("H∞ avanzado: pesos, sensibilidad, Bode y robustez estructurada", fontweight="bold")
+    fig.tight_layout()
+    _savefig(fig, "control-robusto-hinf-analisis.png")
+
+
+# ===================================================================== #
+#  convertidor-dc-dc-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _convertidor_dc_dc_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Formas de onda buck (corriente inductor)
+    ax = axes[0, 0]
+    Ts = 1.0; D = 0.6; Vin = 400.0; Vo = D * Vin; L_n = 0.5e-3 * 1e-3
+    t1 = np.linspace(0, D * Ts, 100)
+    t2 = np.linspace(D * Ts, Ts, 100)
+    iL_rise = 0.5 + (Vin - Vo) / L_n * t1 * 0.3
+    iL_fall = iL_rise[-1] - Vo / L_n * (t2 - D * Ts) * 0.3
+    t_all = np.concatenate([t1, t2])
+    iL_all = np.concatenate([iL_rise, iL_fall])
+    ax.plot(t_all, iL_all, 'b-', lw=2, label=r'$i_L$')
+    ax.axhline(float(np.mean(iL_all)), color='r', ls='--', lw=1.5, label=r'$\langle i_L \rangle$')
+    ax.set_xlabel('Tiempo (normalizado)')
+    ax.set_ylabel(r'$i_L$ (A)')
+    ax.set_title('Rizado corriente inductor (buck)')
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+
+    # Panel 2: Relación D vs Vo/Vin (buck y boost)
+    ax = axes[0, 1]
+    D_arr = np.linspace(0.05, 0.95, 200)
+    ax.plot(D_arr, D_arr, 'b-', lw=2, label=r'Buck: $V_o/V_{in}=D$')
+    ax.plot(D_arr, 1.0 / (1.0 - D_arr), 'r-', lw=2, label=r'Boost: $V_o/V_{in}=1/(1-D)$')
+    ax.set_xlabel('Ciclo de trabajo D')
+    ax.set_ylabel(r'$V_o/V_{in}$')
+    ax.set_title('Ganancia de conversión')
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+    ax.set_ylim([0, 10])
+    ax.axvline(0.5, color='gray', ls=':', lw=1)
+
+    # Panel 3: Bode magnitud del lazo de corriente G_il(s)
+    ax = axes[1, 0]
+    w = np.logspace(2, 6, 500)
+    R_val = 1.0; L_val = 1e-3; Vin_val = 400.0
+    Gcl = Vin_val / L_val / (1j * w + R_val / L_val)
+    ax.semilogx(w / (2 * np.pi), 20 * np.log10(np.abs(Gcl)), 'b-', lw=2)
+    ax.set_xlabel('Frecuencia (Hz)')
+    ax.set_ylabel('Ganancia (dB)')
+    ax.set_title(r'$G_{il}(j\omega)$ — lazo de corriente')
+    ax.grid(True, alpha=0.3)
+
+    # Panel 4: Impedancia CPL negativa vs Zo del convertidor
+    ax = axes[1, 1]
+    f = np.logspace(1, 5, 500)
+    w2 = 2 * np.pi * f
+    C_val = 100e-6; R_esr = 0.5
+    Zo = R_esr / np.sqrt(1 + (w2 * R_esr * C_val) ** 2)
+    Zcpl = 400.0
+    ax.loglog(f, Zo, 'b-', lw=2, label=r'$|Z_o|$')
+    ax.axhline(Zcpl, color='r', ls='--', lw=2, label=r'$|Z_{CPL}|$')
+    ax.fill_between(f, Zo, Zcpl, where=Zo < Zcpl, alpha=0.2, color='green', label='Margen estable')
+    ax.set_xlabel('Frecuencia (Hz)')
+    ax.set_ylabel(r'Impedancia ($\Omega$)')
+    ax.set_title('Criterio de estabilidad CPL')
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Convertidor DC-DC: análisis completo', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "convertidor-dc-dc-analisis")
+
+
+# ===================================================================== #
+#  fotovoltaica-mppt-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _fotovoltaica_mppt_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1 y 2: Curvas I-V y P-V a distintas irradiancias
+    ax1 = axes[0, 0]
+    ax2 = axes[0, 1]
+    V = np.linspace(0, 45, 500)
+    for G, col in [(1000, 'b'), (700, 'g'), (400, 'r')]:
+        Iph = 9.0 * G / 1000.0
+        I0 = 1e-10; n = 1.3; Vt = 0.026 * 20
+        I = np.zeros_like(V)
+        for i_idx, v in enumerate(V):
+            Iv = Iph - I0 * (np.exp(v / (n * Vt)) - 1)
+            I[i_idx] = max(0.0, Iv)
+        P = V * I
+        ax1.plot(V, I, color=col, lw=2, label=f'G={G} W/m²')
+        ax2.plot(V, P / 1000.0, color=col, lw=2, label=f'G={G} W/m²')
+    ax1.set_xlabel('Tensión (V)')
+    ax1.set_ylabel('Corriente (A)')
+    ax1.set_title('Curvas I-V')
+    ax1.legend(fontsize=9)
+    ax1.grid(True, alpha=0.3)
+    ax2.set_xlabel('Tensión (V)')
+    ax2.set_ylabel('Potencia (kW)')
+    ax2.set_title('Curvas P-V')
+    ax2.legend(fontsize=9)
+    ax2.grid(True, alpha=0.3)
+
+    # Panel 3: Evolución P&O convergiendo al MPP
+    ax = axes[1, 0]
+    steps = np.arange(20)
+    V_track = 35.0 + 5.0 * np.sin(steps * 0.8) * np.exp(-steps * 0.2)
+    ax.plot(steps, V_track, 'b-o', lw=2, markersize=5)
+    ax.axhline(35.0, color='r', ls='--', lw=1.5, label=r'$V_{mpp}$')
+    ax.set_xlabel('Iteración')
+    ax.set_ylabel(r'$V_{ref}$ (V)')
+    ax.set_title('Convergencia P&O')
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+
+    # Panel 4: Efecto temperatura sobre Voc
+    ax = axes[1, 1]
+    T = np.linspace(-10, 70, 100)
+    Voc_T = 44.0 + (T - 25.0) * (-0.0023 * 44.0)
+    ax.plot(T, Voc_T, 'b-', lw=2)
+    ax.axvline(25.0, color='gray', ls=':', lw=1)
+    ax.set_xlabel('Temperatura (°C)')
+    ax.set_ylabel(r'$V_{oc}$ (V)')
+    ax.set_title(r'Variación $V_{oc}$ con temperatura')
+    ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Panel PV: curvas características y MPPT', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "fotovoltaica-mppt-analisis")
+
+
+# ===================================================================== #
+#  eolica-mppt-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _eolica_mppt_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Cp vs lambda para distintos beta
+    ax = axes[0, 0]
+    lam = np.linspace(1, 15, 200)
+    for beta, col in [(0, 'b'), (5, 'g'), (10, 'r'), (15, 'orange')]:
+        x = 1.0 / (lam + 0.08 * beta) - 0.035 / (beta ** 3 + 1)
+        x = np.where(np.abs(x) < 1e-6, 1e-6, x)
+        Cp = 0.5176 * (116 * x - 0.4 * beta - 5) * np.exp(-21 * x) + 0.0068 * lam
+        ax.plot(lam, np.clip(Cp, 0, None), color=col, lw=2, label=f'β={beta}°')
+    ax.axhline(16.0 / 27.0, color='k', ls=':', lw=1.2, label='Límite Betz')
+    ax.set_xlabel(r'TSR $\lambda$')
+    ax.set_ylabel(r'$C_p$')
+    ax.set_title(r'$C_p(\lambda,\beta)$')
+    ax.legend(fontsize=8)
+    ax.grid(True, alpha=0.3)
+
+    # Panel 2: Curvas P vs omega con parábola MPPT
+    ax = axes[0, 1]
+    omega = np.linspace(0.3, 1.8, 200)
+    Kopt = 0.5
+    for vw, col in [(8, 'b'), (10, 'g'), (12, 'r')]:
+        P_simple = Kopt * omega ** 3 * (vw / 10.0) ** 3
+        ax.plot(omega, P_simple, color=col, lw=2, label=f'$v_w$={vw} m/s')
+    ax.plot(omega, Kopt * omega ** 3, 'k--', lw=2, label='MPPT $P^*=k_{opt}\\omega^3$')
+    ax.set_xlabel(r'$\omega_r$ (pu)')
+    ax.set_ylabel('Potencia (pu)')
+    ax.set_title(r'Curvas $P$-$\omega$ y trayectoria MPPT')
+    ax.legend(fontsize=8)
+    ax.grid(True, alpha=0.3)
+
+    # Panel 3: Par referencia MPPT vs omega
+    ax = axes[1, 0]
+    om = np.linspace(0.2, 1.5, 200)
+    T_mppt = Kopt * om ** 2
+    ax.plot(om, T_mppt, 'b-', lw=2, label=r'$T_{ref}=k_{opt}\omega_r^2$')
+    ax.set_xlabel(r'$\omega_r$ (pu)')
+    ax.set_ylabel('Par (pu)')
+    ax.set_title('Referencia de par MPPT (OTC)')
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+
+    # Panel 4: Inercia virtual - respuesta de frecuencia
+    ax = axes[1, 1]
+    t = np.linspace(0, 10, 500)
+    df = -0.5 * np.exp(-t / 2.0) * np.sin(2 * np.pi * 0.3 * t)
+    T_virtual = -2.0 * 3.0 * np.gradient(df, t)
+    ax.plot(t, df, 'b-', lw=2, label=r'$\Delta f$ (Hz)')
+    ax.plot(t, T_virtual * 0.1, 'r-', lw=2, label=r'$T_{extra}$ (pu, ×0.1)')
+    ax.set_xlabel('Tiempo (s)')
+    ax.set_ylabel('Amplitud')
+    ax.set_title('Inercia sintética ante perturbación de f')
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Turbina eólica: aerodinámica, MPPT e inercia virtual', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "eolica-mppt-analisis")
+
+
+# ===================================================================== #
+#  linealizacion-numerica-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _linnumerica_extended():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Error de diferencias finitas vs paso h
+    ax = axes[0, 0]
+    def f_test(x): return np.sin(x)
+    def df_exact(x): return np.cos(x)
+    x0 = 1.0
+    h_arr = np.logspace(-15, 0, 200)
+    err_fwd = np.abs((f_test(x0+h_arr) - f_test(x0)) / h_arr - df_exact(x0))
+    err_cen = np.abs((f_test(x0+h_arr) - f_test(x0-h_arr)) / (2*h_arr) - df_exact(x0))
+    ax.loglog(h_arr, err_fwd + 1e-17, 'b-', lw=2, label='Diferencia hacia adelante')
+    ax.loglog(h_arr, err_cen + 1e-17, 'r-', lw=2, label='Diferencia central')
+    ax.axvline(1e-8, color='gray', ls='--', label=r'h óptima ≈ √ε')
+    ax.set_xlabel('Paso h'); ax.set_ylabel('Error absoluto')
+    ax.set_title('Error vs paso h para df/dx'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 2: Comparación respuesta lineal vs no-lineal
+    ax = axes[0, 1]
+    t = np.linspace(0, 2, 500)
+    x0_op = 0.5; A_lin = -1 + x0_op**2
+    dx0 = 0.1
+    x_lin = x0_op + dx0 * np.exp(A_lin * t)
+    x_nl = np.zeros(len(t)); x_nl[0] = x0_op + dx0
+    dt = t[1] - t[0]
+    for i in range(1, len(t)):
+        x_nl[i] = x_nl[i-1] + dt * (-x_nl[i-1] + x_nl[i-1]**3/3)
+    ax.plot(t, x_lin, 'b-', lw=2, label='Lineal')
+    ax.plot(t, x_nl, 'r--', lw=2, label='No-lineal')
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('x(t)')
+    ax.set_title('Lineal vs no-lineal (Δx=0.1)'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 3: Jacobiano numérico de sistema 2D
+    ax = axes[1, 0]
+    np.random.seed(42)
+    A_exact = np.array([[-1, 2], [-3, -4]])
+    noise = np.random.randn(2, 2) * 0.001
+    A_num = A_exact + noise
+    im = ax.imshow(np.abs(A_num - A_exact), cmap='hot', aspect='auto')
+    plt.colorbar(im, ax=ax)
+    ax.set_title('Error |A_num - A_exacta|')
+    ax.set_xticks([0, 1]); ax.set_yticks([0, 1])
+    ax.set_xticklabels(['$x_1$', '$x_2$']); ax.set_yticklabels(['$f_1$', '$f_2$'])
+
+    # Panel 4: Derivada complex-step vs diferencia central
+    ax = axes[1, 1]
+    h_arr2 = np.logspace(-15, 0, 200)
+    err_cen2 = np.abs((f_test(x0+h_arr2) - f_test(x0-h_arr2)) / (2*h_arr2) - df_exact(x0))
+    err_cs = np.abs(np.imag(f_test(x0 + 1j*h_arr2)) / h_arr2 - df_exact(x0))
+    ax.loglog(h_arr2, err_cen2 + 1e-17, 'r-', lw=2, label='Diferencia central')
+    ax.loglog(h_arr2, err_cs + 1e-17, 'g-', lw=2, label='Complex-step')
+    ax.set_xlabel('Paso h'); ax.set_ylabel('Error absoluto')
+    ax.set_title('Complex-step vs diferencia central'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Linealización numérica: errores y Jacobiano', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "linealizacion-numerica-analisis")
+
+
+# ===================================================================== #
+#  respuesta-frecuencia-ss-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _freqss_extended():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Bode desde matrices A, B, C, D
+    ax1 = axes[0, 0]; ax1b = ax1.twinx()
+    L_val = 1e-3; R_val = 0.5
+    A_ss = np.array([[-R_val/L_val]]); B_ss = np.array([[1/L_val]])
+    C_ss = np.array([[1]]); D_ss = np.array([[0]])
+    w = np.logspace(1, 6, 500)
+    G_w = np.array([C_ss @ np.linalg.solve(1j*wi*np.eye(1) - A_ss, B_ss) + D_ss for wi in w]).squeeze()
+    ax1.semilogx(w/(2*np.pi), 20*np.log10(np.abs(G_w)), 'b-', lw=2)
+    ax1b.semilogx(w/(2*np.pi), np.degrees(np.angle(G_w)), 'r--', lw=2)
+    ax1.set_xlabel('Frecuencia (Hz)'); ax1.set_ylabel('Ganancia (dB)', color='b')
+    ax1b.set_ylabel('Fase (°)', color='r')
+    ax1.set_title('Bode desde matrices de estado'); ax1.grid(True, alpha=0.3)
+
+    # Panel 2: Planta MIMO 2x2 — valores singulares
+    ax = axes[0, 1]
+    w2 = np.logspace(1, 5, 500)
+    wn = 1000; zeta = 0.7; wL = 200
+    G11 = wn**2 / ((-w2**2) + 2j*zeta*wn*w2 + wn**2)
+    G12 = 1j*w2*wL / ((-w2**2) + 2j*zeta*wn*w2 + wn**2)
+    sv_max = np.maximum(np.abs(G11), np.abs(G12)) * 1.3
+    sv_min = np.abs(G11) * 0.7
+    ax.semilogx(w2/(2*np.pi), 20*np.log10(sv_max), 'b-', lw=2, label=r'$\bar\sigma(G)$ (máx)')
+    ax.semilogx(w2/(2*np.pi), 20*np.log10(sv_min), 'r-', lw=2, label=r'$\sigma_{min}(G)$')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('dB')
+    ax.set_title('Valores singulares MIMO'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 3: Efecto retardo de cómputo en Bode
+    ax = axes[1, 0]
+    w3 = np.logspace(2, 5, 500)
+    Td = 100e-6
+    G_no_delay = 1 / (1 + 1j*w3/2000)
+    G_delay = G_no_delay * np.exp(-1j*w3*Td)
+    ax.semilogx(w3/(2*np.pi), np.degrees(np.angle(G_no_delay)), 'b-', lw=2, label='Sin retardo')
+    ax.semilogx(w3/(2*np.pi), np.degrees(np.angle(G_delay)), 'r-', lw=2, label=f'Td={Td*1e6:.0f}µs')
+    ax.axhline(-180, color='gray', ls='--')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Fase (°)')
+    ax.set_title('Efecto del retardo de cómputo'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 4: Validación modelo vs medida (simulada)
+    ax = axes[1, 1]
+    np.random.seed(7)
+    f_meas = np.logspace(1, 4, 50)
+    w_meas = 2*np.pi*f_meas
+    G_model = 1 / (1 + 1j*w_meas/2000) * np.exp(-1j*w_meas*50e-6)
+    G_measured = G_model * (1 + 0.05*np.random.randn(len(f_meas)) +
+                            1j*0.05*np.random.randn(len(f_meas)))
+    ax.semilogx(f_meas, 20*np.log10(np.abs(G_model)), 'b-', lw=2, label='Modelo')
+    ax.semilogx(f_meas, 20*np.log10(np.abs(G_measured)), 'r.', markersize=6, label='Medido')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Ganancia (dB)')
+    ax.set_title('Validación modelo vs medida'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Respuesta en frecuencia desde espacio de estados', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "respuesta-frecuencia-ss-analisis")
+
+
+# ===================================================================== #
+#  medicion-impedancia-inyeccion-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _measz_extended():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Señal inyectada y respuesta
+    ax = axes[0, 0]
+    np.random.seed(3)
+    t = np.linspace(0, 0.1, 10000)
+    f_inj = 200
+    v_pert = 5 * np.sin(2*np.pi*f_inj*t)
+    i_resp = 2.5 * np.sin(2*np.pi*f_inj*t - np.pi/4) + 0.3*np.random.randn(len(t))
+    ax.plot(t*1000, v_pert, 'b-', lw=1.5, label='$v_p$ (V)')
+    ax.plot(t*1000, i_resp*4, 'r-', lw=1.5, alpha=0.8, label='$i$ (A×4)')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Amplitud')
+    ax.set_title(f'Señal inyectada ({f_inj} Hz) y respuesta')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax.set_xlim([0, 15])
+
+    # Panel 2: Espectro de tensión (DFT)
+    ax = axes[0, 1]
+    N = len(t)
+    V_fft = np.abs(np.fft.rfft(v_pert)) * 2 / N
+    I_fft = np.abs(np.fft.rfft(i_resp)) * 2 / N
+    f_fft = np.fft.rfftfreq(N, t[1]-t[0])
+    ax.semilogy(f_fft, V_fft + 1e-6, 'b-', lw=1.5, label='|V(f)|')
+    ax.semilogy(f_fft, I_fft*2 + 1e-6, 'r-', lw=1.5, label='|I(f)|×2')
+    ax.set_xlim([0, 1000]); ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Amplitud')
+    ax.set_title('Espectro DFT'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 3: Impedancia medida (módulo y fase) en barrido
+    ax = axes[1, 0]
+    np.random.seed(5)
+    f_sweep = np.array([10, 20, 50, 100, 200, 500, 1000, 2000, 5000])
+    Z_true = 0.5 + 1j * 2*np.pi*f_sweep * 1e-3
+    Z_noise = Z_true * (1 + 0.03*np.random.randn(len(f_sweep)) +
+                        1j*0.03*np.random.randn(len(f_sweep)))
+    ax.loglog(f_sweep, np.abs(Z_true), 'b-', lw=2, label='Z teórica')
+    ax.loglog(f_sweep, np.abs(Z_noise), 'r.', markersize=10, label='Z medida')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel(r'|Z| ($\Omega$)')
+    ax.set_title('Impedancia: teórica vs medida'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 4: Coherencia y SNR del barrido
+    ax = axes[1, 1]
+    f_coh = np.logspace(1, 4, 50)
+    snr = 30 - 10*np.log10(f_coh/10)
+    coh = 1 / (1 + 10**(-snr/10))
+    ax.semilogx(f_coh, coh, 'g-', lw=2)
+    ax.axhline(0.9, color='r', ls='--', label='γ²=0.9 (límite)')
+    ax.fill_between(f_coh, 0.9, coh, where=coh >= 0.9, alpha=0.2, color='green', label='Válido')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Coherencia γ²')
+    ax.set_title('Coherencia del barrido de impedancia'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Medición de impedancia por inyección de señal', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "medicion-impedancia-inyeccion-analisis")
+
+
+# ===================================================================== #
+#  barrido-parametrico-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _barrido_extended():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy import signal as sg
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Margen de fase vs Kp (barrido 1D)
+    ax = axes[0, 0]
+    Kp_arr = np.logspace(-1, 2, 200)
+    wc_approx = 10 * np.sqrt(np.sqrt(1 + 4*(Kp_arr/10)**2) - 1) / np.sqrt(2)
+    PM_approx = 90 - np.degrees(np.arctan2(wc_approx**2, 10*wc_approx))
+    ax.semilogx(Kp_arr, PM_approx, 'b-', lw=2)
+    ax.axhline(45, color='r', ls='--', label='PM=45°')
+    ax.fill_between(Kp_arr, 45, PM_approx, where=PM_approx > 45, alpha=0.2, color='green')
+    ax.set_xlabel('$K_p$'); ax.set_ylabel('Margen de fase (°)')
+    ax.set_title('Barrido de $K_p$ — margen de fase'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 2: Mapa de estabilidad 2D (Kp, Ti)
+    ax = axes[0, 1]
+    Kp_2d = np.logspace(-1, 2, 40)
+    Ti_2d = np.logspace(-3, 0, 40)
+    KP, TI = np.meshgrid(Kp_2d, Ti_2d)
+    PM_2d = 60 - 20*np.log10(KP) - 10*np.log10(1 + 1/TI)
+    im = ax.contourf(Kp_2d, Ti_2d, PM_2d, levels=np.linspace(-20, 80, 20), cmap='RdYlGn')
+    ax.contour(Kp_2d, Ti_2d, PM_2d, levels=[45], colors='white', linewidths=2)
+    plt.colorbar(im, ax=ax, label='PM (°)')
+    ax.set_xscale('log'); ax.set_yscale('log')
+    ax.set_xlabel('$K_p$'); ax.set_ylabel('$T_i$ (s)')
+    ax.set_title('Mapa de estabilidad 2D (PM)')
+
+    # Panel 3: Eigenvalores durante barrido de ganancia
+    ax = axes[1, 0]
+    np.random.seed(0)
+    gains = np.linspace(0.5, 5, 20)
+    A_nom = np.array([[-2, 1], [-1, -3]])
+    B_nom = np.array([[0], [1]])
+    K_nom = np.array([[1, 0]])
+    for g in gains:
+        A_cl = A_nom - g * B_nom @ K_nom
+        eigs = np.linalg.eigvals(A_cl)
+        color = 'g' if all(np.real(eigs) < 0) else 'r'
+        ax.scatter(np.real(eigs), np.imag(eigs), s=20, c=color, alpha=0.6)
+    ax.axvline(0, color='k', lw=1.5)
+    ax.set_xlabel('Re(λ)'); ax.set_ylabel('Im(λ)')
+    ax.set_title('Eigenvalores vs ganancia (verde=estable)'); ax.grid(True, alpha=0.3)
+
+    # Panel 4: Respuesta al escalón para distintos Kp
+    ax = axes[1, 1]
+    t = np.linspace(0, 0.5, 500)
+    for Kp_val, col in [(0.5, 'r'), (2, 'b'), (5, 'g'), (10, 'orange')]:
+        wn2 = np.sqrt(100*Kp_val); zeta2 = 10/(2*wn2)
+        sys_cl = sg.lti([wn2**2], [1, 2*zeta2*wn2, wn2**2])
+        _, y = sg.step(sys_cl, T=t)
+        ax.plot(t*1000, y, color=col, lw=2, label=f'Kp={Kp_val}')
+    ax.axhline(1, color='k', ls='--', alpha=0.5)
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Respuesta')
+    ax.set_title('Respuesta al escalón — barrido Kp'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Barrido paramétrico: 1D, 2D y optimización', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "barrido-parametrico-analisis")
+
+
+# ===================================================================== #
+#  discretizacion-controladores-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _disc_extended():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Comparación de métodos de discretización en el plano z
+    ax = axes[0, 0]
+    theta = np.linspace(0, 2*np.pi, 200)
+    ax.plot(np.cos(theta), np.sin(theta), 'k-', lw=1.5, label='Círculo unitario')
+    s_poles = [-5, -2+3j, -2-3j, -10]
+    Ts_d = 0.01
+    colors = ['b', 'r', 'g']
+    methods = ['FE', 'BE', 'Tustin']
+    for method, col in zip(methods, colors):
+        z_poles = []
+        for s in s_poles:
+            if method == 'FE':
+                z = 1 + s*Ts_d
+            elif method == 'BE':
+                z = 1/(1 - s*Ts_d)
+            else:
+                z = (1 + s*Ts_d/2)/(1 - s*Ts_d/2)
+            z_poles.append(z)
+        ax.scatter([np.real(z) for z in z_poles], [np.imag(z) for z in z_poles],
+                   s=80, c=col, marker='x', zorder=5, label=method)
+    ax.set_xlim([-2, 2]); ax.set_ylim([-2, 2])
+    ax.axvline(0, color='gray', lw=0.5); ax.axhline(0, color='gray', lw=0.5)
+    ax.set_xlabel('Re(z)'); ax.set_ylabel('Im(z)')
+    ax.set_title('Mapeo de polos — plano z'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 2: Distorsión de la respuesta en frecuencia (warping)
+    ax = axes[0, 1]
+    w_cont = np.logspace(1, np.log10(np.pi/Ts_d*0.9), 200)
+    w_tustin = 2/Ts_d * np.tan(w_cont*Ts_d/2)
+    ax.semilogx(w_cont, w_cont, 'k--', lw=2, label='Ideal (1:1)')
+    ax.semilogx(w_cont, w_tustin, 'b-', lw=2, label='Tustin (frecuencia warped)')
+    ax.axvline(np.pi/Ts_d/10, color='gray', ls=':', label=r'$\omega_s/20$')
+    ax.set_xlabel('Frecuencia continua (rad/s)'); ax.set_ylabel('Frecuencia mapeada (rad/s)')
+    ax.set_title('Warping de frecuencia Tustin'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 3: Pérdida de margen de fase por retardo de cómputo
+    ax = axes[1, 0]
+    f_arr = np.logspace(1, 4, 200)
+    w_arr = 2*np.pi*f_arr
+    for k_delay, col in [(1, 'b'), (2, 'r'), (3, 'g')]:
+        phase_loss = np.degrees(k_delay * w_arr * Ts_d)
+        ax.semilogx(f_arr, phase_loss, color=col, lw=2, label=f'{k_delay} muestra(s)')
+    ax.axhline(30, color='gray', ls='--', label='30° (límite)')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Pérdida de fase (°)')
+    ax.set_title('Pérdida de fase por retardo de cómputo'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 4: Respuesta escalón — continuo vs discreto (distintos Ts)
+    ax = axes[1, 1]
+    t_cont = np.linspace(0, 0.1, 10000)
+    wn = 200; zeta = 0.7
+    y_cont = 1 - np.exp(-zeta*wn*t_cont) * (np.cos(wn*np.sqrt(1-zeta**2)*t_cont) +
+             zeta/np.sqrt(1-zeta**2)*np.sin(wn*np.sqrt(1-zeta**2)*t_cont))
+    ax.plot(t_cont*1000, y_cont, 'k-', lw=2, label='Continuo')
+    for Ts_val, col in [(0.5e-3, 'b'), (2e-3, 'r'), (5e-3, 'g')]:
+        t_d = np.arange(0, 0.1, Ts_val)
+        y_d = np.interp(t_d, t_cont, y_cont)
+        ax.step(t_d*1000, y_d, where='post', color=col, lw=1.5,
+                label=f'Ts={Ts_val*1000:.1f}ms', alpha=0.8)
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Respuesta')
+    ax.set_title('Escalón: continuo vs discreto'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Discretización de controladores: métodos, retardo y precisión', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "discretizacion-controladores-analisis")
+
+
+def _sistema_primer_orden_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Respuesta al escalón para distintos tau
+    ax = axes[0, 0]
+    t = np.linspace(0, 0.05, 500)
+    for tau, col in [(0.005, 'b'), (0.01, 'g'), (0.02, 'r')]:
+        y = 1 - np.exp(-t/tau)
+        ax.plot(t*1000, y, color=col, lw=2, label=f'τ={tau*1000:.0f}ms')
+    ax.axhline(0.632, color='gray', ls='--', alpha=0.7, label='63.2%')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Respuesta')
+    ax.set_title('Escalón para distintos τ'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 2: Bode del primer orden
+    ax = axes[0, 1]
+    tau_bode = 0.01
+    w = np.logspace(0, 5, 500)
+    G = 1 / (1j*w*tau_bode + 1)
+    ax.semilogx(w, 20*np.log10(np.abs(G)), 'b-', lw=2)
+    ax.axvline(1/tau_bode, color='r', ls='--', label=f'ω=1/τ={1/tau_bode:.0f}')
+    ax.axhline(-3, color='gray', ls=':')
+    ax.set_xlabel('ω (rad/s)'); ax.set_ylabel('Ganancia (dB)')
+    ax.set_title('Bode primer orden'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 3: Filtro digital IIR vs analógico
+    ax = axes[1, 0]
+    np.random.seed(7)
+    Ts = 1e-4; tau_f = 1e-3
+    alpha = np.exp(-Ts/tau_f)
+    t_d = np.arange(0, 0.02, Ts)
+    u_noisy = np.ones(len(t_d)) + 0.3*np.random.randn(len(t_d))
+    y_filt = np.zeros(len(t_d))
+    for i in range(1, len(t_d)):
+        y_filt[i] = alpha*y_filt[i-1] + (1-alpha)*u_noisy[i]
+    ax.plot(t_d*1000, u_noisy, 'b-', lw=0.8, alpha=0.6, label='Señal ruidosa')
+    ax.plot(t_d*1000, y_filt, 'r-', lw=2, label='Filtrada (IIR)')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Amplitud')
+    ax.set_title('Filtro IIR primer orden'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 4: Lazo de corriente — efecto de L sobre el ancho de banda
+    ax = axes[1, 1]
+    L_arr = np.logspace(-4, -2, 100)
+    R = 0.5; Kp_fixed = 5
+    wc_approx = R/L_arr + Kp_fixed/L_arr
+    ax.loglog(L_arr*1000, wc_approx/(2*np.pi), 'b-', lw=2)
+    ax.axhline(1000, color='r', ls='--', label='1 kHz')
+    ax.set_xlabel('Inductancia L (mH)'); ax.set_ylabel('BW (Hz)')
+    ax.set_title('BW lazo corriente vs L'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Sistema de primer orden: respuesta, Bode y filtrado', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "sistema-primer-orden-analisis")
+
+
+def _current_limiting_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Plano dq con círculo de limitación
+    ax = axes[0, 0]
+    theta = np.linspace(0, 2*np.pi, 200)
+    Imax = 1.2
+    ax.plot(Imax*np.cos(theta), Imax*np.sin(theta), 'r-', lw=2, label=f'|i|={Imax} pu')
+    points = [(1.0, 0.0, 'Normal (P)', 'bo'), (0.0, 1.0, 'Reactiva', 'go')]
+    for id_val, iq_val, label, fmt in points:
+        ax.plot(id_val, iq_val, fmt, markersize=10, label=label)
+    id_out, iq_out = 0.9, 0.9
+    i_mag = np.sqrt(id_out**2 + iq_out**2)
+    id_lim = id_out/i_mag * Imax
+    iq_lim = iq_out/i_mag * Imax
+    ax.annotate('', xy=(id_lim, iq_lim), xytext=(id_out, iq_out),
+                arrowprops=dict(arrowstyle='->', color='purple', lw=2))
+    ax.plot(id_out, iq_out, 'rs', markersize=10, label='Sin límite')
+    ax.plot(id_lim, iq_lim, 'r^', markersize=10, label='Proyectado')
+    ax.set_xlabel('$i_d$ (pu)'); ax.set_ylabel('$i_q$ (pu)')
+    ax.set_title('Limitación en plano dq'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax.set_aspect('equal'); ax.set_xlim([-1.5, 1.5]); ax.set_ylim([-1.5, 1.5])
+
+    # Panel 2: LVRT — reactive current boost
+    ax = axes[0, 1]
+    V_pu = np.linspace(0, 1, 100)
+    dV = 1 - V_pu
+    Iq_boost = np.minimum(2 * dV, 1.2)
+    ax.plot(V_pu, Iq_boost, 'b-', lw=2, label=r'$\Delta I_q = 2\Delta V$')
+    ax.axhline(1.0, color='r', ls='--', label='$I_q$ nominal')
+    ax.fill_between(V_pu, 0, Iq_boost, alpha=0.2, color='blue')
+    ax.set_xlabel('Tensión (pu)'); ax.set_ylabel('$I_q$ inyectada (pu)')
+    ax.set_title('LVRT: reactive current boost'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 3: Anti-windup back-calculation
+    ax = axes[1, 0]
+    t = np.linspace(0, 0.1, 1000)
+    dt = t[1]-t[0]
+    Kp_pi = 5; Ki_pi = 200; Usat = 1.0; Kaw = 10
+    ref = np.ones(len(t))
+    y_no_aw = np.zeros(len(t)); int_no_aw = 0.0
+    y_aw = np.zeros(len(t)); int_aw = 0.0; plant_state = 0.0
+    for i in range(1, len(t)):
+        err_no = ref[i] - y_no_aw[i-1]
+        u_no_aw = Kp_pi*err_no + int_no_aw
+        u_no_aw_sat = np.clip(u_no_aw, -Usat, Usat)
+        int_no_aw += Ki_pi*err_no*dt
+        y_no_aw[i] = y_no_aw[i-1] + (u_no_aw_sat - y_no_aw[i-1])*dt/0.01
+        err_aw = ref[i] - plant_state
+        u_aw = Kp_pi*err_aw + int_aw
+        u_aw_sat = np.clip(u_aw, -Usat, Usat)
+        int_aw += (Ki_pi*err_aw - Kaw*(u_aw - u_aw_sat)) * dt
+        plant_state += (u_aw_sat - plant_state) * dt / 0.01
+        y_aw[i] = plant_state
+    ax.plot(t*1000, y_no_aw, 'r-', lw=2, label='Sin anti-windup')
+    ax.plot(t*1000, y_aw, 'b-', lw=2, label='Con anti-windup')
+    ax.axhline(1, color='k', ls='--', alpha=0.5)
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Respuesta')
+    ax.set_title('Anti-windup back-calculation'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 4: Corriente durante hueco de tensión
+    ax = axes[1, 1]
+    t_fault = np.linspace(0, 0.3, 3000)
+    V_grid = np.ones(len(t_fault))
+    V_grid[1000:2000] = 0.2
+    dV_fault = 1 - V_grid
+    Iq_ref_limited = np.minimum(2*dV_fault, 1.2)
+    Id_available = np.sqrt(np.maximum(0, 1.2**2 - Iq_ref_limited**2))
+    ax.plot(t_fault*1000, V_grid, 'k-', lw=2, label='V (pu)')
+    ax.plot(t_fault*1000, Id_available, 'b-', lw=2, label='$I_d$ disponible')
+    ax.plot(t_fault*1000, Iq_ref_limited, 'r-', lw=2, label='$I_q$ inyectada')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Amplitud (pu)')
+    ax.set_title('Corriente durante hueco de tensión'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Current limiting: dq, LVRT, anti-windup y hueco', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "current-limiting-analisis")
+
+
+def _controlabilidad_observabilidad_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Hankel singular values de sistema de orden 6
+    ax = axes[0, 0]
+    hsv_vals = [10, 3, 1.5, 0.1, 0.02, 0.005]
+    colors_bar = ['b']*3 + ['r']*3
+    ax.bar(range(1, 7), hsv_vals, color=colors_bar, edgecolor='black')
+    ax.axhline(0.1, color='r', ls='--', label='Umbral σ/σ₁=0.01')
+    ax.set_xlabel('Modo i'); ax.set_ylabel('Hankel SV σᵢ')
+    ax.set_title('Hankel SVs — truncamiento balanceado')
+    ax.legend(); ax.grid(True, alpha=0.3, axis='y')
+    ax.text(4.5, 0.3, 'Eliminar', color='red', fontsize=10, ha='center')
+
+    # Panel 2: Matriz de controlabilidad — rango
+    ax = axes[0, 1]
+    A_ctrl = np.array([[0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [-6.0, -11.0, -6.0]])
+    B_ctrl = np.array([[0.0], [0.0], [1.0]])
+    C_mat = np.hstack([B_ctrl, A_ctrl @ B_ctrl, A_ctrl @ A_ctrl @ B_ctrl])
+    im = ax.imshow(np.abs(C_mat), cmap='Blues', aspect='auto')
+    plt.colorbar(im, ax=ax)
+    ax.set_title(f'Matriz controlabilidad (rango={np.linalg.matrix_rank(C_mat)})')
+    ax.set_xlabel('Columna'); ax.set_ylabel('Fila')
+
+    # Panel 3: Respuesta del observador de Luenberger
+    ax = axes[1, 0]
+    t = np.linspace(0, 1, 1000)
+    dt = t[1] - t[0]
+    a_plant = -3.0; b_plant = 1.0; c_plant = 1.0; L_gain = -8.0
+    x_true = np.zeros(len(t)); x_hat = np.zeros(len(t)); x_hat[0] = 0.5
+    u_in = np.ones(len(t))
+    for i in range(1, len(t)):
+        y_obs = c_plant * x_true[i-1]
+        x_true[i] = x_true[i-1] + dt*(a_plant*x_true[i-1] + b_plant*u_in[i-1])
+        x_hat[i] = x_hat[i-1] + dt*((a_plant - L_gain*c_plant)*x_hat[i-1] +
+                                      b_plant*u_in[i-1] + L_gain*y_obs)
+    ax.plot(t, x_true, 'b-', lw=2, label='Estado real x')
+    ax.plot(t, x_hat, 'r--', lw=2, label='Estimado x̂')
+    ax.plot(t, x_true - x_hat, 'g-', lw=1.5, label='Error x - x̂')
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Estado')
+    ax.set_title('Observador de Luenberger'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 4: Modos del sistema y controlabilidad
+    ax = axes[1, 1]
+    A2 = np.array([[-1.0, 2.0], [-3.0, -4.0]])
+    B2 = np.array([[1.0], [0.0]])
+    modes, V = np.linalg.eig(A2)
+    Bmod = np.linalg.solve(V, B2)
+    for i, (mode, b_proj) in enumerate(zip(modes, Bmod)):
+        sz = 200*np.abs(b_proj[0]) + 50
+        col = 'blue' if np.abs(b_proj[0]) > 0.1 else 'red'
+        ax.scatter(np.real(mode), np.imag(mode), s=sz, c=col,
+                   marker='x', zorder=5, linewidths=3)
+        ax.annotate(f'|B_m{i+1}|={np.abs(b_proj[0]):.2f}',
+                   (np.real(mode)+0.1, np.imag(mode)+0.1), fontsize=9)
+    ax.axvline(0, color='k', lw=1); ax.axhline(0, color='k', lw=1)
+    ax.set_xlabel('Re(λ)'); ax.set_ylabel('Im(λ)')
+    ax.set_title('Controlabilidad modal (tamaño ∝ |Bᵢ|)'); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Controlabilidad y observabilidad: gramians, SVD y observador', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "controlabilidad-observabilidad-analisis")
+
+
+def _observador_estados_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Ganancia de Kalman vs relación Q/R
+    ax = axes[0, 0]
+    Q_R_ratio = np.logspace(-3, 3, 200)
+    K_kalman = Q_R_ratio / (1 + Q_R_ratio)
+    ax.semilogx(Q_R_ratio, K_kalman, 'b-', lw=2)
+    ax.axhline(0.5, color='r', ls='--', label='K=0.5 (Q=R)')
+    ax.set_xlabel('Q/R'); ax.set_ylabel('Ganancia Kalman K')
+    ax.set_title('Ganancia Kalman vs Q/R'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 2: Filtro de Kalman 1D — tracking de señal ruidosa
+    ax = axes[0, 1]
+    np.random.seed(42)
+    N_kal = 200; dt_kal = 0.01
+    t_k = np.arange(N_kal)*dt_kal
+    x_true_k = np.sin(2*np.pi*2*t_k) + 0.5*np.sin(2*np.pi*5*t_k)
+    y_noisy = x_true_k + 0.5*np.random.randn(N_kal)
+    x_hat_k = np.zeros(N_kal); P_k = 1.0; Q_k = 0.01; R_k = 0.25
+    for i in range(1, N_kal):
+        P_pred = P_k + Q_k
+        Kg = P_pred / (P_pred + R_k)
+        x_hat_k[i] = x_hat_k[i-1] + Kg * (y_noisy[i] - x_hat_k[i-1])
+        P_k = (1 - Kg) * P_pred
+    ax.plot(t_k, y_noisy, 'gray', lw=0.8, alpha=0.7, label='Medida ruidosa')
+    ax.plot(t_k, x_true_k, 'b-', lw=2, label='Señal real')
+    ax.plot(t_k, x_hat_k, 'r-', lw=2, label='Kalman')
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Amplitud')
+    ax.set_title('Kalman 1D'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 3: Comparación observador Luenberger vs Kalman — error de estimación
+    ax = axes[1, 0]
+    np.random.seed(0)
+    err_luen = 0.5 * np.exp(-t_k*10)
+    err_kalm = 0.5 * np.exp(-t_k*8) * (1 + 0.1*np.random.randn(N_kal))
+    ax.plot(t_k, err_luen, 'b-', lw=2, label='Luenberger')
+    ax.plot(t_k, err_kalm, 'r-', lw=1.5, label='Kalman', alpha=0.9)
+    ax.axhline(0, color='k', ls='--')
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Error estimación')
+    ax.set_title('Luenberger vs Kalman — error'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 4: Observador con disturbio (integral)
+    ax = axes[1, 1]
+    t_dist = np.linspace(0, 2, 500)
+    dt2 = t_dist[1]-t_dist[0]
+    x_aug = np.zeros((2, len(t_dist)))
+    x_real_d = np.zeros(len(t_dist)); d_real = 0.3
+    np.random.seed(1)
+    for i in range(1, len(t_dist)):
+        x_real_d[i] = x_real_d[i-1] + dt2*(-2*x_real_d[i-1] + 1 + d_real)
+        y_meas = x_real_d[i] + 0.05*np.random.randn()
+        x_aug[0, i] = x_aug[0, i-1] + dt2*(-2*x_aug[0, i-1] + 1 + x_aug[1, i-1] + 5*(y_meas - x_aug[0, i-1]))
+        x_aug[1, i] = x_aug[1, i-1] + dt2*2*(y_meas - x_aug[0, i-1])
+    ax.plot(t_dist, x_real_d, 'b-', lw=2, label='Estado real')
+    ax.plot(t_dist, x_aug[0], 'r--', lw=2, label='Observador (x̂)')
+    ax.plot(t_dist, x_aug[1], 'g-', lw=2, label='Disturbio estimado')
+    ax.axhline(d_real, color='g', ls=':', alpha=0.7)
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Amplitud')
+    ax.set_title('Observador con disturbio estimado'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Observadores de estado: Luenberger, Kalman y con disturbio', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "observador-estados-analisis")
+
+
+def _control_repetitivo_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Espectro de corriente antes y después del repetitivo
+    ax = axes[0, 0]
+    harmonics = np.arange(1, 21)
+    amp_before = np.zeros(20)
+    amp_before[0]=100; amp_before[2]=15; amp_before[4]=10
+    amp_before[6]=6; amp_before[8]=4; amp_before[10]=3
+    amp_after = np.zeros(20)
+    amp_after[0]=100; amp_after[2]=1.5; amp_after[4]=0.8
+    amp_after[6]=0.6; amp_after[8]=0.4; amp_after[10]=0.3
+    w_bar = 0.35
+    ax.bar(harmonics-w_bar/2, amp_before, w_bar, label='Sin repetitivo', color='red', alpha=0.7)
+    ax.bar(harmonics+w_bar/2, amp_after, w_bar, label='Con repetitivo', color='blue', alpha=0.7)
+    ax.set_xlabel('Orden del armónico'); ax.set_ylabel('Amplitud (A)')
+    thd_b = np.sqrt(np.sum(amp_before[1:]**2))/amp_before[0]*100
+    thd_a = np.sqrt(np.sum(amp_after[1:]**2))/amp_after[0]*100
+    ax.set_title(f'Espectro (THD: {thd_b:.1f}% → {thd_a:.1f}%)')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.3, axis='y')
+
+    # Panel 2: Convergencia del error — ciclos
+    ax = axes[0, 1]
+    cycles = np.arange(0, 20)
+    err_pi = 8 * np.ones(len(cycles))
+    err_rep = np.maximum(8 * (0.4)**cycles, 0.5)
+    ax.plot(cycles, err_pi, 'r-', lw=2, label='Solo PI')
+    ax.plot(cycles, err_rep, 'b-o', lw=2, markersize=5, label='PI + Repetitivo')
+    ax.axhline(2, color='gray', ls='--', label='Objetivo THD=2%')
+    ax.set_xlabel('Ciclo de red'); ax.set_ylabel('THD (%)')
+    ax.set_title('Convergencia del control repetitivo'); ax.legend(); ax.grid(True, alpha=0.3)
+
+    # Panel 3: Diagrama de Bode del lazo repetitivo
+    ax = axes[1, 0]
+    f_rep = np.linspace(50, 5000, 2000)
+    gains = np.zeros(len(f_rep))
+    for h in np.arange(50, 5001, 50):
+        sigma = 20.0
+        gains += 20.0 / (1 + ((f_rep - h)/sigma)**2)
+    ax.plot(f_rep, gains, 'b-', lw=1.5)
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Ganancia (dB)')
+    ax.set_title('Ganancia del controlador repetitivo'); ax.grid(True, alpha=0.3)
+
+    # Panel 4: Corriente con y sin control repetitivo (forma de onda)
+    ax = axes[1, 1]
+    t_wave = np.linspace(0, 0.04, 2000)
+    f0 = 50; I1 = 10
+    i_ref = I1 * np.sin(2*np.pi*f0*t_wave)
+    i_pi = i_ref + 1.5*np.sin(2*np.pi*3*f0*t_wave) + 1.0*np.sin(2*np.pi*5*f0*t_wave)
+    i_rep = i_ref + 0.15*np.sin(2*np.pi*3*f0*t_wave) + 0.1*np.sin(2*np.pi*5*f0*t_wave)
+    ax.plot(t_wave*1000, i_pi, 'r-', lw=1.5, label='Solo PI', alpha=0.8)
+    ax.plot(t_wave*1000, i_rep, 'b-', lw=2, label='PI + Repetitivo')
+    ax.plot(t_wave*1000, i_ref, 'k--', lw=1.5, label='Referencia', alpha=0.7)
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Corriente (A)')
+    ax.set_title('Forma de onda: PI vs PI+Repetitivo'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Control repetitivo: principio IMP, diseño y convergencia', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "control-repetitivo-analisis")
+
+
+# ===================================================================== #
+#  diagrama-bloques-analisis
+# ===================================================================== #
+def _diagrama_bloques_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    w = np.logspace(1, 5, 500); s = 1j*w
+    Kp=10; Ti=0.01; L=1e-3; R=0.5
+    C = Kp*(1+1/(Ti*s)); G = 1/(L*s+R)
+    Lo = C*G; S = 1/(1+Lo); T = Lo/(1+Lo)
+    ax=axes[0,0]; ax.axis('off')
+    ax.text(0.5,0.7,r'$S=\frac{1}{1+L}$  $T=\frac{L}{1+L}$  $S+T=1$',ha='center',va='center',fontsize=13,transform=ax.transAxes)
+    ax.text(0.5,0.4,r'$G_{cl}=\frac{G}{1+GH}$ (realimentación)',ha='center',va='center',fontsize=11,transform=ax.transAxes)
+    ax.text(0.5,0.15,r'Bode integral: $\int_0^\infty\ln|S|d\omega=\pi\sum\mathrm{Re}(p_i^+)$',ha='center',va='center',fontsize=10,transform=ax.transAxes)
+    ax.set_title('Álgebra de diagramas de bloques')
+    ax=axes[0,1]
+    ax.semilogx(w,20*np.log10(np.abs(S)),'b-',lw=2,label='|S|')
+    ax.semilogx(w,20*np.log10(np.abs(T)),'r-',lw=2,label='|T|')
+    ax.axhline(6,color='gray',ls='--',label='Ms=2 (6dB)')
+    ax.set_xlabel('ω (rad/s)'); ax.set_ylabel('dB'); ax.set_title('S y T — lazo de corriente')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    ax=axes[1,0]; t=np.linspace(0,0.02,500); tau=0.002; wL=300
+    id_no=( 1-np.exp(-t/tau))*np.cos(wL*t); iq_no=( 1-np.exp(-t/tau))*np.sin(wL*t)*0.3
+    id_ff= 1-np.exp(-t/tau); iq_ff=0.02*np.sin(2*np.pi*500*t)*np.exp(-t/tau)
+    ax.plot(t*1000,id_no,'b-',lw=2,label='id sin FF'); ax.plot(t*1000,iq_no,'r-',lw=2,label='iq sin FF')
+    ax.plot(t*1000,id_ff,'b--',lw=2,label='id con FF'); ax.plot(t*1000,iq_ff,'r--',lw=2,label='iq con FF')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Corriente (pu)'); ax.set_title('Efecto feedforward dq')
+    ax.legend(fontsize=7); ax.grid(True,alpha=0.3)
+    ax=axes[1,1]; t2=np.linspace(0,0.05,500)
+    y_pert=0.1*np.exp(-500*t2)*np.cos(2000*t2)
+    ax.plot(t2*1000,y_pert,'b-',lw=2,label='Respuesta a perturbación')
+    ax.axhline(0,color='k',ls='--',alpha=0.5); ax.fill_between(t2*1000,y_pert,0,alpha=0.2,color='blue')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Salida'); ax.set_title('Rechazo de perturbación')
+    ax.legend(); ax.grid(True,alpha=0.3)
+    fig.suptitle('Diagrama de bloques: álgebra, S/T y feedforward dq',fontsize=14,fontweight='bold')
+    plt.tight_layout(); _savefig(fig,"diagrama-bloques-analisis")
+
+
+# ===================================================================== #
+#  series-fourier-analisis
+# ===================================================================== #
+def _series_fourier_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    t=np.linspace(0,2,2000); f0=1
+    x_sq=np.sign(np.sin(2*np.pi*f0*t))
+    ax=axes[0,0]
+    for N,col in [(1,'r'),(5,'g'),(20,'b')]:
+        xa=sum(4/(n*np.pi)*np.sin(2*np.pi*n*f0*t) for n in range(1,2*N,2))
+        ax.plot(t,xa,color=col,lw=1.5,label=f'N={N}')
+    ax.plot(t,x_sq,'k-',lw=0.8,alpha=0.4,label='Cuadrada')
+    ax.set_xlabel('t (s)'); ax.set_ylabel('x'); ax.set_title('Serie Fourier — señal cuadrada')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    ax=axes[0,1]
+    ns=np.arange(1,21,2); ax.bar(ns,4/(ns*np.pi),width=0.6,color='blue',edgecolor='black',alpha=0.7)
+    ax.set_xlabel('Armónico n'); ax.set_ylabel('$b_n$'); ax.set_title('Espectro (cuadrada)'); ax.grid(True,alpha=0.3,axis='y')
+    ax=axes[1,0]
+    fs=20000; t_pw=np.arange(0,0.1,1/fs); fsw=2000; fund=50
+    pwm=np.sign(0.8*np.sin(2*np.pi*fund*t_pw)-np.sign(np.sin(2*np.pi*fsw*t_pw)))
+    X=np.abs(np.fft.rfft(pwm))*2/len(t_pw); ff=np.fft.rfftfreq(len(t_pw),1/fs)
+    ax.semilogy(ff,X+1e-4,'b-',lw=0.8)
+    ax.axvline(fund,color='r',ls='--',label=f'{fund}Hz'); ax.axvline(fsw,color='g',ls='--',label=f'{fsw}Hz')
+    ax.set_xlim([0,5000]); ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Amplitud')
+    ax.set_title('Espectro PWM'); ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    ax=axes[1,1]
+    N2=512; fs2=1000; t2=np.arange(N2)/fs2; fsig=127
+    x2=np.sin(2*np.pi*fsig*t2)
+    Xr=np.abs(np.fft.rfft(x2))*2/N2; Xh=np.abs(np.fft.rfft(x2*np.hanning(N2)))*2/N2
+    f2=np.fft.rfftfreq(N2,1/fs2)
+    ax.semilogy(f2,Xr+1e-4,'r-',lw=1.5,label='Rectangular'); ax.semilogy(f2,Xh+1e-4,'b-',lw=1.5,label='Hanning')
+    ax.set_xlim([80,200]); ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Amplitud')
+    ax.set_title('Leakage: rectangular vs Hanning'); ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    fig.suptitle('Series de Fourier: reconstrucción, espectro y FFT',fontsize=14,fontweight='bold')
+    plt.tight_layout(); _savefig(fig,"series-fourier-analisis")
+
+
+# ===================================================================== #
+#  controlador-resonante-analisis
+# ===================================================================== #
+def _controlador_resonante_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    w=np.logspace(2,4,2000); s=1j*w; w0=2*np.pi*50; Kp=1; Ki=100; wc=10
+    Cid=Kp+2*Ki*s/(s**2+w0**2); Cbw=Kp+2*Ki*wc*s/(s**2+2*wc*s+w0**2)
+    ax=axes[0,0]
+    ax.semilogx(w/(2*np.pi),20*np.log10(np.abs(Cid)),'b-',lw=2,label='PR ideal')
+    ax.semilogx(w/(2*np.pi),20*np.log10(np.abs(Cbw)),'r-',lw=2,label=f'PR BWc={wc}')
+    ax.axvline(50,color='gray',ls=':'); ax.set_xlim([10,1000]); ax.set_ylim([-20,80])
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Ganancia (dB)'); ax.set_title('Bode PR ideal vs BW')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    w2=np.logspace(2,np.log10(2*np.pi*800),3000); s2=1j*w2; Cm=np.ones(len(w2))*Kp
+    for h in [1,3,5,7]: wh=h*w0; Cm=Cm+2*Ki*wc*s2/(s2**2+2*wc*s2+wh**2)
+    ax=axes[0,1]
+    ax.semilogx(w2/(2*np.pi),20*np.log10(np.abs(Cm)),'b-',lw=1.5)
+    for h in [1,3,5,7]: ax.axvline(h*50,color='r',ls='--',alpha=0.5)
+    ax.set_xlim([10,500]); ax.set_ylim([-20,80]); ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('dB')
+    ax.set_title('PR multi-armónico (1°,3°,5°,7°)'); ax.grid(True,alpha=0.3)
+    ax=axes[1,0]
+    hn=np.arange(1,13); wd=0.35
+    abef=np.array([100,0,15,0,10,0,6,0,4,0,3,0],dtype=float)
+    aaft=np.array([100,0,1.5,0,0.8,0,0.6,0,1.8,0,1.3,0],dtype=float)
+    ax.bar(hn-wd/2,abef[:12],wd,label='Sin PR',color='red',alpha=0.7)
+    ax.bar(hn+wd/2,aaft[:12],wd,label='Con PR',color='blue',alpha=0.7)
+    ax.set_xlabel('Armónico'); ax.set_ylabel('Amplitud (%)'); ax.set_title('THD: sin vs con PR multi')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3,axis='y')
+    ax=axes[1,1]
+    df=np.linspace(-2,2,100); gains=[]
+    for dfi in df:
+        wr=w0+2*np.pi*dfi; se=1j*wr
+        gains.append(np.abs(Kp+2*Ki*wc*se/(se**2+2*wc*se+w0**2)))
+    ax.plot(df,20*np.log10(gains),'b-',lw=2,label=f'PR BWc={wc}')
+    ax.axvline(0,color='gray',ls=':'); ax.set_xlabel('Δf (Hz)'); ax.set_ylabel('Ganancia (dB)')
+    ax.set_title('Sensibilidad a variación de frecuencia'); ax.legend(); ax.grid(True,alpha=0.3)
+    fig.suptitle('Controlador PR: Bode, multi-armónico y sensibilidad',fontsize=14,fontweight='bold')
+    plt.tight_layout(); _savefig(fig,"controlador-resonante-analisis")
+
+
+# ===================================================================== #
+#  power-synchronization-control-analisis
+# ===================================================================== #
+def _power_synchronization_control_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    delta=np.linspace(-np.pi/2,np.pi/2,200)
+    ax=axes[0,0]
+    for X,col,lab in [(0.1,'b','Fuerte X=0.1'),(0.5,'r','Débil X=0.5')]:
+        ax.plot(np.degrees(delta),np.sin(delta)/X,color=col,lw=2,label=lab)
+    ax.axhline(0.5/0.1,color='b',ls=':',alpha=0.5); ax.axhline(0.5/0.5,color='r',ls=':',alpha=0.5)
+    ax.set_xlabel('δ (°)'); ax.set_ylabel('P (pu)'); ax.set_title('Curva P-δ: fuerte vs débil')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    t=np.linspace(0,2,1000)
+    ax=axes[0,1]
+    for wn,zeta,col,lab in [(15,0.5,'b','SCR=10'),(5,0.3,'r','SCR=2')]:
+        wd=wn*np.sqrt(max(1-zeta**2,0.01))
+        y=0.5+0.3*(1-np.exp(-zeta*wn*t)*(np.cos(wd*t)+zeta/np.sqrt(max(1-zeta**2,0.01))*np.sin(wd*t)))
+        ax.plot(t,y,color=col,lw=2,label=lab)
+    ax.axhline(0.8,color='k',ls='--',alpha=0.5); ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('P (pu)')
+    ax.set_title('Respuesta PSC ante escalón P*'); ax.legend(); ax.grid(True,alpha=0.3)
+    t2=np.linspace(0,10,1000)
+    ax=axes[1,0]
+    df_psc=-0.3*np.exp(-t2/0.5)*np.cos(5*t2); df_vsm=-0.3*(1-np.exp(-t2/2))*np.exp(-t2/3)
+    ax.plot(t2,df_psc,'b-',lw=2,label='PSC'); ax.plot(t2,df_vsm,'r-',lw=2,label='VSM')
+    ax.axhline(0,color='k',ls='--',alpha=0.5); ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Δf (Hz)')
+    ax.set_title('PSC vs VSM: respuesta de frecuencia'); ax.legend(); ax.grid(True,alpha=0.3)
+    SCR=np.linspace(1,10,100)
+    ax=axes[1,1]
+    ax.plot(SCR,10*(SCR-1)/SCR,'r-',lw=2,label='K_PSC máximo'); ax.axhline(5,color='b',ls='--',lw=2,label='K_PSC nominal=5')
+    ax.fill_between(SCR,0,10*(SCR-1)/SCR,alpha=0.1,color='green')
+    ax.set_xlabel('SCR'); ax.set_ylabel('K_PSC'); ax.set_title('Estabilidad PSC vs SCR')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3); ax.set_ylim([0,12])
+    fig.suptitle('Power Synchronization Control: P-δ, respuesta y estabilidad',fontsize=14,fontweight='bold')
+    plt.tight_layout(); _savefig(fig,"power-synchronization-control-analisis")
+
+
+# ===================================================================== #
+#  compensador-adelanto-atraso-analisis
+# ===================================================================== #
+def _compensador_adelanto_atraso_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy import signal
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    w=np.logspace(1,5,500); s=1j*w
+    z_l=100; p_l=1000; Clead=(s/z_l+1)/(s/p_l+1)
+    z_a=20; p_a=2; Clag=(s/z_a+1)/(s/p_a+1)
+    ax=axes[0,0]
+    ax.semilogx(w,20*np.log10(np.abs(Clead)),'b-',lw=2,label='Adelanto')
+    ax.semilogx(w,20*np.log10(np.abs(Clag)),'r-',lw=2,label='Atraso')
+    ax2=ax.twinx()
+    ax2.semilogx(w,np.degrees(np.angle(Clead)),'b--',lw=1.5)
+    ax2.semilogx(w,np.degrees(np.angle(Clag)),'r--',lw=1.5)
+    ax.set_xlabel('ω (rad/s)'); ax.set_ylabel('Ganancia (dB)'); ax2.set_ylabel('Fase (°)')
+    ax.set_title('Bode: adelanto vs atraso'); ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    ax=axes[0,1]
+    phi_arr=np.linspace(0,70,100); alpha=((1+np.sin(np.radians(phi_arr)))/(1-np.sin(np.radians(phi_arr))+1e-6))
+    ax.semilogy(phi_arr,alpha,'b-',lw=2)
+    ax.set_xlabel('φ_max (°)'); ax.set_ylabel('α = p/z'); ax.set_title('Ratio α vs adelanto de fase máximo')
+    ax.grid(True,alpha=0.3)
+    t=np.linspace(0,0.05,500)
+    ax=axes[1,0]
+    for zeta,col,lab in [(0.3,'r','Sin (ζ=0.3)'),(0.7,'b','Con adelanto (ζ=0.7)')]:
+        wn=100; sys_tf=signal.lti([wn**2],[1,2*zeta*wn,wn**2]); _,y=signal.step(sys_tf,T=t)
+        ax.plot(t*1000,y,color=col,lw=2,label=lab)
+    ax.axhline(1,color='k',ls='--',alpha=0.5); ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Respuesta')
+    ax.set_title('Escalón: efecto del compensador de adelanto'); ax.legend(); ax.grid(True,alpha=0.3)
+    ax=axes[1,1]
+    Kp_arr=np.logspace(-1,2,200); Ti=0.01
+    PM_approx=60-20*np.log10(Kp_arr)-5*np.log10(1+1/Ti)
+    ax.semilogx(Kp_arr,np.clip(PM_approx,-10,90),'b-',lw=2)
+    ax.axhline(45,color='r',ls='--',label='PM=45°')
+    ax.fill_between(Kp_arr,45,np.clip(PM_approx,-10,90),where=np.clip(PM_approx,-10,90)>45,alpha=0.2,color='green')
+    ax.set_xlabel('Kp'); ax.set_ylabel('PM (°)'); ax.set_title('Margen de fase vs Kp'); ax.legend(); ax.grid(True,alpha=0.3)
+    fig.suptitle('Compensador adelanto-atraso: diseño, Bode y efecto',fontsize=14,fontweight='bold')
+    plt.tight_layout(); _savefig(fig,"compensador-adelanto-atraso-analisis")
+
+
+# ===================================================================== #
+#  frecuencias-segundo-orden-analisis
+# ===================================================================== #
+def _frecuencias_segundo_orden_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy import signal
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    wn=100; zeta_arr=np.linspace(0,1,100)
+    sigma=zeta_arr*wn; wd=wn*np.sqrt(np.maximum(0,1-zeta_arr**2))
+    ax=axes[0,0]
+    sc=ax.scatter(-sigma,wd,c=zeta_arr,cmap='viridis',s=20,zorder=5)
+    ax.scatter(-sigma,-wd,c=zeta_arr,cmap='viridis',s=20,zorder=5)
+    ax.axvline(0,color='k',lw=1); ax.axhline(0,color='k',lw=1)
+    plt.colorbar(sc,ax=ax,label='ζ')
+    ax.set_xlabel('Re(s)'); ax.set_ylabel('Im(s)'); ax.set_title(f'Polos 2° orden (ωn={wn})'); ax.grid(True,alpha=0.3)
+    z_arr=np.linspace(0.1,1.2,100)
+    Mp=np.where(z_arr<1,np.exp(-np.pi*z_arr/np.sqrt(np.maximum(1-z_arr**2,1e-6)))*100,0)
+    ts=4/(z_arr*wn)*1000
+    ax=axes[0,1]; ax2=ax.twinx()
+    ax.plot(z_arr,Mp,'r-',lw=2,label='Mp (%)'); ax2.plot(z_arr,ts,'b-',lw=2,label='ts (ms)')
+    ax.axvline(0.707,color='gray',ls='--',label='ζ=0.707')
+    ax.set_xlabel('ζ'); ax.set_ylabel('Mp (%)',color='r'); ax2.set_ylabel('ts (ms)',color='b')
+    ax.set_title('Mp y ts vs ζ'); ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    t=np.linspace(0,0.1,500)
+    ax=axes[1,0]
+    for zeta,col in [(0.2,'r'),(0.5,'orange'),(0.707,'g'),(1.0,'b')]:
+        sys_tf=signal.lti([wn**2],[1,2*zeta*wn,wn**2]); _,y=signal.step(sys_tf,T=t)
+        ax.plot(t*1000,y,color=col,lw=2,label=f'ζ={zeta}')
+    ax.axhline(1,color='k',ls='--',alpha=0.5); ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Respuesta')
+    ax.set_title('Escalón 2° orden'); ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    w2=np.logspace(1,4,500); wn3=500
+    ax=axes[1,1]
+    for zeta2,col in [(0.2,'r'),(0.5,'orange'),(0.707,'g')]:
+        Tcl=wn3**2/(-w2**2+2j*zeta2*wn3*w2+wn3**2)
+        ax.semilogx(w2/(2*np.pi),20*np.log10(np.abs(Tcl)),color=col,lw=2,label=f'ζ={zeta2}')
+    ax.axhline(-3,color='k',ls='--',alpha=0.5,label='-3dB')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('|T| (dB)'); ax.set_title('Pico resonancia lazo cerrado')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    fig.suptitle('Sistema de 2° orden: polos, respuesta y resonancia',fontsize=14,fontweight='bold')
+    plt.tight_layout(); _savefig(fig,"frecuencias-segundo-orden-analisis")
+
+
+# ===================================================================== #
+#  modelado-sistemas-analisis
+# ===================================================================== #
+def _modelado_sistemas_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax=axes[0,0]; ax.axis('off')
+    steps=['Sistema\nReal','Primeros\nPrincipios','Modelo\nMatemático','Linealización','Diseño\nControl','Validación']
+    xp=[0.1,0.25,0.45,0.45,0.7,0.9]; yp=[0.5,0.5,0.75,0.25,0.5,0.5]
+    for x,y,s in zip(xp,yp,steps):
+        ax.add_patch(mpatches.FancyBboxPatch((x-0.08,y-0.1),0.16,0.2,boxstyle='round,pad=0.02',facecolor='lightblue',edgecolor='blue'))
+        ax.text(x,y,s,ha='center',va='center',fontsize=8,fontweight='bold')
+    for i,j in [(0,1),(1,2),(1,3),(2,4),(3,4),(4,5)]:
+        ax.annotate('',xy=(xp[j],yp[j]),xytext=(xp[i],yp[i]),arrowprops=dict(arrowstyle='->',color='navy',lw=1.5))
+    ax.set_xlim([0,1]); ax.set_ylim([0.05,0.95]); ax.set_title('Ciclo de modelado')
+    ax=axes[0,1]; Ts=1; D=0.6
+    t_sw=np.linspace(0,5*Ts,5000); iL_sw=np.zeros(len(t_sw)); iL_avg=50*np.ones(len(t_sw))
+    for k in range(5):
+        t1=k*Ts; t2=t1+D*Ts; t3=(k+1)*Ts
+        i1s=np.where((t_sw>=t1)&(t_sw<t2))[0]; i2s=np.where((t_sw>=t2)&(t_sw<t3))[0]
+        if len(i1s): iL_sw[i1s]=np.linspace(45,55,len(i1s))
+        if len(i2s): iL_sw[i2s]=np.linspace(55,45,len(i2s))
+    ax.plot(t_sw,iL_sw,'b-',lw=0.8,alpha=0.7,label='Conmutada'); ax.plot(t_sw,iL_avg,'r-',lw=2,label='Promediada')
+    ax.set_xlabel('t (Ts)'); ax.set_ylabel('$i_L$ (A)'); ax.set_title('Señal conmutada vs promediada')
+    ax.legend(); ax.grid(True,alpha=0.3)
+    ax=axes[1,0]; t_v=np.linspace(0,0.5,500)
+    np.random.seed(7)
+    y_mod=1-np.exp(-t_v/0.1)*(np.cos(20*t_v)+0.5*np.sin(20*t_v))
+    y_meas=y_mod+0.03*np.random.randn(len(t_v))
+    ax.plot(t_v*1000,y_mod,'b-',lw=2,label='Modelo'); ax.plot(t_v*1000,y_meas,'r.',markersize=2,alpha=0.6,label='Medida')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Respuesta (pu)'); ax.set_title('Validación: modelo vs medida')
+    ax.legend(); ax.grid(True,alpha=0.3)
+    ax=axes[1,1]
+    comp=[1,2,4,8,15,25]; acc_tr=[0.5,0.7,0.85,0.92,0.97,0.99]; acc_va=[0.48,0.68,0.84,0.89,0.82,0.65]
+    ax.plot(comp,acc_tr,'b-o',lw=2,label='Entrenamiento'); ax.plot(comp,acc_va,'r-o',lw=2,label='Validación')
+    ax.axvline(4,color='gray',ls='--',label='Óptimo'); ax.set_xlabel('Orden del modelo'); ax.set_ylabel('R²')
+    ax.set_title('Complejidad vs generalización'); ax.legend(); ax.grid(True,alpha=0.3)
+    fig.suptitle('Modelado: ciclo, promediado y validación',fontsize=14,fontweight='bold')
+    plt.tight_layout(); _savefig(fig,"modelado-sistemas-analisis")
+
+
+# ===================================================================== #
+#  carga-pulsante-datacenter-analisis
+# ===================================================================== #
+def _carga_pulsante_datacenter_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    t=np.linspace(0,0.1,1000)
+    P_pulse=100+130*(((t>0.02)&(t<0.05))|((t>0.07)&(t<0.085))).astype(float)
+    ax=axes[0,0]
+    ax.plot(t*1000,P_pulse,'b-',lw=2); ax.fill_between(t*1000,100,P_pulse,alpha=0.2,color='blue')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Potencia (kW)'); ax.set_title('Perfil potencia pulsante IA')
+    ax.axhline(100,color='k',ls='--',alpha=0.5,label='P_base'); ax.legend(); ax.grid(True,alpha=0.3)
+    t2=np.linspace(0,0.02,500); Vnom=380
+    dV_sin=20*np.exp(-50*t2)*np.cos(2*np.pi*200*t2)
+    dV_con=5*np.exp(-200*t2)*np.cos(2*np.pi*200*t2)
+    ax=axes[0,1]
+    ax.plot(t2*1000,Vnom+dV_sin,'r-',lw=2,label='Sin BESS'); ax.plot(t2*1000,Vnom+dV_con,'b-',lw=2,label='Con BESS')
+    ax.axhline(Vnom,color='k',ls='--',alpha=0.5); ax.axhline(Vnom*0.95,color='gray',ls=':',label='±5%')
+    ax.axhline(Vnom*1.05,color='gray',ls=':')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('V_bus (V)'); ax.set_title('Tensión bus DC con/sin BESS')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    f_arr=np.logspace(1,4,200)
+    Z_source=0.1*(1+1j*f_arr/500)/((1+1j*f_arr/50))
+    Z_cpl=np.abs(380**2/280e3)*np.ones(len(f_arr))
+    ax=axes[1,0]
+    ax.loglog(f_arr,np.abs(Z_source),'b-',lw=2,label='|Z_source|')
+    ax.loglog(f_arr,Z_cpl,'r--',lw=2,label='|Z_CPL|=V²/P')
+    ax.fill_between(f_arr,np.abs(Z_source),Z_cpl,where=np.abs(Z_source)>Z_cpl,alpha=0.2,color='red',label='Inestable')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Impedancia (Ω)'); ax.set_title('Criterio Middlebrook')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    dur=np.logspace(-3,-1,100)*1000
+    ax=axes[1,1]
+    for dP,col,lab in [(50,'b','ΔP=50kW'),(100,'r','ΔP=100kW'),(200,'g','ΔP=200kW')]:
+        E=dP*dur/1000; ax.loglog(dur,E,color=col,lw=2,label=lab)
+    ax.set_xlabel('Duración (ms)'); ax.set_ylabel('Energía BESS (kJ)'); ax.set_title('Dimensionado BESS vs duración')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    fig.suptitle('Carga pulsante data center IA: bus DC, Middlebrook y BESS',fontsize=14,fontweight='bold')
+    plt.tight_layout(); _savefig(fig,"carga-pulsante-datacenter-analisis")
+
+
+# ===================================================================== #
+#  convertidor-back-to-back-analisis
+# ===================================================================== #
+def _convertidor_back_to_back_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax=axes[0,0]; ax.axis('off')
+    ax.text(0.5,0.85,'VSC2 (MSC)',ha='center',va='center',fontsize=11,
+            bbox=dict(boxstyle='round',facecolor='lightblue'),transform=ax.transAxes)
+    ax.text(0.5,0.5,'Bus DC',ha='center',va='center',fontsize=11,
+            bbox=dict(boxstyle='round',facecolor='lightyellow'),transform=ax.transAxes)
+    ax.text(0.5,0.15,'VSC1 (GSC)',ha='center',va='center',fontsize=11,
+            bbox=dict(boxstyle='round',facecolor='lightgreen'),transform=ax.transAxes)
+    ax.annotate('P_gen →',xy=(0.5,0.63),xytext=(0.5,0.72),ha='center',
+                arrowprops=dict(arrowstyle='->',color='navy'),fontsize=9,transform=ax.transAxes)
+    ax.annotate('→ P_red',xy=(0.5,0.37),xytext=(0.5,0.28),ha='center',
+                arrowprops=dict(arrowstyle='->',color='navy'),fontsize=9,transform=ax.transAxes)
+    ax.set_title('Esquema back-to-back')
+    t=np.linspace(0,0.5,500); Vdc_nom=1100
+    dVdc=50*np.exp(-20*t)*np.cos(30*t)
+    ax=axes[0,1]
+    ax.plot(t*1000,Vdc_nom+dVdc,'b-',lw=2,label='v_dc'); ax.axhline(Vdc_nom,color='k',ls='--',alpha=0.5,label='V_dc*')
+    ax.axhline(Vdc_nom*1.05,color='r',ls=':',alpha=0.7); ax.axhline(Vdc_nom*0.95,color='r',ls=':',alpha=0.7)
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('V_dc (V)'); ax.set_title('Control bus DC: respuesta escalón')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    carga=np.linspace(0,1,100)
+    eff_vsc=0.97+0.01*np.sin(np.pi*carga)-0.005*carga**2
+    eff_b2b=eff_vsc**2
+    ax=axes[1,0]
+    ax.plot(carga*100,eff_vsc*100,'b-',lw=2,label='Un VSC'); ax.plot(carga*100,eff_b2b*100,'r-',lw=2,label='Back-to-Back')
+    ax.axhline(96,color='gray',ls='--',alpha=0.5); ax.set_xlabel('Carga (%)'); ax.set_ylabel('Eficiencia (%)')
+    ax.set_title('Eficiencia vs nivel de carga'); ax.legend(); ax.grid(True,alpha=0.3); ax.set_ylim([90,100])
+    t3=np.linspace(0,0.3,500)
+    Pgsc=np.where(t3<0.1,1.0,np.where(t3<0.15,1.0*(1-(t3-0.1)/0.05),0.5))
+    Pmsc=np.where(t3<0.1,1.0,np.where(t3<0.12,1.0*(1-(t3-0.1)/0.05),0.8))
+    Vdc_frt=1+(Pgsc-Pmsc)*0.05
+    ax=axes[1,1]
+    ax.plot(t3*1000,Pgsc,'b-',lw=2,label='P_GSC'); ax.plot(t3*1000,Pmsc,'r-',lw=2,label='P_MSC')
+    ax2=ax.twinx(); ax2.plot(t3*1000,Vdc_frt,'g--',lw=2,label='V_dc (pu)')
+    ax.axvline(100,color='gray',ls=':'); ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Potencia (pu)')
+    ax2.set_ylabel('V_dc (pu)',color='g'); ax.set_title('Potencias durante FRT')
+    ax.legend(loc='upper left',fontsize=8); ax2.legend(loc='upper right',fontsize=8); ax.grid(True,alpha=0.3)
+    fig.suptitle('Convertidor back-to-back: esquema, bus DC, eficiencia y FRT',fontsize=14,fontweight='bold')
+    plt.tight_layout(); _savefig(fig,"convertidor-back-to-back-analisis")
+
+
+# ===================================================================== #
+#  metricas-desempeno-analisis
+# ===================================================================== #
+def _metricas_desempeno_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy import signal
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    t=np.linspace(0,0.5,500); wn=50
+    ax=axes[0,0]
+    iae_v=[]; ise_v=[]; itae_v=[]
+    for zeta,col in [(0.3,'r'),(0.5,'orange'),(0.707,'g'),(1.0,'b')]:
+        sys_tf=signal.lti([wn**2],[1,2*zeta*wn,wn**2]); _,y=signal.step(sys_tf,T=t)
+        e=1-y; dt=t[1]-t[0]
+        iae_v.append(np.trapz(np.abs(e),t)); ise_v.append(np.trapz(e**2,t)); itae_v.append(np.trapz(t*np.abs(e),t))
+        ax.plot(t*1000,y,color=col,lw=2,label=f'ζ={zeta}')
+    ax.axhline(1,color='k',ls='--',alpha=0.5); ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('y(t)')
+    ax.set_title('Escalón para distintos ζ'); ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    ax=axes[0,1]
+    zetas=[0.3,0.5,0.707,1.0]; x_pos=np.arange(len(zetas)); wd=0.25
+    ax.bar(x_pos-wd,np.array(iae_v)/max(iae_v),wd,label='IAE',color='red',alpha=0.7)
+    ax.bar(x_pos,np.array(ise_v)/max(ise_v),wd,label='ISE',color='blue',alpha=0.7)
+    ax.bar(x_pos+wd,np.array(itae_v)/max(itae_v),wd,label='ITAE',color='green',alpha=0.7)
+    ax.set_xticks(x_pos); ax.set_xticklabels([f'ζ={z}' for z in zetas],fontsize=9)
+    ax.set_ylabel('Métrica normalizada'); ax.set_title('IAE/ISE/ITAE por amortiguamiento')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3,axis='y')
+    ax=axes[1,0]
+    PM_arr=np.linspace(20,80,200)
+    BW_arr=200*np.sin(np.radians(PM_arr))**0.5
+    ax.plot(BW_arr,PM_arr,'b-',lw=2,label='Frontera Pareto')
+    ax.fill_betweenx(PM_arr,0,BW_arr,alpha=0.1,color='blue')
+    ax.axvline(100,color='r',ls='--',label='BW=100 rad/s'); ax.axhline(45,color='g',ls='--',label='PM=45°')
+    ax.set_xlabel('Ancho de banda (rad/s)'); ax.set_ylabel('Margen de fase (°)')
+    ax.set_title('Pareto: BW vs PM'); ax.legend(fontsize=8); ax.grid(True,alpha=0.3)
+    carga=np.linspace(0.1,1,100)
+    THD=5*np.exp(-3*carga)+1; FP=0.85+0.13*(1-np.exp(-5*carga))
+    ax=axes[1,1]; ax2=ax.twinx()
+    ax.plot(carga*100,THD,'r-',lw=2,label='THD (%)'); ax.axhline(5,color='r',ls='--',alpha=0.5,label='Límite 5%')
+    ax2.plot(carga*100,FP,'b-',lw=2,label='FP'); ax2.axhline(0.95,color='b',ls='--',alpha=0.5)
+    ax.set_xlabel('Carga (%)'); ax.set_ylabel('THD (%)',color='r'); ax2.set_ylabel('Factor de Potencia',color='b')
+    ax.set_title('Calidad de potencia vs carga'); ax.legend(loc='upper right',fontsize=8); ax.grid(True,alpha=0.3)
+    fig.suptitle('Métricas de desempeño: IAE/ISE/ITAE, Pareto y calidad',fontsize=14,fontweight='bold')
+    plt.tight_layout(); _savefig(fig,"metricas-desempeno-analisis")
+
+
+# ===================================================================== #
+#  control-jerarquico-microrred-analisis
+# ===================================================================== #
+def _control_jerarquico_microrred_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax=axes[0,0]; ax.axis('off')
+    niveles=['Nivel 3: EMS\n(min–h)', 'Nivel 2: Secundario\n(s)', 'Nivel 1: Primario\n(ms)', 'Hardware']
+    colores=['#2196F3','#4CAF50','#FF9800','#9E9E9E']
+    for i,(niv,col) in enumerate(zip(niveles,colores)):
+        w=0.6-i*0.08; x=0.5-w/2; y=0.75-i*0.2
+        ax.add_patch(plt.Rectangle((x,y),w,0.12,facecolor=col,alpha=0.7,edgecolor='black'))
+        ax.text(0.5,y+0.06,niv,ha='center',va='center',fontsize=9,fontweight='bold',transform=ax.transAxes)
+    ax.set_xlim([0,1]); ax.set_ylim([0,1]); ax.set_title('Pirámide de control jerárquico')
+    P=np.linspace(0,1.2,100); f_droopA=50-2*P; f_droopB=50-3*P
+    ax=axes[0,1]
+    ax.plot(P,f_droopA,'b-',lw=2,label='Inversor A (mp=2)'); ax.plot(P,f_droopB,'r-',lw=2,label='Inversor B (mp=3)')
+    ax.axhline(50,color='k',ls='--',alpha=0.5); ax.axhline(49,color='gray',ls=':',alpha=0.5)
+    ax.set_xlabel('P (pu)'); ax.set_ylabel('f (Hz)'); ax.set_title('Droop P-f primario')
+    ax.legend(); ax.grid(True,alpha=0.3); ax.set_ylim([47,51])
+    t=np.linspace(0,20,500)
+    f_prim=50-1*(t>2).astype(float)*np.exp(-0.5*(t-2))*(t>2).astype(float)
+    f_sec=np.where(t<2,50,50-(1-1/(1+np.exp(-2*(t-5))))*1)
+    ax=axes[1,0]
+    ax.plot(t,f_prim,'r-',lw=2,label='Solo primario'); ax.plot(t,f_sec,'b-',lw=2,label='Con secundario')
+    ax.axhline(50,color='k',ls='--',alpha=0.5); ax.axvline(2,color='gray',ls=':',alpha=0.5)
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Frecuencia (Hz)'); ax.set_title('Restauración secundaria de f')
+    ax.legend(); ax.grid(True,alpha=0.3)
+    horas=np.linspace(0,24,500)
+    P_solar=np.maximum(0,0.8*np.sin(np.pi*(horas-6)/12)**2*(horas>6)*(horas<20))
+    P_demanda=0.4+0.3*np.sin(2*np.pi*horas/24+np.pi)+0.2*np.sin(2*np.pi*horas/12)
+    P_demanda=np.clip(P_demanda,0.2,1.0)
+    SOC=0.5+np.cumsum(P_solar-P_demanda)*(24/500)*0.05
+    SOC=np.clip(SOC,0.2,0.9)
+    ax=axes[1,1]
+    ax.plot(horas,P_solar,'y-',lw=2,label='P solar'); ax.plot(horas,P_demanda,'r-',lw=2,label='P demanda')
+    ax2=ax.twinx(); ax2.plot(horas,SOC,'b--',lw=2,label='SOC BESS')
+    ax.set_xlabel('Hora del día'); ax.set_ylabel('Potencia (pu)'); ax2.set_ylabel('SOC',color='b')
+    ax.set_title('Despacho terciario 24 h'); ax.legend(loc='upper left',fontsize=8); ax2.legend(loc='upper right',fontsize=8)
+    ax.grid(True,alpha=0.3)
+    fig.suptitle('Control jerárquico microrred: primario, secundario y terciario',fontsize=14,fontweight='bold')
+    plt.tight_layout(); _savefig(fig,"control-jerarquico-microrred-analisis")
+
+
+# ===================================================================== #
+#  servicios-red-soporte-analisis
+# ===================================================================== #
+def _servicios_red_soporte_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    t=np.linspace(0,30,1000)
+    df_inertia=-0.3*np.exp(-t/0.5)*(t<1)
+    df_ffr=-0.3*(1-np.exp(-t/0.3))*(t<10)*np.exp(-t/5)
+    df_fcr=-0.3+0.3*(1-np.exp(-t/5))
+    df_total=df_inertia+df_ffr+df_fcr*0.5
+    ax=axes[0,0]
+    ax.plot(t,df_total,'k-',lw=2.5,label='Δf total')
+    ax.fill_between(t,0,df_inertia,alpha=0.3,color='blue',label='Inercia sintética')
+    ax.fill_between(t,df_inertia,df_inertia+df_ffr,alpha=0.3,color='green',label='FFR')
+    ax.fill_between(t,df_inertia+df_ffr,df_total,alpha=0.3,color='orange',label='FCR')
+    ax.axhline(0,color='k',ls='--',alpha=0.5); ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Δf (Hz)')
+    ax.set_title('Respuesta de frecuencia por etapas'); ax.legend(fontsize=7); ax.grid(True,alpha=0.3)
+    V=np.linspace(0.7,1.3,200)
+    Q_kv=np.where(np.abs(V-1)<0.05,0,np.clip(-2*(V-1),-0.5,0.5))
+    ax=axes[0,1]
+    ax.plot(V,Q_kv,'b-',lw=2); ax.fill_between(V,0,Q_kv,alpha=0.2,color='blue')
+    ax.axvline(0.95,color='gray',ls=':'); ax.axvline(1.05,color='gray',ls=':',label='Dead band ±5%')
+    ax.axhline(0,color='k',ls='--',alpha=0.5); ax.set_xlabel('V (pu)'); ax.set_ylabel('Q (pu)')
+    ax.set_title('Curva Q(V): droop de tensión'); ax.legend(); ax.grid(True,alpha=0.3)
+    theta=np.linspace(0,2*np.pi,200); Imax=1.0
+    ax=axes[1,0]
+    ax.plot(np.cos(theta)*Imax,np.sin(theta)*Imax,'k-',lw=1.5,alpha=0.5,label='Límite I_max')
+    for P0,col in [(0.8,'b'),(0.5,'r'),(0.2,'g')]:
+        Q_max=np.sqrt(max(Imax**2-P0**2,0))
+        ax.plot([P0,P0],[-Q_max,Q_max],color=col,lw=2,label=f'P={P0}pu')
+    ax.set_xlabel('P (pu)'); ax.set_ylabel('Q (pu)'); ax.set_title('Diagrama P-Q inversor')
+    ax.legend(fontsize=8); ax.grid(True,alpha=0.3); ax.set_aspect('equal')
+    servicios=['FCR','aFRR','mFRR']
+    precios_min=[10,30,5]; precios_max=[50,120,25]
+    x_pos=np.arange(len(servicios))
+    ax=axes[1,1]
+    ax.bar(x_pos,precios_max,color=['blue','orange','green'],alpha=0.5,label='Precio max')
+    ax.bar(x_pos,precios_min,color=['blue','orange','green'],alpha=0.9,label='Precio min')
+    ax.set_xticks(x_pos); ax.set_xticklabels(servicios,fontsize=11)
+    ax.set_ylabel('Precio (€/MW/h)'); ax.set_title('Precios FCR/aFRR/mFRR (Europa)')
+    ax.legend(); ax.grid(True,alpha=0.3,axis='y')
+    fig.suptitle('Servicios de red: frecuencia, Q(V), P-Q y precios',fontsize=14,fontweight='bold')
+    plt.tight_layout(); _savefig(fig,"servicios-red-soporte-analisis")
+
+
+def _valcruz_analisis():
+    """4 paneles: k-fold visual, curva de aprendizaje, FIT% vs orden, prediccion vs real."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    np.random.seed(42)
+
+    # Panel 1: k-fold visual
+    ax = axes[0, 0]; ax.axis('off')
+    k = 5; N = 20
+    for fold in range(k):
+        for i in range(N):
+            color = BAD if i // 4 == fold else ACC
+            ax.add_patch(plt.Rectangle((i * 0.045 + 0.05, 0.85 - fold * 0.15),
+                                        0.04, 0.1, color=color, alpha=0.7))
+        ax.text(0.02, 0.9 - fold * 0.15, f'Fold {fold+1}', va='center', fontsize=9)
+    ax.text(0.5, 0.02, 'Azul=entrenamiento, Rojo=validacion', ha='center', fontsize=9,
+            transform=ax.transAxes)
+    ax.set_xlim([0, 1]); ax.set_ylim([0, 1])
+    ax.set_title('Validacion cruzada k-fold (k=5)', fontsize=10)
+
+    # Panel 2: curva de aprendizaje
+    ax = axes[0, 1]
+    n_s = np.arange(10, 200, 10)
+    err_train = 0.05 + 0.3 * np.exp(-n_s / 30) + 0.01 * np.random.randn(len(n_s))
+    err_val = 0.25 - 0.1 * (1 - np.exp(-n_s / 50)) + 0.02 * np.random.randn(len(n_s))
+    ax.plot(n_s, np.abs(err_train), color=ACC, lw=2, marker='o', markersize=4,
+            label='Entrenamiento')
+    ax.plot(n_s, np.abs(err_val), color=BAD, lw=2, marker='o', markersize=4,
+            label='Validacion')
+    ax.set_xlabel('Muestras de entrenamiento'); ax.set_ylabel('NRMSE')
+    ax.set_title('Curva de aprendizaje'); ax.legend(fontsize=9); ax.grid(True, alpha=0.4)
+
+    # Panel 3: FIT% vs orden del modelo
+    ax = axes[1, 0]
+    orders = np.arange(1, 9)
+    fit_train = [55, 72, 85, 92, 97, 99, 99.5, 99.8]
+    fit_val = [53, 70, 83, 89, 82, 71, 60, 45]
+    ax.plot(orders, fit_train, color=ACC, lw=2, marker='o', label='Entrenamiento')
+    ax.plot(orders, fit_val, color=BAD, lw=2, marker='o', label='Validacion')
+    ax.axhline(80, color='#888', ls='--', lw=1.5, label='Umbral 80%')
+    ax.axvline(4, color=OK, ls=':', lw=1.5, label='Orden optimo')
+    ax.set_xlabel('Orden del modelo'); ax.set_ylabel('FIT (%)')
+    ax.set_title('FIT% vs orden del modelo')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    # Panel 4: prediccion vs medida
+    ax = axes[1, 1]
+    t = np.linspace(0, 2, 200)
+    y_true = np.sin(2 * np.pi * t) + 0.3 * np.sin(2 * np.pi * 3 * t)
+    y_good = y_true + 0.05 * np.random.randn(len(t))
+    ax.plot(t, y_true, 'k-', lw=2, label='Real')
+    ax.plot(t, y_good, color=ACC, lw=1.5, ls='--', label='Modelo valido (FIT=88%)')
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Salida')
+    ax.set_title('Prediccion vs real')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    fig.suptitle('Validacion cruzada: k-fold, curva de aprendizaje y FIT%',
+                 fontsize=13, fontweight='bold')
+    fig.tight_layout()
+    _savefig(fig, "validacion-cruzada-analisis.png")
+
+
+def _nivval_analisis():
+    """4 paneles: piramide V, coste vs cobertura, retardo HiL, deteccion de errores."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: piramide de validacion
+    ax = axes[0, 0]; ax.axis('off')
+    levels = [('Campo (real)', 0.83, 0.10, '#FF6666'),
+              ('Prototipo a escala', 0.68, 0.12, '#FF9966'),
+              ('PHiL', 0.52, 0.14, '#FFCC66'),
+              ('HiL (DSP+FPGA)', 0.34, 0.16, '#99FF99'),
+              ('SiL (PC)', 0.14, 0.18, '#66CCFF')]
+    for label, y, h, col in levels:
+        w = 0.28 + h * 2
+        ax.add_patch(mpatches.FancyBboxPatch((0.5 - w/2, y - h/2), w, h,
+                                              boxstyle='round,pad=0.01',
+                                              facecolor=col, edgecolor='#555'))
+        ax.text(0.5, y, label, ha='center', va='center', fontsize=9, fontweight='bold')
+    ax.set_xlim([0, 1]); ax.set_ylim([0, 1])
+    ax.set_title('Piramide de validacion (modelo V)', fontsize=10)
+
+    # Panel 2: coste vs cobertura
+    ax = axes[0, 1]
+    niveles = ['SiL', 'HiL', 'PHiL', 'Prototipo', 'Campo']
+    coste = [1, 5, 50, 200, 1000]
+    cobertura = [95, 85, 70, 60, 40]
+    x = np.arange(len(niveles))
+    ax2 = ax.twinx()
+    ax.bar(x, coste, alpha=0.6, color=BAD, label='Coste relativo')
+    ax2.plot(x, cobertura, color=ACC, lw=2, marker='o', label='Cobertura (%)')
+    ax.set_xticks(x); ax.set_xticklabels(niveles)
+    ax.set_ylabel('Coste relativo', color=BAD); ax2.set_ylabel('Cobertura (%)', color=ACC)
+    ax.set_title('Coste vs cobertura por nivel', fontsize=10)
+    ax.grid(True, alpha=0.3, axis='y')
+    lines1, labs1 = ax.get_legend_handles_labels()
+    lines2, labs2 = ax2.get_legend_handles_labels()
+    ax.legend(lines1 + lines2, labs1 + labs2, fontsize=8, loc='upper left')
+
+    # Panel 3: efecto del retardo HiL en margen de fase
+    ax = axes[1, 0]
+    fc_range = np.linspace(100, 2000, 200)
+    for Td, col, lbl in [(50e-6, OK, 'Td=50us'), (100e-6, ACC2, 'Td=100us'),
+                         (200e-6, BAD, 'Td=200us')]:
+        pm_loss = Td * 2 * np.pi * fc_range * 180 / np.pi
+        ax.plot(fc_range, pm_loss, color=col, lw=2, label=lbl)
+    ax.axhline(45, color='#888', ls='--', lw=1.5, label='PM minimo 45deg')
+    ax.set_xlabel('Frecuencia de cruce fc (Hz)')
+    ax.set_ylabel('Perdida de PM (deg)')
+    ax.set_title('Perdida de margen de fase por retardo HIL', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    # Panel 4: errores detectados vs coste de correccion
+    ax = axes[1, 1]
+    fases = ['SiL', 'HiL', 'PHiL', 'Prototipo', 'Campo']
+    errores = [40, 25, 20, 10, 5]
+    coste_c = [1, 3, 15, 80, 500]
+    x2 = np.arange(len(fases))
+    ax3 = ax.twinx()
+    ax.bar(x2, errores, alpha=0.6, color=ACC, label='Errores detectados (%)')
+    ax3.plot(x2, coste_c, color=BAD, lw=2, marker='o', label='Coste correccion')
+    ax.set_xticks(x2); ax.set_xticklabels(fases)
+    ax.set_ylabel('Errores detectados (%)', color=ACC)
+    ax3.set_ylabel('Coste relativo de correccion', color=BAD)
+    ax.set_title('Deteccion de errores y coste de correccion', fontsize=10)
+    ax.grid(True, alpha=0.3, axis='y')
+    lines1, labs1 = ax.get_legend_handles_labels()
+    lines2, labs2 = ax3.get_legend_handles_labels()
+    ax.legend(lines1 + lines2, labs1 + labs2, fontsize=8, loc='upper right')
+
+    fig.suptitle('Niveles de validacion: SiL, HiL, PHiL y campo',
+                 fontsize=13, fontweight='bold')
+    fig.tight_layout()
+    _savefig(fig, "niveles-validacion-analisis.png")
+
+
+def _cicdis_analisis():
+    """4 paneles: diagrama ciclo iterativo, Monte Carlo PM, compromiso specs, checklist."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: ciclo de diseno esquematico
+    ax = axes[0, 0]; ax.axis('off')
+    etapas = ['Especificar\n(requisitos)', 'Disenar\n(controlador)', 'Evaluar\n(margenes)',
+              'Validar\n(niveles)']
+    colores = [ACC, ACC2, OK, BAD]
+    for i, (et, col) in enumerate(zip(etapas, colores)):
+        theta = np.pi / 2 - i * np.pi / 2
+        x_c = 0.5 + 0.32 * np.cos(theta); y_c = 0.5 + 0.32 * np.sin(theta)
+        ax.add_patch(plt.Circle((x_c, y_c), 0.12, color=col, alpha=0.85))
+        ax.text(x_c, y_c, et, ha='center', va='center', fontsize=8, fontweight='bold')
+    # flechas del ciclo
+    for i in range(4):
+        t0 = np.pi / 2 - i * np.pi / 2; t1 = np.pi / 2 - (i + 1) * np.pi / 2
+        x0 = 0.5 + 0.32 * np.cos(t0); y0 = 0.5 + 0.32 * np.sin(t0)
+        x1 = 0.5 + 0.32 * np.cos(t1); y1 = 0.5 + 0.32 * np.sin(t1)
+        ax.annotate('', xy=(x1, y1), xytext=(x0, y0),
+                    arrowprops=dict(arrowstyle='->', color='#555', lw=1.5))
+    ax.text(0.5, 0.5, 'Trazabilidad', ha='center', va='center', fontsize=9, color='#444')
+    ax.set_xlim([0, 1]); ax.set_ylim([0, 1])
+    ax.set_title('Ciclo de diseno iterativo (DEV)', fontsize=10)
+
+    # Panel 2: Monte Carlo de margen de fase
+    ax = axes[0, 1]
+    np.random.seed(7)
+    N_mc = 500
+    L1_n, L2_n, Cf_n = 2e-3, 1e-3, 20e-6
+    L1s = L1_n * (1 + 0.3 * (np.random.rand(N_mc) - 0.5) * 2)
+    L2s = L2_n * (1 + 0.3 * (np.random.rand(N_mc) - 0.5) * 2)
+    Cfs = Cf_n * (1 + 0.2 * (np.random.rand(N_mc) - 0.5) * 2)
+    wc = 2 * np.pi * 500
+    Td = 100e-6
+    # PM simplificado: PM = 90 - arctan(wc*(L1+L2)) - wc*Td*180/pi
+    pm = 90 - np.degrees(np.arctan(wc * (L1s + L2s))) - wc * Td * 180 / np.pi
+    ax.hist(pm, bins=30, color=ACC, alpha=0.75, edgecolor='white')
+    ax.axvline(45, color=BAD, ls='--', lw=2, label='PM minimo 45deg')
+    ax.axvline(pm.mean(), color=ACC2, ls='-', lw=2, label=f'Media {pm.mean():.1f}deg')
+    ax.set_xlabel('Margen de fase (deg)'); ax.set_ylabel('Frecuencia')
+    ax.set_title(f'Monte Carlo PM (N={N_mc}, L±30%, C±20%)', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    # Panel 3: compromiso rapidez vs margen de fase
+    ax = axes[1, 0]
+    fc_vals = np.linspace(100, 2000, 200)
+    pm_nom = 72 - fc_vals * 2 * np.pi * Td * 180 / np.pi
+    pm_nom = np.clip(pm_nom, 0, 90)
+    ts_vals = 4 / (0.6 * 2 * np.pi * fc_vals / 3)  # ts aprox = 4/(zeta*wn), wn~wc/3
+    ax.plot(ts_vals * 1000, pm_nom, color=ACC, lw=2.5)
+    ax.axhline(45, color=BAD, ls='--', lw=1.5, label='PM min 45deg')
+    ax.axvline(2, color=ACC2, ls=':', lw=1.5, label='ts max 2ms')
+    ax.fill_between(ts_vals * 1000, pm_nom, 45,
+                    where=(pm_nom >= 45) & (ts_vals * 1000 <= 2),
+                    alpha=0.2, color=OK, label='Zona valida')
+    ax.set_xlabel('Tiempo de establecimiento ts (ms)')
+    ax.set_ylabel('Margen de fase PM (deg)')
+    ax.set_title('Compromiso rapidez vs robustez', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+    ax.set_xlim([0, 8]); ax.set_ylim([0, 80])
+
+    # Panel 4: checklist de documentacion
+    ax = axes[1, 1]; ax.axis('off')
+    items = [
+        ('OK', 'Tabla de especificaciones con origen'),
+        ('OK', 'Diagrama de bloques del control'),
+        ('OK', 'Bode: PM, GM, wc marcados'),
+        ('OK', 'Escalon: Mp, ts medidos'),
+        ('OK', 'Monte Carlo: % realizaciones OK'),
+        ('--', 'Informe final con trazabilidad'),
+        ('--', 'Revision de seguridad (corriente pico)'),
+    ]
+    for i, (estado, texto) in enumerate(items):
+        col = OK if estado == 'OK' else ACC2
+        sym = u'✓' if estado == 'OK' else u'–'
+        ax.text(0.05, 0.92 - i * 0.12, f'{sym}  {texto}',
+                fontsize=10, color=col, va='top')
+    ax.set_title('Checklist de documentacion del ciclo', fontsize=10)
+    ax.set_xlim([0, 1]); ax.set_ylim([0, 1])
+
+    fig.suptitle('Ciclo de diseno: iterativo, Monte Carlo, compromiso specs y checklist',
+                 fontsize=12, fontweight='bold')
+    fig.tight_layout()
+    _savefig(fig, "ciclo-diseno-control-analisis.png")
+
+
+def _espctrl_analisis():
+    """4 paneles: escalon con specs, Bode con PM/GM, THD limite, tabla de specs."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy import signal
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: respuesta escalon con Mp y ts marcados
+    ax = axes[0, 0]
+    zeta, wn = 0.6, 2 * np.pi * 500
+    sys2 = signal.TransferFunction([wn**2], [1, 2*zeta*wn, wn**2])
+    t = np.linspace(0, 0.005, 500)
+    _, y = signal.step(sys2, T=t)
+    Mp = np.exp(-np.pi * zeta / np.sqrt(1 - zeta**2))
+    ts_idx = np.where(np.abs(y - 1) > 0.02)[0]
+    ts_val = t[ts_idx[-1]] if len(ts_idx) > 0 else t[-1]
+    ax.plot(t * 1000, y, color=ACC, lw=2.5, label=f'zeta={zeta}')
+    ax.axhline(1, color='#888', ls=':', lw=1.2)
+    ax.axhline(1 + Mp, color=BAD, ls='--', lw=1.5, label=f'Mp={Mp*100:.1f}%')
+    ax.axhline(1.02, color='#aaa', ls=':', lw=1)
+    ax.axhline(0.98, color='#aaa', ls=':', lw=1)
+    ax.axvline(ts_val * 1000, color=ACC2, ls='--', lw=1.5,
+               label=f'ts={ts_val*1000:.1f}ms')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Respuesta normalizada')
+    ax.set_title('Escalon: Mp y ts', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    # Panel 2: Bode con PM y GM
+    ax = axes[0, 1]
+    Kp, Ki = 2.0, 1000.0
+    L, R = 2e-3, 0.1
+    # lazo abierto: PI * (1/(Ls+R))
+    num_pi = [Kp, Ki]; den_pi = [1, 0]
+    num_p = [1]; den_p = [L, R]
+    from numpy.polynomial import polynomial as P
+    num_ol = np.convolve(num_pi, num_p)
+    den_ol = np.convolve(den_pi, den_p)
+    sys_ol = signal.TransferFunction(num_ol, den_ol)
+    f = np.logspace(1, 4.5, 500); w = 2 * np.pi * f
+    _, mag, phase = signal.bode(sys_ol, w)
+    # find PM and GM
+    idx_c = np.argmin(np.abs(mag))  # cruce de ganancia 0 dB
+    pm_val = 180 + phase[idx_c]
+    idx_ph = np.argmin(np.abs(phase + 180))
+    gm_val = -mag[idx_ph]
+    ax.semilogx(f, mag, color=ACC, lw=2, label='Bode lazo abierto')
+    ax.axhline(0, color='#888', ls=':', lw=1)
+    ax.axvline(f[idx_c], color=BAD, ls='--', lw=1.5,
+               label=f'PM={pm_val:.0f}deg @ {f[idx_c]:.0f}Hz')
+    ax.axvline(f[idx_ph], color=ACC2, ls='--', lw=1.5,
+               label=f'GM={gm_val:.1f}dB @ {f[idx_ph]:.0f}Hz')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Magnitud (dB)')
+    ax.set_title('Bode: PM y GM', fontsize=10)
+    ax.legend(fontsize=7); ax.grid(True, alpha=0.4); ax.set_ylim(-60, 60)
+
+    # Panel 3: THD con limites IEEE 519
+    ax = axes[1, 0]
+    harmonics = np.arange(1, 26)
+    # perfil tipico VSC con filtro LCL
+    amps = np.zeros(25)
+    amps[0] = 100  # fundamental
+    amps[4] = 3.8  # 5th
+    amps[6] = 2.5  # 7th
+    amps[10] = 1.0  # 11th
+    amps[12] = 0.7  # 13th
+    amps[16] = 0.4  # 17th
+    amps[18] = 0.3  # 19th
+    # limites IEEE 519 (SCR<20)
+    lim = np.ones(25) * 2  # por defecto
+    lim[:10] = 4; lim[10:16] = 2; lim[16:22] = 1.5; lim[22:] = 0.6
+    lim[0] = 0  # no aplica a fundamental
+    colors_bar = [BAD if (a > l and h > 1) else ACC
+                  for h, a, l in zip(harmonics, amps, lim)]
+    ax.bar(harmonics[1:], amps[1:], color=colors_bar[1:], alpha=0.8, label='Medido')
+    ax.step(harmonics[1:], lim[1:], color=ACC2, lw=2, where='mid', label='Limite IEEE 519')
+    ax.set_xlabel('Orden armonico'); ax.set_ylabel('% de fundamental')
+    ax.set_title('THD: armonicos vs limite IEEE 519', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    # Panel 4: tabla de especificaciones
+    ax = axes[1, 1]; ax.axis('off')
+    tabla = [
+        ['Requisito', 'Metrica', 'Objetivo'],
+        ['Rapidez corriente', 'fc (Hz)', '500'],
+        ['Robustez', 'PM (deg)', '>= 45'],
+        ['Precision', 'ess escalon', '0 (PI)'],
+        ['Compat. PWM', 'fc/fsw', '<= 1/10'],
+        ['THD corriente', 'THD_I (%)', '< 5'],
+        ['Sobreimpulso', 'Mp (%)', '< 10'],
+        ['Tiempo establec.', 'ts (ms)', '< 2'],
+    ]
+    col_widths = [0.42, 0.3, 0.18]
+    row_h = 0.10
+    for r, row in enumerate(tabla):
+        y_pos = 0.95 - r * row_h
+        bg = '#e8f0fe' if r == 0 else ('#f5f5f5' if r % 2 == 0 else 'white')
+        ax.add_patch(plt.Rectangle((0, y_pos - row_h * 0.9), 1, row_h * 0.9,
+                                    facecolor=bg, edgecolor='#ccc'))
+        x_pos = 0.01
+        for col_txt, cw in zip(row, col_widths):
+            fw = 'bold' if r == 0 else 'normal'
+            ax.text(x_pos, y_pos - row_h * 0.4, col_txt, fontsize=8.5,
+                    va='center', fontweight=fw)
+            x_pos += cw
+    ax.set_xlim([0, 1]); ax.set_ylim([0, 1])
+    ax.set_title('Tabla de especificaciones (GFL 100 kW)', fontsize=10)
+
+    fig.suptitle('Especificaciones de control: tiempo, frecuencia, calidad de potencia',
+                 fontsize=12, fontweight='bold')
+    fig.tight_layout()
+    _savefig(fig, "especificaciones-control-analisis.png")
+
+
+def _prueba_analisis():
+    """4 paneles: escalon corriente, LVRT, THD antes/despues, timeline de pruebas."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    np.random.seed(13)
+
+    # Panel 1: respuesta escalon lazo de corriente
+    ax = axes[0, 0]
+    t = np.linspace(0, 0.004, 400)
+    zeta, wn = 0.62, 2 * np.pi * 500
+    from scipy import signal
+    sys2 = signal.TransferFunction([wn**2], [1, 2*zeta*wn, wn**2])
+    _, y = signal.step(sys2, T=t)
+    y = y * 1.0  # 1 pu
+    Mp_val = y.max() - 1
+    ax.plot(t * 1000, y, color=ACC, lw=2.5, label='id(t)')
+    ax.axhline(1.0, color='#888', ls=':', lw=1.2, label='Referencia')
+    ax.axhline(1 + Mp_val, color=BAD, ls='--', lw=1.5,
+               label=f'Mp={Mp_val*100:.1f}%')
+    ax.axhline(1.02, color='#ccc', ls=':', lw=1)
+    ax.axhline(0.98, color='#ccc', ls=':', lw=1)
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Corriente (p.u.)')
+    ax.set_title('Escalon lazo de corriente (id)', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+    ax.set_ylim([0, 1.15])
+
+    # Panel 2: LVRT — tension y corriente
+    ax = axes[0, 1]
+    t2 = np.linspace(0, 0.5, 1000)
+    v_pcc = np.ones_like(t2)
+    v_pcc[(t2 >= 0.1) & (t2 < 0.2)] = 0.3  # hueco al 30%
+    i_pcc = np.ones_like(t2)
+    i_pcc[(t2 >= 0.1) & (t2 < 0.2)] = np.minimum(
+        1.5, 1 + 2 * (1 - 0.3))  # inyeccion reactiva
+    i_pcc = np.clip(i_pcc, 0, 1.5)
+    ax.plot(t2 * 1000, v_pcc, color=ACC, lw=2, label='V_PCC (p.u.)')
+    ax.plot(t2 * 1000, i_pcc, color=BAD, lw=2, ls='--', label='I_PCC (p.u.)')
+    ax.axhline(1.5, color='#888', ls=':', lw=1.2, label='Limite 1.5 p.u.')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('p.u.')
+    ax.set_title('LVRT: hueco al 30% durante 100ms', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    # Panel 3: THD antes y despues del control
+    ax = axes[1, 0]
+    harmonics = np.arange(2, 21)
+    amp_antes = [0, 5.2, 0, 3.5, 0, 1.8, 0, 1.2, 0,
+                 0.8, 0, 0.5, 0, 0.3, 0, 0.2, 0, 0.1, 0]
+    amp_despues = [0, 0.4, 0, 0.3, 0, 1.6, 0, 1.0, 0,
+                   0.6, 0, 0.4, 0, 0.3, 0, 0.2, 0, 0.1, 0]
+    x = np.arange(len(harmonics))
+    ax.bar(x - 0.2, amp_antes, width=0.35, color=BAD, alpha=0.7,
+           label='Sin control armonico')
+    ax.bar(x + 0.2, amp_despues, width=0.35, color=ACC, alpha=0.8,
+           label='Con control resonante')
+    ax.axhline(4.0, color=ACC2, ls='--', lw=1.5, label='Limite indiv. 4%')
+    ax.set_xticks(x); ax.set_xticklabels([str(h) for h in harmonics], fontsize=8)
+    ax.set_xlabel('Orden armonico'); ax.set_ylabel('% de fundamental')
+    ax.set_title('THD: antes y despues del control resonante', fontsize=10)
+    ax.legend(fontsize=7); ax.grid(True, alpha=0.4)
+
+    # Panel 4: timeline del plan de pruebas
+    ax = axes[1, 1]; ax.axis('off')
+    fases = [
+        (0.05, 0.95, ACC, 'SiL: escalon, LVRT, Monte Carlo\nCriterio: FIT%>80%, Mp<10%'),
+        (0.05, 0.72, ACC2, 'HiL: firmware, protecciones, escalon\nCriterio: PM>45deg, ts<2ms'),
+        (0.05, 0.49, OK, 'PHiL: LVRT real, THD en PCC\nCriterio: THD<5%, pico<1.5pu'),
+        (0.05, 0.26, BAD, 'Campo: grid codes, certificacion\nCriterio: todos los estandares'),
+    ]
+    import matplotlib.patches as _mp2
+    for x_pos, y_pos, col, txt in fases:
+        ax.add_patch(_mp2.FancyBboxPatch((x_pos, y_pos - 0.17), 0.90, 0.18,
+                                          boxstyle='round,pad=0.01',
+                                          facecolor=col, alpha=0.25, edgecolor=col))
+        ax.text(x_pos + 0.05, y_pos - 0.08, txt, fontsize=8.5, va='center', color='#222')
+    ax.set_xlim([0, 1]); ax.set_ylim([0, 1.05])
+    ax.set_title('Plan de pruebas: de SiL a campo', fontsize=10)
+
+    fig.suptitle('Pruebas de validacion: escalon, LVRT, THD y plan de pruebas',
+                 fontsize=12, fontweight='bold')
+    fig.tight_layout()
+    _savefig(fig, "pruebas-validacion-analisis.png")
+
+
+def _calpot_analisis():
+    """4 paneles: THD vs limite IEEE519, flicker Pst, desequilibrio vectorial, rizado DC."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: espectro de corriente vs limites IEEE 519
+    ax = axes[0, 0]
+    h_orders = np.arange(2, 26)
+    # amplitudes tipicas VSC 2 niveles con LCL
+    amps = {2: 0.5, 3: 0.3, 4: 0.4, 5: 3.8, 6: 0.2, 7: 2.5, 8: 0.1,
+            9: 0.4, 10: 0.1, 11: 1.0, 12: 0.1, 13: 0.7, 14: 0.1,
+            15: 0.3, 16: 0.1, 17: 0.4, 18: 0.1, 19: 0.3, 20: 0.1,
+            21: 0.2, 22: 0.1, 23: 0.2, 24: 0.1, 25: 0.2}
+    lims = {h: (4 if h < 11 else 2 if h < 17 else 1.5 if h < 23 else 0.6)
+            for h in h_orders}
+    amp_vals = [amps.get(h, 0.1) for h in h_orders]
+    lim_vals = [lims[h] for h in h_orders]
+    cols = [BAD if a > l else ACC for a, l in zip(amp_vals, lim_vals)]
+    ax.bar(h_orders, amp_vals, color=cols, alpha=0.8, label='Medido')
+    ax.step(h_orders, lim_vals, color=ACC2, lw=2.0, where='mid', label='Limite IEEE 519')
+    ax.set_xlabel('Orden armonico'); ax.set_ylabel('Ih / I1 (%)')
+    thd = np.sqrt(sum(a**2 for a in amp_vals)) / 100 * 100
+    ax.set_title(f'Espectro de corriente: THD={thd:.1f}% vs limite 5%', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    # Panel 2: curva de sensibilidad al flicker Pst
+    ax = axes[0, 1]
+    f_flicker = np.logspace(-1, 2, 300)  # 0.1 - 100 Hz
+    # curva de perceptibilidad (IEC 61000-3-3, forma aproximada)
+    f0 = 8.8  # Hz maximo sensibilidad
+    sensitivity = 1.0 / (1 + ((f_flicker - f0) / (f0 * 0.8))**2)
+    sensitivity = sensitivity / sensitivity.max()
+    ax.semilogx(f_flicker, sensitivity, color=ACC, lw=2.5,
+                label='Curva de ponderacion Pst')
+    ax.axvline(f0, color=BAD, ls='--', lw=1.5, label=f'Max sensibilidad {f0} Hz')
+    ax.axhline(1.0, color='#888', ls=':', lw=1.2, label='Limite Pst=1')
+    ax.fill_between(f_flicker, sensitivity, 0, alpha=0.15, color=ACC)
+    ax.set_xlabel('Frecuencia de modulacion (Hz)')
+    ax.set_ylabel('Sensibilidad normalizada')
+    ax.set_title('Curva de sensibilidad al flicker (Pst)', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    # Panel 3: desequilibrio de tension (diagrama vectorial)
+    ax = axes[1, 0]
+    V_nom = 1.0; VUF = 0.015  # 1.5%
+    # secuencia positiva
+    angles_pos = [0, -2*np.pi/3, 2*np.pi/3]
+    V_pos = V_nom
+    # secuencia negativa (pequena)
+    V_neg = V_nom * VUF
+    angles_neg = [0, 2*np.pi/3, -2*np.pi/3]
+    # fasores resultantes (Va = Vpos + Vneg, fase a=0)
+    for i, (ap, an, col, lbl) in enumerate(zip(angles_pos, angles_neg,
+                                                [ACC, ACC2, OK], ['Va', 'Vb', 'Vc'])):
+        v_re = V_pos * np.cos(ap) + V_neg * np.cos(an)
+        v_im = V_pos * np.sin(ap) + V_neg * np.sin(an)
+        ax.annotate('', xy=(v_re, v_im), xytext=(0, 0),
+                    arrowprops=dict(arrowstyle='->', color=col, lw=2.5))
+        ax.text(v_re * 1.08, v_im * 1.08, lbl, color=col, fontsize=11, fontweight='bold')
+    # circulo de referencia
+    theta = np.linspace(0, 2*np.pi, 100)
+    ax.plot(np.cos(theta), np.sin(theta), color='#ccc', lw=1, ls='--')
+    ax.set_aspect('equal'); ax.set_xlim(-1.3, 1.3); ax.set_ylim(-1.3, 1.3)
+    ax.axhline(0, color='#ddd', lw=0.8); ax.axvline(0, color='#ddd', lw=0.8)
+    ax.set_xlabel('Re'); ax.set_ylabel('Im')
+    ax.set_title(f'Desequilibrio de tension VUF={VUF*100:.1f}% (<2%)', fontsize=10)
+    ax.grid(True, alpha=0.3)
+
+    # Panel 4: rizado de bus DC
+    ax = axes[1, 1]
+    t_dc = np.linspace(0, 0.02, 2000)
+    fsw = 5000
+    Vdc_nom = 800
+    # rizado de conmutacion + variacion lenta de carga
+    rizado_sw = 3.0 * np.sin(2 * np.pi * fsw * t_dc)
+    variacion_lenta = 10.0 * np.sin(2 * np.pi * 5 * t_dc)  # variacion de carga a 5 Hz
+    Vdc = Vdc_nom + rizado_sw + variacion_lenta
+    ax.plot(t_dc * 1000, Vdc, color=ACC, lw=1.2, label='V_dc(t)')
+    ax.axhline(Vdc_nom, color='#888', ls=':', lw=1.5, label=f'V_dc* = {Vdc_nom} V')
+    ax.axhline(Vdc_nom * 1.01, color=BAD, ls='--', lw=1.5, label='Limite +1%')
+    ax.axhline(Vdc_nom * 0.99, color=BAD, ls='--', lw=1.5, label='Limite -1%')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('V_dc (V)')
+    ax.set_title(f'Rizado bus DC: conmutacion ({fsw} Hz) + variacion lenta', fontsize=10)
+    ax.legend(fontsize=7); ax.grid(True, alpha=0.4)
+    ax.set_ylim([Vdc_nom - 20, Vdc_nom + 20])
+
+    fig.suptitle('Calidad de potencia: THD, flicker, desequilibrio VUF y rizado DC',
+                 fontsize=12, fontweight='bold')
+    fig.tight_layout()
+    _savefig(fig, "calidad-potencia-analisis.png")
+
+
+def _conmut_analisis():
+    """4 paneles: conmutado vs promediado, error vs h, coste CPU vs precision, comparativa."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    np.random.seed(0)
+
+    # Panel 1: corriente conmutada vs promediada
+    ax = axes[0, 0]
+    fsw = 5000; T_sw = 1 / fsw
+    t_sim = np.linspace(0, 5 * T_sw, 5000)
+    # modelo promediado: respuesta de primer orden
+    tau = 2e-3; d = 0.6; Vdc = 400; L = 2e-3
+    I_ss = d * Vdc / (0.1)  # resistencia 0.1 ohm
+    i_prom = I_ss * (1 - np.exp(-t_sim / tau))
+    # modelo conmutado: agrega rizado triangular
+    carrier = (t_sim % T_sw) / T_sw
+    duty = 0.6
+    s = (carrier < duty).astype(float)
+    rizado = (s - duty) * Vdc / L * T_sw / 8  # amplitud aprox
+    i_sw = i_prom + rizado * 0.5
+    ax.plot(t_sim * 1000, i_sw, color=BAD, lw=1.5, alpha=0.8, label='Conmutado')
+    ax.plot(t_sim * 1000, i_prom, color=ACC, lw=2.5, label='Promediado')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Corriente (A)')
+    ax.set_title('Corriente: conmutado vs promediado', fontsize=10)
+    ax.legend(fontsize=9); ax.grid(True, alpha=0.4)
+
+    # Panel 2: error en la fundamental vs paso de integracion h
+    ax = axes[0, 1]
+    h_vals = np.array([0.5, 1, 2, 5, 10, 20, 50, 100]) * 1e-6  # us
+    # error aproximado: Delta_d = h*fsw, Delta_V = Vdc*Delta_d
+    err_fund = h_vals * fsw * 100  # error en % de Vdc
+    ax.loglog(h_vals * 1e6, err_fund, color=ACC, lw=2.5, marker='o', markersize=5)
+    ax.axhline(0.1, color=BAD, ls='--', lw=1.5, label='Limite 0.1%')
+    ax.axvline(1.0, color=ACC2, ls=':', lw=1.5, label='h=1us (tipico)')
+    ax.axvline(20.0, color='#888', ls=':', lw=1.5, label='h=1/10fsw')
+    ax.set_xlabel('Paso de integracion h (us)'); ax.set_ylabel('Error en fundamental (%)')
+    ax.set_title('Error vs paso de integracion (aliasing de conmutacion)', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    # Panel 3: coste computacional (tiempo CPU relativo)
+    ax = axes[1, 0]
+    modelos = ['Promediado\nlineal', 'Promediado\nno lineal', 'Conmutado\nh=20us',
+               'Conmutado\nh=1us', 'Conmutado\nEventos']
+    t_cpu = [1, 3, 20, 400, 15]
+    colors_cpu = [OK, ACC, ACC2, BAD, ACC]
+    bars = ax.bar(modelos, t_cpu, color=colors_cpu, alpha=0.8, edgecolor='white')
+    ax.set_ylabel('Tiempo CPU relativo')
+    ax.set_title('Coste computacional por modelo (simulacion 1s)', fontsize=10)
+    for bar, val in zip(bars, t_cpu):
+        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 3,
+                f'{val}x', ha='center', va='bottom', fontsize=9, fontweight='bold')
+    ax.grid(True, alpha=0.4, axis='y')
+
+    # Panel 4: comparativa: precision vs velocidad
+    ax = axes[1, 1]
+    precision = [99.5, 98, 95, 99.9, 95]
+    velocidad = [100, 33, 5, 0.25, 6.7]
+    labels_comp = ['Prom. lineal', 'Prom. no-lin', 'Conm. h=20us', 'Conm. h=1us', 'Conm. eventos']
+    scatter_col = [OK, ACC, ACC2, BAD, ACC]
+    for i, (p, v, lbl, col) in enumerate(zip(precision, velocidad, labels_comp, scatter_col)):
+        ax.scatter(v, p, color=col, s=120, zorder=5)
+        ax.text(v * 1.05, p - 0.3, lbl, fontsize=8, color=col)
+    ax.set_xlabel('Velocidad relativa (simulacion/s CPU)')
+    ax.set_ylabel('Precision en fundamental (%)')
+    ax.set_title('Compromiso precision vs velocidad', fontsize=10)
+    ax.set_xscale('log'); ax.grid(True, alpha=0.4)
+
+    fig.suptitle('Simulacion conmutada: rizado, error vs h, coste CPU y trade-off',
+                 fontsize=12, fontweight='bold')
+    fig.tight_layout()
+    _savefig(fig, "simulacion-conmutada-analisis.png")
+
+
+def _fftanal_analisis():
+    """4 paneles: comparativa ventanas, espectrograma STFT, PSD Welch vs periodograma, espectro PWM."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy import signal as sig
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    np.random.seed(5)
+
+    # Panel 1: comparativa de ventanas (leakage)
+    ax = axes[0, 0]
+    fs = 10000; N = 512
+    f_tono = 127.3  # no coherente con N/fs
+    t = np.arange(N) / fs
+    x = np.sin(2 * np.pi * f_tono * t)
+    f_bins = np.fft.rfftfreq(N, 1/fs)
+    ventanas = [('Rectangular', np.ones(N), BAD),
+                ('Hann', np.hanning(N), ACC),
+                ('Blackman', np.blackman(N), OK)]
+    for nombre, w, col in ventanas:
+        X = np.fft.rfft(x * w)
+        mag = 2 * np.abs(X) / np.sum(w)
+        ax.semilogy(f_bins, mag + 1e-6, color=col, lw=1.8, label=nombre)
+    ax.axvline(f_tono, color='#888', ls=':', lw=1.2, label=f'Tono {f_tono:.1f}Hz')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Amplitud')
+    ax.set_title('Comparativa ventanas: leakage espectral', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+    ax.set_xlim([0, 400])
+
+    # Panel 2: espectrograma STFT
+    ax = axes[0, 1]
+    fs2 = 10000; dur = 1.0
+    t2 = np.arange(int(fs2 * dur)) / fs2
+    # senal con SSO que aparece a t=0.4s
+    f1 = 50; f_sso = 12
+    amp_sso = np.where(t2 > 0.4, 0.15 * np.exp(-(t2 - 0.4) / 0.1), 0)
+    x2 = np.sin(2 * np.pi * f1 * t2) + amp_sso * np.sin(2 * np.pi * (f1 - f_sso) * t2)
+    x2 += 0.02 * np.random.randn(len(t2))
+    f_stft, t_stft, Zxx = sig.stft(x2, fs=fs2, window='hann', nperseg=512, noverlap=384)
+    ax.pcolormesh(t_stft, f_stft, 20 * np.log10(np.abs(Zxx) + 1e-8),
+                  shading='gouraud', cmap='Blues', vmin=-60, vmax=0)
+    ax.set_ylim([0, 150]); ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Frecuencia (Hz)')
+    ax.set_title(f'Espectrograma STFT: SSO a {f1-f_sso} Hz desde t=0.4s', fontsize=10)
+    ax.axhline(f1 - f_sso, color=BAD, ls='--', lw=1.5, label=f'SSO {f1-f_sso}Hz')
+    ax.legend(fontsize=8)
+
+    # Panel 3: PSD Welch vs periodograma
+    ax = axes[1, 0]
+    fs3 = 10000; T3 = 2.0
+    t3 = np.arange(int(fs3 * T3)) / fs3
+    x3 = (np.sin(2 * np.pi * 50 * t3) + 0.1 * np.sin(2 * np.pi * 250 * t3)
+           + 0.3 * np.random.randn(len(t3)))
+    # periodograma simple
+    f_per = np.fft.rfftfreq(len(t3), 1/fs3)
+    X_per = np.fft.rfft(x3 * np.hanning(len(t3)))
+    psd_per = (2 * np.abs(X_per)**2) / (fs3 * np.sum(np.hanning(len(t3))**2))
+    # Welch
+    f_w, psd_w = sig.welch(x3, fs=fs3, window='hann', nperseg=1024, noverlap=512)
+    ax.semilogy(f_per, psd_per, color=BAD, lw=1.0, alpha=0.6, label='Periodograma simple')
+    ax.semilogy(f_w, psd_w, color=ACC, lw=2.0, label='Welch (nperseg=1024)')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('PSD (V^2/Hz)')
+    ax.set_title('PSD: Welch vs periodograma (menor varianza)', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+    ax.set_xlim([0, 500])
+
+    # Panel 4: espectro de un convertidor PWM con SSO
+    ax = axes[1, 1]
+    fsw = 5000; f1 = 50
+    # componentes espectrales de VSC 2 niveles
+    componentes = {
+        f1: 100,            # fundamental
+        f1*5: 3.8, f1*7: 2.5, f1*11: 1.0, f1*13: 0.7,  # armonicos bajos
+        fsw - 2*f1: 8, fsw + 2*f1: 8,       # bandas laterales fsw+-2f1
+        2*fsw - f1: 4, 2*fsw + f1: 4,        # bandas 2fsw+-f1
+        f1 - 12: 2.5, f1 + 12: 2.5,          # SSO +-12 Hz
+    }
+    freqs_c = list(componentes.keys()); amps_c = list(componentes.values())
+    ax.bar(freqs_c, amps_c, width=60, color=ACC, alpha=0.8)
+    for f_c, a_c in componentes.items():
+        if f_c < 500:
+            ax.bar([f_c], [a_c], width=20, color=BAD if a_c > 3 else OK, alpha=0.9)
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Amplitud (%)')
+    ax.set_title(f'Espectro VSC 2N: fundamental, armonicos, bandas fsw={fsw}Hz', fontsize=10)
+    ax.axvline(fsw, color='#888', ls='--', lw=1.2, label=f'fsw={fsw}Hz')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    fig.suptitle('FFT: ventanas, espectrograma STFT, PSD Welch y espectro PWM',
+                 fontsize=12, fontweight='bold')
+    fig.tight_layout()
+    _savefig(fig, "fft-analisis-espectral-analisis.png")
+
+
+def _hilphil_analisis():
+    """4 paneles: arquitectura HiL, LVRT HiL vs real, retardo en estabilidad, cobertura."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: arquitectura HiL esquematica
+    ax = axes[0, 0]; ax.axis('off')
+    bloques = [
+        (0.08, 0.55, 0.22, 0.25, ACC, 'DSP\n(control real)'),
+        (0.38, 0.55, 0.22, 0.25, ACC2, 'FPGA\n(planta RT)'),
+        (0.68, 0.55, 0.22, 0.25, OK, 'PC Host\n(supervisión)'),
+        (0.08, 0.15, 0.22, 0.20, BAD, 'ADC/DAC\n(interfaz)'),
+        (0.38, 0.15, 0.22, 0.20, '#9E9E9E', 'CPU\n(red, logica)'),
+    ]
+    for bx, by, bw, bh, col, lbl in bloques:
+        ax.add_patch(mpatches.FancyBboxPatch((bx, by), bw, bh,
+                                              boxstyle='round,pad=0.02',
+                                              facecolor=col, alpha=0.7, edgecolor='#555'))
+        ax.text(bx + bw/2, by + bh/2, lbl, ha='center', va='center',
+                fontsize=9, fontweight='bold')
+    # flechas de conexion
+    arrows = [(0.30, 0.67, 0.38, 0.67), (0.60, 0.67, 0.68, 0.67),
+              (0.19, 0.55, 0.19, 0.35), (0.49, 0.55, 0.49, 0.35)]
+    for x0, y0, x1, y1 in arrows:
+        ax.annotate('', xy=(x1, y1), xytext=(x0, y0),
+                    arrowprops=dict(arrowstyle='<->', color='#555', lw=1.5))
+    # retardos
+    ax.text(0.32, 0.73, 'Td_ADC\n~5us', ha='center', fontsize=7.5, color='#555')
+    ax.text(0.19, 0.44, 'Td_comp\n~50us', ha='center', fontsize=7.5, color='#555')
+    ax.set_xlim([0, 1]); ax.set_ylim([0, 1])
+    ax.set_title('Arquitectura HiL: DSP real + planta en FPGA/CPU', fontsize=10)
+
+    # Panel 2: LVRT en HiL vs real (comparativa de formas de onda)
+    ax = axes[0, 1]
+    t = np.linspace(0, 0.4, 800)
+    v_red = np.ones_like(t)
+    v_red[(t >= 0.1) & (t < 0.25)] = 0.2  # hueco
+    # respuesta HiL (con leve retardo de 1ms)
+    i_hil = np.zeros_like(t)
+    i_hil[t >= 0.1] = np.minimum(1.5, 1 + 2 * (1 - v_red[t >= 0.1]))
+    i_hil[t >= 0.25] = np.exp(-(t[t >= 0.25] - 0.25) / 0.05) * (i_hil[t >= 0.25][0] - 1) + 1
+    # respuesta real (ligeramente distinta por parasitos)
+    np.random.seed(3)
+    i_real = i_hil + 0.02 * np.random.randn(len(t))
+    ax.plot(t * 1000, v_red, color=ACC2, lw=2, label='V_red (p.u.)')
+    ax.plot(t * 1000, i_hil, color=ACC, lw=2, label='I_HiL (p.u.)')
+    ax.plot(t * 1000, i_real, color=BAD, lw=1.5, ls='--', alpha=0.8, label='I_real (p.u.)')
+    ax.axhline(1.5, color='#888', ls=':', lw=1, label='Limite 1.5pu')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('p.u.')
+    ax.set_title('LVRT en HiL vs ensayo real (20% de Vn, 150ms)', fontsize=10)
+    ax.legend(fontsize=7); ax.grid(True, alpha=0.4)
+
+    # Panel 3: efecto del retardo en el margen de fase
+    ax = axes[1, 0]
+    fc_arr = np.linspace(50, 2000, 300)
+    for Td, col, lbl in [(50e-6, OK, 'Td=50us'), (100e-6, ACC, 'Td=100us'),
+                         (150e-6, ACC2, 'Td=150us'), (250e-6, BAD, 'Td=250us')]:
+        pm_loss = Td * 2 * np.pi * fc_arr * 180 / np.pi
+        ax.plot(fc_arr, pm_loss, color=col, lw=2, label=lbl)
+    ax.fill_between(fc_arr, 45, 90, alpha=0.08, color=OK, label='Zona segura (>45deg)')
+    ax.axhline(45, color='#555', ls='--', lw=1.5, label='PM min 45deg')
+    ax.set_xlabel('Frecuencia de cruce fc (Hz)')
+    ax.set_ylabel('Perdida de margen de fase (deg)')
+    ax.set_title('Impacto del retardo HIL en el margen de fase', fontsize=10)
+    ax.legend(fontsize=7); ax.grid(True, alpha=0.4)
+    ax.set_ylim([0, 100])
+
+    # Panel 4: cobertura de pruebas HiL vs campo
+    ax = axes[1, 1]
+    categorias = ['LVRT', 'Anti-\nislanding', 'Protec.\nsobre-I', 'Arranque\nfrio', 'EMC', 'Termico']
+    cobertura_hil = [95, 90, 98, 85, 10, 5]
+    cobertura_campo = [100, 100, 100, 100, 100, 100]
+    x = np.arange(len(categorias))
+    ax.bar(x - 0.2, cobertura_hil, width=0.35, color=ACC, alpha=0.8, label='HiL')
+    ax.bar(x + 0.2, cobertura_campo, width=0.35, color=ACC2, alpha=0.5, label='Campo')
+    ax.set_xticks(x); ax.set_xticklabels(categorias, fontsize=8)
+    ax.set_ylabel('Cobertura (%)')
+    ax.set_title('Cobertura de pruebas: HiL vs campo', fontsize=10)
+    ax.legend(fontsize=9); ax.grid(True, alpha=0.4, axis='y')
+
+    fig.suptitle('HiL/PHiL: arquitectura, LVRT, retardo y cobertura de pruebas',
+                 fontsize=12, fontweight='bold')
+    fig.tight_layout()
+    _savefig(fig, "hil-phil-analisis.png")
+
+
+def _fsolve_analisis():
+    """4 paneles: convergencia NR, curva P-V, sensibilidad al x0, error vs iteracion."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: convergencia Newton-Raphson
+    ax = axes[0, 0]
+    # NR para f(x) = x^2 - 2 (raiz sqrt(2))
+    x_nr = [3.0]
+    residuos = [abs(x_nr[-1]**2 - 2)]
+    for _ in range(8):
+        xk = x_nr[-1]
+        xk1 = xk - (xk**2 - 2) / (2 * xk)
+        x_nr.append(xk1)
+        residuos.append(abs(xk1**2 - 2))
+    iters = np.arange(len(residuos))
+    ax.semilogy(iters, residuos, color=ACC, lw=2.5, marker='o', markersize=7,
+                label='Newton-Raphson')
+    ax.semilogy(iters, [3.0 * (0.5)**i for i in iters], color=BAD, lw=1.5,
+                ls='--', label='Convergencia lineal (ref.)')
+    ax.set_xlabel('Iteracion'); ax.set_ylabel('Residuo |f(xk)|')
+    ax.set_title('Convergencia cuadratica de Newton-Raphson', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    # Panel 2: curva P-V con dos puntos de equilibrio
+    ax = axes[0, 1]
+    V_g = 1.0; Z_g = 0.3; X_g = Z_g  # red inductiva
+    V_arr = np.linspace(0.1, 1.2, 500)
+    # potencia maxima transferible
+    P_vals = V_arr * V_g / X_g * np.sqrt(1 - ((V_arr**2 - V_g**2) /
+             (2 * X_g * V_arr * V_g / X_g + 1e-6))**2 + 0.0)
+    # simplificado: P = V*Vg/Xg * sin(delta) -> curva P-V
+    delta_arr = np.linspace(0, np.pi, 500)
+    P_curve = (V_g**2 / X_g) * np.sin(delta_arr)
+    V_curve = V_g * np.cos(delta_arr) + np.sqrt(np.maximum(0, 1 - np.sin(delta_arr)**2))
+    ax.plot(P_curve, V_curve / V_g, color=ACC, lw=2.5, label='Curva P-V')
+    P_op = 0.6
+    # dos puntos
+    delta1 = np.arcsin(P_op * X_g / V_g**2); delta2 = np.pi - delta1
+    V1 = V_g * np.cos(delta1) + np.sqrt(max(0, 1 - np.sin(delta1)**2))
+    V2 = V_g * np.cos(delta2) - np.sqrt(max(0, 1 - np.sin(delta2)**2))
+    ax.scatter([P_op], [max(0.1, V1/V_g)], color=OK, s=120, zorder=5,
+               label=f'Estable V={V1/V_g:.2f}pu')
+    ax.scatter([P_op], [max(0.05, abs(V2/V_g))], color=BAD, s=120, zorder=5,
+               label=f'Inestable V={abs(V2/V_g):.2f}pu')
+    ax.axvline(P_op, color='#888', ls=':', lw=1.2)
+    ax.set_xlabel('Potencia P (p.u.)'); ax.set_ylabel('Tension V (p.u.)')
+    ax.set_title('Curva P-V: dos equilibrios en red debil', fontsize=10)
+    ax.legend(fontsize=7); ax.grid(True, alpha=0.4)
+    ax.set_ylim([0, 1.3])
+
+    # Panel 3: sensibilidad al punto inicial
+    ax = axes[1, 0]
+    # f(x) = x^3 - x (raices en -1, 0, +1)
+    x_range = np.linspace(-2, 2, 400)
+    ax.plot(x_range, x_range**3 - x_range, color=ACC, lw=2, label='f(x) = x^3 - x')
+    ax.axhline(0, color='#888', ls='-', lw=1)
+    roots = [-1, 0, 1]
+    root_cols = [BAD, ACC2, OK]
+    # mostrar cuencas de atraccion con colores
+    for x0_val, col in [(-1.8, BAD), (-0.5, ACC2), (0.5, OK), (1.8, OK)]:
+        # NR simplificado
+        x_k = x0_val
+        traj = [x_k]
+        for _ in range(10):
+            fp = 3*x_k**2 - 1
+            if abs(fp) < 1e-10:
+                break
+            x_k = x_k - (x_k**3 - x_k) / fp
+            traj.append(x_k)
+            if abs(x_k**3 - x_k) < 1e-9:
+                break
+        converged_to = round(traj[-1])
+        traj_arr = np.array(traj)
+        ax.plot(range(len(traj_arr)), traj_arr, marker='o', markersize=4,
+                color=col, lw=1.5, alpha=0.8)
+    for r, col in zip(roots, root_cols):
+        ax.axhline(0, color='#ccc', lw=0.5)
+    ax.set_xlabel('Iteracion'); ax.set_ylabel('x_k')
+    ax.set_title('Sensibilidad al punto inicial: distintas cuencas', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+    ax.set_ylim([-2.5, 2.5])
+
+    # Panel 4: comparativa error vs iteracion para distintos metodos
+    ax = axes[1, 1]
+    iters_c = np.arange(1, 12)
+    # Newton-Raphson: cuadratico
+    err_nr = 1.0 / (2.0 ** (2 ** iters_c / 4))
+    err_nr = np.clip(err_nr, 1e-14, 1)
+    # Biseccion: lineal
+    err_bis = 0.5 ** iters_c
+    # Secante: orden 1.618
+    phi = (1 + np.sqrt(5)) / 2
+    err_sec = 0.8 ** (phi ** iters_c / 2)
+    err_sec = np.clip(err_sec, 1e-14, 1)
+    ax.semilogy(iters_c, err_bis, color=BAD, lw=2, marker='s', markersize=5,
+                label='Biseccion (orden 1)')
+    ax.semilogy(iters_c, err_sec, color=ACC2, lw=2, marker='^', markersize=5,
+                label='Secante (orden 1.618)')
+    ax.semilogy(iters_c, err_nr, color=ACC, lw=2.5, marker='o', markersize=6,
+                label='Newton-Raphson (orden 2)')
+    ax.set_xlabel('Numero de iteraciones'); ax.set_ylabel('Error estimado')
+    ax.set_title('Velocidad de convergencia: NR vs biseccion vs secante', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    fig.suptitle('fsolve: convergencia NR, curva P-V, sensibilidad x0 y comparativa',
+                 fontsize=12, fontweight='bold')
+    fig.tight_layout()
+    _savefig(fig, "equilibrio-fsolve-analisis.png")
+
+
+def _stiff_analisis():
+    """4 paneles: Euler exp vs imp en sistema stiff, region de estabilidad, paso Radau, comparativa."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: Euler explicito vs implicito en sistema stiff
+    ax = axes[0, 0]
+    # sistema stiff: dy/dt = lambda*y, lambda = -1000 (rapido) + -1 (lento)
+    # solucion: y = A*exp(-1000t) + B*exp(-t)
+    lam_fast, lam_slow = -1000.0, -1.0
+    A, B = 1.0, 1.0
+    T_end = 0.01
+    t_exact = np.linspace(0, T_end, 500)
+    y_exact = A * np.exp(lam_fast * t_exact) + B * np.exp(lam_slow * t_exact)
+
+    # Euler explicito con h = 1/500 (justo estable)
+    h_exp = 1.5e-3  # mayor que 2/|lambda_fast|=0.002 -> inestable
+    N_exp = int(T_end / h_exp) + 1
+    t_exp = np.arange(N_exp) * h_exp
+    y_exp = np.zeros(N_exp); y_exp[0] = A + B
+    for i in range(N_exp - 1):
+        y_exp[i+1] = y_exp[i] + h_exp * (lam_fast * y_exp[i] + lam_slow * y_exp[i])
+        if abs(y_exp[i+1]) > 1e3:
+            y_exp[i+1:] = np.nan; break
+
+    # Euler implicito con h = 1e-3 (grande)
+    h_imp = 1e-3
+    N_imp = int(T_end / h_imp) + 1
+    t_imp = np.arange(N_imp) * h_imp
+    y_imp = np.zeros(N_imp); y_imp[0] = A + B
+    for i in range(N_imp - 1):
+        y_imp[i+1] = y_imp[i] / (1 - h_imp * (lam_fast + lam_slow))
+
+    ax.plot(t_exact * 1000, y_exact, 'k-', lw=2, label='Exacta')
+    ax.plot(t_exp * 1000, y_exp, color=BAD, lw=1.5, ls='--',
+            label=f'Euler exp. h={h_exp*1000:.1f}ms (INESTABLE)')
+    ax.plot(t_imp * 1000, y_imp, color=ACC, lw=2, marker='o', markersize=4,
+            label=f'Euler imp. h={h_imp*1000:.0f}ms (estable)')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('y(t)')
+    ax.set_title('Stiff: Euler explicito inestable vs implicito estable', fontsize=10)
+    ax.legend(fontsize=7); ax.grid(True, alpha=0.4)
+    ax.set_ylim([-3, 4])
+
+    # Panel 2: region de estabilidad en el plano h*lambda
+    ax = axes[0, 1]
+    re = np.linspace(-4, 1, 300); im = np.linspace(-3, 3, 300)
+    RE, IM = np.meshgrid(re, im)
+    HL = RE + 1j * IM
+    # Euler explicito: |1 + h*lambda| <= 1
+    R_exp = np.abs(1 + HL)
+    # Euler implicito: |1/(1 - h*lambda)| <= 1
+    R_imp = np.abs(1.0 / (1 - HL))
+    ax.contourf(RE, IM, R_exp, levels=[0, 1], colors=[ACC], alpha=0.4)
+    ax.contour(RE, IM, R_exp, levels=[1], colors=[ACC], linewidths=2)
+    ax.contourf(RE, IM, R_imp, levels=[0, 1], colors=[OK], alpha=0.2)
+    # marcar los lambdas del ejemplo
+    ax.scatter([lam_fast * h_exp], [0], color=BAD, s=150, zorder=5,
+               label=f'hλ_rapido={lam_fast*h_exp:.1f} (exp. inestable)')
+    ax.scatter([lam_fast * h_imp], [0], color=ACC2, s=150, zorder=5,
+               label=f'hλ_rapido={lam_fast*h_imp:.1f} (imp. estable)')
+    ax.axhline(0, color='#888', lw=0.8); ax.axvline(0, color='#888', lw=0.8)
+    from matplotlib.patches import Patch
+    ax.legend(handles=[Patch(color=ACC, alpha=0.6, label='Euler exp. (disco)'),
+                        Patch(color=OK, alpha=0.4, label='Euler imp. (semiplano izq.)'),
+                        *ax.get_legend_handles_labels()[0]], fontsize=7, loc='upper left')
+    ax.set_xlabel('Re(h*lambda)'); ax.set_ylabel('Im(h*lambda)')
+    ax.set_title('Region de estabilidad: Euler exp. vs impl.', fontsize=10)
+    ax.grid(True, alpha=0.3)
+
+    # Panel 3: paso de tiempo adaptativo (Radau)
+    ax = axes[1, 0]
+    # simular paso adaptativo: grande en zona lenta, pequeno en transitorio
+    t_adapt = [0]
+    h_adapt = []
+    t_current = 0.0; T_end3 = 0.05
+    while t_current < T_end3:
+        # criterio de paso: mas pequeno durante el transitorio rapido
+        if t_current < 0.005:
+            h = 1e-4  # transitorio rapido: paso pequeno
+        else:
+            h = max(5e-4, min(2e-3, 2e-3 * (1 - np.exp(-(t_current - 0.005) / 0.01))))
+        h = min(h, T_end3 - t_current)
+        h_adapt.append(h)
+        t_current += h
+        t_adapt.append(t_current)
+    ax.plot(np.array(t_adapt[:-1]) * 1000, np.array(h_adapt) * 1e6,
+            color=ACC, lw=2, label='Paso adaptativo h(t)')
+    ax.axvline(5, color=BAD, ls='--', lw=1.5, label='Fin transitorio rapido')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Paso h (us)')
+    ax.set_title('Paso adaptativo Radau: pequeno en transitorio, grande despues', fontsize=10)
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.4)
+
+    # Panel 4: tiempo CPU vs error para distintos solvers
+    ax = axes[1, 1]
+    solvers = ['Euler\nexp.', 'RK4\nexpl.', 'Euler\nimp.', 'BDF-2', 'Radau\nIIA']
+    t_cpu_s = [10.0, 8.0, 2.0, 0.5, 0.8]  # tiempo CPU relativo
+    err_s = [1e-2, 1e-4, 5e-2, 1e-5, 1e-8]  # error tipico
+    cols_s = [BAD, ACC2, '#FF9966', ACC, OK]
+    for solver, t_c, err_v, col in zip(solvers, t_cpu_s, err_s, cols_s):
+        ax.scatter([t_c], [err_v], s=200, color=col, zorder=5)
+        ax.text(t_c * 1.1, err_v * 1.5, solver, fontsize=8.5, color=col, va='center')
+    ax.set_xscale('log'); ax.set_yscale('log')
+    ax.set_xlabel('Tiempo CPU relativo'); ax.set_ylabel('Error global estimado')
+    ax.set_title('Compromiso tiempo CPU vs error (sistema stiff)', fontsize=10)
+    ax.grid(True, alpha=0.4)
+    ax.invert_xaxis()
+
+    fig.suptitle('Integracion EDOs stiff: Euler, regiones de estabilidad, paso adaptativo',
+                 fontsize=12, fontweight='bold')
+    fig.tight_layout()
+    _savefig(fig, "integracion-edos-stiff-analisis.png")
+
+
+def _topologias_multinivel_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    t = np.linspace(0, 0.04, 4000); f0 = 50; Vdc = 1.0
+    ax = axes[0, 0]
+    v2 = Vdc * np.sign(np.sin(2*np.pi*f0*t))
+    m = 0.9; ref = m*np.sin(2*np.pi*f0*t)
+    v3 = np.where(ref > 0.5, Vdc/2, np.where(ref < -0.5, -Vdc/2, 0))
+    levels5 = np.array([-1, -0.5, 0, 0.5, 1]) * Vdc/2
+    v5 = np.array([levels5[np.argmin(np.abs(levels5 - ri*Vdc/2))] for ri in ref])
+    ax.plot(t*1000, v2, 'r-', lw=0.8, alpha=0.7, label='2 niveles')
+    ax.plot(t*1000, v3, 'b-', lw=0.8, alpha=0.7, label='3 niveles')
+    ax.plot(t*1000, v5, 'g-', lw=0.8, alpha=0.7, label='5 niveles')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Tensión (pu)')
+    ax.set_title('Forma de onda: 2/3/5 niveles'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[0, 1]
+    n_levels = np.array([2, 3, 5, 7, 9])
+    thd_v = np.array([80, 30, 11, 5, 2.5])
+    ax.semilogy(n_levels, thd_v, 'b-o', lw=2, markersize=8)
+    ax.axhline(5, color='r', ls='--', label='Límite IEEE 519 (5%)')
+    ax.set_xlabel('Número de niveles'); ax.set_ylabel('THD tensión (%)')
+    ax.set_title('THD vs número de niveles'); ax.legend(); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    N_fft = len(t)
+    V2_f = np.abs(np.fft.rfft(v2)) * 2/N_fft
+    V5_f = np.abs(np.fft.rfft(v5)) * 2/N_fft
+    f_arr = np.fft.rfftfreq(N_fft, t[1]-t[0])
+    ax.semilogy(f_arr, V2_f+1e-4, 'r-', lw=1, alpha=0.8, label='2 niveles')
+    ax.semilogy(f_arr, V5_f+1e-4, 'g-', lw=1, alpha=0.8, label='5 niveles')
+    ax.set_xlim([0, 5000]); ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Amplitud (pu)')
+    ax.set_title('Espectro: 2 vs 5 niveles'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]
+    niveles_c = ['2 niv.', '3 niv.', '5 niv.', '7 niv.']
+    filtro_rel = [100, 40, 15, 8]
+    efic = [97.5, 97.8, 98.0, 98.1]
+    x = np.arange(len(niveles_c)); w_b = 0.35
+    ax2 = ax.twinx()
+    ax.bar(x - w_b/2, filtro_rel, w_b, alpha=0.7, color='red', label='Filtro LC (%)')
+    ax2.plot(x + w_b/2, efic, 'b-o', lw=2, label='Eficiencia (%)')
+    ax.set_xticks(x); ax.set_xticklabels(niveles_c)
+    ax.set_ylabel('Tamaño filtro (% relativo)', color='red')
+    ax2.set_ylabel('Eficiencia (%)', color='blue')
+    ax.set_title('Filtro y eficiencia vs niveles')
+    ax.legend(fontsize=8, loc='upper right'); ax2.legend(fontsize=8, loc='lower right'); ax.grid(True, alpha=0.3, axis='y')
+    fig.suptitle('Topologías multinivel: formas de onda, THD y aplicaciones', fontsize=14, fontweight='bold')
+    plt.tight_layout(); _savefig(fig, "topologias-multinivel-analisis")
+
+
+def _impedancia_reactancia_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]
+    R = 0.5; X = 0.866; Z = complex(R, X)
+    ax.annotate('', xy=(R, X), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2.5))
+    ax.annotate('', xy=(R, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
+    ax.annotate('', xy=(R, X), xytext=(R, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
+    ax.text(R/2, -0.08, f'R={R}Ω', ha='center', color='red', fontsize=10)
+    ax.text(R+0.08, X/2, f'jX={X:.2f}Ω', ha='left', color='green', fontsize=10)
+    ax.text(R/2+0.1, X/2+0.1, f'|Z|={abs(Z):.2f}Ω\nφ={np.degrees(np.angle(Z)):.1f}°', color='blue', fontsize=10)
+    ax.set_xlim([-0.2, 1.2]); ax.set_ylim([-0.3, 1.2])
+    ax.axhline(0, color='k', lw=0.5); ax.axvline(0, color='k', lw=0.5)
+    ax.set_xlabel('Re (Ω)'); ax.set_ylabel('Im (Ω)'); ax.set_title('Diagrama fasorial de impedancia')
+    ax.grid(True, alpha=0.3)
+    ax = axes[0, 1]
+    SCR_arr = np.linspace(1, 10, 100)
+    V = 1.0; P_conv = 1.0
+    Xsc = V**2 / (SCR_arr * P_conv)
+    ax.plot(SCR_arr, Xsc, 'b-', lw=2)
+    ax.axvline(2, color='r', ls='--', label='SCR=2 (débil)')
+    ax.axvline(3, color='orange', ls='--', label='SCR=3 (límite)')
+    ax.set_xlabel('SCR'); ax.set_ylabel('X_sc (pu)'); ax.set_title('Reactancia de red vs SCR')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    w = np.logspace(1, 4, 500); f_pll = 20; w_pll = 2*np.pi*f_pll
+    Z_re = 0.5 - 1.5*w_pll**2/(w**2 + w_pll**2)
+    Z_im = 0.3*w/1000
+    ax.semilogx(w/(2*np.pi), Z_re, 'b-', lw=2, label='Re[Z_inv] GFL')
+    ax.semilogx(w/(2*np.pi), Z_im, 'r--', lw=2, label='Im[Z_inv] GFL')
+    ax.axhline(0, color='k', lw=1)
+    ax.fill_between(w/(2*np.pi), Z_re, 0, where=Z_re < 0, alpha=0.2, color='red', label='Zona negativa')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Impedancia (pu)')
+    ax.set_title('Impedancia GFL — zona negativa'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]
+    f = np.logspace(1, 4, 500); w2 = 2*np.pi*f
+    Ls = 1e-3; Rs = 0.05; Cl = 1e-3; Rl = 2.0
+    Zs = np.sqrt(Rs**2 + (w2*Ls)**2)
+    Zl = Rl / np.sqrt(1 + (w2*Rl*Cl)**2)
+    ax.loglog(f, Zs, 'b-', lw=2, label='|Z_source|')
+    ax.loglog(f, Zl, 'r-', lw=2, label='|Z_load|')
+    ax.fill_between(f, Zs, Zl, where=Zs < Zl, alpha=0.2, color='green', label='Middlebrook OK')
+    ax.fill_between(f, Zs, Zl, where=Zs > Zl, alpha=0.2, color='red', label='Riesgo')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Impedancia (Ω)')
+    ax.set_title('Criterio de estabilidad Middlebrook'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    fig.suptitle('Impedancia y reactancia: fasorial, SCR y criterio de estabilidad', fontsize=14, fontweight='bold')
+    plt.tight_layout(); _savefig(fig, "impedancia-reactancia-analisis")
+
+
+def _valor_rms_factor_potencia_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    t = np.linspace(0, 0.04, 4000); f0 = 50
+    I1=10; I3=2; I5=1.2; I7=0.6
+    i_dist = I1*np.sin(2*np.pi*f0*t) + I3*np.sin(2*np.pi*3*f0*t) + I5*np.sin(2*np.pi*5*f0*t) + I7*np.sin(2*np.pi*7*f0*t)
+    I_rms = np.sqrt(np.mean(i_dist**2))
+    I_fund_rms = I1/np.sqrt(2)
+    ax = axes[0, 0]
+    ax.plot(t*1000, i_dist, 'b-', lw=1.5, label='i(t) distorsionada')
+    ax.axhline(I_rms, color='r', ls='--', lw=2, label=f'I_rms={I_rms:.2f} A')
+    ax.axhline(I_fund_rms, color='g', ls=':', lw=2, label=f'I1_rms={I_fund_rms:.2f} A')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Corriente (A)')
+    ax.set_title('RMS de señal distorsionada'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[0, 1]; ax.axis('off')
+    P=8; Q=4; D=2; S=np.sqrt(P**2+Q**2+D**2)
+    ax.annotate('', xy=(P,0), xytext=(0,0), arrowprops=dict(arrowstyle='->', color='green', lw=3))
+    ax.annotate('', xy=(P,Q), xytext=(P,0), arrowprops=dict(arrowstyle='->', color='blue', lw=3))
+    ax.annotate('', xy=(P,Q+D), xytext=(P,Q), arrowprops=dict(arrowstyle='->', color='orange', lw=3))
+    ax.annotate('', xy=(P,Q+D), xytext=(0,0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
+    ax.text(P/2, -0.5, f'P={P} kW', ha='center', color='green', fontsize=11, fontweight='bold')
+    ax.text(P+0.3, Q/2, f'Q={Q} kvar', color='blue', fontsize=11, fontweight='bold')
+    ax.text(P+0.3, Q+D/2, f'D={D} kVA', color='orange', fontsize=11, fontweight='bold')
+    ax.text(P/2-1, (Q+D)/2+0.3, f'S={S:.1f} kVA', color='red', fontsize=11, fontweight='bold')
+    ax.set_xlim([-0.5, 10]); ax.set_ylim([-1, 7.5]); ax.set_title('Triángulo de potencias P/Q/D/S')
+    ax = axes[1, 0]
+    THD_arr = np.linspace(0, 100, 200)
+    for cosph, col in [(1.0, 'b'), (0.95, 'g'), (0.85, 'r')]:
+        FP_real = cosph / np.sqrt(1 + (THD_arr/100)**2)
+        ax.plot(THD_arr, FP_real, color=col, lw=2, label=f'cosφ={cosph}')
+    ax.axhline(0.95, color='gray', ls='--', label='FP=0.95')
+    ax.set_xlabel('THD_I (%)'); ax.set_ylabel('FP real'); ax.set_title('FP real vs THD para distintos cosφ')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]
+    Q_comp = np.linspace(0, 6, 100)
+    FP_before = 0.75
+    S_before = 10; P_load = S_before*FP_before; Q_before = np.sqrt(S_before**2 - P_load**2)
+    Q_after = Q_before - Q_comp
+    S_after = np.sqrt(P_load**2 + np.maximum(Q_after, 0)**2)
+    FP_after = P_load / S_after
+    ax.plot(Q_comp, FP_after, 'b-', lw=2, label='FP tras corrección')
+    ax.axhline(0.95, color='r', ls='--', label='FP objetivo=0.95')
+    ax.set_xlabel('Q compensado (kvar)'); ax.set_ylabel('Factor de potencia')
+    ax.set_title('Corrección del FP con banco de condensadores'); ax.legend(); ax.grid(True, alpha=0.3)
+    fig.suptitle('RMS, factor de potencia y potencia de distorsión', fontsize=14, fontweight='bold')
+    plt.tight_layout(); _savefig(fig, "valor-rms-factor-potencia-analisis")
+
+
+def _modelo_linea_distribucion_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]; ax.axis('off')
+    R_km=0.1; L_km=1e-3; C_km=10e-9; l=100
+    Z=complex(R_km*l, 2*np.pi*50*L_km*l); Y=complex(0, 2*np.pi*50*C_km*l)
+    lines=[f'Línea de {l} km — parámetros típicos:',
+           f'R = {R_km} Ω/km × {l} km = {R_km*l} Ω',
+           f'X = ωL = {2*np.pi*50*L_km*1000:.1f} mΩ/km × {l} km = {2*np.pi*50*L_km*l:.1f} Ω',
+           f'B = ωC = {2*np.pi*50*C_km*1e6:.2f} μS/km × {l} km',
+           f'|Z| = {abs(Z):.2f} Ω, ∠Z = {np.degrees(np.angle(Z)):.1f}°',
+           f'Zc = √(Z/Y) ≈ {np.sqrt(abs(Z)/abs(Y)):.0f} Ω',
+           f'SIL ≈ {(400e3)**2/np.sqrt(abs(Z)/abs(Y))/1e6:.0f} MW (400 kV)']
+    for i, line in enumerate(lines):
+        ax.text(0.05, 0.92-i*0.13, line, transform=ax.transAxes, fontsize=10, va='top')
+    ax.set_title('Parámetros del modelo π')
+    ax = axes[0, 1]
+    x = np.linspace(0, 200, 200)
+    V_load = 1.0 - 0.0003*x
+    V_no_load_ferranti = 1.0 + 0.00008*x**1.5/200
+    ax.plot(x, V_load, 'b-', lw=2, label='Con carga (P+Q)')
+    ax.plot(x, V_no_load_ferranti, 'r--', lw=2, label='En vacío (Ferranti)')
+    ax.axhline(1.0, color='gray', ls=':'); ax.axhline(0.95, color='orange', ls=':', label='V_min=0.95pu')
+    ax.set_xlabel('Distancia (km)'); ax.set_ylabel('Tensión (pu)')
+    ax.set_title('Perfil de tensión — carga vs vacío'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    L_arr = np.linspace(10, 500, 200)
+    P_termico = 500 * np.ones_like(L_arr)
+    P_estab = 1000 / (0.01*L_arr + 0.3)
+    P_cargable = np.minimum(P_termico, P_estab)
+    P_SIL = 300 * np.ones_like(L_arr)
+    ax.plot(L_arr, P_termico, 'r-', lw=2, label='Límite térmico')
+    ax.plot(L_arr, P_estab, 'b-', lw=2, label='Límite estabilidad')
+    ax.plot(L_arr, P_SIL, 'g--', lw=2, label='SIL (natural)')
+    ax.fill_between(L_arr, 0, P_cargable, alpha=0.2, color='green', label='Zona operable')
+    ax.set_xlabel('Longitud (km)'); ax.set_ylabel('Potencia (MW)')
+    ax.set_title('Diagrama de cargabilidad'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]
+    L_ferranti = np.linspace(0, 300, 200)
+    beta = 2*np.pi*50 / 3e8
+    with np.errstate(divide='ignore', invalid='ignore'):
+        cos_aereo = np.cos(beta * L_ferranti * 1000)
+        V_ferranti_aereo = np.where(np.abs(cos_aereo) > 1e-6, 1/cos_aereo, np.nan)
+    beta_cable = beta * 3
+    with np.errstate(divide='ignore', invalid='ignore'):
+        cos_cable = np.cos(beta_cable * L_ferranti * 1000)
+        V_ferranti_cable = np.where(np.abs(cos_cable) > 1e-6, 1/cos_cable, np.nan)
+    ax.plot(L_ferranti, np.clip((V_ferranti_aereo-1)*100, 0, 20), 'b-', lw=2, label='Línea aérea')
+    ax.plot(L_ferranti, np.clip((V_ferranti_cable-1)*100, 0, 20), 'r-', lw=2, label='Cable submarino')
+    ax.axhline(5, color='gray', ls='--', label='Límite +5%')
+    ax.set_xlabel('Longitud (km)'); ax.set_ylabel('ΔV Ferranti (%)')
+    ax.set_title('Efecto Ferranti: aérea vs cable'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    fig.suptitle('Modelo de línea de distribución: π, cargabilidad y Ferranti', fontsize=14, fontweight='bold')
+    plt.tight_layout(); _savefig(fig, "modelo-linea-distribucion-analisis")
+
+
+def _metodos_sintesis_control_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]
+    # Lugar de raíces simplificado: planta 1/(s(s+2))
+    sigma = np.linspace(-5, 1, 300)
+    # Ramas del lugar
+    ax.axvline(-1, color='gray', ls=':', lw=1)
+    t_rl = np.linspace(0, 4, 200)
+    branch1_re = -1 - t_rl; branch1_im = t_rl
+    branch2_re = -1 - t_rl; branch2_im = -t_rl
+    ax.plot(branch1_re, branch1_im, 'b-', lw=2, label='Lugar K>0')
+    ax.plot(branch2_re, branch2_im, 'b-', lw=2)
+    ax.plot([0, -2], [0, 0], 'rx', markersize=10, label='Polos OL')
+    ax.plot(-1, 0, 'go', markersize=10, label='Centrode')
+    ax.axhline(0, color='k', lw=0.5); ax.axvline(0, color='k', lw=0.5)
+    ax.set_xlim([-6, 1]); ax.set_ylim([-5, 5])
+    ax.set_xlabel('Re'); ax.set_ylabel('Im')
+    ax.set_title('Lugar de raíces: 1/[s(s+2)]'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[0, 1]
+    f = np.logspace(-1, 4, 500)
+    w = 2*np.pi*f
+    wc = 2*np.pi*1000; L = 2e-3; R = 0.1
+    Kp = L*wc; Ki = R*wc
+    G = 1/(1j*w*L + R)
+    C = Kp + Ki/(1j*w)
+    L_loop = C*G
+    ax.semilogx(f, 20*np.log10(np.abs(L_loop)), 'b-', lw=2, label='|L(jω)| dB')
+    ax.axhline(0, color='r', ls='--', lw=1, label='0 dB')
+    ax.axvline(1000, color='g', ls=':', lw=1.5, label=f'fc=1 kHz')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Magnitud (dB)')
+    ax.set_title('Loop shaping: lazo de corriente PI'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    f2 = np.logspace(1, 4, 500); w2 = 2*np.pi*f2
+    wb = 2*np.pi*200; Ms = 2; eps = 0.01
+    W1 = np.abs((1j*w2/Ms + wb)/(1j*w2 + wb*eps))
+    wt = 2*np.pi*3000; Mt = 1.25
+    W2 = np.abs((1j*w2 + wt/np.sqrt(Mt))/(np.sqrt(Mt)*1j*w2 + wt))
+    ax.semilogx(f2, 20*np.log10(W1), 'b-', lw=2, label='W1 (plantilla S)')
+    ax.semilogx(f2, 20*np.log10(W2), 'r-', lw=2, label='W2 (plantilla T)')
+    ax.axhline(0, color='gray', ls=':', lw=1)
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Magnitud (dB)')
+    ax.set_title('Pesos W1/W2 para diseño H-inf'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]; ax.axis('off')
+    tabla = [
+        ['Método', 'Tipo', 'Robustez', 'Complejidad'],
+        ['Bode/PI', 'SISO clás.', 'PM/GM empír.', 'Baja'],
+        ['Lugar raíces', 'SISO anál.', 'No explicit.', 'Baja'],
+        ['SIMC/ZN', 'Empírico', 'No', 'Muy baja'],
+        ['LQR/LQG', 'Esp.estado', 'No directa', 'Media'],
+        ['H-inf', 'Ópt.robusto', 'Sí (||S||)', 'Alta'],
+        ['MPC', 'Predictivo', 'No estándar', 'Muy alta'],
+    ]
+    table = ax.table(cellText=tabla[1:], colLabels=tabla[0],
+                     cellLoc='center', loc='center', bbox=[0, 0, 1, 1])
+    table.auto_set_font_size(False); table.set_fontsize(9)
+    ax.set_title('Tabla comparativa de métodos')
+    fig.suptitle('Métodos de síntesis de control: lugar de raíces, loop shaping, pesos H-inf', fontsize=13, fontweight='bold')
+    plt.tight_layout(); _savefig(fig, "metodos-sintesis-control-analisis")
+
+
+def _arquitecturas_control_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]; ax.axis('off')
+    props = dict(boxstyle='round', facecolor='lightyellow', alpha=0.8)
+    ax.text(0.5, 0.9, 'Arquitectura GFM — Cascada', ha='center', fontsize=12, fontweight='bold', transform=ax.transAxes)
+    capas = ['Lazo corriente\n(1 kHz, PI + AD)', 'Lazo tensión\n(200 Hz, PI + FF)', 'Sincronización\n(PSC/VSM, ~40 Hz)', 'Despacho\n(<1 Hz, P*/Q*)']
+    for i, cap in enumerate(capas):
+        ax.text(0.5, 0.72-i*0.18, cap, ha='center', va='center', fontsize=10,
+                bbox=props, transform=ax.transAxes)
+        if i < len(capas)-1:
+            ax.annotate('', xy=(0.5, 0.73-i*0.18-0.08), xytext=(0.5, 0.73-i*0.18-0.01),
+                        xycoords='axes fraction', textcoords='axes fraction',
+                        arrowprops=dict(arrowstyle='->', color='gray'))
+    ax.set_title('Capas de control GFM')
+    ax = axes[0, 1]
+    t = np.linspace(0, 0.02, 1000)
+    # Respuesta ante perturbación con y sin feedforward
+    wc = 2*np.pi*200; wd = 2*np.pi*50
+    y_noff = 1 - np.exp(-wc*t)*(np.cos(wd*t) + wc/wd*np.sin(wd*t))
+    tau_ff = 0.002
+    y_ff = 1 - np.exp(-wc*t)*np.exp(-t/tau_ff)
+    ax.plot(t*1000, np.clip(y_noff, -0.5, 1.5), 'r-', lw=2, label='Sin feedforward')
+    ax.plot(t*1000, np.clip(y_ff, -0.5, 1.5), 'b-', lw=2, label='Con feedforward')
+    ax.axhline(1, color='gray', ls=':', lw=1)
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Tensión (pu)')
+    ax.set_title('Efecto del feedforward de tensión de red'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    f = np.logspace(1, 4, 300); w = 2*np.pi*f
+    wci = 2*np.pi*1000; wcv = 2*np.pi*200; wcf = 2*np.pi*40
+    Li = wci/(1j*w + wci)
+    Lv = wcv/(1j*w + wcv)
+    Lf = wcf/(1j*w + wcf)
+    ax.semilogx(f, 20*np.log10(np.abs(Li)), 'b-', lw=2, label='Lazo corriente (1 kHz)')
+    ax.semilogx(f, 20*np.log10(np.abs(Lv)), 'g-', lw=2, label='Lazo tensión (200 Hz)')
+    ax.semilogx(f, 20*np.log10(np.abs(Lf)), 'r-', lw=2, label='Lazo PSC (40 Hz)')
+    ax.axhline(-3, color='gray', ls=':', lw=1, label='-3 dB')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Ganancia (dB)')
+    ax.set_title('Separación de escalas: 3 lazos'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]; ax.axis('off')
+    tabla = [
+        ['Arquitectura', 'Lazos', 'Aplicación', 'Complejidad'],
+        ['1-DOF PI', '1', 'SISO básico', 'Baja'],
+        ['Cascada', '2-3 anidados', 'Convertidor', 'Media'],
+        ['2-DOF', '1+prefiltro', 'Seguimiento', 'Media'],
+        ['FF+cascada', '2+FF', 'GFM estándar', 'Media-alta'],
+        ['MPC centraliz.', '1 global', 'Microrred', 'Muy alta'],
+        ['RL adaptativo', 'Aprendizaje', 'No lineal', 'Muy alta'],
+    ]
+    table = ax.table(cellText=tabla[1:], colLabels=tabla[0],
+                     cellLoc='center', loc='center', bbox=[0, 0, 1, 1])
+    table.auto_set_font_size(False); table.set_fontsize(9)
+    ax.set_title('Tabla comparativa de arquitecturas')
+    fig.suptitle('Arquitecturas de control: cascada, feedforward, separación de escalas', fontsize=13, fontweight='bold')
+    plt.tight_layout(); _savefig(fig, "arquitecturas-control-analisis")
+
+
+def _control_robusto_hinf_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    f = np.logspace(1, 4, 500); w = 2*np.pi*f
+    wb = 2*np.pi*200; Ms = 2; eps = 0.01
+    wt = 2*np.pi*3000; Mt = 1.25
+    W1 = np.abs((1j*w/Ms + wb)/(1j*w + wb*eps))
+    W2 = np.abs((1j*w + wt/np.sqrt(Mt))/(np.sqrt(Mt)*1j*w + wt))
+    ax = axes[0, 0]
+    ax.semilogx(f, 20*np.log10(W1), 'b-', lw=2, label='|W1(jω)| (plantilla 1/S)')
+    ax.semilogx(f, 20*np.log10(1/W1), 'b--', lw=1, alpha=0.5, label='|1/W1| = plantilla S')
+    ax.semilogx(f, 20*np.log10(W2), 'r-', lw=2, label='|W2(jω)| (plantilla 1/T)')
+    ax.semilogx(f, 20*np.log10(1/W2), 'r--', lw=1, alpha=0.5, label='|1/W2| = plantilla T')
+    ax.axhline(0, color='gray', ls=':', lw=1)
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Magnitud (dB)')
+    ax.set_title('Pesos W1/W2 y plantillas S/T'); ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
+    ax = axes[0, 1]
+    # S y T con y sin H-inf (aproximaciones)
+    wc = 2*np.pi*1000; L_pi = (1 + 1j*w/wc)  # lazo PI simplificado
+    S_pi = 1/(1 + L_pi); T_pi = L_pi/(1 + L_pi)
+    L_hinf = (1 + 1j*w/wc) * (1 + 1j*w/(2*np.pi*500))  # simula controlador H-inf con más ganancia
+    S_hinf = 1/(1 + L_hinf); T_hinf = L_hinf/(1 + L_hinf)
+    ax.semilogx(f, 20*np.log10(np.abs(S_pi)), 'b-', lw=2, label='S — PI clásico')
+    ax.semilogx(f, 20*np.log10(np.abs(S_hinf)), 'b--', lw=2, label='S — H-inf')
+    ax.semilogx(f, 20*np.log10(np.abs(T_pi)), 'r-', lw=2, label='T — PI clásico')
+    ax.semilogx(f, 20*np.log10(np.abs(T_hinf)), 'r--', lw=2, label='T — H-inf')
+    ax.axhline(0, color='gray', ls=':', lw=1)
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Magnitud (dB)')
+    ax.set_title('Funciones S/T: PI vs H-inf'); ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    # Incertidumbre multiplicativa de Lgrid
+    L_nom = 1e-3; L_vals = [0.5e-3, 1e-3, 2e-3, 4e-3]
+    R = 0.1
+    for Lv in L_vals:
+        G_nom = 1/(1j*w*L_nom + R)
+        G_var = 1/(1j*w*Lv + R)
+        dm = np.abs((G_var - G_nom)/G_nom)
+        ax.semilogx(f, 20*np.log10(dm + 1e-6), lw=1.5, label=f'L={Lv*1e3:.1f}mH')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('|Δm| (dB)')
+    ax.set_title('Incertidumbre multiplicativa: variación L_grid'); ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]
+    L_arr = np.array([0.25, 0.5, 1.0, 2.0, 4.0]) * L_nom
+    PM_pi = np.array([58, 52, 45, 28, 12])
+    PM_hinf = np.array([48, 44, 42, 38, 32])
+    ax.plot(L_arr*1e3, PM_pi, 'b-o', lw=2, label='PM — PI clásico')
+    ax.plot(L_arr*1e3, PM_hinf, 'r-s', lw=2, label='PM — H-inf')
+    ax.axhline(30, color='gray', ls='--', label='PM mínimo (30°)')
+    ax.set_xlabel('L_grid (mH)'); ax.set_ylabel('Margen de fase (°)')
+    ax.set_title('Robustez PM vs variación de L_grid'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    fig.suptitle('Control robusto H∞: pesos, S/T, incertidumbre y margen de fase', fontsize=13, fontweight='bold')
+    plt.tight_layout(); _savefig(fig, "control-robusto-hinf-analisis")
+
+
+def _antiresonancia_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy import signal
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    L1=2e-3; L2=0.5e-3; Cf=10e-6; R1=0.05; R2=0.05
+    w = 2*np.pi*np.logspace(1, 5, 2000)
+    # i1/vi: numerador (1 + s^2*L2*Cf)
+    # i2/vi: sin antiresonancia
+    s = 1j*w
+    D = s**3*L1*L2*Cf + s**2*(R1*L2*Cf+R2*L1*Cf) + s*(L1+L2+R1*R2*Cf) + (R1+R2)
+    N1 = s**2*L2*Cf + s*R2*Cf + 1
+    N2 = np.ones_like(s)
+    H1 = N1/D; H2 = N2/D
+    f_hz = w/(2*np.pi)
+    ax = axes[0, 0]
+    ax.semilogx(f_hz, 20*np.log10(np.abs(H1)+1e-10), 'r-', lw=2, label='i1/vi (con antiresonancia)')
+    ax.semilogx(f_hz, 20*np.log10(np.abs(H2)+1e-10), 'b-', lw=2, label='i2/vi (sin antiresonancia)')
+    f_ar = 1/(2*np.pi*np.sqrt(L2*Cf))
+    f_res = 1/(2*np.pi)*np.sqrt((L1+L2)/(L1*L2*Cf))
+    ax.axvline(f_ar, color='r', ls=':', lw=1.5, label=f'f_ar={f_ar:.0f}Hz')
+    ax.axvline(f_res, color='b', ls=':', lw=1.5, label=f'f_res={f_res:.0f}Hz')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Magnitud (dB)')
+    ax.set_title('Bode: i1/vi vs i2/vi'); ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
+    ax = axes[0, 1]
+    ax.semilogx(f_hz, np.degrees(np.angle(H1)), 'r-', lw=2, label='∠(i1/vi)')
+    ax.semilogx(f_hz, np.degrees(np.angle(H2)), 'b-', lw=2, label='∠(i2/vi)')
+    ax.axvline(f_ar, color='r', ls=':', lw=1.5)
+    ax.axvline(f_res, color='b', ls=':', lw=1.5)
+    ax.axhline(-180, color='gray', ls='--', lw=1)
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Fase (°)')
+    ax.set_title('Fase: repunte de +180° en f_ar'); ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    # Admitancia del paralelo Cf||L2
+    Y_par = s*Cf + 1/(s*L2+R2)
+    ax.semilogx(f_hz, 20*np.log10(np.abs(Y_par)+1e-10), 'g-', lw=2, label='|Y_par(Cf||L2)|')
+    ax.axvline(f_ar, color='r', ls=':', lw=1.5, label=f'f_ar={f_ar:.0f}Hz (mínimo)')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Admitancia (dB S)')
+    ax.set_title('Admitancia Cf||L2: mínimo en f_ar'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]
+    # Ratio fres/far vs L2/L1
+    r_arr = np.linspace(0.1, 2, 100)
+    ratio = np.sqrt(1 + r_arr)
+    ax.plot(r_arr, ratio, 'b-', lw=2, label='f_res/f_ar = √(1+L2/L1)')
+    ax.axhline(1, color='gray', ls=':', lw=1)
+    ax.scatter([L2/L1], [np.sqrt(1+L2/L1)], color='red', s=100, zorder=5, label=f'Proyecto: L2/L1={L2/L1:.2f}')
+    ax.set_xlabel('r = L2/L1'); ax.set_ylabel('f_res/f_ar')
+    ax.set_title('Ratio resonancia/antiresonancia vs L2/L1'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    fig.suptitle('Antiresonancia en filtro LCL: Bode, admitancia y ratio f_res/f_ar', fontsize=13, fontweight='bold')
+    plt.tight_layout(); _savefig(fig, "antiresonancia-analisis")
+
+
+def _amortiguamiento_pasivo_vs_activo_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    L1=2e-3; L2=0.5e-3; Cf=10e-6; R1=0.05; R2=0.05
+    w = 2*np.pi*np.logspace(1, 5, 2000)
+    s = 1j*w
+    w_res = np.sqrt((L1+L2)/(L1*L2*Cf))
+    Rd_opt = 1/(3*w_res*Cf)
+    Kad = Rd_opt
+    def lcl_i2vi(Rd_series=0, Kad_virt=0):
+        # Rd en serie con Cf; Kad actúa como R en L1
+        Ztotal = (s*L1 + R1 + Kad_virt) + 1/(s*Cf + 1/(Rd_series + 1e-10) if Rd_series > 0 else s*Cf)
+        # Simplificación: transferencia i2/vi analítica con amortiguamiento
+        R_eff = R1 + Kad_virt; Rd_cf = Rd_series
+        D = s**3*L1*L2*Cf + s**2*(R_eff*L2*Cf + (R2+Rd_cf)*L1*Cf + R_eff*(R2+Rd_cf)*Cf) + \
+            s*(L1+L2+(R_eff*(R2+Rd_cf))*Cf) + (R_eff+R2+Rd_cf)
+        N = 1
+        return N/D
+    H_nodam = lcl_i2vi(0, 0)
+    H_pasivo = lcl_i2vi(Rd_opt, 0)
+    H_activo = lcl_i2vi(0, Kad)
+    f_hz = w/(2*np.pi)
+    ax = axes[0, 0]
+    ax.semilogx(f_hz, 20*np.log10(np.abs(H_nodam)+1e-10), 'gray', lw=1.5, ls='--', label='Sin amortiguamiento')
+    ax.semilogx(f_hz, 20*np.log10(np.abs(H_pasivo)+1e-10), 'r-', lw=2, label=f'Pasivo Rd={Rd_opt:.1f}Ω')
+    ax.semilogx(f_hz, 20*np.log10(np.abs(H_activo)+1e-10), 'b-', lw=2, label=f'Activo Kad={Kad:.1f}Ω')
+    ax.set_ylim([-80, 20]); ax.axhline(0, color='k', ls=':', lw=0.5)
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Magnitud (dB)')
+    ax.set_title('Bode i2/vi: sin dam., pasivo y activo'); ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
+    ax = axes[0, 1]
+    Rd_arr = np.linspace(0.1, 20, 200)
+    Q_arr = 1/(Rd_arr * Cf * w_res)
+    ax.plot(Rd_arr, Q_arr, 'b-', lw=2)
+    ax.axhline(3, color='r', ls='--', label='Q=3 (Rd óptimo)')
+    ax.axvline(Rd_opt, color='g', ls=':', lw=1.5, label=f'Rd_opt={Rd_opt:.1f}Ω')
+    ax.set_xlabel('Rd (Ω)'); ax.set_ylabel('Factor Q')
+    ax.set_title('Factor de calidad Q vs Rd'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    Icf_rms_arr = np.linspace(0, 10, 100)
+    for Rd_val, col, lab in [(Rd_opt, 'r', f'Rd={Rd_opt:.1f}Ω'), (Rd_opt/3, 'orange', f'Rd={Rd_opt/3:.1f}Ω')]:
+        P_arr = Rd_val * Icf_rms_arr**2
+        ax.plot(Icf_rms_arr, P_arr, color=col, lw=2, label=f'Pasivo {lab}')
+    ax.axhline(0, color='b', lw=2, label='Activo (0 W)')
+    ax.set_xlabel('I_Cf,rms (A)'); ax.set_ylabel('Pérdidas (W)')
+    ax.set_title('Pérdidas en R_d vs corriente de Cf'); ax.legend(fontsize=7); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]
+    # PM del lazo de corriente vs Kad
+    Kad_arr = np.linspace(0, 5*Rd_opt, 50)
+    PM_arr = np.zeros(len(Kad_arr))
+    wc_target = 2*np.pi*500
+    for ki, Kd in enumerate(Kad_arr):
+        w_sweep = np.logspace(2, 4, 2000)
+        s2 = 1j*w_sweep
+        D2 = s2**3*L1*L2*Cf + s2**2*((R1+Kd)*L2*Cf + R2*L1*Cf) + s2*(L1+L2) + (R1+Kd+R2)
+        H_ad = 1/D2
+        mag = np.abs(H_ad)
+        idx = np.argmin(np.abs(mag - mag[0]*wc_target/w_sweep[0]))
+        PM_arr[ki] = 180 + np.degrees(np.angle(H_ad[idx]))
+    ax.plot(Kad_arr, np.clip(PM_arr, 0, 90), 'b-', lw=2)
+    ax.axhline(45, color='r', ls='--', label='PM objetivo=45°')
+    ax.axvline(Rd_opt, color='g', ls=':', lw=1.5, label=f'Kad_opt={Rd_opt:.1f}Ω')
+    ax.set_xlabel('Kad (Ω)'); ax.set_ylabel('Margen de fase (°)')
+    ax.set_title('PM del lazo de corriente vs Kad (AD activo)'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    fig.suptitle('Amortiguamiento pasivo vs activo: Bode, Q, pérdidas y margen de fase', fontsize=13, fontweight='bold')
+    plt.tight_layout(); _savefig(fig, "amortiguamiento-pasivo-vs-activo-analisis")
+
+
 def main():
     pref = sys.argv[1] if len(sys.argv) > 1 else None
     n = 0
@@ -8602,6 +14468,279 @@ def main():
         n += 1
     if pref is None or "generador-sincrono".startswith(pref):
         _sg_extended()
+        n += 1
+    if pref is None or "linealizacion-numerica".startswith(pref):
+        _linnumerica_extended()
+        n += 1
+    if pref is None or "respuesta-frecuencia-ss".startswith(pref):
+        _freqss_extended()
+        n += 1
+    if pref is None or "medicion-impedancia-inyeccion".startswith(pref):
+        _measz_extended()
+        n += 1
+    if pref is None or "barrido-parametrico".startswith(pref):
+        _barrido_extended()
+        n += 1
+    if pref is None or "discretizacion-controladores".startswith(pref):
+        _disc_extended()
+        n += 1
+    if pref is None or "lugar-raices".startswith(pref):
+        _rlocus_extended()
+        n += 1
+    if pref is None or "muestreo-aliasing".startswith(pref):
+        _aliasing_extended()
+        n += 1
+    if pref is None or "transformada-z".startswith(pref):
+        _ztransform_extended()
+        n += 1
+    if pref is None or "droop-dc".startswith(pref):
+        _droopdc_extended()
+        n += 1
+    if pref is None or "rectificador-afe".startswith(pref):
+        _afe_extended()
+        n += 1
+    if pref is None or "statcom-svc".startswith(pref):
+        _statcom_extended()
+        n += 1
+    if pref is None or "ecuacion-oscilacion".startswith(pref):
+        _swing_extended()
+        n += 1
+    if pref is None or "armonicos-thd-convertidores".startswith(pref):
+        _thd_extended()
+        n += 1
+    if pref is None or "convertidor-dc-dc".startswith(pref):
+        _dcdc_extended()
+        n += 1
+    if pref is None or "fotovoltaica-mppt".startswith(pref):
+        _pv_extended()
+        n += 1
+    if pref is None or "eolica-mppt".startswith(pref):
+        _mppt_extended()
+        n += 1
+    if pref is None or "modelo-bateria-bess".startswith(pref):
+        _bess_extended()
+        n += 1
+    if pref is None or "diagrama-bloques".startswith(pref):
+        _diagrama_bloques_analisis()
+        n += 1
+    if pref is None or "series-fourier".startswith(pref):
+        _series_fourier_analisis()
+        n += 1
+    if pref is None or "controlador-resonante".startswith(pref):
+        _controlador_resonante_analisis()
+        n += 1
+    if pref is None or "power-synchronization-control".startswith(pref):
+        _power_synchronization_control_analisis()
+        n += 1
+    if pref is None or "compensador-adelanto-atraso".startswith(pref):
+        _compensador_adelanto_atraso_analisis()
+        n += 1
+    if pref is None or "frecuencias-segundo-orden".startswith(pref):
+        _frecuencias_segundo_orden_analisis()
+        n += 1
+    if pref is None or "antiresonancia".startswith(pref):
+        _antires_extended()
+        n += 1
+    if pref is None or "amortiguamiento-pasivo-vs-activo".startswith(pref):
+        _amort_pasivo_activo_extended()
+        n += 1
+    if pref is None or "deteccion-islanding".startswith(pref):
+        _ndz_extended()
+        n += 1
+    if pref is None or "fenomenos-oscilatorios-red".startswith(pref):
+        _sso_extended()
+        n += 1
+    if pref is None or "series-taylor".startswith(pref):
+        _taylor_extended()
+        n += 1
+    if pref is None or "virtual-oscillator-control".startswith(pref):
+        _voc_extended()
+        n += 1
+    if pref is None or "asignacion-polos-lqr".startswith(pref):
+        _lqrext()
+        n += 1
+    if pref is None or "control-predictivo".startswith(pref):
+        _mpcext()
+        n += 1
+    if pref is None or "robustez-parametrica".startswith(pref):
+        _robext()
+        n += 1
+    if pref is None or "valores-singulares-mimo".startswith(pref):
+        _svdext()
+        n += 1
+    if pref is None or "clasificacion-estabilidad".startswith(pref):
+        _clasest()
+        n += 1
+    if pref is None or "semiconductores-potencia".startswith(pref):
+        _semipow()
+        n += 1
+    if pref is None or "topologias-multinivel".startswith(pref):
+        _multilev()
+        n += 1
+    if pref is None or "impedancia-reactancia".startswith(pref):
+        _zxext()
+        n += 1
+    if pref is None or "valor-rms-factor-potencia".startswith(pref):
+        _vrmsext()
+        n += 1
+    if pref is None or "modelo-linea-distribucion".startswith(pref):
+        _linedist()
+        n += 1
+    if pref is None or "metodos-sintesis-control".startswith(pref):
+        _syntext()
+        n += 1
+    if pref is None or "arquitecturas-control".startswith(pref):
+        _archctrl()
+        n += 1
+    if pref is None or "control-robusto-hinf".startswith(pref):
+        _hinfext()
+        n += 1
+    if pref is None or "validacion-cruzada".startswith(pref):
+        _valcruz_analisis()
+        n += 1
+    if pref is None or "niveles-validacion".startswith(pref):
+        _nivval_analisis()
+        n += 1
+    if pref is None or "ciclo-diseno-control".startswith(pref):
+        _cicdis_analisis()
+        n += 1
+    if pref is None or "especificaciones-control".startswith(pref):
+        _espctrl_analisis()
+        n += 1
+    if pref is None or "pruebas-validacion".startswith(pref):
+        _prueba_analisis()
+        n += 1
+    if pref is None or "calidad-potencia".startswith(pref):
+        _calpot_analisis()
+        n += 1
+    if pref is None or "simulacion-conmutada".startswith(pref):
+        _conmut_analisis()
+        n += 1
+    if pref is None or "fft-analisis-espectral".startswith(pref):
+        _fftanal_analisis()
+        n += 1
+    if pref is None or "hil-phil".startswith(pref):
+        _hilphil_analisis()
+        n += 1
+    if pref is None or "equilibrio-fsolve".startswith(pref):
+        _fsolve_analisis()
+        n += 1
+    if pref is None or "integracion-edos-stiff".startswith(pref):
+        _stiff_analisis()
+        n += 1
+    if pref is None or "armonicos-thd".startswith(pref):
+        _thdext()
+        n += 1
+    if pref is None or "convertidor-dc-dc-analisis".startswith(pref):
+        _convertidor_dc_dc_analisis()
+        n += 1
+    if pref is None or "fotovoltaica-mppt-analisis".startswith(pref):
+        _fotovoltaica_mppt_analisis()
+        n += 1
+    if pref is None or "eolica-mppt-analisis".startswith(pref):
+        _eolica_mppt_analisis()
+        n += 1
+    if pref is None or "sistema-primer-orden-analisis".startswith(pref):
+        _sistema_primer_orden_analisis()
+        n += 1
+    if pref is None or "current-limiting-analisis".startswith(pref):
+        _current_limiting_analisis()
+        n += 1
+    if pref is None or "controlabilidad-observabilidad-analisis".startswith(pref):
+        _controlabilidad_observabilidad_analisis()
+        n += 1
+    if pref is None or "observador-estados-analisis".startswith(pref):
+        _observador_estados_analisis()
+        n += 1
+    if pref is None or "control-repetitivo-analisis".startswith(pref):
+        _control_repetitivo_analisis()
+        n += 1
+    if pref is None or "diagrama-bloques-analisis".startswith(pref):
+        _diagrama_bloques_analisis()
+        n += 1
+    if pref is None or "series-fourier-analisis".startswith(pref):
+        _series_fourier_analisis()
+        n += 1
+    if pref is None or "controlador-resonante-analisis".startswith(pref):
+        _controlador_resonante_analisis()
+        n += 1
+    if pref is None or "power-synchronization-control-analisis".startswith(pref):
+        _power_synchronization_control_analisis()
+        n += 1
+    if pref is None or "compensador-adelanto-atraso-analisis".startswith(pref):
+        _compensador_adelanto_atraso_analisis()
+        n += 1
+    if pref is None or "frecuencias-segundo-orden-analisis".startswith(pref):
+        _frecuencias_segundo_orden_analisis()
+        n += 1
+    if pref is None or "modelado-sistemas-analisis".startswith(pref):
+        _modelado_sistemas_analisis()
+        n += 1
+    if pref is None or "carga-pulsante-datacenter-analisis".startswith(pref):
+        _carga_pulsante_datacenter_analisis()
+        n += 1
+    if pref is None or "convertidor-back-to-back-analisis".startswith(pref):
+        _convertidor_back_to_back_analisis()
+        n += 1
+    if pref is None or "metricas-desempeno-analisis".startswith(pref):
+        _metricas_desempeno_analisis()
+        n += 1
+    if pref is None or "control-jerarquico-microrred-analisis".startswith(pref):
+        _control_jerarquico_microrred_analisis()
+        n += 1
+    if pref is None or "servicios-red-soporte-analisis".startswith(pref):
+        _servicios_red_soporte_analisis()
+        n += 1
+    if pref is None or "topologias-multinivel-analisis".startswith(pref):
+        _topologias_multinivel_analisis()
+        n += 1
+    if pref is None or "impedancia-reactancia-analisis".startswith(pref):
+        _impedancia_reactancia_analisis()
+        n += 1
+    if pref is None or "valor-rms-factor-potencia-analisis".startswith(pref):
+        _valor_rms_factor_potencia_analisis()
+        n += 1
+    if pref is None or "modelo-linea-distribucion-analisis".startswith(pref):
+        _modelo_linea_distribucion_analisis()
+        n += 1
+    if pref is None or "metodos-sintesis-control-analisis".startswith(pref):
+        _metodos_sintesis_control_analisis()
+        n += 1
+    if pref is None or "arquitecturas-control-analisis".startswith(pref):
+        _arquitecturas_control_analisis()
+        n += 1
+    if pref is None or "control-robusto-hinf-analisis".startswith(pref):
+        _control_robusto_hinf_analisis()
+        n += 1
+    if pref is None or "antiresonancia-analisis".startswith(pref):
+        _antiresonancia_analisis()
+        n += 1
+    if pref is None or "amortiguamiento-pasivo-vs-activo-analisis".startswith(pref):
+        _amortiguamiento_pasivo_vs_activo_analisis()
+        n += 1
+    if pref is None or "deteccion-islanding-analisis".startswith(pref):
+        _deteccion_islanding_analisis()
+        n += 1
+    if pref is None or "fenomenos-oscilatorios-red-analisis".startswith(pref):
+        _fenomenos_oscilatorios_red_analisis()
+        n += 1
+    if pref is None or "virtual-oscillator-control-analisis".startswith(pref):
+        _virtual_oscillator_control_analisis()
+        n += 1
+    if pref is None or "validacion-cruzada-analisis".startswith(pref):
+        _validacion_cruzada_analisis()
+        n += 1
+    if pref is None or "niveles-validacion-analisis".startswith(pref):
+        _niveles_validacion_analisis()
+        n += 1
+    if pref is None or "ciclo-diseno-control-analisis".startswith(pref):
+        _ciclo_diseno_control_analisis()
+        n += 1
+    if pref is None or "calidad-potencia-analisis".startswith(pref):
+        _calidad_potencia_analisis()
+        n += 1
+    if pref is None or "integracion-edos-stiff-analisis".startswith(pref):
+        _integracion_edos_stiff_analisis()
         n += 1
     print(f"--- {n} grupo(s) de figuras generados en figuras/")
 
@@ -8987,6 +15126,1132 @@ def _ff_extended():
                  fontsize=12, fontweight="bold")
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     _savefig(fig, "control-feedforward-analisis.png")
+
+
+# ===================================================================== #
+#  asignacion-polos-lqr-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _lqrext():
+    """4 paneles: (a) escalon LQR vs PI, (b) polos vs Q, (c) Bode PM LQR, (d) singular values retorno."""
+    import scipy.linalg as la
+    import scipy.signal as sig
+
+    L1, L2, Cf = 2e-3, 1.5e-3, 270e-6
+    R1, R2 = 50e-3, 40e-3
+    A = np.array([[0, -1/L1, 0],
+                  [1/Cf, 0, -1/Cf],
+                  [0, 1/L2, -R2/L2]])
+    B = np.array([[1/L1], [0], [0]])
+    C = np.array([[0, 0, 1]])
+
+    # Bryson Q, R nominales
+    Q0 = np.diag([1/1500**2, 1/700**2, 1/1500**2])
+    R0 = np.array([[1/800**2]])
+
+    def lqr_solve(Q, R):
+        P = la.solve_continuous_are(A, B, Q, R)
+        K = np.linalg.solve(R, B.T @ P)
+        return K, np.linalg.eigvals(A - B @ K)
+
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    # (a) escalon LQR vs PI en i_L2
+    K0, _ = lqr_solve(Q0, R0)
+    Acl = A - B @ K0
+    Ts = 1e-5; T = np.arange(0, 0.015, Ts)
+    ref = 1000.0
+    # LQR simulation
+    x = np.zeros(3); lqr_out = []
+    for _ in T:
+        u = float(-K0 @ x + ref * K0[0, 2] / (C @ np.linalg.solve(-Acl, B))[0, 0])
+        u = np.clip(u, -800, 800)
+        x = x + Ts * (A @ x + B.flatten() * u)
+        lqr_out.append(x[2])
+    lqr_out = np.array(lqr_out)
+    # PI classical (alpha_c = 2pi*500 Hz)
+    alpha_c = 2 * np.pi * 500
+    Kp_pi = alpha_c * L2; Ki_pi = alpha_c * R2
+    i2 = 0.0; xi = 0.0; pi_out = []
+    for _ in T:
+        e = ref - i2
+        u_pi = np.clip(Kp_pi * e + xi, -800, 800)
+        xi += Ki_pi * e * Ts
+        i2 += Ts * (u_pi - R2 * i2) / L2
+        pi_out.append(i2)
+    pi_out = np.array(pi_out)
+    a1.plot(T * 1e3, lqr_out, color=ACC, lw=2.0, label="LQR")
+    a1.plot(T * 1e3, pi_out, color=BAD, lw=2.0, ls="--", label="PI clásico")
+    a1.axhline(ref, color="#888", ls=":", lw=1.2, label="ref")
+    a1.set_xlabel("t [ms]"); a1.set_ylabel("$i_{L2}$ [A]")
+    a1.set_title("(a) Escalón de corriente: LQR vs PI\nLCL lazo cerrado")
+    a1.legend(fontsize=8.5); a1.set_xlim(0, 15)
+
+    # (b) mapa de polos para distintos Q (barrer escala de Q11)
+    rhos = [0.1, 0.3, 1.0, 3.0, 10.0, 30.0]
+    colors_rho = plt.cm.viridis(np.linspace(0, 1, len(rhos)))
+    for rho, col in zip(rhos, colors_rho):
+        _, poles = lqr_solve(rho * Q0, R0)
+        a2.scatter(poles.real, poles.imag, color=col, s=60, zorder=5,
+                   label=f"ρ={rho}")
+    a2.axvline(0, color="#888", lw=1.0); a2.axhline(0, color="#888", lw=1.0)
+    a2.set_xlabel("Re(λ) [rad/s]"); a2.set_ylabel("Im(λ) [rad/s]")
+    a2.set_title("(b) Polos de $A-BK$ vs escala $\\rho Q$\nmás Q → polos más rápidos")
+    a2.legend(fontsize=7, ncol=2)
+
+    # (c) Bode del margen de fase con LQR (lazo en el actuador)
+    omega = np.logspace(2, 5, 500)
+    s = 1j * omega
+    # lazo L = K(sI-A)^{-1}B en la entrada (return difference)
+    Lmag = np.zeros(len(omega)); Lphase = np.zeros(len(omega))
+    for ki, w in enumerate(omega):
+        sIA_inv = np.linalg.inv(s[ki] * np.eye(3) - A)
+        L_val = float(np.real(K0 @ sIA_inv @ B))
+        L_imag = float(np.imag(K0 @ sIA_inv @ B))
+        L_c = complex(L_val, L_imag)
+        Lmag[ki] = abs(L_c)
+        Lphase[ki] = np.angle(L_c, deg=True)
+    idx_c = np.argmin(np.abs(Lmag - 1.0))
+    pm = 180 + Lphase[idx_c]
+    a3.semilogx(omega / (2 * np.pi), 20 * np.log10(Lmag + 1e-12),
+                color=ACC, lw=2.0, label="|L(jω)|")
+    a3.axhline(0, color="#888", ls=":", lw=1.2)
+    a3.axvline(omega[idx_c] / (2 * np.pi), color=BAD, ls="--", lw=1.2,
+               label=f"ωc: PM={pm:.0f}°")
+    a3.set_xlabel("f [Hz]"); a3.set_ylabel("|L| [dB]")
+    a3.set_title(f"(c) Bode del lazo LQR\nPM≥60° garantizado por el LQR")
+    a3.legend(fontsize=8.5); a3.grid(True, which="both", alpha=0.3)
+
+    # (d) valores singulares de la función de retorno I + K(sI-A)^{-1}B
+    sv_min = np.zeros(len(omega))
+    for ki, w in enumerate(omega):
+        sIA_inv = np.linalg.inv(s[ki] * np.eye(3) - A)
+        ret = np.eye(1) + K0 @ sIA_inv @ B
+        sv_min[ki] = np.linalg.svd(ret, compute_uv=False)[-1]
+    a4.semilogx(omega / (2 * np.pi), 20 * np.log10(sv_min + 1e-12),
+                color=ACC, lw=2.0, label=r"$\sigma_{min}(I+L)$")
+    a4.axhline(20 * np.log10(1 / np.sqrt(2)), color=BAD, ls="--", lw=1.2,
+               label=f"1/sqrt(2) = -3 dB (limite)")
+    a4.set_xlabel("f [Hz]"); a4.set_ylabel("sigma [dB]")
+    a4.set_title("(d) Locus de valores singulares de retorno\n" r"$\sigma_{min}(I+L)\geq 1/\sqrt{2}$")
+    a4.legend(fontsize=8.5); a4.grid(True, which="both", alpha=0.3)
+
+    fig.suptitle("LQR — análisis extendido  "
+                 f"(L1={L1*1e3:.0f} mH, L2={L2*1e3:.1f} mH, Cf={Cf*1e6:.0f} µF)",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "asignacion-polos-lqr-analisis.png")
+
+
+# ===================================================================== #
+#  control-predictivo-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _mpcext():
+    """4 paneles: (a) prediccion MPC N=3, (b) accion de control MPC vs PI,
+    (c) tiempo de computo QP vs N, (d) comparativa dinamica MPC vs PI con restriccion."""
+    L, R = 1.5e-3, 40e-3
+    Ts = 100e-6
+    imax = 1.2 * 1500.0  # 1.2 pu
+    umax = 800.0
+    ref = 1000.0
+
+    Ad = 1 - R / L * Ts
+    Bd = Ts / L
+
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    # (a) prediccion del MPC con N=3
+    N = 3
+    T_show = np.arange(0, 0.008, Ts)
+    # simulate true system with simple MPC (unconstrained, N=3)
+    def build_FH(Ad, Bd, N):
+        F = np.array([[Ad**j] for j in range(1, N+1)])
+        H = np.zeros((N, N))
+        for i in range(N):
+            for j in range(i+1):
+                H[i, j] = Ad**(i-j) * Bd
+        return F, H
+
+    F, H = build_FH(Ad, Bd, N)
+    Q_mpc = np.eye(N) * (1 / ref**2)
+    R_mpc = np.eye(N) * (1 / umax**2)
+    Kmpc = np.linalg.solve(H.T @ Q_mpc @ H + R_mpc, H.T @ Q_mpc)
+
+    x = 0.0; i_out = []; u_out = []
+    t_step = 0.001
+    for tk in T_show:
+        r_k = ref if tk >= t_step else 0.0
+        r_vec = np.full(N, r_k)
+        u_seq = Kmpc @ (r_vec - F.flatten() * x)
+        u_k = float(np.clip(u_seq[0], -umax, umax))
+        x = Ad * x + Bd * u_k
+        i_out.append(x); u_out.append(u_k)
+
+    # show prediction at one time step
+    t_pred_idx = int(0.0015 / Ts)
+    x_pred = i_out[t_pred_idx]
+    r_at = ref
+    pred_i = [x_pred]
+    for _ in range(N):
+        u_seq = Kmpc @ (np.full(N, r_at) - F.flatten() * pred_i[-1])
+        u_p = float(np.clip(u_seq[0], -umax, umax))
+        pred_i.append(Ad * pred_i[-1] + Bd * u_p)
+    t_base = T_show[t_pred_idx]
+    t_pred_axis = np.arange(N+1) * Ts * 1e3 + t_base * 1e3
+
+    a1.plot(T_show * 1e3, i_out, color=ACC, lw=2.0, label="$i_{L2}$ real")
+    a1.axhline(ref, color="#888", ls=":", lw=1.2, label="ref")
+    a1.plot(t_pred_axis, pred_i, "o--", color=OK, lw=1.5, ms=5,
+            label=f"prediccion N={N}")
+    a1.set_xlabel("t [ms]"); a1.set_ylabel("$i_{L2}$ [A]")
+    a1.set_title(f"(a) Predicción MPC N={N}, Ts={Ts*1e6:.0f} µs\ntrayectorias predichas")
+    a1.legend(fontsize=8.5)
+
+    # (b) accion de control MPC vs PI con anti-windup
+    alpha_c = 2 * np.pi * 1000
+    Kp_pi = alpha_c * L; Ki_pi = alpha_c * R
+    T2 = T_show.copy()
+    xi = 0.0; i_pi = 0.0; u_pi_out = []
+    for tk in T2:
+        r_k = ref if tk >= t_step else 0.0
+        e = r_k - i_pi
+        u_p = Kp_pi * e + xi
+        u_sat = float(np.clip(u_p, -umax, umax))
+        xi += (Ki_pi * e + (u_sat - u_p) / (L / R)) * Ts  # back-calc AW
+        i_pi = Ad * i_pi + Bd * u_sat
+        u_pi_out.append(u_sat)
+
+    a2.plot(T_show * 1e3, u_out, color=ACC, lw=2.0, label="MPC")
+    a2.plot(T2 * 1e3, u_pi_out, color=BAD, lw=2.0, ls="--", label="PI + AW")
+    a2.axhline(umax, color="#aaa", ls=":", lw=1.0)
+    a2.axhline(-umax, color="#aaa", ls=":", lw=1.0)
+    a2.set_xlabel("t [ms]"); a2.set_ylabel("u [V]")
+    a2.set_title("(b) Acción de control: saturación suave MPC\nvs PI con anti-windup")
+    a2.legend(fontsize=8.5)
+
+    # (c) tiempo de computo del QP vs N (estimated via matrix inversion size)
+    Ns = np.arange(1, 16)
+    t_qp = 0.5 * Ns**3 + 2.0 * Ns**2  # µs, approximation O(N^3)
+    a3.plot(Ns, t_qp, "o-", color=ACC, lw=2.0, ms=6)
+    a3.axhline(50, color=BAD, ls="--", lw=1.2, label="50 µs (limite Ts=100µs)")
+    a3.set_xlabel("Horizonte N"); a3.set_ylabel("Tiempo QP estimado [µs]")
+    a3.set_title("(c) Coste computacional del QP vs N\nN≤5 factible con DSP moderno")
+    a3.legend(fontsize=8.5); a3.grid(True, alpha=0.3)
+
+    # (d) comparativa dinamica MPC vs PI con restriccion activa
+    imax_restrict = 800.0  # limite bajo para forzar restriccion
+    T3 = np.arange(0, 0.012, Ts)
+    ref3 = 1200.0
+    # MPC con restriccion de corriente (por clipping en prediccion)
+    x3 = 0.0; mpc_r_out = []; mpc_u_out = []
+    for tk in T3:
+        r_k = ref3 if tk >= 0.001 else 0.0
+        r_vec = np.full(N, r_k)
+        u_seq = Kmpc @ (r_vec - F.flatten() * x3)
+        u_k = float(np.clip(u_seq[0], -umax, umax))
+        x3_next = Ad * x3 + Bd * u_k
+        if abs(x3_next) > imax_restrict:
+            u_k = (np.sign(x3_next) * imax_restrict - Ad * x3) / Bd
+            u_k = float(np.clip(u_k, -umax, umax))
+        x3 = Ad * x3 + Bd * u_k
+        mpc_r_out.append(x3); mpc_u_out.append(u_k)
+    # PI sin restriccion de corriente
+    xi3 = 0.0; i3 = 0.0; pi3_out = []
+    for tk in T3:
+        r_k = ref3 if tk >= 0.001 else 0.0
+        e = r_k - i3
+        u_p = Kp_pi * e + xi3
+        u_sat = float(np.clip(u_p, -umax, umax))
+        xi3 += (Ki_pi * e + (u_sat - u_p) / (L / R)) * Ts
+        i3 = Ad * i3 + Bd * u_sat
+        pi3_out.append(i3)
+    a4.plot(T3 * 1e3, mpc_r_out, color=ACC, lw=2.0, label="MPC (con restricción)")
+    a4.plot(T3 * 1e3, pi3_out, color=BAD, lw=2.0, ls="--", label="PI (sin restricción)")
+    a4.axhline(imax_restrict, color=OK, ls=":", lw=1.5, label=f"$i_{{max}}$={imax_restrict:.0f} A")
+    a4.axhline(ref3, color="#888", ls=":", lw=1.0, label="ref")
+    a4.set_xlabel("t [ms]"); a4.set_ylabel("$i_{L2}$ [A]")
+    a4.set_title("(d) Comparativa MPC vs PI ante escalón\ncon restricción de corriente activa")
+    a4.legend(fontsize=8.0)
+
+    fig.suptitle("MPC — análisis extendido  "
+                 f"(L={L*1e3:.1f} mH, Ts={Ts*1e6:.0f} µs, N={N}, $i_{{max}}$={imax_restrict:.0f} A)",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "control-predictivo-analisis.png")
+
+
+# ===================================================================== #
+#  robustez-parametrica-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _robext():
+    """4 paneles: (a) Bode PM vs L para L=1.6/2.0/2.4 mH,
+    (b) autovalores para distintos L, (c) ||wm*T||_inf vs freq,
+    (d) mu(omega) para GFM con incertidumbre parametrica."""
+    R1_nom = 50e-3
+    L1_vals = [1.6e-3, 2.0e-3, 2.4e-3]
+    alpha_c = 2 * np.pi * 750.0
+    Td = 100e-6  # retardo de un periodo
+    omega = np.logspace(2, 5, 600)
+
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    # (a) Bode margen de fase para distintos L
+    cols_l = [BAD, ACC, OK]
+    labels_l = ["L=1.6 mH", "L=2.0 mH (nom)", "L=2.4 mH"]
+    for L1, col, lab in zip(L1_vals, cols_l, labels_l):
+        Kp = L1_vals[1] * alpha_c   # ganancia fija al nominal
+        Ki = R1_nom * alpha_c
+        s = 1j * omega
+        L_loop = Kp * (1 + s / (Ki / Kp)) / (s / (Ki / Kp)) / (s * L1 + R1_nom) * np.exp(-s * Td)
+        mag = np.abs(L_loop)
+        phase = np.angle(L_loop, deg=True)
+        idx_c = np.argmin(np.abs(mag - 1.0))
+        pm = 180 + phase[idx_c]
+        a1.semilogx(omega / (2 * np.pi), 20 * np.log10(mag + 1e-12),
+                    color=col, lw=2.0, label=f"{lab} (PM={pm:.0f}°)")
+    a1.axhline(0, color="#888", ls=":", lw=1.2)
+    a1.set_xlabel("f [Hz]"); a1.set_ylabel("|L| [dB]")
+    a1.set_title("(a) Bode del lazo de corriente vs $L_1$\nPM disminuye al subir $L_1$")
+    a1.legend(fontsize=8.0); a1.grid(True, which="both", alpha=0.3)
+
+    # (b) autovalores del sistema de corriente para distintos L (PI + planta RL)
+    # 2nd order closed-loop: L*s^2 + (R+Kp)*s + Ki = 0
+    for L1, col, lab in zip(L1_vals, cols_l, labels_l):
+        Kp = L1_vals[1] * alpha_c
+        Ki = R1_nom * alpha_c
+        coeffs = [L1, R1_nom + Kp, Ki]
+        poles = np.roots(coeffs)
+        a2.scatter(poles.real, poles.imag, color=col, s=80, zorder=5, label=lab, marker="x")
+    a2.axvline(0, color="#888", lw=1.0); a2.axhline(0, color="#888", lw=1.0)
+    a2.set_xlabel("Re(λ) [rad/s]"); a2.set_ylabel("Im(λ) [rad/s]")
+    a2.set_title("(b) Autovalores del lazo cerrado vs $L_1$\nvariación ±20% alrededor del nominal")
+    a2.legend(fontsize=8.5)
+
+    # (c) norma ||wm*T||_inf vs frecuencia (incertidumbre multiplicativa)
+    L1_nom = 2.0e-3
+    Kp_nom = L1_nom * alpha_c; Ki_nom = R1_nom * alpha_c
+    s = 1j * omega
+    G_nom = 1.0 / (s * L1_nom + R1_nom)
+    C_pi = Kp_nom * (1 + s / (Ki_nom / Kp_nom)) / (s / (Ki_nom / Kp_nom))
+    L_nom = C_pi * G_nom * np.exp(-s * Td)
+    T_nom = L_nom / (1 + L_nom)  # complementary sensitivity
+    # weight wm: uncertainty model wm(s)*Delta, Delta <= 1
+    # worst-case uncertainty: dL/L at 20% L variation
+    wm = 0.2 * np.ones(len(omega))  # flat 20% weight (conservative)
+    crit = np.abs(wm * T_nom)
+    a3.semilogx(omega / (2 * np.pi), 20 * np.log10(crit + 1e-12),
+                color=ACC, lw=2.0, label="$|w_m \\cdot T|$")
+    a3.axhline(0, color=BAD, ls="--", lw=1.5, label="0 dB (límite robustez)")
+    a3.fill_between(omega / (2 * np.pi),
+                    20 * np.log10(crit + 1e-12),
+                    0, where=(crit > 1),
+                    alpha=0.2, color=BAD, label="zona insegura")
+    a3.set_xlabel("f [Hz]"); a3.set_ylabel("[dB]")
+    a3.set_title("(c) $\\|w_m T\\|_\\infty$ vs frecuencia\n$<0$ dB → robusto ante ±20% en $L_1$")
+    a3.legend(fontsize=8.5); a3.grid(True, which="both", alpha=0.3)
+
+    # (d) mu(omega) - approximation via structured singular value bound
+    # For 1 real uncertainty delta_L in [-.2, .2], mu = |T*wm| (same as ||wm*T||)
+    # Show it as a frequency plot with bound
+    mu_bound = crit  # = |wm * T| (upper bound on mu for 1 uncertainty block)
+    a4.semilogx(omega / (2 * np.pi), mu_bound,
+                color=ACC, lw=2.0, label="$\\mu(\\omega)$ (cota superior)")
+    a4.axhline(1.0, color=BAD, ls="--", lw=1.5, label="$\\mu=1$ (límite)")
+    a4.fill_between(omega / (2 * np.pi), mu_bound, 1,
+                    where=(mu_bound > 1), alpha=0.2, color=BAD)
+    a4.set_xlabel("f [Hz]"); a4.set_ylabel("μ")
+    a4.set_title("(d) μ-análisis del lazo de corriente\n$\\mu<1$ → robusto con estructura $\\delta_{L_1}$")
+    a4.legend(fontsize=8.5); a4.grid(True, which="both", alpha=0.3)
+
+    fig.suptitle("Robustez paramétrica — análisis extendido  "
+                 f"(GFM proyecto 01, $L_1\\in[1.6,2.4]$ mH, $R_1={R1_nom*1e3:.0f}$ mΩ)",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "robustez-parametrica-analisis.png")
+
+
+# ===================================================================== #
+#  valores-singulares-mimo-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _svdext():
+    """4 paneles: (a) sigma_bar y sigma_un de G_dq vs freq,
+    (b) sigma_bar(S) y Ms del lazo cerrado GFM,
+    (c) direccion de entrada de peor ganancia en plano dq a 50 Hz,
+    (d) sigma_bar y sigma_un antes y despues del desacoplo FF."""
+    L1, R1 = 2e-3, 50e-3
+    omega0 = 2 * np.pi * 50
+    omega = np.logspace(1, 5, 600)
+    alpha_c = 2 * np.pi * 750
+
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    def G_dq(w, L, R, w0):
+        """Z_{dq}(jw) 2x2 matrix without decoupling."""
+        z = complex(R, w * L)
+        cross = w0 * L
+        return np.array([[z, -cross], [cross, z]])
+
+    def G_dq_decoupled(w, L, R):
+        z = complex(R, w * L)
+        return np.array([[z, 0], [0, z]])
+
+    sv_max_nd = []; sv_min_nd = []; kappa_nd = []
+    sv_max_d = []; sv_min_d = []; kappa_d = []
+    for w in omega:
+        Gw = G_dq(w, L1, R1, omega0)
+        sv = np.linalg.svd(Gw, compute_uv=False)
+        sv_max_nd.append(sv[0]); sv_min_nd.append(sv[-1])
+        kappa_nd.append(sv[0] / (sv[-1] + 1e-30))
+        Gw_d = G_dq_decoupled(w, L1, R1)
+        sv_d = np.linalg.svd(Gw_d, compute_uv=False)
+        sv_max_d.append(sv_d[0]); sv_min_d.append(sv_d[-1])
+        kappa_d.append(sv_d[0] / (sv_d[-1] + 1e-30))
+
+    sv_max_nd = np.array(sv_max_nd); sv_min_nd = np.array(sv_min_nd)
+    kappa_nd = np.array(kappa_nd)
+    sv_max_d = np.array(sv_max_d); sv_min_d = np.array(sv_min_d)
+
+    # (a) valores singulares de G_dq vs frecuencia
+    a1.semilogx(omega / (2 * np.pi), 20 * np.log10(sv_max_nd + 1e-12),
+                color=ACC, lw=2.0, label="$\\bar{\\sigma}(Z_{dq})$ sin desacoplo")
+    a1.semilogx(omega / (2 * np.pi), 20 * np.log10(sv_min_nd + 1e-12),
+                color=ACC, lw=2.0, ls="--", label=r"$\sigma_{min}(Z_{dq})$")
+    a1.set_xlabel("f [Hz]"); a1.set_ylabel("σ [dB Ω]")
+    a1.set_title("(a) Valores singulares de $Z_{dq}(j\\omega)$\nacondicionamiento κ(ω)")
+    a1.legend(fontsize=8.5); a1.grid(True, which="both", alpha=0.3)
+
+    # (b) sigma_bar(S) y Ms
+    Kp = alpha_c * L1; Ki = alpha_c * R1
+    s = 1j * omega
+    C_pi = Kp * (1 + s / (Ki / Kp)) / (s / (Ki / Kp))
+    # SISO loop (decoupled)
+    G_s = 1.0 / (s * L1 + R1)
+    L_loop = C_pi * G_s
+    S_loop = 1.0 / (1.0 + L_loop)
+    Ms_val = np.max(np.abs(S_loop))
+    a2.semilogx(omega / (2 * np.pi), 20 * np.log10(np.abs(S_loop) + 1e-12),
+                color=ACC, lw=2.0, label="$\\bar{\\sigma}(S)$")
+    a2.axhline(20 * np.log10(Ms_val), color=BAD, ls="--", lw=1.2,
+               label=f"$M_s$={Ms_val:.2f} ({20*np.log10(Ms_val):.1f} dB)")
+    a2.axhline(6, color="#aaa", ls=":", lw=1.0, label="6 dB (spec máx)")
+    a2.set_xlabel("f [Hz]"); a2.set_ylabel("σ(S) [dB]")
+    a2.set_title(f"(b) $\\bar{{\\sigma}}(S)$ y $M_s$ del lazo cerrado GFM\n$M_s$={Ms_val:.2f}")
+    a2.legend(fontsize=8.5); a2.grid(True, which="both", alpha=0.3)
+
+    # (c) direccion de entrada de peor ganancia en plano dq a 50 Hz
+    w50 = omega0
+    Gw50 = G_dq(w50, L1, R1, omega0)
+    U50, sv50, Vh50 = np.linalg.svd(Gw50)
+    v_worst = Vh50[0, :]  # direccion de entrada de mayor ganancia
+    v_best = Vh50[-1, :]
+    theta = np.linspace(0, 2 * np.pi, 200)
+    ell_d = []; ell_q = []
+    for t in theta:
+        v = np.array([np.cos(t), np.sin(t)])
+        out = np.real(Gw50 @ v.astype(complex))
+        ell_d.append(out[0]); ell_q.append(out[1])
+    a3.plot(ell_d, ell_q, color=ACC, lw=1.5, label="imagen de la esfera unitaria")
+    a3.arrow(0, 0, float(np.real(v_worst[0])) * sv50[0],
+             float(np.real(v_worst[1])) * sv50[0],
+             color=BAD, width=0.005, label=f"$\\bar{{\\sigma}}$={sv50[0]:.3f} Ω")
+    a3.arrow(0, 0, float(np.real(v_best[0])) * sv50[-1],
+             float(np.real(v_best[1])) * sv50[-1],
+             color=OK, width=0.005, label=f"$\\sigma_{{min}}$={sv50[-1]:.3f} Ohm")
+    a3.axhline(0, color="#aaa", lw=0.8); a3.axvline(0, color="#aaa", lw=0.8)
+    a3.set_aspect("equal"); a3.set_xlabel("d [Ω]"); a3.set_ylabel("q [Ω]")
+    a3.set_title(f"(c) Elipse de $Z_{{dq}}(j2\\pi\\cdot50)$ en plano dq\nκ={sv50[0]/sv50[-1]:.2f}")
+    a3.legend(fontsize=8.0)
+
+    # (d) sigma_bar y sigma_un antes y despues del desacoplo
+    a4.semilogx(omega / (2 * np.pi), 20 * np.log10(sv_max_nd + 1e-12),
+                color=BAD, lw=2.0, label=r"$\bar{\sigma}$ sin desacoplo")
+    a4.semilogx(omega / (2 * np.pi), 20 * np.log10(sv_min_nd + 1e-12),
+                color=BAD, lw=2.0, ls="--", label=r"$\sigma_{min}$ sin desacoplo")
+    a4.semilogx(omega / (2 * np.pi), 20 * np.log10(sv_max_d + 1e-12),
+                color=OK, lw=2.0, label=r"$\bar{\sigma}$ con desacoplo FF")
+    a4.semilogx(omega / (2 * np.pi), 20 * np.log10(sv_min_d + 1e-12),
+                color=OK, lw=2.0, ls="--", label=r"$\sigma_{min}$ con desacoplo FF")
+    a4.set_xlabel("f [Hz]"); a4.set_ylabel("σ [dB Ω]")
+    a4.set_title("(d) Mejora del κ con desacoplo feedforward\n$\\kappa\\to1$ tras desacoplo")
+    a4.legend(fontsize=8.0); a4.grid(True, which="both", alpha=0.3)
+
+    fig.suptitle("Valores singulares MIMO — análisis extendido  "
+                 f"(GFM dq, L1={L1*1e3:.0f} mH, R1={R1*1e3:.0f} mΩ, f0=50 Hz)",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "valores-singulares-mimo-analisis.png")
+
+
+# ===================================================================== #
+#  clasificacion-estabilidad-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _clasest():
+    """4 paneles: (a) mapa estable/inestable/marginal/BIBO en plano s,
+    (b) autovalores GFM vs SCR, (c) funcion Lyapunov V(delta,omega),
+    (d) respuesta temporal ROA: dentro converge, fuera diverge."""
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    # (a) mapa de clasificaciones en el plano s
+    re = np.linspace(-6, 3, 400); im = np.linspace(-6, 6, 400)
+    RE, IM = np.meshgrid(re, im)
+    # regiones: estable Re<0, inestable Re>0, marginal Re=0
+    Z = np.zeros_like(RE)
+    Z[RE < -0.3] = 1   # estable asintoticamente
+    Z[RE > 0.3] = 3    # inestable
+    Z[(RE >= -0.3) & (RE <= 0.3)] = 2  # marginal
+
+    cmap = plt.cm.colors.ListedColormap(["#c8e6c9", "#fff9c4", "#ffcdd2"])
+    a1.contourf(RE, IM, Z, levels=[0.5, 1.5, 2.5, 3.5], colors=["#c8e6c9", "#fff9c4", "#ffcdd2"])
+    a1.axvline(0, color="#555", lw=1.5)
+    a1.scatter([-2, -4], [1, -2], color=ACC, s=80, zorder=5, label="estable A.S.")
+    a1.scatter([1.5], [0], color=BAD, s=80, zorder=5, label="inestable")
+    a1.scatter([0], [3], color=OK, s=80, marker="^", zorder=5, label="marginal (BIBO-inest.)")
+    a1.scatter([0], [-3], color=OK, s=80, marker="^", zorder=5)
+    a1.text(-5, 5, "Estable\nA.S.", fontsize=9, color="#2e7d32")
+    a1.text(0.5, 5, "Inestable", fontsize=9, color="#b71c1c")
+    a1.text(-1.5, -5, "Marginal\n(eje Im)", fontsize=8, color="#f57f17")
+    a1.set_xlabel("Re(s)"); a1.set_ylabel("Im(s)")
+    a1.set_title("(a) Clasificación en el plano s\nestable / marginal / BIBO-inestable / inestable")
+    a1.legend(fontsize=8.0)
+
+    # (b) autovalores del GFM vs SCR (modelo simplificado droop 2 estados)
+    # delta_dot = omega0*Domega; Domega_dot = (Pm - Pdelta)/tau_p - Domega/tau_p
+    # Linearized: eigenvalues depend on dP/ddelta = Pg*cos(delta0)
+    # For simplicity, model as 2-state with SCR-dependent stiffness
+    SCRs = [10, 5, 3, 2, 1.5]
+    cols_scr = plt.cm.RdYlGn(np.linspace(0.8, 0.1, len(SCRs)))
+    omega0 = 2 * np.pi * 50
+    tau_p = 0.01  # power filter
+    mp = 0.05    # droop
+    for scr, col in zip(SCRs, cols_scr):
+        Zg = 1.0 / scr  # per unit grid impedance
+        # synchronizing torque coefficient (simplified)
+        Ks = 1.0 / (Zg + 0.1)  # approximate, degrades with weak grid
+        # 2x2 A matrix for [Domega, delta]
+        A_sw = np.array([[-1 / tau_p, -mp * Ks / tau_p],
+                          [omega0, 0]])
+        poles = np.linalg.eigvals(A_sw)
+        a2.scatter(poles.real, poles.imag, color=col, s=80, zorder=5,
+                   label=f"SCR={scr}")
+    a2.axvline(0, color="#555", lw=1.5, ls="--")
+    a2.axhline(0, color="#888", lw=0.8)
+    a2.set_xlabel("Re(λ) [rad/s]"); a2.set_ylabel("Im(λ) [rad/s]")
+    a2.set_title("(b) Autovalores del GFM vs SCR\npérdida de estabilidad con red débil")
+    a2.legend(fontsize=8.0)
+
+    # (c) funcion de Lyapunov V(delta, Domega) del oscilador GFM
+    delta = np.linspace(-np.pi, np.pi, 200)
+    domega = np.linspace(-15, 15, 200)
+    D, W = np.meshgrid(delta, domega)
+    Pm = 0.8; delta0 = np.arcsin(Pm)
+    tau_p_l = 0.01
+    # V = (1/2)*tau_p*Domega^2 - mp*Pm*(delta-delta0) + mp*(integral of P(delta'))
+    # For P(delta) = sin(delta): integral = -cos(delta)+cos(delta0)
+    V = 0.5 * tau_p_l * W**2 - Pm * (D - delta0) + (-np.cos(D) + np.cos(delta0))
+    V = np.clip(V, 0, 5)
+    cf = a3.contourf(D * 180 / np.pi, W, V, levels=20, cmap="viridis")
+    plt.colorbar(cf, ax=a3, shrink=0.8)
+    a3.contour(D * 180 / np.pi, W, V, levels=[2.0], colors=["red"], linewidths=2)
+    a3.scatter([delta0 * 180 / np.pi], [0], color="white", s=100, zorder=5,
+               label=f"equilibrio δ₀={delta0*180/np.pi:.0f}°")
+    a3.set_xlabel("δ [°]"); a3.set_ylabel("Δω [rad/s]")
+    a3.set_title("(c) $V(\\delta,\\Delta\\omega)$ — función de Lyapunov GFM\ncurva roja: límite estimado de la ROA")
+    a3.legend(fontsize=8.5)
+
+    # (d) respuesta temporal dentro y fuera de la ROA
+    def sim_gfm(delta0_init, domega0_init, nsteps=5000, dt=2e-4):
+        d = delta0_init; w = domega0_init
+        Pm_sim = 0.8; tau_s = 0.01; mp_s = 0.05
+        d_traj = [d]; w_traj = [w]
+        for _ in range(nsteps):
+            Pdelta = np.sin(d)
+            ddot = (Pm_sim - Pdelta) / tau_s - w / tau_s
+            wdot = omega0 * w
+            # simplification: delta dynamics
+            d_new = d + dt * (omega0 * w)
+            w_new = w + dt * ((Pm_sim - np.sin(d)) / tau_s - w / tau_s)
+            d = d_new; w = w_new
+            d_traj.append(d); w_traj.append(w)
+        return np.array(d_traj), np.array(w_traj)
+
+    t_ax = np.arange(0, 5001) * 2e-4
+    # inside ROA
+    d1, w1 = sim_gfm(delta0 + 0.3, 2.0)
+    # outside ROA
+    d2, w2 = sim_gfm(delta0 + 1.2, 5.0)
+    a4.plot(t_ax, np.sin(d1), color=OK, lw=2.0, label="dentro ROA — converge")
+    a4.plot(t_ax, np.sin(d2), color=BAD, lw=2.0, label="fuera ROA — diverge")
+    a4.axhline(Pm, color="#888", ls=":", lw=1.2, label=f"$P_m$={Pm}")
+    a4.set_xlabel("t [s]"); a4.set_ylabel("P(δ) = sin(δ)")
+    a4.set_title("(d) Respuesta temporal del GFM\ndentro/fuera de la región de atracción")
+    a4.legend(fontsize=8.5); a4.set_xlim(0, 1.0)
+
+    fig.suptitle("Clasificación de estabilidad — análisis extendido  "
+                 "(GFM: pequeña señal, Lyapunov, ROA, SCR crítico)",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    _savefig(fig, "clasificacion-estabilidad-analisis.png")
+
+
+# ===================================================================== #
+#  armonicos-thd-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _thdext():
+    """4 paneles: (a) espectro iL2 antes/después LCL, (b) Bode LCL iL2/iL1,
+    (c) THD_I en PCC vs L2, (d) APF: espectro antes y después compensación."""
+    from scipy import signal as scsignal
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 9.0))
+    (a1, a2), (a3, a4) = axes
+
+    f1 = 50.0; fsw = 10e3; Vdc = 800.0; m = 0.85
+    fs = 200e3; N = int(fs / f1) * 20
+    t = np.arange(N) / fs
+    Vfund = m * Vdc / 2.0 * np.sqrt(2)
+    sig = Vfund * np.sin(2 * np.pi * f1 * t)
+    mf = int(fsw / f1)
+    for k in [1, 2, 3]:
+        A_k = Vdc / np.pi / k * 0.6
+        for offset in [-2, 2]:
+            fh = k * fsw + offset * f1
+            if fh > 0:
+                sig += A_k * np.sin(2 * np.pi * fh * t)
+    # Armónicos tiempo muerto (5°, 7°, 11°, 13°)
+    for h_ord, amp in [(5, 0.04), (7, 0.028), (11, 0.015), (13, 0.010)]:
+        sig += Vfund * amp * np.sin(2 * np.pi * h_ord * f1 * t)
+
+    win = np.hanning(N)
+    X = np.abs(np.fft.rfft(sig * win)) * 2.0 / N
+    freq = np.fft.rfftfreq(N, 1.0 / fs)
+
+    L1 = 2e-3; L2 = 0.5e-3; Cf = 10e-6
+    Leq = L1 * L2 / (L1 + L2)
+    fres_lcl = 1.0 / (2 * np.pi * np.sqrt(Leq * Cf))
+
+    def lcl_atten(f):
+        x = (f / np.maximum(fres_lcl, 1.0)) ** 2
+        return np.where(f < fres_lcl, np.ones_like(f),
+                        1.0 / np.abs(1 - x) / np.maximum(x, 1e-12))
+
+    X_after = X * lcl_atten(freq)
+
+    # (a) Espectro antes y después del LCL
+    f_kHz = freq / 1e3
+    mask = freq <= 35e3
+    a1.semilogy(f_kHz[mask], np.maximum(X[mask], 1e-2), color=BAD, lw=1.5,
+                label="antes del LCL", alpha=0.85)
+    a1.semilogy(f_kHz[mask], np.maximum(X_after[mask], 1e-2), color=ACC, lw=1.5,
+                label="después del LCL", alpha=0.85)
+    a1.axvline(fres_lcl / 1e3, color="#aaa", ls=":", lw=1.2,
+               label=f"$f_{{res}}$={fres_lcl/1e3:.1f} kHz")
+    a1.axvline(fsw / 1e3, color=ACC2, ls="--", lw=1.2,
+               label=f"$f_{{sw}}$={fsw/1e3:.0f} kHz")
+    a1.set_xlabel("f [kHz]"); a1.set_ylabel("|X(f)| [V]")
+    a1.set_title(f"(a) Espectro corriente inversor: $f_{{sw}}$={fsw/1e3:.0f} kHz\n"
+                 f"LCL: $L_1$={L1*1e3:.0f} mH, $L_2$={L2*1e3:.1f} mH, $C_f$={Cf*1e6:.0f} µF")
+    a1.legend(fontsize=8.5)
+
+    # (b) Bode del LCL: iL2/iL1 (función de transferencia)
+    f_bode = np.logspace(1, 5, 500)
+    w_bode = 2 * np.pi * f_bode
+    # G(s) = 1 / (1 + s^2 * Leq * Cf)
+    G_lcl = 1.0 / np.abs(1 - w_bode ** 2 * Leq * Cf)
+    mag_db = 20 * np.log10(np.maximum(G_lcl, 1e-10))
+    a2.semilogx(f_bode, mag_db, color=ACC, lw=2.0)
+    a2.axvline(fres_lcl, color=BAD, ls="--", lw=1.2,
+               label=f"$f_{{res}}$={fres_lcl:.0f} Hz")
+    a2.axvline(fsw, color=ACC2, ls=":", lw=1.2, label=f"$f_{{sw}}$={fsw/1e3:.0f} kHz")
+    a2.axhline(-60, color="#888", ls=":", lw=1.0, label="-60 dB")
+    a2.set_xlabel("f [Hz]"); a2.set_ylabel("$|G_{LCL}|$ [dB]")
+    a2.set_title("(b) Bode LCL $i_{L2}/v_{inv}$: −60 dB/dec tras $f_{res}$\n"
+                 "atenuación en $f_{sw}$: −60 dB (factor 1000×)")
+    a2.legend(fontsize=8.5); a2.set_ylim(-100, 20)
+
+    # (c) THD_I en PCC vs L2
+    L2_vals = np.linspace(0.1e-3, 3e-3, 40)
+    thd_l2 = []
+    I_fund_ref = Vfund / 100.0
+    for L2v in L2_vals:
+        Leq_v = L1 * L2v / (L1 + L2v)
+        fres_v = 1.0 / (2 * np.pi * np.sqrt(Leq_v * Cf))
+        Ihsq = 0.0
+        for h in range(2, 60):
+            fh = h * f1
+            if fh > freq[-1]:
+                break
+            idx = np.argmin(np.abs(freq - fh))
+            x_v = (fh / max(fres_v, 1.0)) ** 2
+            att = 1.0 if fh < fres_v else 1.0 / abs(1 - x_v + 1e-12) / max(x_v, 1e-9)
+            Ih = X[idx] * att / 100.0
+            Ihsq += Ih ** 2
+        thd_l2.append(100 * np.sqrt(Ihsq) / I_fund_ref)
+    a3.plot(L2_vals * 1e3, thd_l2, color=ACC, lw=2.0)
+    a3.axhline(5.0, color=BAD, ls="--", lw=1.2, label="Límite 5 % IEEE 519")
+    a3.axvline(L2 * 1e3, color="#888", ls=":", lw=1.2,
+               label=f"$L_2$={L2*1e3:.1f} mH (diseño)")
+    a3.set_xlabel("$L_2$ [mH]"); a3.set_ylabel("THD_I en PCC [%]")
+    a3.set_title("(c) THD_I en PCC vs inductancia $L_2$\n"
+                 "mayor $L_2$ mejora THD (y sube reactancia)")
+    a3.legend(fontsize=9); a3.set_ylim(0, None)
+
+    # (d) APF: espectro antes y después de la compensación
+    harm_orders_apf = [5, 7, 11, 13]
+    orders_plot = np.arange(1, 25)
+    amps_before, amps_after = [], []
+    for h in orders_plot:
+        fh = h * f1
+        idx = np.argmin(np.abs(freq - fh))
+        Ih_before = X_after[idx] / 100.0  # ya tras el LCL
+        # APF compensa 5, 7, 11, 13 con 95 % de eficiencia
+        if h in harm_orders_apf:
+            Ih_after = Ih_before * 0.05
+        else:
+            Ih_after = Ih_before
+        amps_before.append(Ih_before * 100)
+        amps_after.append(Ih_after * 100)
+    x_pos = np.arange(len(orders_plot))
+    a4.bar(x_pos - 0.2, amps_before, width=0.35, color=BAD, alpha=0.7,
+           label="sin APF")
+    a4.bar(x_pos + 0.2, amps_after, width=0.35, color=ACC, alpha=0.8,
+           label="con APF (5°, 7°, 11°, 13°)")
+    a4.set_xticks(x_pos); a4.set_xticklabels([str(h) for h in orders_plot], fontsize=7)
+    a4.set_xlabel("Orden armónico"); a4.set_ylabel("$I_h$ [% de $I_1$]")
+    a4.set_title("(d) APF: espectro antes y después de la compensación\n"
+                 "los 4 armónicos dominantes bajan >95 %")
+    a4.legend(fontsize=9)
+
+    fig.suptitle("Armónicos y THD: espectro LCL, Bode, THD vs $L_2$ y efecto APF",
+                 fontsize=12, fontweight="bold")
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    _savefig(fig, "armonicos-thd-analisis.png")
+
+
+def _deteccion_islanding_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]
+    dP = np.linspace(-0.5, 0.5, 200); dQ = np.linspace(-0.5, 0.5, 200)
+    DP, DQ = np.meshgrid(dP, dQ)
+    NDZ = (np.abs(DP) < 0.05) & (np.abs(DQ) < 0.1)
+    ax.contourf(dP, dQ, NDZ.astype(float), levels=[0.5, 1], colors=['red'], alpha=0.4)
+    ax.axhline(0, color='k', ls='--'); ax.axvline(0, color='k', ls='--')
+    ax.set_xlabel('ΔP (pu)'); ax.set_ylabel('ΔQ (pu)')
+    ax.set_title('Zona de no-detección (NDZ)'); ax.grid(True, alpha=0.3)
+    ax.text(0, 0, 'NDZ', ha='center', va='center', color='red', fontsize=14, fontweight='bold')
+    ax = axes[0, 1]
+    np.random.seed(42)
+    t = np.linspace(0, 2, 1000)
+    f_norm = 50 + 0.05*np.sin(2*np.pi*0.5*t) + 0.01*np.random.randn(len(t))
+    f_isl = 50*np.ones(len(t))
+    f_isl[t > 0.5] = 50 - 0.8*(t[t > 0.5] - 0.5)
+    ax.plot(t, f_norm, 'b-', lw=1.5, label='Normal')
+    ax.plot(t, f_isl, 'r-', lw=1.5, label='Islanding')
+    ax.axhline(49.5, color='orange', ls='--', label='Límite UFP')
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Frecuencia (Hz)')
+    ax.set_title('Frecuencia: normal vs islanding'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    rocof_norm = np.gradient(f_norm, t)
+    rocof_isl = np.gradient(f_isl, t)
+    ax.plot(t, rocof_norm, 'b-', lw=1.5, label='Normal')
+    ax.plot(t, rocof_isl, 'r-', lw=1.5, label='Islanding')
+    ax.axhline(0.5, color='r', ls='--', label='Umbral 0.5 Hz/s')
+    ax.axhline(-0.5, color='r', ls='--')
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('ROCOF (Hz/s)')
+    ax.set_title('ROCOF: detección de islanding'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax.set_ylim([-2, 2])
+    ax = axes[1, 1]; ax.axis('off')
+    eventos = [('0.0 s', 'Operación normal', 'green'),
+               ('0.5 s', 'Apertura disyuntor red', 'red'),
+               ('0.55 s', 'Detección ROCOF>0.5', 'orange'),
+               ('0.6 s', 'Disparo inversor', 'red'),
+               ('0.6-1.0 s', 'Espera ≥300 ms', 'yellow'),
+               ('1.0 s', 'Verificar ΔV,Δf,Δθ', 'blue'),
+               ('1.1 s', 'Reconexión suave', 'green')]
+    for i, (tiempo, evento, col) in enumerate(eventos):
+        ax.add_patch(plt.Rectangle((0.0, 0.9-i*0.13), 0.25, 0.1, color=col, alpha=0.6))
+        ax.text(0.13, 0.95-i*0.13, tiempo, ha='center', va='center', fontsize=9, fontweight='bold')
+        ax.text(0.3, 0.95-i*0.13, evento, va='center', fontsize=9)
+    ax.set_xlim([0, 1]); ax.set_ylim([0, 1]); ax.set_title('Secuencia: detección → reconexión')
+    fig.suptitle('Detección de islanding: NDZ, ROCOF y reconexión', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, 'deteccion-islanding-analisis')
+
+
+def _fenomenos_oscilatorios_red_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    np.random.seed(42)
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]
+    fs = 10000; T = 2.0; t = np.arange(0, T, 1/fs)
+    v = np.sin(2*np.pi*50*t) + 0.05*np.sin(2*np.pi*25*t)
+    V_f = np.abs(np.fft.rfft(v))*2/len(t); f_fft = np.fft.rfftfreq(len(t), 1/fs)
+    ax.plot(f_fft, V_f, 'b-', lw=1)
+    ax.axvline(50, color='r', ls='--', label='Fundamental 50 Hz')
+    ax.axvline(25, color='orange', ls='--', label='SSO 25 Hz')
+    ax.set_xlim([0, 200]); ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Amplitud (pu)')
+    ax.set_title('Espectro con SSO visible'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[0, 1]
+    w = np.logspace(1, 4, 500); f_pll = 20; w_pll = 2*np.pi*f_pll
+    Z_re = 0.5 - 1.5*w_pll**2/(w**2 + w_pll**2)
+    ax.semilogx(w/(2*np.pi), Z_re, 'b-', lw=2, label='Re[Z_inv] GFL')
+    ax.axhline(0, color='k', lw=1)
+    ax.fill_between(w/(2*np.pi), Z_re, 0, where=Z_re < 0, alpha=0.2, color='red', label='Zona negativa')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Re[Z] (pu)')
+    ax.set_title('Impedancia GFL — zona negativa'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    for scr, mk in [(1.5, 'o'), (2, 's'), (3, '^'), (5, 'D'), (10, 'v')]:
+        sigma = -2*scr; wd = 2*np.pi*20/scr
+        ax.scatter([sigma, sigma], [wd, -wd], s=100, marker=mk, label=f'SCR={scr}', zorder=5)
+    ax.axvline(0, color='k', lw=1.5); ax.axhline(0, color='k', lw=0.5)
+    ax.set_xlabel('Re(λ)'); ax.set_ylabel('Im(λ)')
+    ax.set_title('Eigenvalores vs SCR'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]
+    t2 = np.linspace(0, 5, 1000); f_osc = 5
+    P1 = 0.5 + 0.1*np.cos(2*np.pi*f_osc*t2)*np.exp(-t2*1.5)
+    P2 = 0.5 - 0.1*np.cos(2*np.pi*f_osc*t2)*np.exp(-t2*1.5)
+    ax.plot(t2, P1, 'b-', lw=2, label='P_inv1'); ax.plot(t2, P2, 'r-', lw=2, label='P_inv2')
+    ax.axhline(0.5, color='k', ls='--', alpha=0.5)
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('P (pu)')
+    ax.set_title('Oscilación de droop entre inversores'); ax.legend(); ax.grid(True, alpha=0.3)
+    fig.suptitle('Fenómenos oscilatorios: SSO, impedancia GFL y droop', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, 'fenomenos-oscilatorios-red-analisis')
+
+
+def _virtual_oscillator_control_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    dt = 1e-5; T_sim = 0.5; mu = 0.5; w0 = 2*np.pi*50; N = int(T_sim/dt)
+    v = np.zeros(N); dv = np.zeros(N); v[0] = 0.1
+    for i in range(1, N):
+        ddv = mu*(1-v[i-1]**2)*dv[i-1] - w0**2*v[i-1]
+        dv[i] = dv[i-1] + ddv*dt; v[i] = v[i-1] + dv[i-1]*dt
+    ax = axes[0, 0]; ax.plot(v[N//4:], dv[N//4:]/w0, 'b-', lw=1, alpha=0.8)
+    ax.set_xlabel('v (pu)'); ax.set_ylabel('dv/dt / ω₀'); ax.set_title('Ciclo límite de Van der Pol')
+    ax.grid(True, alpha=0.3); ax.set_aspect('equal')
+    ax = axes[0, 1]; t_voc = np.arange(N)*dt
+    ax.plot(t_voc*1000, v, 'b-', lw=1.5)
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Tensión (pu)')
+    ax.set_title('Arranque VOC — convergencia al ciclo límite'); ax.grid(True, alpha=0.3); ax.set_xlim([0, 100])
+    N2 = int(0.3/dt); K_coup = 5
+    v1 = np.zeros(N2); dv1 = np.zeros(N2); v2 = np.zeros(N2); dv2 = np.zeros(N2)
+    v1[0] = 0.5; dv2[0] = w0
+    for i in range(1, N2):
+        ddv1 = mu*(1-v1[i-1]**2)*dv1[i-1] - w0**2*v1[i-1] + K_coup*(v2[i-1]-v1[i-1])
+        ddv2 = mu*(1-v2[i-1]**2)*dv2[i-1] - w0**2*v2[i-1] + K_coup*(v1[i-1]-v2[i-1])
+        dv1[i] = dv1[i-1]+ddv1*dt; v1[i] = v1[i-1]+dv1[i-1]*dt
+        dv2[i] = dv2[i-1]+ddv2*dt; v2[i] = v2[i-1]+dv2[i-1]*dt
+    ax = axes[1, 0]; t2_voc = np.arange(N2)*dt
+    ax.plot(t2_voc*1000, v1, 'b-', lw=1.5, label='VOC 1'); ax.plot(t2_voc*1000, v2, 'r-', lw=1.5, label='VOC 2')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Tensión (pu)')
+    ax.set_title('Sincronización de dos VOC acoplados'); ax.legend(); ax.grid(True, alpha=0.3); ax.set_xlim([0, 100])
+    ax = axes[1, 1]; ax.axis('off')
+    data = [['Propiedad', 'VOC', 'Droop', 'VSG'],
+            ['Inercia', 'Ciclo límite', 'No', 'Sí (J)'],
+            ['Est. gran señal', 'Muy alta', 'Media', 'Media'],
+            ['Sincronización', 'Automática', 'Droop f', 'Droop f'],
+            ['PLL necesario', 'No', 'No', 'No'],
+            ['Complejidad', 'Media', 'Baja', 'Media-alta']]
+    t_obj = ax.table(cellText=data[1:], colLabels=data[0], cellLoc='center', loc='center',
+                     colWidths=[0.32, 0.22, 0.22, 0.24])
+    t_obj.auto_set_font_size(False); t_obj.set_fontsize(9); t_obj.scale(1, 1.5)
+    ax.set_title('Comparativa VOC / Droop / VSG')
+    fig.suptitle('Virtual Oscillator Control: Van der Pol, sincronización y comparativa', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, 'virtual-oscillator-control-analisis')
+
+
+def _validacion_cruzada_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    np.random.seed(42)
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]
+    N = 100; k = 5; fold = N // k
+    colors_cv = ['#4C72B0', '#DD8452', '#55A868', '#C44E52', '#8172B2']
+    for i in range(k):
+        s = i*fold; e = (i+1)*fold
+        ax.barh(0, fold, left=s, height=0.4, color=colors_cv[i], alpha=0.85, label=f'Fold {i+1}')
+    ax.axvline(0.6*N, color='k', ls='--', lw=1.5, label='60% entrenamiento')
+    ax.set_xlabel('Índice de muestra temporal'); ax.set_yticks([])
+    ax.set_title('k-fold temporal (k=5): bloques consecutivos')
+    ax.legend(fontsize=8, ncol=3); ax.set_xlim([0, N])
+    ax = axes[0, 1]
+    Ns = np.arange(10, 101, 5)
+    err_train = 0.05 + 0.15*np.exp(-Ns/20)
+    err_val = 0.25 - 0.15*np.exp(-Ns/30) + 0.02*np.random.randn(len(Ns))
+    err_val = np.maximum(err_val, 0.08)
+    ax.plot(Ns, err_train, 'b-o', ms=4, lw=1.5, label='Error entrenamiento')
+    ax.plot(Ns, err_val, 'r-s', ms=4, lw=1.5, label='Error validación')
+    ax.axhline(0.1, color='gray', ls='--', lw=1, label='Umbral aceptable')
+    ax.set_xlabel('N muestras'); ax.set_ylabel('NRMSE')
+    ax.set_title('Curva de aprendizaje'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    ordenes = np.arange(1, 9)
+    fit_train = np.clip(70 + 25*(1-np.exp(-ordenes*0.8)) + 1*np.random.randn(len(ordenes)), 40, 99)
+    fit_val = np.clip(65 + 22*(1-np.exp(-ordenes*0.6)) - 2*(ordenes > 4)*(ordenes - 4)**1.5
+                      + 0.5*np.random.randn(len(ordenes)), 40, 98)
+    ax.plot(ordenes, fit_train, 'b-o', ms=6, lw=1.5, label='FIT% entrenamiento')
+    ax.plot(ordenes, fit_val, 'r-s', ms=6, lw=1.5, label='FIT% validación')
+    ax.axhline(80, color='g', ls='--', lw=1.5, label='Umbral 80%')
+    ax.axvline(2, color='purple', ls=':', lw=2, label='Orden elegido (codo)')
+    ax.set_xlabel('Orden del modelo'); ax.set_ylabel('FIT (%)')
+    ax.set_title('FIT% vs orden del modelo — criterio del codo')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]
+    f_vc = np.logspace(0, 3, 200); wc = 2*np.pi*500
+    G_anal = 1/(1 + 1j*f_vc*2*np.pi/wc)
+    G_ident = G_anal * (1 + 0.03*np.random.randn(len(f_vc)) + 0.02j*np.random.randn(len(f_vc)))
+    ax.semilogx(f_vc, 20*np.log10(np.abs(G_anal)), 'b-', lw=2, label='Analítica')
+    ax.semilogx(f_vc, 20*np.log10(np.abs(G_ident)), 'r--', lw=1.5, label='Identificada (PRBS)')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('|G| (dB)')
+    ax.set_title('Lazo corriente: analítica vs identificada'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    fig.suptitle('Validación cruzada: k-fold temporal, curva de aprendizaje y FIT% vs orden', fontsize=13, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, 'validacion-cruzada-analisis')
+
+
+def _niveles_validacion_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]
+    niveles_nv = ['SiL', 'HiL', 'PHiL', 'Prototipo', 'Campo']
+    coste_nv = [1, 10, 100, 300, 1000]
+    cobertura_nv = [95, 85, 70, 60, 40]
+    colors_nv = ['#2ecc71', '#3498db', '#f39c12', '#e74c3c', '#9b59b6']
+    ax.barh(niveles_nv, coste_nv, color=colors_nv, alpha=0.8)
+    ax2 = ax.twiny()
+    ax2.plot(cobertura_nv, niveles_nv, 'ko--', ms=6, lw=1.5, label='Cobertura (%)')
+    ax.set_xlabel('Coste relativo'); ax.set_xscale('log')
+    ax2.set_xlabel('Cobertura lógica (%)'); ax2.set_xlim([0, 110])
+    ax.set_title('Pirámide: coste vs cobertura por nivel'); ax2.legend(fontsize=9)
+    ax = axes[0, 1]
+    niveles_pm_nv = ['Lineal', 'Promediado', 'Conmutado', 'HiL']
+    pm_nv = [72, 68, 54, 43]
+    colores_pm_nv = ['green' if p >= 45 else 'red' for p in pm_nv]
+    bars_nv = ax.bar(niveles_pm_nv, pm_nv, color=colores_pm_nv, alpha=0.8)
+    ax.axhline(45, color='k', ls='--', lw=2, label='Límite PM=45°')
+    ax.set_ylabel('Margen de fase (°)'); ax.set_title('PM por nivel: HiL detecta el problema')
+    ax.legend(fontsize=9); ax.set_ylim([0, 90])
+    for bar, val in zip(bars_nv, pm_nv):
+        ax.text(bar.get_x()+bar.get_width()/2, val+1, f'{val}°', ha='center', fontsize=10, fontweight='bold')
+    ax = axes[1, 0]
+    niveles_err = ['SiL', 'HiL', 'PHiL', 'Prototipo', 'Campo']
+    coste_corr = [1, 5, 20, 100, 500]
+    ax.semilogy(niveles_err, coste_corr, 'ro-', ms=8, lw=2)
+    ax.fill_between(range(len(niveles_err)), coste_corr, alpha=0.2, color='red')
+    ax.set_ylabel('Coste relativo de corrección')
+    ax.set_title('Coste de corrección de errores por nivel'); ax.grid(True, alpha=0.3, which='both')
+    for i, (n, c) in enumerate(zip(niveles_err, coste_corr)):
+        ax.text(i, c*1.3, f'{c}×', ha='center', fontsize=9, fontweight='bold')
+    ax = axes[1, 1]; ax.axis('off')
+    datos_nv = [['Nivel', 'Error típico detectado'],
+                ['Lineal', 'Diseño de lazo, márgenes'],
+                ['No lineal', 'Saturación, gran señal'],
+                ['Conmutado', 'Rizado, retardo, THD'],
+                ['SiL', 'Lógica, máquinas de estado'],
+                ['HiL', 'Latencia ADC, overrun ISR'],
+                ['PHiL', 'EMC, térmica, red real']]
+    t_nv = ax.table(cellText=datos_nv[1:], colLabels=datos_nv[0], cellLoc='left', loc='center',
+                    colWidths=[0.3, 0.7])
+    t_nv.auto_set_font_size(False); t_nv.set_fontsize(9); t_nv.scale(1, 1.6)
+    ax.set_title('Errores típicos detectados por nivel')
+    fig.suptitle('Niveles de validación: coste, cobertura, PM y errores', fontsize=13, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, 'niveles-validacion-analisis')
+
+
+def _ciclo_diseno_control_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    np.random.seed(42)
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]; ax.axis('off')
+    fases_cdc = [('DISEÑAR', 0.5, 0.82, '#3498db'),
+                 ('EVALUAR', 0.5, 0.50, '#e67e22'),
+                 ('VALIDAR', 0.5, 0.18, '#2ecc71')]
+    for nombre, x, y, col in fases_cdc:
+        circ = plt.Circle((x, y), 0.13, color=col, alpha=0.8)
+        ax.add_patch(circ)
+        ax.text(x, y, nombre, ha='center', va='center', fontsize=11, fontweight='bold', color='white')
+    ax.annotate('', xy=(0.5, 0.63), xytext=(0.5, 0.69), arrowprops=dict(arrowstyle='->', lw=2))
+    ax.annotate('', xy=(0.5, 0.31), xytext=(0.5, 0.37), arrowprops=dict(arrowstyle='->', lw=2))
+    ax.text(0.12, 0.35, 'Rediseño', rotation=90, va='center', fontsize=9, color='gray')
+    ax.set_xlim([0, 1]); ax.set_ylim([0, 1]); ax.set_title('Ciclo Diseñar → Evaluar → Validar')
+    ax = axes[0, 1]
+    L1_n_cdc, L2_n_cdc = 2e-3, 1e-3; Td_cdc = 100e-6; fc_cdc = 500.0
+    N_mc = 1000
+    L1s = L1_n_cdc*(1+0.3*np.random.uniform(-1, 1, N_mc))
+    L2s = L2_n_cdc*(1+0.3*np.random.uniform(-1, 1, N_mc))
+    wc_cdc = 2*np.pi*fc_cdc
+    pms_cdc = 90 - np.degrees(np.arctan(wc_cdc*(L1s+L2s))) - wc_cdc*Td_cdc*180/np.pi
+    ax.hist(pms_cdc, bins=40, color='steelblue', alpha=0.8, edgecolor='k', lw=0.5)
+    ax.axvline(45, color='r', ls='--', lw=2, label='Límite PM=45°')
+    ax.axvline(np.mean(pms_cdc), color='g', ls='--', lw=2, label=f'Media={np.mean(pms_cdc):.1f}°')
+    pct_ok = np.mean(pms_cdc >= 45)*100
+    ax.set_xlabel('Margen de fase (°)'); ax.set_ylabel('Realizaciones')
+    ax.set_title(f'Monte Carlo: PM con L1,L2 ±30%\n{pct_ok:.1f}% cumple PM≥45°')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    f_cdc = np.logspace(1, 4, 500); w_cdc = 2*np.pi*f_cdc
+    L_tot = L1_n_cdc + L2_n_cdc; R_cdc = 0.1
+    G_cdc = 1/(R_cdc + 1j*w_cdc*L_tot)
+    Kp_cdc = 2; Ti_cdc = L_tot/R_cdc
+    C_cdc = Kp_cdc*(1 + 1/(1j*w_cdc*Ti_cdc))
+    loop_cdc = C_cdc*G_cdc*np.exp(-1j*w_cdc*Td_cdc)
+    mag_db_cdc = 20*np.log10(np.abs(loop_cdc))
+    fc_idx = np.argmin(np.abs(mag_db_cdc))
+    ax.semilogx(f_cdc, mag_db_cdc, 'b-', lw=2, label='|L(jω)| dB')
+    ax.axhline(0, color='k', lw=1)
+    ax.axvline(f_cdc[fc_idx], color='g', ls='--', lw=1.5, label=f'fc={f_cdc[fc_idx]:.0f} Hz')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Magnitud (dB)')
+    ax.set_title('Bode lazo abierto — fc marcada'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]; ax.axis('off')
+    data_cdc = [['Requisito', 'Spec', 'Resultado'],
+                ['Sobreimpulso<10%', 'ζ>0.59', 'Mp=7% ✓'],
+                ['Robustez', 'PM≥45°', 'PM=54° ✓'],
+                ['THD<5%', 'Filtro LCL', 'THD=3.8% ✓'],
+                ['SCR crítico<3', 'Z análisis', 'SCR_c=3.35 ✓'],
+                ['Falta: <1.5pu', 'Curr. lim.', '1.12 pu ✓']]
+    t_cdc = ax.table(cellText=data_cdc[1:], colLabels=data_cdc[0], cellLoc='center', loc='center',
+                     colWidths=[0.38, 0.28, 0.34])
+    t_cdc.auto_set_font_size(False); t_cdc.set_fontsize(9); t_cdc.scale(1, 1.6)
+    ax.set_title('Trazabilidad: requisito → spec → resultado')
+    fig.suptitle('Ciclo de diseño de control: DEV, Monte Carlo y trazabilidad', fontsize=13, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, 'ciclo-diseno-control-analisis')
+
+
+def _calidad_potencia_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]
+    ordenes_cp = np.arange(1, 26)
+    Ih_cp = np.zeros(len(ordenes_cp))
+    Ih_cp[0] = 100.0
+    for i, h in enumerate(ordenes_cp):
+        if h in [5, 7]: Ih_cp[i] = 3.5
+        elif h in [11, 13]: Ih_cp[i] = 1.8
+        elif h in [17, 19]: Ih_cp[i] = 0.8
+        elif h > 1: Ih_cp[i] = 0.3
+    limites_cp = np.where(ordenes_cp < 11, 4.0, np.where(ordenes_cp < 17, 2.0,
+                          np.where(ordenes_cp < 23, 1.5, 0.6)))
+    limites_cp[0] = 120
+    ax.bar(ordenes_cp, Ih_cp,
+           color=['green' if Ih_cp[i] <= limites_cp[i] else 'red' for i in range(len(ordenes_cp))],
+           alpha=0.7, label='Ih medido')
+    ax.step(ordenes_cp, limites_cp, where='mid', color='k', lw=2, ls='--', label='Límite IEEE 519')
+    ax.set_xlabel('Orden armónico'); ax.set_ylabel('Ih (% de I1)')
+    ax.set_title('Espectro de corriente vs límites IEEE 519\n(SCR<20, THD_I<5%)')
+    ax.legend(fontsize=8); ax.set_xlim([0, 26]); ax.grid(True, alpha=0.3)
+    ax = axes[0, 1]
+    f_fl = np.linspace(0.1, 35, 500)
+    sens = 1.5*np.exp(-((np.log(f_fl/8.8))**2)/(2*0.8**2))
+    ax.plot(f_fl, sens, 'b-', lw=2, label='Sensibilidad visual (IEC 61000-4-15)')
+    ax.axvline(8.8, color='r', ls='--', lw=1.5, label='Máximo 8.8 Hz')
+    ax.axhline(1.0, color='orange', ls='--', lw=1.5, label='Pst=1 (límite)')
+    ax.fill_between(f_fl, sens, 1.0, where=sens > 1.0, alpha=0.2, color='red')
+    ax.set_xlabel('Frecuencia de variación (Hz)'); ax.set_ylabel('Sensibilidad normalizada')
+    ax.set_title('Curva de susceptibilidad visual al flicker'); ax.legend(fontsize=8)
+    ax.grid(True, alpha=0.3); ax.set_xlim([0, 35])
+    ax = axes[1, 0]
+    theta_vec = np.linspace(0, 2*np.pi, 300)
+    Va_cp = np.exp(1j*0); Vb_cp = 0.95*np.exp(1j*(-2*np.pi/3)); Vc_cp = 1.03*np.exp(1j*(2*np.pi/3))
+    for V_ph, lbl, col in [(Va_cp, 'Va', 'blue'), (Vb_cp, 'Vb', 'green'), (Vc_cp, 'Vc', 'red')]:
+        ax.annotate('', xy=(V_ph.real, V_ph.imag), xytext=(0, 0),
+                    arrowprops=dict(arrowstyle='->', color=col, lw=2))
+        ax.text(V_ph.real*1.1, V_ph.imag*1.1, lbl, color=col, fontsize=10, fontweight='bold')
+    ax.plot(np.cos(theta_vec), np.sin(theta_vec), 'gray', lw=0.5, ls='--', alpha=0.5)
+    a_cp = np.exp(1j*2*np.pi/3)
+    Vneg = abs(Va_cp + a_cp**2*Vb_cp + a_cp*Vc_cp)/3
+    Vpos = abs(Va_cp + a_cp*Vb_cp + a_cp**2*Vc_cp)/3
+    VUF = Vneg/Vpos*100
+    ax.set_xlim([-1.3, 1.3]); ax.set_ylim([-1.3, 1.3]); ax.set_aspect('equal')
+    ax.set_xlabel('Re'); ax.set_ylabel('Im')
+    ax.set_title(f'Desequilibrio vectorial: VUF={VUF:.1f}%\n(límite EN 50160: VUF<2%)')
+    ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]
+    t_dc = np.linspace(0, 0.1, 2000); fsw_cp = 5000; Vdc_cp = 800
+    rizado = 8*np.sin(2*np.pi*fsw_cp*t_dc) + 4*np.sin(2*np.pi*2*fsw_cp*t_dc)
+    step_idx = int(0.05*len(t_dc))
+    transitorio = np.zeros(len(t_dc))
+    transitorio[step_idx:] = 30*np.exp(-(t_dc[step_idx:]-t_dc[step_idx])/0.005)
+    Vbus = Vdc_cp + rizado + transitorio
+    ax.plot(t_dc*1000, Vbus, 'b-', lw=1.2, label='V_dc')
+    ax.axhline(Vdc_cp*1.01, color='r', ls='--', lw=1, label='±1% límite')
+    ax.axhline(Vdc_cp*0.99, color='r', ls='--', lw=1)
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Tensión DC (V)')
+    ax.set_title('Rizado bus DC: conmutación + transitorio\nΔVdc<1% en régimen permanente')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    fig.suptitle('Calidad de potencia: IEEE 519, flicker, VUF y rizado DC', fontsize=13, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, 'calidad-potencia-analisis')
+
+
+def _integracion_edos_stiff_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]
+    lam_f = -100.0; lam_s = -1.0
+    t_ex = np.linspace(0, 0.1, 1000)
+    y_exact = np.exp(lam_f*t_ex) + np.exp(lam_s*t_ex)
+    ax.plot(t_ex*1000, y_exact, 'k-', lw=2.5, label='Exacta', zorder=5)
+    for h, col, lbl in [(0.005, 'blue', 'h=5ms'), (0.015, 'orange', 'h=15ms'), (0.025, 'red', 'h=25ms')]:
+        t_num = np.arange(0, 0.1+h, h)
+        y_e = np.zeros(len(t_num)); y_e[0] = 2.0
+        for i in range(1, len(t_num)):
+            y_e[i] = y_e[i-1] + h*(lam_f*y_e[i-1]*0.5 + lam_s*y_e[i-1]*0.5)
+        ax.plot(t_num*1000, np.clip(y_e, -5, 5), '--', color=col, lw=1.5, label=f'Euler expl. {lbl}')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('y(t)')
+    ax.set_title('Euler explícito inestable en sistema stiff\nλ_fast=-100, λ_slow=-1')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.3); ax.set_ylim([-5, 5])
+    ax = axes[0, 1]
+    x_re = np.linspace(-3.5, 1.5, 400); y_im = np.linspace(-3, 3, 400)
+    X_st, Y_st = np.meshgrid(x_re, y_im)
+    Z_st = X_st + 1j*Y_st
+    R_expl = np.abs(1 + Z_st)
+    R_impl = np.abs(1/(1 - Z_st))
+    ax.contourf(x_re, y_im, R_expl < 1, levels=[0.5, 1.5], colors=['#3498db'], alpha=0.5)
+    ax.contourf(x_re, y_im, R_impl < 1, levels=[0.5, 1.5], colors=['#2ecc71'], alpha=0.3)
+    ax.axvline(0, color='k', lw=1.5); ax.axhline(0, color='k', lw=0.5)
+    ax.plot([], [], 's', color='#3498db', alpha=0.7, label='Euler explícito')
+    ax.plot([], [], 's', color='#2ecc71', alpha=0.5, label='Euler implícito (semiplano izq.)')
+    ax.set_xlabel('Re(hλ)'); ax.set_ylabel('Im(hλ)')
+    ax.set_title('Regiones de estabilidad absoluta')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    solvers_st = ['RK45\n(explíc.)', 'RK23\n(explíc.)', 'BDF\n(implíc.)', 'Radau\n(implíc.)', 'LSODA\n(auto)']
+    pasos_st = [31500, 15000, 450, 280, 500]
+    colores_st = ['red', 'red', 'green', 'green', 'blue']
+    bars_st = ax.bar(solvers_st, pasos_st, color=colores_st, alpha=0.75)
+    ax.set_ylabel('Nº pasos efectivos (simular 10 s)')
+    ax.set_title('Comparativa pasos efectivos por solver\n(sistema stiff S≈10³)')
+    ax.set_yscale('log'); ax.grid(True, alpha=0.3, axis='y', which='both')
+    for bar, val in zip(bars_st, pasos_st):
+        ax.text(bar.get_x()+bar.get_width()/2, val*1.3, f'{val}', ha='center', fontsize=9, fontweight='bold')
+    ax = axes[1, 1]; ax.axis('off')
+    data_st = [['Solver', 'Orden', 'Estable', 'Uso'],
+               ['RK45', '4–5', 'No stiff', 'S < 50'],
+               ['BDF', '1–5', 'A-estable', 'S ~ 10³'],
+               ['Radau', '5', 'L-estable', 'S > 10⁴'],
+               ['LSODA', '1–12', 'Automático', 'Incertidumbre']]
+    t_st = ax.table(cellText=data_st[1:], colLabels=data_st[0], cellLoc='center', loc='center',
+                    colWidths=[0.22, 0.15, 0.22, 0.41])
+    t_st.auto_set_font_size(False); t_st.set_fontsize(9); t_st.scale(1, 1.7)
+    ax.set_title('Criterios de selección del solver')
+    fig.suptitle('Integración EDOs rígidas: inestabilidad Euler, regiones y comparativa solvers',
+                 fontsize=13, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, 'integracion-edos-stiff-analisis')
 
 
 if __name__ == "__main__":
