@@ -197,4 +197,187 @@ Ejemplo para 500 MW, ±320 kV, \( N=300 \) SMs:
 | \( C_{SM} \) | \( 17.5\times10^6\times300/(3\times640^2\times10^6) \) | 4.3 mF |
 | Rizado \( \Delta V_C/V_{C,nom} \) | \( < 10\,\% \) objetivo | 9.8 % |
 
+## 7 — Derivación completa de la corriente de circulación
+
+La corriente de circulación es la componente de la corriente de modo común que fluye entre los
+brazos de la misma fase sin salir al exterior del MMC. Su origen físico es el desequilibrio entre
+la variación de energía del brazo superior e inferior.
+
+**Paso 1 — tensiones insertadas en régimen permanente.** En operación normal, la modulación
+genera estas tensiones en los brazos superior e inferior de la fase a:
+
+$$v_{ua}(t) = \frac{V_{dc}}{2} - \hat{V}_{ac}\sin(\omega_0 t) + v_{circ}(t)$$
+$$v_{la}(t) = \frac{V_{dc}}{2} + \hat{V}_{ac}\sin(\omega_0 t) + v_{circ}(t)$$
+
+La componente DC (\( V_{dc}/2 \)) garantiza que la suma de los brazos cubre la tensión DC. La
+componente AC (\( \hat{V}_{ac}\sin(\omega_0 t) \)) con signos opuestos sintetiza la tensión AC de
+salida. La componente de circulación \( v_{circ}(t) \) es igual en ambos brazos.
+
+**Paso 2 — corriente de fase y de modo común.** Las corrientes de los brazos son:
+
+$$i_{ua}(t) = \frac{i_a}{2} + i_{circ,a}(t) + \frac{I_{dc}}{3}$$
+$$i_{la}(t) = -\frac{i_a}{2} + i_{circ,a}(t) + \frac{I_{dc}}{3}$$
+
+donde \( i_a \) es la corriente de fase (sale al exterior), \( I_{dc}/3 \) es la contribución
+DC al bus, e \( i_{circ,a} \) es la corriente de circulación (suma de los dos brazos).
+
+**Paso 3 — potencia absorbida por los condensadores.** La potencia instantánea del brazo superior:
+
+$$p_{ua}(t) = v_{ua}\cdot i_{ua} = \left(\frac{V_{dc}}{2} - \hat{V}\sin\omega t\right)\left(\frac{I_{ac}}{2}\cos(\omega t-\phi) + \frac{I_{dc}}{3}\right)$$
+
+Expandiendo el producto y usando \( \sin\cdot\cos = \tfrac12\sin + \tfrac12\sin(2\omega t-\phi) \):
+
+$$p_{ua}(t) = \underbrace{\frac{V_{dc}I_{dc}}{6}}_{\text{DC}} + \underbrace{\frac{V_{dc}I_{ac}}{4}\cos(\omega t-\phi)}_{\omega_0} - \underbrace{\frac{\hat{V}I_{dc}}{3}\sin(\omega t)}_{\omega_0} - \underbrace{\frac{\hat{V}I_{ac}}{4}\sin(2\omega t-\phi)}_{2\omega_0}$$
+
+**Paso 4 — desequilibrio a \( 2\omega_0 \).** El término a \( 2\omega_0 \) en \( p_{ua} \) integra
+en el tiempo y produce variación de energía a \( 2\omega_0 \):
+
+$$\Delta W_{ua,2\omega}(t) = +\frac{\hat{V}I_{ac}}{8\omega_0}\cos(2\omega_0 t - \phi)$$
+
+Para el brazo inferior (con \( v_{la} \) con la componente AC de signo opuesto):
+
+$$\Delta W_{la,2\omega}(t) = +\frac{\hat{V}I_{ac}}{8\omega_0}\cos(2\omega_0 t - \phi)$$
+
+Ambos brazos tienen el mismo término a \( 2\omega_0 \) — el desequilibrio total entre superior e
+inferior tiene componente a \( \omega_0 \), y la media entre ambos tiene componente a \( 2\omega_0 \).
+Esta componente a \( 2\omega_0 \) de la energía media se traduce en variación de la tensión promedio
+de condensadores a \( 2\omega_0 \), lo que impulsa una corriente a \( 2\omega_0 \) a través de la
+inductancia de brazo — la corriente de circulación.
+
+**Paso 5 — amplitud de la corriente de circulación sin control.** La tensión de conducción que
+genera la variación de energía a \( 2\omega_0 \) impulsa una corriente a través de \( 2L_{arm} \):
+
+$$\hat{I}_{circ} \approx \frac{\hat{V}_{ac}\hat{I}_{ac}}{4\cdot 2\omega_0\cdot 2L_{arm}\cdot V_{dc}/N}$$
+
+Para valores típicos (\( \hat{V}_{ac}/V_{dc} = 0.5 \), \( \hat{I}_{ac}/I_{nom} = 1 \),
+\( L_{arm} = 0.15\,\text{pu} \)):
+\( \hat{I}_{circ} \approx 0.1\text{–}0.15\,\text{pu} \) — 10–15 % de la corriente nominal de fase.
+
+## 8 — Control de la energía total del MMC
+
+La corriente de circulación que elimina el CCSC garantiza que el promedio de las tensiones de
+condensador sea \( V_{C,nom} \) en cada brazo. Pero si hay desequilibrios lentos (asimetría entre
+fases, pequeñas diferencias en la capacidad de los SMs), la energía total del MMC puede derivar.
+El control de energía total es una capa adicional por encima del CCSC.
+
+**Energía total y por brazo.** La energía almacenada en los 6 brazos:
+
+$$W_{total} = \sum_{j\in\{ua,la,ub,lb,uc,lc\}} W_j = 6\cdot\frac{N}{2}C_{SM}V_{C,nom}^2 = 3NC_{SM}V_{C,nom}^2$$
+
+En operación normal, \( W_{total} \) debería ser constante. Cualquier pérdida neta (diferencia entre
+potencia del bus DC y potencia AC) hace que \( W_{total} \) derive lentamente.
+
+**Referencia de energía.** El valor de referencia de energía total:
+
+$$W_{total}^* = 3NC_{SM}V_{C,nom}^{*2}$$
+
+El control compara \( W_{total}^* - W_{total} \) y ajusta el componente DC de la corriente de brazo
+para recargar o descargar los condensadores:
+
+$$\Delta I_{dc,control} = K_{Wtot}(W_{total}^* - W_{total})$$
+
+Esta corriente adicional no afecta a la corriente de fase AC ni a la de circulación — solo ajusta
+el flujo de potencia DC hacia/desde los condensadores.
+
+**Balanceo entre fases (horizontal).** Si una fase tiene más energía que las otras, se puede
+redistribuir mediante componentes de tensión de frecuencia fundamental en modo común:
+
+$$v_{circ,a}^*(t) = v_{circ,a,DC}^* + \hat{v}_{H}\sin(\omega_0 t)$$
+
+La componente fundamental en modo común (\( \omega_0 \)) genera una corriente de circulación a
+\( \omega_0 \) que transfiere potencia entre fases. Esta estrategia es más compleja que el control
+de energía total y se implementa como capa adicional de balanceo.
+
+**Balanceo superior-inferior (vertical).** El desequilibrio entre el brazo superior e inferior de
+la misma fase se corrige mediante componentes de tensión de frecuencia fundamental en modo
+diferencial:
+
+$$v_{upper}^* += +\frac{\Delta v_V}{2}\sin(\omega_0 t + \phi_V)$$
+$$v_{lower}^* += -\frac{\Delta v_V}{2}\sin(\omega_0 t + \phi_V)$$
+
+donde \( \phi_V \) es el ángulo óptimo para maximizar la transferencia de energía entre los brazos
+superior e inferior con la mínima perturbación a la corriente de fase.
+
+## 9 — Modulación NLM con sorting: algoritmo de balanceo de condensadores
+
+La modulación NLM (Nearest Level Modulation) con sorting es el algoritmo estándar en HVDC-MMC con
+\( N > 20 \) SMs por brazo. Combina la selección del número de SMs a insertar (NLM) con el
+reordenamiento de qué SMs específicos se insertan (sorting) para igualar sus tensiones de
+condensador.
+
+**Paso 1 — determinar el número de SMs a insertar.** En cada instante de control (período \( T_s \)):
+
+$$n_{ins}(t_k) = \mathrm{round}\!\left(\frac{v_{arm}^*(t_k)}{\bar{V}_C(t_k)}\right)$$
+
+donde \( \bar{V}_C \) es el promedio de las tensiones de todos los condensadores del brazo. El
+resultado es un entero entre 0 y \( N \).
+
+**Paso 2 — ordenar los SMs por tensión.** Se ordenan los \( N \) SMs del brazo según su tensión
+de condensador \( V_{C,k} \) en orden ascendente o descendente.
+
+**Paso 3 — seleccionar qué SMs insertar según el signo de la corriente.** La lógica de selección:
+
+- Si \( i_{arm} > 0 \) (corriente carga los condensadores): insertar los \( n_{ins} \) SMs de
+  **menor** tensión (los más descargados se cargan primero → tienden hacia la igualdad).
+- Si \( i_{arm} < 0 \) (corriente descarga los condensadores): insertar los \( n_{ins} \) SMs de
+  **mayor** tensión (los más cargados se descargan primero → tienden hacia la igualdad).
+
+Este algoritmo converge hacia \( V_{C,k} \approx V_{C,nom} \) para todos los SMs sin necesidad
+de ningún controlador PI por SM — solo con la lógica de sorting ejecutada cada período de control.
+
+**Frecuencia de conmutación de cada IGBT.** Cada SM conmuta aproximadamente cada vez que es
+seleccionado o deseleccionado. Con \( N = 300 \) SMs y un período de control \( T_s = 1\,\text{ms} \):
+
+$$f_{sw,IGBT} \approx \frac{f_0\cdot n_{ins}(promedio)}{N} \approx \frac{50\cdot N/2}{N} = 25\,\text{Hz}$$
+
+En la práctica, la conmutación no está perfectamente distribuida: los SMs con mayor error de
+tensión conmutan más frecuentemente. La frecuencia efectiva por IGBT es 50–200 Hz dependiendo del
+rizado de condensador tolerable.
+
+**Histeresis en el sorting.** Para evitar conmutaciones innecesarias cuando las tensiones son muy
+parecidas, se introduce una banda de histeresis: solo se reordena un SM si la diferencia de tensión
+entre el SM seleccionado y el siguiente candidato supera un umbral
+\( \Delta V_{hyst} \approx 0.5\text{–}1\,\% \cdot V_{C,nom} \).
+
+## 10 — Limitación de corriente en el MMC: límite por brazo
+
+La corriente en un MMC no se limita simplemente por la corriente de fase, sino por la corriente de
+cada brazo individual, que incluye la componente de circulación y la componente DC.
+
+**Corriente de brazo superior.** Para la fase a, el brazo superior conduce:
+
+$$i_{ua}(t) = \frac{i_a(t)}{2} + i_{circ,a}(t) + \frac{I_{dc}}{3}$$
+
+Los tres términos se suman instantáneamente. El pico de corriente de brazo ocurre cuando la
+corriente de fase, la de circulación y la DC están en fase:
+
+$$I_{ua,pico} = \frac{\hat{I}_{ac}}{2} + \hat{I}_{circ} + \frac{I_{dc}}{3}$$
+
+Para un MMC con \( \hat{I}_{ac} = 1.5\,\text{pu} \) (sobrecarga), \( \hat{I}_{circ} = 0.15\,\text{pu} \),
+\( I_{dc}/3 = 0.25\,\text{pu} \): \( I_{ua,pico} = 0.75 + 0.15 + 0.25 = 1.15\,\text{pu} \).
+Esto es 15 % más que la corriente de fase — los IGBTs deben estar dimensionados para este pico.
+
+**Limitación por brazo en el control.** La referencia de corriente del lazo de corriente AC
+(\( i_d^* \), \( i_q^* \)) debe limitarse de forma que la corriente de brazo resultante no supere
+\( I_{brazo,max} \):
+
+$$\left|\frac{i_a}{2}\right| + |i_{circ}| + \left|\frac{I_{dc}}{3}\right| \leq I_{brazo,max}$$
+
+El límite de \( i_d^* \) e \( i_q^* \) se recalcula en cada período teniendo en cuenta la
+corriente de circulación actual y la corriente DC. Durante faltas AC donde \( i_q^* \) sube para
+soportar la tensión de red, la corriente de brazo puede superar \( I_{brazo,max} \) aunque la
+corriente de fase no supere el límite de fase — un error habitual es usar solo el limitador de
+fase sin comprobar el límite de brazo.
+
+**Corriente de falta DC y su distribución por brazo.** Ante una falta DC bipolar, la corriente de
+falta se distribuye por los seis brazos del MMC a través de los diodos de antiparalelo (en MMC-HB).
+La corriente instantánea máxima por brazo es:
+
+$$I_{brazo,falta} \approx \frac{I_{fault,pico}}{3}$$
+
+(con distribución uniforme en las tres fases). Para los valores del ejemplo (cable 300 km):
+\( I_{brazo,falta} \approx 14.3\,\text{kA}/3 \approx 4.8\,\text{kA} \) — mucho mayor que la
+corriente de brazo nominal (1–2 kA). Las restricciones de la corriente de falta son las que
+determinan el rating de los IGBTs, no la operación nominal.
+
 <div class="cfig"><img src="../figuras/mmc-modelo-control-analisis.png" alt="MMC: energía de brazos, CCSC y jerarquía de control"><div class="cap">Variación de energía de los brazos superior e inferior (componentes a \( \omega_0 \) y \( 2\omega_0 \)), corriente de circulación con y sin CCSC, jerarquía de las cuatro capas de control del MMC, y efecto del balanceo de tensiones de los submódulos.</div></div>

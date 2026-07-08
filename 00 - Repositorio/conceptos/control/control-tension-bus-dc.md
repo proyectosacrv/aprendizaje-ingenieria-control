@@ -119,6 +119,174 @@ Ancho de banda del lazo de tensión: 10–50 Hz (muy por debajo del de corriente
 - Olvidar anti-windup en el límite de \( i_d^* \) (saturación durante arranques/huecos).
 - Ignorar que una carga CPL añade impedancia negativa ([[dinamica-bus-dc|estabilidad del bus DC con CPL]]).
 
+## 3 — Modelo dinámico del bus DC
+
+**Balance de potencias.** El condensador del bus DC acumula la diferencia entre potencia entrante
+\( P_{in} \) y saliente \( P_{out} \). En términos de la tensión del condensador:
+
+$$ C_{dc}\,V_{dc}\,\dot V_{dc} = P_{in} - P_{out} $$
+
+Esto se puede reescribir como la derivada de la energía \( W = \tfrac12 C_{dc}V_{dc}^2 \):
+
+$$ \dot W = P_{in} - P_{out} \qquad \Leftrightarrow \qquad \frac{C_{dc}}{2}\frac{d(V_{dc}^2)}{dt} = P_{in}-P_{out} $$
+
+**Linealización alrededor de \( V_{dc,0} \).** Con pequeñas perturbaciones
+\( V_{dc} = V_{dc,0}+\tilde v_{dc} \), \( P = \tilde P \) (perturbación de potencia):
+
+$$ C_{dc}\,V_{dc,0}\,\dot{\tilde v}_{dc} = \tilde P \quad\Rightarrow\quad G_{lin}(s) = \frac{1}{C_{dc}\,V_{dc,0}\,s} $$
+
+Planta integradora con ganancia que depende de \( V_{dc,0} \): el PI diseñado para el nominal pierde
+margen cuando \( V_{dc} \) se aleja (p. ej. durante un hueco de red).
+
+**Control en \( V_{dc}^2 \): planta lineal exacta.** Cambiando la variable de salida a \( u = V_{dc}^2 \):
+
+$$ \frac{C_{dc}}{2}\,\dot u = P_{in}-P_{out} \quad\Rightarrow\quad G_{exact}(s) = \frac{2}{C_{dc}\,s} $$
+
+La ganancia es constante en todo el rango de operación: el PI diseñado para el nominal funciona
+igual durante el arranque, la recuperación tras un hueco y la operación a carga parcial. Esta es
+la razón por la que el lazo de tensión industrial siempre opera sobre \( V_{dc}^{*2}-V_{dc}^2 \).
+
+**Corriente del condensador.** La corriente que fluye por el condensador es la diferencia entre la
+corriente aportada por el convertidor y la absorbida por la carga:
+
+$$ i_C = i_{conv} - i_{carga} = C_{dc}\,\dot V_{dc} $$
+
+En régimen permanente \( i_C = 0 \) y toda la corriente del convertidor va a la carga. Los
+transitorios de potencia (escalones de carga, cambios de referencia) descargan o cargan el condensador
+hasta que el lazo de control restablece el equilibrio.
+
+## 4 — Diseño del lazo de control de \( V_{dc} \)
+
+**Planta en \( V_{dc}^2 \).** Integrador puro \( G_v(s) = 2/(C_{dc}\,s) \). El lazo de corriente
+(más rápido) se trata como ganancia unitaria en la banda del lazo de tensión.
+
+**Controlador PI.** \( C_v(s) = K_{pv}(1+1/(T_{iv}\,s)) \). La función de lazo es:
+
+$$ L_v(s) = K_{pv}\!\left(1+\frac{1}{T_{iv}\,s}\right)\frac{2}{C_{dc}\,s} $$
+
+Se elige el cero del PI una década por debajo del cruce: \( 1/T_{iv} \ll \omega_{cv} \).
+
+**Sintonía por asignación de cruce.** En \( \omega_{cv} \), el PI se aproxima a ganancia pura
+\( K_{pv} \) y la condición \( |L_v(j\omega_{cv})| = 1 \) da:
+
+$$ \boxed{K_{pv} = \frac{C_{dc}\,\omega_{cv}}{2}} \qquad T_{iv} = \frac{10}{\omega_{cv}} $$
+
+Con \( T_{iv} = 10/\omega_{cv} \), el cero del PI está una década por debajo del cruce y el margen
+de fase es ~84° — la integral prácticamente no afecta en el cruce.
+
+**Regla de separación de escalas.** El lazo de corriente debe ser ~5–10 veces más rápido:
+
+$$ \omega_{cv} \approx \frac{\omega_{ci}}{5\text{–}10} $$
+
+Y el lazo de tensión debe ser más lento que el doble de la frecuencia de red para no realimentar
+el rizado de 100 Hz (en monofásico) o el de 300 Hz (en trifásico ideal, pero con desbalance el
+rizado de 100 Hz también aparece):
+
+$$ \omega_{cv} < 2\omega_0 = 2\times2\pi\times50 = 628\,\text{rad/s} \quad(\approx 100\,\text{Hz}) $$
+
+**Feedforward de la potencia de carga.** Si se mide o estima \( P_{out} \), se puede sumar
+directamente a la referencia de potencia del lazo:
+
+$$ P_{ref} = C_v(s)(V_{dc}^{*2}-V_{dc}^2) + P_{out} $$
+
+El feedforward cancela la perturbación de carga antes de que el integrador tenga que actuar,
+reduciendo la caída de \( V_{dc} \) en un factor 3–5.
+
+**Anti-windup.** Cuando la referencia de corriente \( i_d^* \) se limita (por saturación del lazo
+de corriente o por la limitación de corriente del convertidor), el integrador del PI de tensión sigue
+integrando el error aunque la salida ya está saturada — esto es el wind-up. La solución es el
+back-calculation: cuando la salida se satura, se alimenta al integrador con la diferencia entre la
+salida real y la saturada con una ganancia \( 1/T_{aw} \).
+
+## 5 — CPL y estabilidad del bus DC
+
+**Carga de potencia constante (CPL, Constant Power Load).** Una carga regulada (p. ej. un
+convertidor DC-DC con lazo de tensión en la salida) mantiene su potencia constante
+\( P_{CPL} = V_{dc}\,I_{CPL} = \text{const} \). Si \( V_{dc} \) cae, \( I_{CPL} \) sube para
+mantener la potencia — impedancia de entrada negativa:
+
+$$ Z_{CPL}(j\omega) = -\frac{V_{dc}^2}{P_{CPL}} \quad (\text{resistencia negativa en baja frecuencia}) $$
+
+Esta impedancia negativa es la raíz de la inestabilidad del bus DC: el condensador del bus ve una
+"resistencia de descarga" negativa que, si supera la resistencia de amortiguamiento del bus, hace
+crecer exponencialmente las oscilaciones de tensión.
+
+**Criterio de Middlebrook (pequeña señal).** El sistema es estable si la impedancia de la fuente
+\( Z_S(j\omega) \) (el convertidor fuente con su lazo de control) es menor que la impedancia de
+la carga \( Z_L(j\omega) \) en todo el rango de frecuencias:
+
+$$ |Z_S(j\omega)| < |Z_L(j\omega)| \quad \forall\,\omega $$
+
+Para una CPL: \( |Z_L| = V_{dc}^2/P_{CPL} = \) constante. Para el convertidor con lazo PI de
+tensión: \( |Z_S| \) crece a baja frecuencia (el lazo de control impone baja impedancia en la BW)
+pero tiene un pico en la resonancia LC del filtro de salida. Si ese pico supera \( V_{dc}^2/P_{CPL} \),
+el sistema es inestable.
+
+**Efecto de múltiples CPL.** Si hay \( n \) CPL con potencias \( P_1, \ldots, P_n \), sus
+impedancias negativas se suman:
+
+$$ R_{neg} = -\sum_{k=1}^{n}\frac{V_{dc}^2}{P_k} = -\frac{V_{dc}^2}{P_{total}} $$
+
+El riesgo aumenta linealmente con la potencia total de las CPL. En microrredes DC con múltiples
+convertidores DC-DC regulados (servidores, drives), la estabilidad del bus es una preocupación
+de diseño crítica.
+
+**Mitigaciones:**
+
+1. **Amortiguamiento virtual.** Añadir una componente de realimentación de la derivada de la
+   tensión DC al lazo de tensión, equivalente a colocar una resistencia virtual en paralelo con
+   el condensador sin pérdidas reales.
+2. **BESS con droop.** Una batería con control droop amortece las oscilaciones del bus: si
+   \( V_{dc} \) cae, la batería inyecta corriente, actuando como amortiguador activo.
+3. **Aumentar \( C_{dc} \).** Incrementar la capacidad del bus reduce la frecuencia de resonancia
+   y el pico de impedancia, aleja el riesgo de Middlebrook.
+4. **Limitar el BW del lazo de carga.** Si el lazo del convertidor CPL es más lento, su
+   impedancia negativa solo aparece a baja frecuencia donde la fuente tiene baja impedancia.
+
+## 6 — Droop de tensión DC y reparto de carga
+
+En sistemas con varios convertidores alimentando el mismo bus DC (microrredes DC, HVDC MTDC), se
+necesita un mecanismo para que compartan la potencia sin comunicación centralizada.
+
+**Característica droop.** Cada convertidor \( i \) implementa una relación lineal entre la tensión
+del bus y su corriente de salida:
+
+$$ V_{dc,i} = V_{dc,0} - R_{d,i}\,I_{dc,i} $$
+
+donde \( R_{d,i} = \Delta V_{dc,max}/I_{dc,i,max} \) es el coeficiente de droop. El convertidor
+"cede" tensión a medida que entrega más corriente, igual que la regulación de una fuente de
+alimentación con resistencia interna.
+
+**Reparto de carga.** Con dos convertidores de coeficientes \( R_{d,1} \), \( R_{d,2} \), la
+corriente se reparte en razón inversa a los coeficientes:
+
+$$ \frac{I_{dc,1}}{I_{dc,2}} = \frac{R_{d,2}}{R_{d,1}} $$
+
+Para reparto igualitario se elige \( R_{d,1} = R_{d,2} \). Para que el convertidor 1 aporte el
+doble: \( R_{d,1} = R_{d,2}/2 \).
+
+**Compromiso regulación–reparto.** Un \( R_d \) grande mejora el reparto pero empeora la
+regulación de \( V_{dc} \) (caída mayor). Un \( R_d \) pequeño mejora la regulación pero empeora
+el reparto (el convertidor más cercano al bus acapara más carga). El compromiso estándar es una
+caída de \( 5\,\% \) de \( V_{dc} \) a plena carga.
+
+**Restauración secundaria.** El droop solo deja \( V_{dc} \) en el valor nominal si la potencia
+demandada es exactamente la nominal. Para cargas parciales o ante pérdidas, \( V_{dc} \) se aleja
+de \( V_{dc,0} \). Un lazo secundario lento (tiempo de respuesta de segundos, comunicación admisible)
+ajusta el punto base \( V_{dc,0} \) de todos los convertidores para restaurar la tensión nominal.
+La latencia de la comunicación no es crítica porque el lazo secundario opera en escala de segundos.
+
+**Aplicación HVDC MTDC.** En una red HVDC con 3–4 terminales, si el terminal rector del bus DC
+(que controla \( V_{dc} \)) falla, todos los demás ven una tensión libre. Con droop:
+
+$$ \Delta V_{dc} = \frac{\Delta P_{desequilibrio}}{\sum_i k_{d,i}} $$
+
+La variación de tensión DC es proporcional al desequilibrio de potencia e inversamente proporcional
+a la suma de las ganancias de droop. Los demás terminales compensan automáticamente la pérdida del
+terminal rectificador en menos de 100 ms — sin comunicación, solo por la variación de \( V_{dc} \).
+
+<div class="cfig"><img src="../figuras/control-tension-bus-dc-analisis.png" alt="Control del bus DC: lazo Vdc, CPL y droop entre convertidores"><div class="cap">Respuesta de \( V_{dc} \) ante un escalón de carga con y sin control; Bode del lazo de tensión (planta integradora + PI); criterio de Middlebrook para CPL — zona de riesgo donde la impedancia de la fuente supera a la de la carga negativa; y característica droop de tres convertidores compartiendo el bus DC.</div></div>
+
 ## Conceptos relacionados
 - [[dinamica-bus-dc]] · [[control-cascada]] · [[convertidor-vsc]] · [[desacoplo-dq]]
 

@@ -182,4 +182,156 @@ $$\text{Antes del cambio de modo:} \quad \int_{\,nuevo}(t_0^-) = i_{d,actual}(t_
 Esta precarga (preloading o bumpless transfer) es imprescindible en convertidores reales y se
 implementa en la lógica de conmutación del controlador de estado superior.
 
+## 7 — Control del terminal offshore (modo GFM)
+
+El terminal offshore de un parque eólico HVDC es el caso más representativo de convertidor
+grid-forming en aplicación industrial. Su función es crear la red AC del parque de cero:
+sin él, los aerogeneradores no tienen tensión de referencia para sincronizarse.
+
+**Diferencia fundamental con el terminal onshore.** El terminal onshore está conectado a la red de
+transmisión pública: tiene una tensión de referencia externa y puede operar como GFL con PLL. El
+terminal offshore opera en isla completa — no hay otra fuente de tensión en la red del parque.
+Debe fijar \( f \) y \( |V| \) sin ninguna referencia externa.
+
+**Control V/f del terminal offshore.** El convertidor offshore actúa como un oscilador de tensión:
+
+$$v_{AC}^*(t) = V_{nom}\sin(2\pi f_{nom}\,t + \phi_0)$$
+
+La frecuencia \( f_{nom} = 50\,\text{Hz} \) y la amplitud \( V_{nom} \) son constantes fijadas por
+el operador. No hay PLL ni lazo de sincronización — el convertidor genera su propio ángulo de referencia.
+
+**Lazo de corriente como protección.** A diferencia del GFM con droop, el terminal offshore no tiene
+un lazo de potencia: simplemente mantiene la tensión deseada. El lazo de corriente interno actúa
+como limitador ante sobrecargas: si la corriente supera \( I_{max} \), se satura la referencia de
+tensión de modulación sin cambiar la frecuencia ni la fase de salida (corriente virtual
+limitación). Esto permite que los aerogeneradores arranquen secuencialmente sin colapso de la red.
+
+**Arranque del parque (energización secuencial).** El procedimiento estándar:
+
+1. El convertidor offshore genera la tensión \( V_{nom} \) a 50 Hz vacío (sin carga).
+2. Se cierra el interruptor del cable de exportación a 33 kV del primer aerogenerador.
+3. La corriente de magnetización del transformador y la capacidad del cable aparece como carga
+   del offshore — el lazo de corriente la limita si es necesario.
+4. El aerogenerador sincroniza su PLL con la nueva red y arranca su control vectorial.
+5. Se repite para cada aerogenerador del parque.
+
+**Regulación de tensión ante variación de carga.** Cuando los aerogeneradores inyectan potencia,
+la tensión en el PCC offshore tendería a subir. El convertidor offshore contrarresta esto regulando
+la tensión de forma droop o con un lazo PI de amplitud:
+
+$$|V_{PCC}^*| = V_{nom} - k_q\,Q_{inversor}$$
+
+donde \( k_q \) es el coeficiente de droop de reactiva. Alternativamente, se usa un lazo PI que
+mide \( |V_{PCC}| \) y ajusta la referencia de corriente reactiva \( i_q^* \).
+
+## 8 — Coordinación entre el terminal offshore y los aerogeneradores
+
+El terminal offshore y los aerogeneradores (WTGs) interactúan a través de la red AC del parque
+(33 kV o 66 kV). La coordinación es necesaria para maximizar la energía extraída y proteger el
+sistema ante perturbaciones.
+
+**MPPT colectivo vs. individual.** Cada aerogenerador tiene su propio MPPT que maximiza su
+extracción de potencia ajustando la velocidad del rotor. El terminal offshore no interviene en
+el MPPT individual — simplemente absorbe la potencia total que los WTGs inyectan y la transmite
+por el cable DC. La regulación de frecuencia de la red del parque no es para compartir carga
+(todos los WTGs van a su MPPT), sino para fijar la referencia de tiempo de los IGBT.
+
+**Rampa de potencia en arranque.** Cuando el parque arranca desde cero o tras un evento, la
+potencia total debe subir de forma controlada para no saturar el bus DC ni provocar sobretensión
+en el cable:
+
+$$\frac{dP_{parque}}{dt} \leq \dot{P}_{max} \approx 0.1\text{–}0.2\,\text{pu/s}$$
+
+La rampa se implementa en el nivel superior del despacho — no en el lazo de corriente de cada WTG.
+
+**Señal de reducción de potencia (curtailment).** Cuando la tensión DC supera un umbral
+(\( V_{dc} > 1.05\,\text{pu} \)), el terminal onshore no puede absorber más potencia. El terminal
+offshore detecta la sobretensión DC y envía una señal de reducción de potencia a los WTGs:
+
+$$P_{WTG}^* = P_{MPPT}\,\min\left(1,\; \frac{k_{dc}}{V_{dc}-V_{dc,0}}\right)$$
+
+Esta señal puede transmitirse por la red AC del parque modulando ligeramente la frecuencia
+(frequency-based power curtailment): si \( f_{parque} \) sube 0.1–0.2 Hz, los WTGs interpretan
+que hay exceso de potencia y reducen su inyección.
+
+**Sincronización de la energización del parque.** En parques con múltiples strings, el terminal
+offshore debe gestionar el escalón de corriente de magnetización de cada transformador de string.
+La corriente de inrush puede alcanzar 6–10 veces la nominal del transformador en el primer semiciclo.
+El offshore limita esta corriente saturando su lazo de corriente interno, con la consiguiente
+reducción temporal de la tensión del parque — que los WTGs ya conectados deben tolerar sin
+desconectarse por su protección de baja tensión.
+
+## 9 — Protección ante falta AC en el lado offshore
+
+Una falta AC en la red del parque (33 kV o en el cable de export) afecta tanto al terminal
+offshore como a los aerogeneradores.
+
+**Perspectiva del terminal offshore.** El terminal ve una carga prácticamente a cero (el
+cortocircuito cortocircuita la tensión). El lazo de control intenta mantener \( V_{nom} \) pero la
+corriente satura al límite \( I_{max} \). Si la falta persiste, la potencia que llega por el cable
+DC supera la que el offshore puede inyectar en la red → \( V_{dc} \) sube. La secuencia de
+protección:
+
+1. \( t = 0 \): se detecta la falta (sobrecorriente del lazo de corriente offshore)
+2. \( t < 10\,\text{ms} \): el offshore activa el chopper de freno DC para absorber el exceso
+3. \( t < 100\,\text{ms} \): el terminal onshore recibe señal (fibra) y reduce \( P_{rec} \)
+4. \( t = 100\text{–}300\,\text{ms} \): disparo del interruptor de la red AC del parque si la
+   falta es permanente; los WTGs entran en modo FRT
+
+**Perspectiva de los aerogeneradores.** Los WTGs ven una depresión de tensión en sus bornes.
+El código de red exige FRT (Fault Ride Through) durante la falta y soporte de reactiva tras la
+recuperación. Como la "red" a la que están conectados es el propio terminal offshore, el
+comportamiento es diferente al de una falta en red pública:
+
+- La tensión se recupera tan pronto como el offshore puede restablecer \( V_{nom} \) (< 100 ms
+  para faltas en la red del parque)
+- Los WTGs deben tolerar la reducción de tensión sin desconectarse por un tiempo igual al del
+  código FRT de la TSO onshore (típicamente 150–625 ms según el nivel de tensión)
+
+**Falta AC en el lado onshore.** El terminal onshore ve la depresión de tensión de la red pública.
+Su respuesta debe ser:
+
+1. Activar el modo LVRT (Low Voltage Ride Through): mantener la conexión y soportar con reactiva
+2. Si la capacidad de inyección de potencia cae (porque \( V_{AC} \) baja), el exceso de potencia
+   del parque sube \( V_{dc} \): el chopper de freno del terminal offshore se activa automáticamente
+3. Tras la recuperación de tensión AC, ramp-up de la potencia activa para evitar nuevos picos
+
+## 10 — Comunicación entre terminales: fibra óptica y latencia
+
+La fibra óptica integrada en el cable DC submarino es la columna vertebral de la comunicación
+entre terminales HVDC. Esta comunicación es necesaria para la coordinación pero no para el
+control básico de estabilidad (que es local).
+
+**Fibra en el cable HVDC.** Los cables submarinos modernos integran 4–12 fibras ópticas en la
+estructura del cable, a un coste marginal mínimo sobre el coste total del cable. La posición
+habitual es en el centro del cable, protegida por la armadura metálica.
+
+**Latencia de propagación.** La velocidad de la luz en la fibra monomodo es
+\( v_{fibra} \approx 2\times10^5\,\text{km/s} \) (índice de refracción ~1.5). Para 500 km:
+
+$$ \tau_{prop} = \frac{500}{2\times10^5} = 2.5\,\text{ms} $$
+
+Más la latencia del equipamiento de interfaz (serialización, encoding, procesado): total ~5 ms.
+
+**Impacto de la latencia en el control.** Los 5 ms de latencia limitan los lazos de control que
+dependen de comunicación entre terminales:
+
+- **Droop DC (local, sin comunicación):** actúa en < 1 ms — no afectado.
+- **Reducción de potencia por señal del onshore:** actúa en ~10 ms (5 ms latencia + 5 ms respuesta)
+  — suficiente para el chopper de freno que actúa en 1–2 ms.
+- **Control secundario (restauración de \( V_{dc} \)):** actúa en 100 ms–1 s — la latencia de 5 ms
+  es completamente irrelevante.
+- **Control terciario (despacho óptimo):** actúa en 1–30 min — latencia irrelevante.
+
+**Protocolo de comunicación.** Los sistemas HVDC comerciales usan protocolos seriales robustos
+(IEC 61850 GOOSE para la protección, IEC 61850-90-3 para la comunicación entre terminales HVDC).
+La redundancia de la fibra (2 canales independientes en el mismo cable) asegura la disponibilidad
+del sistema de comunicación ante fallos de fibra individual.
+
+**Fallo de la comunicación.** El sistema HVDC debe operar de forma segura cuando la fibra falla.
+Con droop DC, el control básico de \( V_{dc} \) funciona sin comunicación. La pérdida de la
+comunicación solo afecta al control secundario y al FRT coordinado — ambos pueden implementarse
+con estrategias locales de degradación: el offshore mantiene su tensión, el onshore sigue en droop,
+y la potencia del parque se reduce por curtailment automático si \( V_{dc} \) supera 1.05 pu.
+
 <div class="cfig"><img src="../figuras/hvdc-control-potencia-analisis.png" alt="Control HVDC-VSC: cascada, Vdc, droop MTDC y FRT"><div class="cap">Estructura de control en cascada (outer/inner loop), respuesta de \( V_{dc} \) ante perturbación de potencia, curvas droop DC de tres terminales MTDC, y evolución de \( V_{dc} \) durante una falta AC con chopper de freno.</div></div>

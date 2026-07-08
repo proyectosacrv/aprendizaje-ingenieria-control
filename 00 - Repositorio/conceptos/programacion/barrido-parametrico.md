@@ -190,3 +190,307 @@ with h5py.File('barrido_kp.h5', 'w') as f:
 ```
 
 **Criterio de parada automático.** Si un punto del barrido produce oscilación sostenida (indicada por \( \max\mathrm{Re}(\lambda) > 0 \) o por la amplitud de las formas de onda superando un umbral), el punto se marca como inestable y el barrido continúa sin interrumpirse. Esto permite mapear toda la frontera de estabilidad, no solo la región segura.
+
+## 7 — Barrido 2D con `contourf` y frontera de estabilidad
+
+El barrido 2D genera un mapa de calor de la métrica de estabilidad en el espacio de dos parámetros. El resultado más útil es la curva de nivel \( \max\mathrm{Re}(\lambda) = 0 \), que define la frontera exacta de estabilidad.
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import signal
+
+
+def build_pi_closedloop(Kp, Ti, G_plant):
+    """Construye el sistema en lazo cerrado con PI.
+    
+    G_plant: instancia de signal.lti (planta)
+    Retorna: (max_Re_lambda, PM_deg) o (nan, nan) si hay error
+    """
+    try:
+        # PI: C(s) = Kp*(1 + 1/(Ti*s)) = Kp*(Ti*s+1)/(Ti*s)
+        C_num = np.array([Kp*Ti, Kp])
+        C_den = np.array([Ti, 0])
+        # Lazo abierto L = C*G (convolución de polinomios)
+        L_num = np.polymul(C_num, G_plant.num)
+        L_den = np.polymul(C_den, G_plant.den)
+        # Lazo cerrado: T = L/(1+L) -> den_cl = den_L + num_L
+        T_den = np.polyadd(L_den, L_num)
+        T_num = L_num
+        # Polos del lazo cerrado
+        poles_cl = np.roots(T_den)
+        max_re = np.max(np.real(poles_cl))
+        # Margen de fase
+        L_sys = signal.lti(L_num, L_den)
+        w_arr = np.logspace(0, 5, 2000)
+        _, mag_b, phase_b = signal.bode(L_sys, w=w_arr)
+        wc_idx = np.argmin(np.abs(mag_b))
+        PM = 180 + phase_b[wc_idx]
+        return max_re, PM
+    except Exception:
+        return np.nan, np.nan
+
+
+# Parámetros del barrido 2D
+Kp_arr = np.linspace(0.5, 30, 40)
+Ti_arr = np.linspace(1e-3, 50e-3, 40)
+
+# Planta de primer orden: G(s) = 1/(0.005s + 1)
+G_plant = signal.lti([1], [5e-3, 1])
+
+# Matrices de resultados
+max_re_map = np.zeros((len(Ti_arr), len(Kp_arr)))
+PM_map = np.zeros((len(Ti_arr), len(Kp_arr)))
+
+for i, Ti in enumerate(Ti_arr):
+    for j, Kp in enumerate(Kp_arr):
+        max_re_map[i, j], PM_map[i, j] = build_pi_closedloop(Kp, Ti, G_plant)
+
+KP, TI = np.meshgrid(Kp_arr, Ti_arr * 1000)   # Ti en ms para el gráfico
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Mapa de max Re(lambda)
+ax = axes[0]
+cf = ax.contourf(KP, TI, max_re_map, levels=50, cmap='RdYlGn_r')
+plt.colorbar(cf, ax=ax, label='max Re(λ)')
+cs = ax.contour(KP, TI, max_re_map, levels=[0], colors='white', linewidths=2)
+ax.clabel(cs, fmt='Re=0 (frontera)', fontsize=9)
+ax.set_xlabel('Kp'); ax.set_ylabel('Ti (ms)')
+ax.set_title('Mapa de estabilidad: max Re(λ)')
+ax.grid(True, alpha=0.2)
+
+# Mapa de margen de fase
+ax = axes[1]
+PM_clip = np.clip(PM_map, -10, 90)
+cf2 = ax.contourf(KP, TI, PM_clip, levels=50, cmap='RdYlGn')
+plt.colorbar(cf2, ax=ax, label='Margen de fase (°)')
+cs2 = ax.contour(KP, TI, PM_map, levels=[45], colors='white', linewidths=2)
+ax.clabel(cs2, fmt='PM=45°', fontsize=9)
+ax.set_xlabel('Kp'); ax.set_ylabel('Ti (ms)')
+ax.set_title('Mapa de margen de fase PM (°)')
+ax.grid(True, alpha=0.2)
+
+plt.tight_layout()
+```
+
+## 8 — Optimización con `scipy.optimize.differential_evolution`
+
+La evolución diferencial (DE) es un algoritmo de optimización global estocástico que no requiere gradientes y evita mínimos locales. Es adecuado para funciones de coste no convexas (como el PM o la norma \( H_\infty \)):
+
+```python
+from scipy.optimize import differential_evolution
+import numpy as np
+from scipy import signal
+
+
+def objetivo_pm(params, G_plant, target_pm=60.0, w_bw=1000.0):
+    """Función de coste: penaliza desviación del PM objetivo y bajo BW.
+    
+    params: [log10(Kp), log10(Ti)] — se optimiza en escala log
+    Retorna: escalar de coste (minimizar)
+    """
+    Kp = 10**params[0]
+    Ti = 10**params[1]
+
+    try:
+        C_num = np.array([Kp*Ti, Kp])
+        C_den = np.array([Ti, 0])
+        L_num = np.polymul(C_num, G_plant.num)
+        L_den = np.polymul(C_den, G_plant.den)
+        T_den = np.polyadd(L_den, L_num)
+        poles_cl = np.roots(T_den)
+
+        # Penalización dura si el sistema es inestable
+        if np.any(np.real(poles_cl) > 0):
+            return 1e6
+
+        L_sys = signal.lti(L_num, L_den)
+        w_arr = np.logspace(0, 5, 1000)
+        _, mag_b, phase_b = signal.bode(L_sys, w=w_arr)
+        wc_idx = np.argmin(np.abs(mag_b))
+        PM = 180 + phase_b[wc_idx]
+        wc = w_arr[wc_idx]
+
+        # Coste: desviación de PM objetivo + penalización si BW es bajo
+        cost_pm = (PM - target_pm)**2
+        cost_bw = max(0, w_bw - wc)**2 * 0.01
+        return cost_pm + cost_bw
+    except Exception:
+        return 1e6
+
+
+G_plant_opt = signal.lti([1], [5e-3, 1])   # planta de primer orden
+
+# Bounds en escala log10: Kp en [0.1, 100], Ti en [0.0005, 0.1]
+bounds_log = [(-1, 2), (-3.3, -1)]
+
+result = differential_evolution(
+    objetivo_pm,
+    bounds=bounds_log,
+    args=(G_plant_opt, 60.0, 1000.0),
+    seed=42,
+    maxiter=300,
+    tol=1e-5,
+    popsize=15,
+    workers=1   # workers=-1 para paralelizar (requiere pickle-safe)
+)
+
+Kp_opt = 10**result.x[0]
+Ti_opt = 10**result.x[1]
+print(f"Kp óptimo: {Kp_opt:.3f},  Ti óptimo: {Ti_opt*1000:.2f} ms")
+print(f"Coste final: {result.fun:.4f},  Converge: {result.success}")
+
+# Verificar PM del resultado
+_, pm_final, _ = build_pi_closedloop(Kp_opt, Ti_opt, G_plant_opt)
+print(f"PM verificado: {pm_final[1]:.1f}°  (objetivo: 60°)")
+```
+
+**Parámetros clave de `differential_evolution`:**
+- `bounds`: límites [min, max] de cada parámetro. Usar escala logarítmica para parámetros con rango amplio.
+- `popsize`: tamaño de la población = `popsize × len(bounds)`. Más grande → más global pero más lento.
+- `seed`: fija la aleatoriedad para reproducibilidad.
+- `workers=-1`: paraleliza en todos los núcleos (la función de coste debe ser serializable con pickle).
+
+## 9 — Registro en HDF5 con `h5py`
+
+HDF5 es el formato estándar para almacenar grandes matrices de resultados de barridos. Soporta compresión, metadatos, y lectura parcial sin cargar todo el archivo:
+
+```python
+import h5py
+import numpy as np
+from datetime import datetime
+
+
+def guardar_barrido_hdf5(filepath, Kp_arr, Ti_arr, max_re_map, PM_map,
+                          metadata=None):
+    """Guarda los resultados de un barrido 2D en formato HDF5.
+    
+    filepath   : ruta del archivo .h5
+    Kp_arr     : array 1D de valores de Kp
+    Ti_arr     : array 1D de valores de Ti
+    max_re_map : matriz 2D (len(Ti), len(Kp)) de max Re(lambda)
+    PM_map     : matriz 2D de margen de fase [°]
+    metadata   : dict con información del barrido (planta, fecha, etc.)
+    """
+    with h5py.File(filepath, 'w') as f:
+        # Ejes del barrido
+        f.create_dataset('Kp', data=Kp_arr, compression='gzip')
+        f.create_dataset('Ti', data=Ti_arr, compression='gzip')
+        # Resultados
+        f.create_dataset('max_Re_lambda', data=max_re_map, compression='gzip')
+        f.create_dataset('PM_deg', data=PM_map, compression='gzip')
+        # Metadatos como atributos del grupo raíz
+        f.attrs['fecha'] = datetime.now().isoformat()
+        f.attrs['N_Kp'] = len(Kp_arr)
+        f.attrs['N_Ti'] = len(Ti_arr)
+        if metadata:
+            for key, val in metadata.items():
+                f.attrs[key] = str(val)
+        print(f"Guardado: {filepath}  ({max_re_map.nbytes/1024:.1f} kB de datos)")
+
+
+def cargar_barrido_hdf5(filepath):
+    """Carga los resultados de un barrido desde HDF5."""
+    with h5py.File(filepath, 'r') as f:
+        Kp = f['Kp'][:]
+        Ti = f['Ti'][:]
+        max_re = f['max_Re_lambda'][:]
+        PM = f['PM_deg'][:]
+        meta = dict(f.attrs)
+    return Kp, Ti, max_re, PM, meta
+
+
+# Ejemplo de uso
+meta = {'planta': 'G=1/(5ms*s+1)', 'objetivo': 'PM=60deg', 'algoritmo': 'DE'}
+guardar_barrido_hdf5('barrido_pi_2d.h5', Kp_arr, Ti_arr, max_re_map, PM_map, meta)
+
+Kp_r, Ti_r, mre_r, pm_r, meta_r = cargar_barrido_hdf5('barrido_pi_2d.h5')
+print(f"Barrido cargado: {meta_r['fecha']}")
+print(f"Frontera de estabilidad (max Re=0): {np.sum(np.abs(mre_r) < 0.5)} puntos")
+```
+
+## 10 — Barrido automático en HiL desde Python
+
+Python puede controlar simuladores en tiempo real (OPAL-RT, Typhoon HiL) mediante su API Python para ejecutar barridos de parámetros automáticamente:
+
+```python
+# Pseudocódigo para barrido automático en Typhoon HiL
+# API real: from typhoon.api.hil import hil
+
+def barrido_hil(hil_api, params_list, T_sim=2.0, fs_capture=10000):
+    """Barrido paramétrico en un simulador HiL.
+    
+    hil_api    : objeto de la API del simulador (Typhoon, OPAL-RT, etc.)
+    params_list: lista de dicts {param_name: value} para cada punto del barrido
+    T_sim      : duración de la simulación por punto [s]
+    fs_capture : frecuencia de captura [Hz]
+    
+    Retorna: lista de dicts con métricas por punto
+    """
+    resultados = []
+
+    for i, params in enumerate(params_list):
+        print(f"Punto {i+1}/{len(params_list)}: {params}")
+
+        # 1. Escribir parámetros en el simulador
+        for nombre, valor in params.items():
+            hil_api.set_scada_input_value(nombre, valor)
+
+        # 2. Iniciar simulación y esperar
+        hil_api.start_simulation()
+        import time; time.sleep(T_sim)
+
+        # 3. Capturar formas de onda
+        v_dc = hil_api.read_analog_signal('Vdc')      # array numpy
+        i_ind = hil_api.read_analog_signal('I_inductor')
+
+        # 4. Calcular métricas
+        # Sobreoscilación de la tensión tras el escalón de carga
+        N_transient = int(0.5 * fs_capture)   # primeros 500 ms = transitorio
+        Mp_vdc = (np.max(v_dc[N_transient:]) - np.mean(v_dc[-100:])) / np.mean(v_dc[-100:]) * 100
+
+        # Criterio de estabilidad: amplitud de oscilación en estado estacionario
+        v_ss = v_dc[-int(0.5*fs_capture):]
+        amplitude_ss = (np.max(v_ss) - np.min(v_ss)) / 2
+        is_stable = amplitude_ss < 0.02 * np.mean(v_dc)   # <2% de oscilación
+
+        resultados.append({
+            **params,
+            'Mp_vdc_%': Mp_vdc,
+            'estable': is_stable,
+            'amplitud_ss': amplitude_ss
+        })
+
+        hil_api.stop_simulation()
+
+    return resultados
+
+
+# Ejemplo de lista de parámetros para el barrido HiL
+params_hil = [
+    {'Kp_corriente': Kp, 'Ti_corriente': Ti}
+    for Kp in [5, 10, 15, 20]
+    for Ti in [2e-3, 5e-3, 10e-3]
+]
+print(f"Total de puntos a evaluar en HiL: {len(params_hil)}")
+
+# Guardar resultados en HDF5 para análisis posterior
+import json
+with h5py.File('barrido_hil.h5', 'w') as f:
+    Kp_vals = [p['Kp_corriente'] for p in params_hil]
+    Ti_vals = [p['Ti_corriente'] for p in params_hil]
+    f.create_dataset('Kp', data=Kp_vals)
+    f.create_dataset('Ti', data=Ti_vals)
+    # Reservar datasets para las métricas (se rellenarán durante el barrido)
+    f.create_dataset('Mp_vdc', shape=(len(params_hil),), dtype=float)
+    f.create_dataset('estable', shape=(len(params_hil),), dtype=bool)
+    f.attrs['descripcion'] = 'Barrido HiL PI corriente VSC'
+print("Estructura HDF5 creada para el barrido HiL")
+```
+
+**Flujo típico completo:**
+1. Barrido 2D offline (sección 7) para mapear la región de interés → identifica los puntos candidatos.
+2. Optimización con DE (sección 8) → encuentra el óptimo analítico.
+3. Validación en HiL (sección 10) de los candidatos seleccionados → confirma el comportamiento real.
+4. Almacenamiento en HDF5 (sección 9) → los resultados son reproducibles y comparables entre campañas.

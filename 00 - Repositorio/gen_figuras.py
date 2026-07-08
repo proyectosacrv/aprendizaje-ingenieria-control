@@ -14345,6 +14345,300 @@ def _amortiguamiento_pasivo_vs_activo_analisis():
     plt.tight_layout(); _savefig(fig, "amortiguamiento-pasivo-vs-activo-analisis")
 
 
+def _aerogenerador_pmsg_dfig_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: curva T-omega PMSG con MPPT y zona de potencia constante
+    ax = axes[0, 0]
+    omega = np.linspace(0.3, 1.3, 200)
+    Kopt = 0.5; Trated = 1.0
+    T_mppt = Kopt * omega**2
+    T_rated = np.minimum(T_mppt, Trated)
+    P_out = T_rated * omega
+    ax.plot(omega, T_mppt, 'b-', lw=2, label='Par MPPT ($K_{opt}\\omega^2$)')
+    ax.plot(omega, T_rated, 'r-', lw=2, label='Par limitado')
+    ax.plot(omega, P_out, 'g--', lw=2, label='Potencia (pu)')
+    ax.axvline(1.0, color='gray', ls=':', label='$\\omega$ nominal')
+    ax.axhline(Trated, color='orange', ls=':', label='T nominal')
+    ax.set_xlabel('$\\omega$ rotor (pu)'); ax.set_ylabel('Par / Potencia (pu)')
+    ax.set_title('PMSG: curva T-$\\omega$ y MPPT'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 2: potencia en DFIG — estator vs rotor vs red
+    ax = axes[0, 1]
+    slip = np.linspace(-0.3, 0.3, 200)
+    Ps = np.ones_like(slip)
+    Pr_abs = np.abs(slip) * Ps
+    Ptotal = Ps + np.where(slip < 0, -slip * Ps, slip * Ps)
+    ax.plot(slip, Ps, 'b-', lw=2, label='P estator')
+    ax.plot(slip, Pr_abs, 'r-', lw=2, label='|P rotor| (convertidor)')
+    ax.plot(slip, Ptotal, 'g-', lw=2, label='P total red')
+    ax.axvline(0, color='k', ls='--', alpha=0.5, label='Velocidad síncrona')
+    ax.fill_between(slip, 0, Pr_abs, alpha=0.2, color='red', label='Potencia convertidor')
+    ax.set_xlabel('Deslizamiento s'); ax.set_ylabel('Potencia (pu)')
+    ax.set_title('DFIG: reparto de potencia estátor/rotor'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 3: FRT — tensión y corriente durante hueco
+    ax = axes[1, 0]
+    t = np.linspace(0, 0.5, 1000)
+    V_grid = np.ones(len(t))
+    V_grid[(t > 0.1) & (t < 0.25)] = 0.15
+    dV = 1 - V_grid
+    Iq_frt = np.minimum(2 * dV, 1.1)
+    Id_frt = np.sqrt(np.maximum(0, 1.1**2 - Iq_frt**2))
+    crowbar = ((t > 0.1) & (t < 0.17)).astype(float)
+    ax.plot(t * 1000, V_grid, 'b-', lw=2, label='V_red (pu)')
+    ax.plot(t * 1000, Iq_frt, 'r-', lw=2, label='I_q reactiva (pu)')
+    ax.plot(t * 1000, Id_frt, 'g-', lw=2, label='I_d activa (pu)')
+    ax.fill_between(t * 1000, 0, crowbar * 0.5, alpha=0.3, color='orange', label='Crowbar activo (DFIG)')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Amplitud (pu)')
+    ax.set_title('FRT: tensión, corrientes y crowbar'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 4: comparativa DFIG vs PMSG — barras de características
+    ax = axes[1, 1]
+    categories = ['FRT\nsencillo', 'Bajo\ncoste', 'Sin\nengranaje', 'Control\nQ pleno', 'Mant.\nbajo']
+    DFIG_scores = [2, 5, 2, 3, 2]
+    PMSG_scores = [5, 3, 5, 5, 5]
+    x = np.arange(len(categories)); w = 0.35
+    ax.bar(x - w / 2, DFIG_scores, w, label='DFIG', color='steelblue', alpha=0.8, edgecolor='black')
+    ax.bar(x + w / 2, PMSG_scores, w, label='PMSG', color='seagreen', alpha=0.8, edgecolor='black')
+    ax.set_xticks(x); ax.set_xticklabels(categories, fontsize=9)
+    ax.set_ylabel('Puntuación (1–5)'); ax.set_title('Comparativa DFIG vs PMSG (offshore)')
+    ax.legend(); ax.grid(True, alpha=0.3, axis='y'); ax.set_ylim([0, 6])
+
+    fig.suptitle('Aerogenerador PMSG y DFIG: modelos, control y FRT', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "aerogenerador-pmsg-dfig-analisis")
+
+
+def _control_parque_eolico_offshore_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+    # Panel 1: layout del parque y efecto estela
+    ax = axes[0, 0]
+    np.random.seed(42)
+    rows = 5; cols = 6
+    x_wt = np.repeat(np.arange(cols) * 5, rows)
+    y_wt = np.tile(np.arange(rows) * 4, cols)
+    v_inf = 12.0
+    v_wt = np.array([v_inf * (1 - 0.08 * (x_wt[i] // 5)) for i in range(len(x_wt))])
+    P_wt = np.clip((v_wt / 12)**3, 0, 1)
+    sc = ax.scatter(x_wt, y_wt, c=P_wt, cmap='RdYlGn', s=200, vmin=0.5, vmax=1.0, zorder=5)
+    plt.colorbar(sc, ax=ax, label='P/P_rated')
+    ax.annotate('', xy=(25, 10), xytext=(-2, 10),
+                arrowprops=dict(arrowstyle='->', color='blue', lw=2))
+    ax.text(11, 10.8, 'Viento', color='blue', fontsize=10)
+    ax.set_xlabel('Distancia (km)'); ax.set_ylabel('Distancia (km)')
+    ax.set_title('Layout parque: efecto estela (color = P/Pnom)'); ax.grid(True, alpha=0.3)
+
+    # Panel 2: FRT frequency-based — Vdc y frecuencia del parque
+    ax = axes[0, 1]
+    t = np.linspace(0, 2, 1000)
+    V_ons = np.ones(len(t))
+    V_ons[(t > 0.3) & (t < 0.7)] = 0.2
+    Vdc = np.ones(len(t))
+    f_park = 50 * np.ones(len(t))
+    for i in range(1, len(t)):
+        dt = t[1] - t[0]
+        dP_out = (V_ons[i]**2 - 1.0) * 0.5
+        Vdc[i] = Vdc[i - 1] + dt * (0.8 - Vdc[i - 1] * 0.5) * (-dP_out) * 2
+        Vdc[i] = np.clip(Vdc[i], 0.9, 1.15)
+        f_park[i] = 50 - 5 * (Vdc[i] - 1.0)
+    ax.plot(t, V_ons, 'b-', lw=2, label='V_onshore (pu)')
+    ax.plot(t, Vdc, 'r-', lw=2, label='V_dc (pu)')
+    ax.plot(t, f_park / 50, 'g-', lw=2, label='f_parque / 50 Hz')
+    ax.axhline(1.0, color='k', ls='--', alpha=0.3)
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Amplitud (pu)')
+    ax.set_title('FRT frequency-based'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 3: despacho de potencia activa — delta control vs MPPT
+    ax = axes[1, 0]
+    v_wind = np.linspace(4, 25, 200)
+    Cp_max = 0.48; rho = 1.225; A = np.pi * 90**2
+    P_mppt = np.minimum(0.5 * rho * A * Cp_max * v_wind**3 / 6e6, 1.0)
+    P_delta = P_mppt * 0.9
+    ax.plot(v_wind, P_mppt, 'b-', lw=2, label='MPPT (100 %)')
+    ax.plot(v_wind, P_delta, 'r-', lw=2, label='Delta control (90 %)')
+    ax.fill_between(v_wind, P_delta, P_mppt, alpha=0.3, color='green', label='Reserva regulación')
+    ax.axvline(12, color='gray', ls=':', label='v_nom = 12 m/s')
+    ax.set_xlabel('Velocidad del viento (m/s)'); ax.set_ylabel('P/P_rated')
+    ax.set_title('Despacho: MPPT vs delta control'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    # Panel 4: servicios de red — respuesta FFR y droop
+    ax = axes[1, 1]
+    t2 = np.linspace(0, 30, 1000)
+    df = -0.5 * (1 - np.exp(-t2 / 0.5)) + 0.3 * (1 - np.exp(-t2 / 10))
+    ddf = np.gradient(df, t2)
+    P_ffr = np.clip(-2 * 3 * ddf, -0.15, 0.15)
+    P_droop = np.clip(-df / 0.02, -0.15, 0.15)
+    ax.plot(t2, df, 'k-', lw=2, label='$\\Delta f$ (Hz)')
+    ax.plot(t2, P_ffr, 'b-', lw=2, label='FFR (inercia virtual)')
+    ax.plot(t2, P_droop, 'r-', lw=2, label='Droop R = 2 %')
+    ax.axhline(0, color='k', ls='--', alpha=0.3)
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('Amplitud (pu / Hz)')
+    ax.set_title('Servicios de red: FFR y droop'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+
+    fig.suptitle('Parque eólico offshore: arquitectura, FRT, despacho y servicios', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "control-parque-eolico-offshore-analisis")
+
+
+def _red_thevenin_scr_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyBboxPatch
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]; ax.axis('off')
+    items = [('V_th\n(Red ideal)', 0.1, 0.5, 'lightyellow'),
+             ('Z_th = R+jX', 0.4, 0.5, 'lightblue'),
+             ('PCC', 0.65, 0.5, 'lightgreen'),
+             ('Convertidor\nVSC', 0.88, 0.5, 'lightsalmon')]
+    for label, x, y, col in items:
+        ax.add_patch(FancyBboxPatch((x-0.08, y-0.12), 0.16, 0.24,
+                     boxstyle='round,pad=0.02', facecolor=col, edgecolor='navy'))
+        ax.text(x, y, label, ha='center', va='center', fontsize=9, fontweight='bold')
+    for i in range(len(items)-1):
+        ax.annotate('', xy=(items[i+1][1]-0.08, 0.5), xytext=(items[i][1]+0.08, 0.5),
+                    arrowprops=dict(arrowstyle='-', color='navy', lw=2))
+    ax.text(0.5, 0.18, 'SCR = S_cc / P_conv', ha='center', fontsize=10,
+            bbox=dict(boxstyle='round', facecolor='wheat'))
+    ax.set_xlim([0, 1]); ax.set_ylim([0, 1]); ax.set_title('Equivalente Thevenin del PCC')
+    ax = axes[0, 1]
+    SCR = np.linspace(1, 15, 200)
+    Xth = 1.0 / SCR
+    ax.plot(SCR, Xth, 'b-', lw=2)
+    ax.axvspan(1, 2, alpha=0.15, color='red', label='Red debil SCR<2')
+    ax.axvspan(2, 5, alpha=0.1, color='orange', label='Red media')
+    ax.axvspan(5, 15, alpha=0.1, color='green', label='Red fuerte SCR>5')
+    ax.set_xlabel('SCR'); ax.set_ylabel('X_th (pu)')
+    ax.set_title('Reactancia Thevenin vs SCR'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    scr_arr = np.linspace(1, 10, 200)
+    bw_max = (scr_arr - 1) * 5
+    bw_nom = 20 * np.ones_like(scr_arr)
+    ax.plot(scr_arr, bw_max, 'r-', lw=2, label='BW_PLL maximo estable')
+    ax.plot(scr_arr, bw_nom, 'b--', lw=2, label='BW_PLL nominal (20Hz)')
+    ax.fill_between(scr_arr, 0, bw_max, alpha=0.1, color='green', label='Zona estable')
+    ax.axvline(1.5, color='gray', ls=':', label='SCR=1.5 (limite GFL)')
+    ax.set_xlabel('SCR'); ax.set_ylabel('BW_PLL (Hz)')
+    ax.set_title('Estabilidad PLL vs SCR'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax.set_ylim([0, 60])
+    ax = axes[1, 1]
+    topologias = ['N\n(normal)', 'N-1\n(linea)', 'N-1\n(trafo)', 'N-2\n(doble)']
+    scr_vals = [5.0, 2.8, 3.5, 1.4]
+    colors = ['green' if s > 3 else 'orange' if s > 2 else 'red' for s in scr_vals]
+    ax.bar(topologias, scr_vals, color=colors, edgecolor='black', alpha=0.8)
+    ax.axhline(2, color='r', ls='--', label='Limite SCR=2')
+    ax.axhline(5, color='g', ls='--', label='SCR=5 (fuerte)')
+    ax.set_ylabel('SCR efectivo'); ax.set_title('SCR segun contingencia de red')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.3, axis='y')
+    fig.suptitle('Red Thevenin y SCR: impedancia, estabilidad y contingencias', fontsize=14, fontweight='bold')
+    plt.tight_layout(); _savefig(fig, 'red-thevenin-scr-analisis')
+
+
+def _armonicos_thd_convertidores_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]
+    f0 = 50; fs_sw = 10000
+    f_arr = np.array([f0*h for h in [1, 3, 5, 7]] +
+                     [fs_sw+k*f0 for k in [-3, -1, 1, 3]] +
+                     [2*fs_sw+k*f0 for k in [-1, 1]])
+    amp_arr = np.array([1.0, 0.05, 0.03, 0.02, 0.15, 0.2, 0.2, 0.15, 0.08, 0.08])
+    bar_cols = ['blue']+['red']*3+['green']*4+['orange']*2
+    ax.bar(f_arr/1000, amp_arr*100, width=0.15, color=bar_cols, edgecolor='black', alpha=0.8)
+    ax.set_xlabel('Frecuencia (kHz)'); ax.set_ylabel('Amplitud (% fundamental)')
+    ax.set_title('Espectro corriente PWM'); ax.grid(True, alpha=0.3, axis='y')
+    ax.set_yscale('log')
+    ax = axes[0, 1]
+    t = np.linspace(0, 0.04, 4000)
+    i_fund = np.sin(2*np.pi*50*t)
+    i_with_dt = i_fund + 0.03*np.sin(2*np.pi*250*t) + 0.02*np.sin(2*np.pi*350*t)
+    ax.plot(t*1000, i_fund, 'b--', lw=1.5, label='Sin dead time')
+    ax.plot(t*1000, i_with_dt, 'r-', lw=1.5, label='Con dead time (2us)')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Corriente (pu)')
+    ax.set_title('Efecto del dead time'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax.set_xlim([0, 20])
+    ax = axes[1, 0]
+    SCR_levels = ['<20', '20-50', '50-100', '>100']
+    limits_thd = [5, 8, 10, 12]
+    thd_measured = [3.2, 4.1, 5.8, 2.9]
+    x = np.arange(len(SCR_levels)); ww = 0.35
+    ax.bar(x-ww/2, limits_thd, ww, label='Limite IEEE 519', color='red', alpha=0.6, edgecolor='black')
+    ax.bar(x+ww/2, thd_measured, ww, label='THD medido', color='blue', alpha=0.7, edgecolor='black')
+    ax.set_xticks(x); ax.set_xticklabels([f'SCR\n{s}' for s in SCR_levels])
+    ax.set_ylabel('THD_I (%)'); ax.set_title('IEEE 519: limites vs medido')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.3, axis='y')
+    ax = axes[1, 1]
+    f = np.logspace(1, 4, 500); w2 = 2*np.pi*f
+    Lg = 1e-3; Cf = 100e-6
+    f_res = 1/(2*np.pi*np.sqrt(Lg*Cf))
+    Z_par = np.abs(1j*w2*Lg * (1/(1j*w2*Cf)) / (1j*w2*Lg + 1/(1j*w2*Cf)))
+    ax.loglog(f, Z_par, 'b-', lw=2)
+    ax.axvline(f_res, color='r', ls='--', lw=2, label=f'f_res={f_res:.0f}Hz')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Impedancia (Ohm)')
+    ax.set_title('Resonancia paralela Lg-Cf'); ax.legend(); ax.grid(True, alpha=0.3)
+    fig.suptitle('Armonicos en convertidores: PWM, dead time, normas y resonancia', fontsize=14, fontweight='bold')
+    plt.tight_layout(); _savefig(fig, 'armonicos-thd-convertidores-analisis')
+
+
+def _control_tension_bus_dc_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    ax = axes[0, 0]
+    t = np.linspace(0, 0.5, 1000)
+    Cdc = 0.01; wcv = 400.0
+    Vdc_pert = np.ones_like(t)
+    Vdc_pert[t > 0.1] = 1 - 0.05*np.exp(-(t[t > 0.1]-0.1)*wcv) * np.cos(wcv*(t[t > 0.1]-0.1))
+    Vdc_no = np.ones_like(t)
+    Vdc_no[t > 0.1] = 1 - 0.3*(1-np.exp(-(t[t > 0.1]-0.1)*5))
+    ax.plot(t*1000, Vdc_pert, 'b-', lw=2, label='Con control Vdc')
+    ax.plot(t*1000, Vdc_no, 'r--', lw=2, label='Sin control')
+    ax.axhline(1.0, color='k', ls=':', alpha=0.5); ax.axvline(100, color='gray', ls=':')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Vdc (pu)')
+    ax.set_title('Respuesta Vdc ante perturbacion de carga'); ax.legend(); ax.grid(True, alpha=0.3)
+    ax = axes[0, 1]
+    w = np.logspace(0, 4, 500); s = 1j*w
+    Kp = Cdc*wcv/2; Ti = 10/wcv
+    G_v = 2/(Cdc*s); C_v = Kp*(1+1/(Ti*s))
+    L_v = C_v*G_v; T_v = L_v/(1+L_v)
+    ax.semilogx(w, 20*np.log10(np.abs(T_v)), 'b-', lw=2, label='|T_v| lazo cerrado')
+    ax.semilogx(w, 20*np.log10(np.abs(L_v)), 'r--', lw=1.5, label='|L_v| lazo abierto')
+    ax.axhline(-3, color='gray', ls=':', alpha=0.7)
+    ax.axvline(wcv, color='green', ls=':', label=f'wcv={wcv:.0f}')
+    ax.set_xlabel('omega (rad/s)'); ax.set_ylabel('dB')
+    ax.set_title('Bode del lazo de tension DC'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 0]
+    f = np.logspace(0, 4, 500); w3 = 2*np.pi*f
+    Ls = 1e-3; Rs = 0.1; Cs_cap = 1e-3
+    Zo = np.sqrt(Rs**2+(w3*Ls)**2) / np.sqrt(1+(w3*Rs*Cs_cap)**2)
+    Z_cpl = 1.0
+    ax.loglog(f, Zo, 'b-', lw=2, label='|Z_source|')
+    ax.axhline(Z_cpl, color='r', ls='--', lw=2, label=f'|Z_CPL|={Z_cpl:.1f}Ohm')
+    ax.fill_between(f, Zo, Z_cpl, where=Zo < Z_cpl, alpha=0.2, color='green', label='Middlebrook OK')
+    ax.fill_between(f, Zo, Z_cpl, where=Zo > Z_cpl, alpha=0.2, color='red', label='Riesgo')
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Impedancia (Ohm)')
+    ax.set_title('Criterio Middlebrook CPL'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    ax = axes[1, 1]
+    Vdc_arr = np.linspace(0.92, 1.02, 200)
+    for Rd, P0, col, lab in [(0.05, 0.0, 'b', 'Conv. 1 (Rd=0.05)'),
+                              (0.08, 0.1, 'r', 'Conv. 2 (Rd=0.08)'),
+                              (0.03, -0.1, 'g', 'Conv. 3 (Rd=0.03)')]:
+        I = (Vdc_arr - 1.0 + P0) / Rd
+        ax.plot(Vdc_arr, I, color=col, lw=2, label=lab)
+    ax.axvline(1.0, color='k', ls='--', alpha=0.5, label='Vdc nominal')
+    ax.axhline(0, color='k', lw=0.5)
+    ax.set_xlabel('Vdc (pu)'); ax.set_ylabel('Corriente aportada (pu)')
+    ax.set_title('Droop DC: reparto entre convertidores'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    fig.suptitle('Control del bus DC: lazo Vdc, CPL y droop', fontsize=14, fontweight='bold')
+    plt.tight_layout(); _savefig(fig, 'control-tension-bus-dc-analisis')
+
+
 def main():
     pref = sys.argv[1] if len(sys.argv) > 1 else None
     n = 0
@@ -14753,6 +15047,27 @@ def main():
         n += 1
     if pref is None or "mmc-modelo-control-analisis".startswith(pref):
         _mmc_modelo_control_analisis()
+        n += 1
+    if pref is None or "aerogenerador-pmsg-dfig-analisis".startswith(pref):
+        _aerogenerador_pmsg_dfig_analisis()
+        n += 1
+    if pref is None or "control-parque-eolico-offshore-analisis".startswith(pref):
+        _control_parque_eolico_offshore_analisis()
+        n += 1
+    if pref is None or "mtdc-proteccion-dc".startswith(pref):
+        _mtdc_proteccion_dc_analisis()
+        n += 1
+    if pref is None or "python-control-scipy".startswith(pref):
+        _python_control_scipy_analisis()
+        n += 1
+    if pref is None or "red-thevenin-scr-analisis".startswith(pref):
+        _red_thevenin_scr_analisis()
+        n += 1
+    if pref is None or "armonicos-thd-convertidores-analisis".startswith(pref):
+        _armonicos_thd_convertidores_analisis()
+        n += 1
+    if pref is None or "control-tension-bus-dc-analisis".startswith(pref):
+        _control_tension_bus_dc_analisis()
         n += 1
     print(f"--- {n} grupo(s) de figuras generados en figuras/")
 
@@ -16534,6 +16849,153 @@ def _mmc_modelo_control_analisis():
     fig.suptitle('MMC: energía de brazos, CCSC y jerarquía de control', fontsize=14, fontweight='bold')
     plt.tight_layout()
     _savefig(fig, 'mmc-modelo-control-analisis')
+
+
+# ===================================================================== #
+#  mtdc-proteccion-dc-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _mtdc_proteccion_dc_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    # Panel 1: droop DC 3 terminales
+    ax = axes[0, 0]
+    Vdc = np.linspace(0.9, 1.1, 200); Vdc0 = 1.0
+    for P0, kd, col, lab in [(-0.8, 8, 'b', 'Terminal 1 (gen, kd=8)'),
+                               (0.4, 5, 'r', 'Terminal 2 (carga, kd=5)'),
+                               (0.4, 3, 'g', 'Terminal 3 (carga, kd=3)')]:
+        P = P0 + kd*(Vdc - Vdc0)
+        ax.plot(Vdc, P, color=col, lw=2, label=lab)
+    ax.axhline(0, color='k', lw=0.5); ax.axvline(Vdc0, color='k', ls='--', alpha=0.5)
+    ax.set_xlabel('Vdc (pu)'); ax.set_ylabel('P (pu)')
+    ax.set_title('Droop DC: 3 terminales MTDC'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    # Panel 2: corriente de falta DC
+    ax = axes[0, 1]
+    t = np.linspace(0, 0.05, 500)
+    L = 0.12; C = 60e-6; Vdc_val = 640e3; Zc = np.sqrt(L/C)
+    fres = 1/(2*np.pi*np.sqrt(L*C)); I_rated = 500e6/Vdc_val
+    i_fault = Vdc_val/Zc * np.sin(2*np.pi*fres*t) * np.exp(-t*0.5/L)
+    ax.plot(t*1000, i_fault/I_rated, 'r-', lw=2)
+    ax.axhline(1, color='b', ls='--', label='I nominal')
+    ax.axhline(10, color='orange', ls=':', label='Límite IGBT (~10pu)')
+    ax.axvline(5, color='green', ls='--', label='Tiempo DCCB (5ms)')
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('Corriente (pu)')
+    ax.set_title('Corriente de falta bipolar DC'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    # Panel 3: comparativa métodos de protección
+    ax = axes[1, 0]; ax.axis('off')
+    data = [['Método', 'Tiempo\naislamiento', 'Coste', 'Pérdidas\nnominal', 'Continuidad'],
+            ['DCCB híbrido', '<5 ms', 'Alto', 'Mínimo', 'Completa'],
+            ['MMC-FB', '<2 ms', 'Muy alto', 'Doble', 'Completa'],
+            ['Handshaking', '200-500 ms', 'Bajo', 'Normal', 'Interrupción'],
+            ['Bus splitting', '50-100 ms', 'Medio', 'Normal', 'Parcial']]
+    t_obj = ax.table(cellText=data[1:], colLabels=data[0], cellLoc='center', loc='center',
+                     colWidths=[0.22, 0.18, 0.15, 0.2, 0.2])
+    t_obj.auto_set_font_size(False); t_obj.set_fontsize(9); t_obj.scale(1, 1.6)
+    ax.set_title('Comparativa métodos de protección DC')
+    # Panel 4: topología MTDC radial vs mallada
+    ax = axes[1, 1]; ax.axis('off')
+    nodes_r = [('Gen 1', 0.1, 0.75), ('Hub DC', 0.35, 0.75),
+               ('Carga 1', 0.6, 0.9), ('Carga 2', 0.6, 0.6)]
+    for label, x, y in nodes_r:
+        col = 'lightblue' if 'Hub' in label else ('lightgreen' if 'Gen' in label else 'lightsalmon')
+        ax.add_patch(mpatches.FancyBboxPatch((x-0.07, y-0.06), 0.14, 0.12,
+                                             boxstyle='round,pad=0.01', facecolor=col, edgecolor='navy'))
+        ax.text(x, y, label, ha='center', va='center', fontsize=8)
+    for (l1, x1, y1), (l2, x2, y2) in [(nodes_r[0], nodes_r[1]),
+                                          (nodes_r[1], nodes_r[2]),
+                                          (nodes_r[1], nodes_r[3])]:
+        ax.plot([x1+0.07, x2-0.07], [y1, y2], 'navy', lw=1.5)
+    ax.text(0.35, 0.95, 'Radial', ha='center', fontsize=10, fontweight='bold', color='navy')
+    nodes_m = [('Gen 1', 0.1, 0.3), ('Gen 2', 0.3, 0.15),
+               ('Carga 1', 0.6, 0.3), ('Carga 2', 0.45, 0.45)]
+    for label, x, y in nodes_m:
+        col = 'lightgreen' if 'Gen' in label else 'lightsalmon'
+        ax.add_patch(mpatches.FancyBboxPatch((x-0.07, y-0.06), 0.14, 0.12,
+                                             boxstyle='round,pad=0.01', facecolor=col, edgecolor='darkred'))
+        ax.text(x, y, label, ha='center', va='center', fontsize=8)
+    for i in range(len(nodes_m)):
+        for j in range(i+1, len(nodes_m)):
+            x1, y1 = nodes_m[i][1], nodes_m[i][2]
+            x2, y2 = nodes_m[j][1], nodes_m[j][2]
+            ax.plot([x1, x2], [y1, y2], 'darkred', lw=1, alpha=0.6)
+    ax.text(0.35, 0.52, 'Mallada', ha='center', fontsize=10, fontweight='bold', color='darkred')
+    ax.set_xlim([0, 0.75]); ax.set_ylim([0.05, 1.0]); ax.set_title('Topologías MTDC')
+    fig.suptitle('MTDC y protección DC: droop, faltas y métodos de protección',
+                 fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "mtdc-proteccion-dc-analisis")
+
+
+# ===================================================================== #
+#  python-control-scipy-analisis  (sin decorador @figura)
+# ===================================================================== #
+def _python_control_scipy_analisis():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy import signal
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    num = [100]; den = [1, 10, 100]
+    sys_tf = signal.lti(num, den)
+    # Panel 1: Bode
+    ax = axes[0, 0]; ax2 = ax.twinx()
+    w, mag, phase = signal.bode(sys_tf, n=500)
+    ax.semilogx(w/(2*np.pi), mag, 'b-', lw=2, label='Ganancia')
+    ax2.semilogx(w/(2*np.pi), phase, 'r--', lw=2, label='Fase')
+    ax.axhline(-3, color='gray', ls=':', alpha=0.7)
+    ax.set_xlabel('Frecuencia (Hz)'); ax.set_ylabel('Ganancia (dB)', color='b')
+    ax2.set_ylabel('Fase (°)', color='r'); ax.set_title('Bode con scipy.signal')
+    ax.grid(True, alpha=0.3)
+    lines1, labels1 = ax.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax.legend(lines1 + lines2, labels1 + labels2, fontsize=8)
+    # Panel 2: respuesta al escalón con anotaciones
+    ax = axes[0, 1]
+    t, y = signal.step(sys_tf)
+    ax.plot(t, y, 'b-', lw=2)
+    Mp_idx = np.argmax(y); Mp = (y[Mp_idx]-1)*100
+    ts_idx = np.where(np.abs(y-1) < 0.02)[0]
+    ts_val = t[ts_idx[0]] if len(ts_idx) > 0 else t[-1]
+    ax.axhline(1, color='k', ls='--', alpha=0.5)
+    ax.axhline(1.02, color='gray', ls=':', alpha=0.5)
+    ax.axhline(0.98, color='gray', ls=':', alpha=0.5)
+    ax.annotate(f'Mp={Mp:.1f}%', xy=(t[Mp_idx], y[Mp_idx]),
+                xytext=(t[Mp_idx]+0.05, y[Mp_idx]+0.02), fontsize=9,
+                arrowprops=dict(arrowstyle='->', color='red'), color='red')
+    ax.axvline(ts_val, color='green', ls='--', label=f'ts={ts_val:.3f}s (2%)')
+    ax.set_xlabel('Tiempo (s)'); ax.set_ylabel('y(t)')
+    ax.set_title('Respuesta escalón con anotaciones'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    # Panel 3: lugar de raíces numérico
+    ax = axes[1, 0]
+    K_arr = np.linspace(0, 500, 200)
+    poles_all = []
+    for K in K_arr:
+        r = np.roots([1, 10, 100+K])
+        poles_all.append(r)
+    poles_all = np.array(poles_all)
+    ax.scatter(np.real(poles_all[:, 0]), np.imag(poles_all[:, 0]), s=2, c='blue', alpha=0.5)
+    ax.scatter(np.real(poles_all[:, 1]), np.imag(poles_all[:, 1]), s=2, c='blue', alpha=0.5)
+    ax.axvline(0, color='k', lw=1); ax.axhline(0, color='k', lw=1)
+    p0 = np.roots([1, 10, 100])
+    ax.scatter(np.real(p0), np.imag(p0), s=100, c='red', marker='x', zorder=5, label='K=0')
+    ax.set_xlabel('Re(s)'); ax.set_ylabel('Im(s)'); ax.set_title('Lugar de raíces (K variable)')
+    ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    # Panel 4: continuo vs discreto
+    ax = axes[1, 1]
+    t_cont = np.linspace(0, 0.3, 1000)
+    _, y_cont = signal.step(sys_tf, T=t_cont)
+    ax.plot(t_cont*1000, y_cont, 'b-', lw=2, label='Continuo')
+    for Ts_d, col, lab in [(2e-3, 'r', 'Ts=2ms (Tustin)'), (5e-3, 'g', 'Ts=5ms (Tustin)')]:
+        sys_d = signal.lti(num, den).to_discrete(Ts_d, method='bilinear')
+        t_d2 = np.arange(0, 0.3, Ts_d)
+        u_d2 = np.ones(len(t_d2))
+        t_out_d2, y_d2 = signal.dlsim(sys_d, u_d2, t=t_d2)
+        ax.step(t_out_d2.flatten()*1000, y_d2.flatten(), where='post', color=col, lw=1.5, label=lab)
+    ax.set_xlabel('Tiempo (ms)'); ax.set_ylabel('y(t)')
+    ax.set_title('Continuo vs discreto (Tustin)'); ax.legend(fontsize=8); ax.grid(True, alpha=0.3)
+    fig.suptitle('Python para control: scipy.signal y análisis LTI', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    _savefig(fig, "python-control-scipy-analisis")
 
 
 if __name__ == "__main__":
