@@ -141,43 +141,49 @@ Las dos potencias quedan **desacopladas naturalmente** por la orientación del m
 por la que el control orientado por tensión de red (VOC, *Voltage Oriented Control*) es el estándar en
 convertidores de red.
 
-### Paso 5 — Desacoplamiento feedforward
+### Paso 5 — Desacoplamiento feedforward: derivación completa
 
-Los términos \(\pm\omega_0 L i_{q,d}\) en las ecuaciones dq acoplan los dos ejes: una perturbación en
-\(i_d\) afecta a \(i_q\) y viceversa. Para eliminar este acoplamiento, el controlador añade términos
-feedforward que cancelan exactamente el acoplamiento cruzado y la tensión de red:
+Las ecuaciones dq del paso 3 contienen los términos de acoplamiento cruzado \(+\omega_0 L i_q\) (en el eje d) y \(-\omega_0 L i_d\) (en el eje q). Estos términos hacen que el sistema sea **MIMO acoplado**: si \(i_d\) varía, perturba inmediatamente \(i_q\), y viceversa.
 
-$$ v_{d,conv}^* = v_{d,PI} + v_{d,g} - \omega_0 L i_q \qquad \text{(feedforward de red + desacoplo)} $$
+**Objetivo:** diseñar la tensión de salida del convertidor \(v_{d,conv}^*\) y \(v_{q,conv}^*\) de modo que, vista desde el PI, la planta sea dos sistemas SISO independientes.
 
-$$ v_{q,conv}^* = v_{q,PI} + v_{q,g} + \omega_0 L i_d $$
+**Paso 5a — Elección de la ley de control:**
 
-Sustituyendo en las ecuaciones dq, los términos de acoplamiento se cancelan y la planta vista por cada
-PI es simplemente:
+Se define la tensión de salida del convertidor como:
 
-$$ G_i(s) = \frac{1}{Ls + R} $$
+$$ v_{d,conv}^* = \underbrace{v_{d,PI}}_{\text{salida del PI}} + \underbrace{v_{d,g}}_{\text{FF tensión red}} + \underbrace{\omega_0 L\, i_q}_{\text{FF desacoplo}} $$
 
-Sistema **SISO** independiente en cada eje. El diseño del controlador se convierte en un problema
-escalar estándar.
+$$ v_{q,conv}^* = \underbrace{v_{q,PI}}_{\text{salida del PI}} + \underbrace{v_{q,g}}_{\text{FF tensión red}} - \underbrace{\omega_0 L\, i_d}_{\text{FF desacoplo}} $$
 
-**Diagrama de bloques del lazo de corriente con desacoplo:**
+Nótese que el desacoplo **añade** \(+\omega_0 L i_q\) en el eje d (para cancelar el \(-\omega_0 L i_q\) que aparece en la ecuación) y **resta** \(\omega_0 L i_d\) en el eje q (para cancelar el \(+\omega_0 L i_d\)).
 
-```
-          +    ┌──────┐  v*_d,PI  + ──► v*_d,conv  ┌──────────┐  i_d
-i*_d ───►─┤    │  PI  ├──────────►┤               ──►│ 1/(Ls+R) ├──────►──┐
-          -    └──────┘           +                  └──────────┘          │
-          ▲                       ▲                                         │
-          └───────────────────────┴─────────────────────────────────────────┘
-                         │                 │
-                    +v_d,g            +ω₀L·i_q   (feedforward desacoplo desde eje q)
+**Paso 5b — Sustitución en las ecuaciones dq:**
 
-          +    ┌──────┐  v*_q,PI  + ──► v*_q,conv  ┌──────────┐  i_q
-i*_q ───►─┤    │  PI  ├──────────►┤               ──►│ 1/(Ls+R) ├──────►──┐
-          -    └──────┘           +                  └──────────┘          │
-          ▲                       ▲                                         │
-          └───────────────────────┴─────────────────────────────────────────┘
-                         │                 │
-                    +v_q,g           -ω₀L·i_d   (feedforward desacoplo desde eje d)
-```
+Sustituyendo \(v_{d,conv}^*\) en la ecuación del eje d:
+
+$$ L\dot{i}_d = \underbrace{(v_{d,PI} + v_{d,g} + \omega_0 L i_q)}_{v_{d,conv}^*} - v_{d,g} - Ri_d + \omega_0 L i_q $$
+
+Los términos \(v_{d,g}\) se cancelan entre sí, y los términos \(\omega_0 L i_q\) también:
+
+$$ L\dot{i}_d = v_{d,PI} - Ri_d \implies \frac{I_d(s)}{V_{d,PI}(s)} = \frac{1}{Ls+R} $$
+
+Ídem para el eje q:
+
+$$ L\dot{i}_q = \underbrace{(v_{q,PI} + v_{q,g} - \omega_0 L i_d)}_{v_{q,conv}^*} - v_{q,g} - Ri_q - \omega_0 L i_d $$
+
+$$ L\dot{i}_q = v_{q,PI} - Ri_q \implies \frac{I_q(s)}{V_{q,PI}(s)} = \frac{1}{Ls+R} $$
+
+**Resultado:** tras el desacoplo, ambos ejes se rigen por la misma planta de primer orden:
+
+$$ \boxed{G_i(s) = \frac{1}{Ls + R}} $$
+
+El sistema MIMO acoplado se reduce a **dos lazos SISO independientes e idénticos**. Cada PI solo ve su propio eje; el acoplamiento cruzado ha sido absorbido por el feedforward.
+
+**Condición de validez:** el desacoplo es exacto si las corrientes \(i_d\) e \(i_q\) medidas son exactas (sin ruido ni retardo). En la práctica, el retardo de muestreo introduce un error pequeño en el desacoplo que se tolera si \(\omega_{ci} \ll \omega_s\) (ancho de banda del lazo de corriente mucho menor que la frecuencia de muestreo).
+
+**Diagrama de bloques — lazo de corriente dq desacoplado y lazo DC:**
+
+<div class="cfig"><img src="../figuras/btb-diagramas-bloques.png" alt="Diagramas de bloques del back-to-back: lazo de corriente dq con desacoplo feedforward y lazo de tensión DC con feedforward de potencia"><div class="cap">Izquierda: lazos de corriente d y q tras el desacoplo feedforward — cada eje ve la planta escalar \(1/(Ls+R)\) sin acoplamiento cruzado. Los términos naranja son el feedforward de desacoplo (\(\pm\omega_0 L i_{q,d}\)) y los verdes el feedforward de tensión de red (\(v_{d,g}\)). Derecha: lazo de tensión DC con el PI sobre \(V_{dc}^2\), feedforward de potencia \(P_{MSC}/V_{dc,0}\) y bloque anti-windup.</div></div>
 
 ---
 
