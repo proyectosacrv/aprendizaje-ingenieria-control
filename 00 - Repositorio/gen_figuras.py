@@ -14814,9 +14814,97 @@ def _btb_diagramas_bloques():
              ha='center', fontsize=9, color='red',
              bbox=dict(boxstyle='round', facecolor='#FDEDEC', edgecolor='red'))
 
+    # ------------------------------------------------------------------ #
+    # Añadir figura separada explicando v_PI, v_conv y v_red
+    # ------------------------------------------------------------------ #
     fig.suptitle('Diagramas de bloques: back-to-back VSC', fontsize=13, fontweight='bold', y=0.98)
     plt.tight_layout(rect=[0, 0, 1, 0.97])
     _savefig(fig, "btb-diagramas-bloques")
+
+    # --- Figura explicativa de tensiones ---
+    fig2, ax3 = plt.subplots(1, 1, figsize=(11, 6))
+    ax3.set_xlim(0, 12); ax3.set_ylim(0, 8); ax3.axis('off')
+    ax3.set_title('Composición de la tensión de salida del convertidor — eje d',
+                  fontsize=12, fontweight='bold', pad=12)
+
+    def bx(x, y, w, h, txt, col):
+        ax3.add_patch(mpatches.FancyBboxPatch((x-w/2, y-h/2), w, h,
+            boxstyle='round,pad=0.1', facecolor=col, edgecolor='navy', lw=1.5))
+        ax3.text(x, y, txt, ha='center', va='center', fontsize=10, fontweight='bold')
+
+    def ar(x1, y1, x2, y2, lbl='', col='navy'):
+        ax3.annotate('', xy=(x2, y2), xytext=(x1, y1),
+                     arrowprops=dict(arrowstyle='->', color=col, lw=1.8))
+        if lbl:
+            ax3.text((x1+x2)/2+0.05, (y1+y2)/2+0.2, lbl, ha='center', fontsize=9, color=col)
+
+    def circ(x, y, lbl):
+        ax3.add_patch(plt.Circle((x, y), 0.32, facecolor='white', edgecolor='navy', lw=1.5))
+        ax3.text(x, y, lbl, ha='center', va='center', fontsize=11, fontweight='bold')
+
+    # Bloque PI
+    bx(1.5, 5.5, 1.2, 0.8, 'PI\n(control)', '#AED6F1')
+    ax3.text(0.2, 5.5, r'$e_d=i_d^*-i_d$', ha='center', va='center', fontsize=9)
+    ar(0.7, 5.5, 0.9, 5.5)
+    ar(2.1, 5.5, 2.8, 5.5, r'$v_{d,PI}$')
+
+    # Suma principal
+    circ(3.1, 5.5, '+')
+    ar(3.42, 5.5, 4.5, 5.5, r'$v_{d,conv}^*$', col='darkred')
+
+    # Bloque VSC
+    bx(5.2, 5.5, 1.2, 0.8, 'VSC\n+PWM', '#A9DFBF')
+    ar(5.8, 5.5, 6.7, 5.5, r'$v_{d,conv}$')
+
+    # Nodo de tensión — resta v_grid
+    circ(7.0, 5.5, '−')
+    ar(7.32, 5.5, 8.1, 5.5)
+
+    # Planta L, R
+    bx(8.8, 5.5, 1.2, 0.8, r'$\frac{1}{Ls+R}$', '#FAD7A0')
+    ar(9.4, 5.5, 10.3, 5.5, r'$i_d$')
+
+    # v_red llega al nodo de resta
+    ax3.text(7.0, 3.5, r'$v_{d,g}$ (tensión de red)', ha='center', va='center', fontsize=9, color='darkgreen')
+    ar(7.0, 3.9, 7.0, 5.2, col='darkgreen')
+
+    # Feedforward v_red al nodo suma
+    ax3.text(3.1, 7.2, r'FF red: $+v_{d,g}$', ha='center', va='center', fontsize=9, color='darkgreen')
+    ar(3.1, 6.95, 3.1, 5.82, col='darkgreen')
+
+    # Feedforward desacoplo al nodo suma
+    ax3.text(3.1, 1.8, r'FF desacoplo: $-\omega_0 L i_q$', ha='center', va='center', fontsize=9, color='darkorange')
+    ar(3.1, 2.2, 3.1, 5.18, col='darkorange')
+
+    # Anotaciones explicativas
+    ax3.text(1.5, 4.0,
+             r'$v_{d,PI}$: salida del PI'+'\n'
+             r'Corrige el error $e_d = i_d^* - i_d$'+'\n'
+             r'Varía lentamente (BW del PI)',
+             ha='center', va='center', fontsize=8.5,
+             bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='#AED6F1'))
+
+    ax3.text(7.0, 7.2,
+             r'$v_{d,g}$: tensión de red (feedforward)'+'\n'
+             r'Se conoce por medida directa'+'\n'
+             r'Cancela el término $-v_{d,g}$ de la planta',
+             ha='center', va='center', fontsize=8.5,
+             bbox=dict(boxstyle='round', facecolor='#EAFAF1', edgecolor='darkgreen'))
+
+    ax3.text(8.0, 2.5,
+             r'$-\omega_0 L i_q$: feedforward de desacoplo'+'\n'
+             r'Cancela el término físico $+\omega_0 L i_q$'+'\n'
+             r'Elimina el acoplamiento cruzado d↔q',
+             ha='center', va='center', fontsize=8.5,
+             bbox=dict(boxstyle='round', facecolor='#FEF9E7', edgecolor='darkorange'))
+
+    ax3.text(5.2, 7.5,
+             r'$v_{d,conv}^* = v_{d,PI} + v_{d,g} - \omega_0 L i_q$',
+             ha='center', va='center', fontsize=11, color='darkred', fontweight='bold',
+             bbox=dict(boxstyle='round', facecolor='#FDEDEC', edgecolor='red', lw=1.5))
+
+    plt.tight_layout()
+    _savefig(fig2, "btb-tensiones-explicacion")
 
 
 def main():
@@ -15251,6 +15339,9 @@ def main():
         n += 1
     if pref is None or "btb-diagramas-bloques".startswith(pref):
         _btb_diagramas_bloques()
+        n += 1
+    if pref is None or "btb-tensiones-explicacion".startswith(pref):
+        _btb_diagramas_bloques()  # genera ambas figuras a la vez
         n += 1
     print(f"--- {n} grupo(s) de figuras generados en figuras/")
 

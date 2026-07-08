@@ -151,27 +151,34 @@ Las ecuaciones dq del paso 3 contienen los términos de acoplamiento cruzado \(+
 
 Se define la tensión de salida del convertidor como:
 
-$$ v_{d,conv}^* = \underbrace{v_{d,PI}}_{\text{salida del PI}} + \underbrace{v_{d,g}}_{\text{FF tensión red}} + \underbrace{\omega_0 L\, i_q}_{\text{FF desacoplo}} $$
+$$ v_{d,conv}^* = \underbrace{v_{d,PI}}_{\text{salida del PI}} + \underbrace{v_{d,g}}_{\text{FF tensión red}} - \underbrace{\omega_0 L\, i_q}_{\text{FF desacoplo}} $$
 
-$$ v_{q,conv}^* = \underbrace{v_{q,PI}}_{\text{salida del PI}} + \underbrace{v_{q,g}}_{\text{FF tensión red}} - \underbrace{\omega_0 L\, i_d}_{\text{FF desacoplo}} $$
+$$ v_{q,conv}^* = \underbrace{v_{q,PI}}_{\text{salida del PI}} + \underbrace{v_{q,g}}_{\text{FF tensión red}} + \underbrace{\omega_0 L\, i_d}_{\text{FF desacoplo}} $$
 
-Nótese que el desacoplo **añade** \(+\omega_0 L i_q\) en el eje d (para cancelar el \(-\omega_0 L i_q\) que aparece en la ecuación) y **resta** \(\omega_0 L i_d\) en el eje q (para cancelar el \(+\omega_0 L i_d\)).
+El signo del feedforward de desacoplo es **opuesto** al del término de acoplamiento en la ecuación física. La ecuación dq del eje d tiene \(+\omega_0 L i_q\) → el feedforward introduce \(-\omega_0 L i_q\). La del eje q tiene \(-\omega_0 L i_d\) → el feedforward introduce \(+\omega_0 L i_d\). Así los términos se cancelan exactamente.
 
 **Paso 5b — Sustitución en las ecuaciones dq:**
 
-Sustituyendo \(v_{d,conv}^*\) en la ecuación del eje d:
+Sustituyendo \(v_{d,conv}^* = v_{d,PI} + v_{d,g} - \omega_0 L i_q\) en la ecuación del eje d:
 
-$$ L\dot{i}_d = \underbrace{(v_{d,PI} + v_{d,g} + \omega_0 L i_q)}_{v_{d,conv}^*} - v_{d,g} - Ri_d + \omega_0 L i_q $$
+$$ L\dot{i}_d = \underbrace{(v_{d,PI} + v_{d,g} - \omega_0 L i_q)}_{v_{d,conv}^*} - v_{d,g} - Ri_d + \omega_0 L i_q $$
 
-Los términos \(v_{d,g}\) se cancelan entre sí, y los términos \(\omega_0 L i_q\) también:
+Agrupando término a término:
+- \(v_{d,g}\) del convertidor cancela el \(-v_{d,g}\) de la red: \(\checkmark\)
+- \(-\omega_0 L i_q\) del feedforward cancela el \(+\omega_0 L i_q\) físico: \(\checkmark\)
 
 $$ L\dot{i}_d = v_{d,PI} - Ri_d \implies \frac{I_d(s)}{V_{d,PI}(s)} = \frac{1}{Ls+R} $$
 
-Ídem para el eje q:
+Ídem para el eje q, sustituyendo \(v_{q,conv}^* = v_{q,PI} + v_{q,g} + \omega_0 L i_d\):
 
-$$ L\dot{i}_q = \underbrace{(v_{q,PI} + v_{q,g} - \omega_0 L i_d)}_{v_{q,conv}^*} - v_{q,g} - Ri_q - \omega_0 L i_d $$
+$$ L\dot{i}_q = \underbrace{(v_{q,PI} + v_{q,g} + \omega_0 L i_d)}_{v_{q,conv}^*} - v_{q,g} - Ri_q - \omega_0 L i_d $$
+
+- \(v_{q,g}\) cancela \(-v_{q,g}\): \(\checkmark\)
+- \(+\omega_0 L i_d\) del feedforward cancela el \(-\omega_0 L i_d\) físico: \(\checkmark\)
 
 $$ L\dot{i}_q = v_{q,PI} - Ri_q \implies \frac{I_q(s)}{V_{q,PI}(s)} = \frac{1}{Ls+R} $$
+
+<div class="cfig"><img src="../figuras/btb-tensiones-explicacion.png" alt="Composición de la tensión de salida del convertidor en el eje d"><div class="cap">La tensión de salida del convertidor \(v_{d,conv}^*\) es la suma de tres contribuciones: la salida del PI \(v_{d,PI}\) (corrección del error de corriente), el feedforward de tensión de red \(v_{d,g}\) (cancela la perturbación de la red en la planta) y el feedforward de desacoplo \(-\omega_0 L i_q\) (cancela el acoplamiento cruzado físico del marco dq).</div></div>
 
 **Resultado:** tras el desacoplo, ambos ejes se rigen por la misma planta de primer orden:
 
