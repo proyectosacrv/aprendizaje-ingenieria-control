@@ -14907,6 +14907,100 @@ def _btb_diagramas_bloques():
     _savefig(fig2, "btb-tensiones-explicacion")
 
 
+def _fv_po_flowchart():
+    """Diagrama de flujo del algoritmo P&O (Perturbar y Observar) del MPPT FV."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, ax = plt.subplots(1, 1, figsize=(11, 9))
+    ax.set_xlim(0, 11); ax.set_ylim(0, 13); ax.axis('off')
+    ax.set_title('Algoritmo P&O (Perturbar y Observar) del MPPT',
+                 fontsize=13, fontweight='bold', pad=10)
+
+    xc = 5.5
+
+    def rbox(x, y, w, h, txt, col='#AED6F1', fs=9.5):
+        ax.add_patch(mpatches.FancyBboxPatch((x-w/2, y-h/2), w, h,
+            boxstyle='round,pad=0.08', facecolor=col, edgecolor='navy', lw=1.6))
+        ax.text(x, y, txt, ha='center', va='center', fontsize=fs, fontweight='bold')
+
+    def diamond(x, y, w, h, txt, col='#F9E79F', fs=9):
+        ax.add_patch(mpatches.FancyBboxPatch((x-w/2, y-h/2), w, h,
+            boxstyle='round,pad=0.02', facecolor=col, edgecolor='navy', lw=1.6))
+        ax.text(x, y, txt, ha='center', va='center', fontsize=fs, fontweight='bold')
+
+    def down(x, y1, y2, lbl=''):
+        ax.annotate('', xy=(x, y2), xytext=(x, y1),
+                    arrowprops=dict(arrowstyle='->', color='navy', lw=1.7))
+        if lbl:
+            ax.text(x+0.2, (y1+y2)/2, lbl, ha='left', va='center', fontsize=8.5, color='darkred')
+
+    # Inicio
+    rbox(xc, 12.2, 3.0, 0.7, r'Estado: $(V_{prev},\,P_{prev})$', '#D5DBDB')
+    down(xc, 11.85, 11.35)
+    # Medir
+    rbox(xc, 11.0, 2.6, 0.7, r'Medir $V_k,\ I_k$', '#A9DFBF')
+    down(xc, 10.65, 10.15)
+    # Calcular ΔP, ΔV
+    rbox(xc, 9.7, 3.4, 0.9,
+         r'$\Delta P = P_k - P_{prev}$' + '\n' + r'$\Delta V = V_k - V_{prev}$', '#AED6F1')
+    down(xc, 9.25, 8.6)
+    # Rombo ΔP
+    diamond(xc, 8.1, 2.2, 1.0, r'signo de $\Delta P$')
+
+    # Tres ramas
+    y_branch = 6.7
+    xL, xM, xR = 2.0, 5.5, 9.0
+    for x, lbl in [(xL, r'$\Delta P>0$'), (xM, r'$\Delta P\approx 0$'), (xR, r'$\Delta P<0$')]:
+        ax.annotate('', xy=(x, y_branch+0.35), xytext=(xc, 7.6),
+                    arrowprops=dict(arrowstyle='->', color='navy', lw=1.5))
+        ax.text((xc+x)/2, 7.15, lbl, ha='center', fontsize=8.5, color='darkred',
+                bbox=dict(boxstyle='round,pad=0.15', facecolor='white', edgecolor='none'))
+
+    # Rama central: no mover
+    rbox(xM, y_branch, 1.8, 0.7, 'No mover', '#EAECEE', 9)
+
+    # Ramas laterales con sub-rombo ΔV
+    diamond(xL, y_branch, 1.8, 0.8, r'signo $\Delta V$', fs=8.5)
+    diamond(xR, y_branch, 1.8, 0.8, r'signo $\Delta V$', fs=8.5)
+
+    # Acciones bajo cada rombo lateral
+    y_act = 5.1
+    def action(x_par, dx, lbl, act, col):
+        x = x_par + dx
+        ax.annotate('', xy=(x, y_act+0.35), xytext=(x_par+dx*0.4, y_branch-0.4),
+                    arrowprops=dict(arrowstyle='->', color='navy', lw=1.3))
+        ax.text(x_par+dx*0.55, (y_branch-0.4+y_act+0.35)/2, lbl, ha='center',
+                fontsize=8, color='darkred')
+        rbox(x, y_act, 1.35, 0.6, act, col, 8.5)
+
+    action(xL, -0.95, r'$\Delta V>0$', r'$+\Delta V_{step}$', '#ABEBC6')
+    action(xL, +0.95, r'$\Delta V<0$', r'$-\Delta V_{step}$', '#F5B7B1')
+    action(xR, -0.95, r'$\Delta V>0$', r'$-\Delta V_{step}$', '#F5B7B1')
+    action(xR, +0.95, r'$\Delta V<0$', r'$+\Delta V_{step}$', '#ABEBC6')
+
+    # Confluencia hacia actualizar V_ref
+    y_upd = 3.3
+    rbox(xc, y_upd, 3.2, 0.8, r'Actualizar $V_{ref}$', '#AED6F1')
+    for x in [xL-0.95, xL+0.95, xM, xR-0.95, xR+0.95]:
+        y_from = (y_branch-0.35) if x == xM else (y_act-0.3)
+        ax.plot([x, x, xc], [y_from, y_upd+0.55, y_upd+0.55], 'navy', lw=1.2, alpha=0.55)
+    ax.annotate('', xy=(xc, y_upd+0.4), xytext=(xc, y_upd+0.55),
+                arrowprops=dict(arrowstyle='->', color='navy', lw=1.5))
+
+    # Bucle de retorno
+    down(xc, y_upd-0.4, 2.2)
+    rbox(xc, 1.8, 3.6, 0.7, r'$V_{prev}\!\leftarrow\! V_k,\ P_{prev}\!\leftarrow\! P_k$', '#D5DBDB', 9)
+    ax.plot([xc-1.8, 0.6, 0.6, xc-1.5], [1.8, 1.8, 11.0, 11.0], 'navy', lw=1.3, ls='--')
+    ax.annotate('', xy=(xc-1.3, 11.0), xytext=(xc-1.5, 11.0),
+                arrowprops=dict(arrowstyle='->', color='navy', lw=1.3))
+    ax.text(0.75, 6.4, 'siguiente\niteración', ha='left', fontsize=8.5,
+            color='gray', style='italic')
+
+    plt.tight_layout()
+    _savefig(fig, "fotovoltaica-po-flowchart")
+
+
 def _btb_topologia():
     """Topología del convertidor back-to-back: Red AC1 - Filtro L1 - VSC1 -
     bus DC (C_dc) - VSC2 - Filtro L2 - Red AC2, con bloques."""
@@ -15484,6 +15578,9 @@ def main():
         n += 1
     if pref is None or "btb-diagramas-bloques".startswith(pref):
         _btb_diagramas_bloques()
+        n += 1
+    if pref is None or "fotovoltaica-po-flowchart".startswith(pref):
+        _fv_po_flowchart()
         n += 1
     if pref is None or "btb-topologia".startswith(pref):
         _btb_topologia()

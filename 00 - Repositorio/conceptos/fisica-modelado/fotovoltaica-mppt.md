@@ -129,25 +129,7 @@ Cuanto más rápido cambia \( G \), más pasos puede dar en la dirección incorr
 
 **Paso 3 — diagrama de estados del P&O.**
 
-```
-Estado: (V_prev, P_prev)
-                │
-                ▼
-        [Medir V_k, I_k]
-                │
-                ▼
-         ΔP = P_k - P_prev
-         ΔV = V_k - V_prev
-                │
-    ┌───────────┼───────────┐
-  ΔP>0        ΔP≈0       ΔP<0
-    │            │           │
-  ΔV>0  ΔV<0  No mover  ΔV>0  ΔV<0
-  (+ΔV) (-ΔV)           (-ΔV) (+ΔV)
-    └───────────┴───────────┘
-                │
-        [Actualizar V_ref]
-```
+<div class="cfig"><img src="../figuras/fotovoltaica-po-flowchart.png" alt="Diagrama de flujo del algoritmo P&O: medir V e I, calcular incrementos de P y V, decidir el sentido de la perturbación según los signos y actualizar la referencia"><div class="cap">El algoritmo mide \(V_k, I_k\), calcula \(\Delta P\) y \(\Delta V\) respecto al paso anterior y decide el sentido de la perturbación: si \(\Delta P>0\) sigue en la misma dirección de \(\Delta V\), si \(\Delta P<0\) invierte el sentido, y si \(\Delta P\approx 0\) mantiene la tensión. Luego guarda el estado y repite. Este vaivén permanente alrededor del MPP es la causa del rizado en régimen permanente.</div></div>
 
 ## 5 — El MPPT con control de corriente
 
