@@ -22,18 +22,7 @@ mira a un sistema AC distinto; el bus DC los **desacopla** y permite flujo de po
 entre ambos lados. Es la topología base del aerogenerador full-converter (Tipo 4), el convertidor de
 rotor del DFIG (Tipo 3), los accionamientos regenerativos y el HVDC-VSC.
 
-```
-   Red AC 1              Filtro L1         Bus DC          Filtro L2              Red AC 2
-   (vg1, ω1)  ─────── R1+jX1 ──── ┌────────────────┐ ──── R2+jX2 ──────── (vg2, ω2)
-                                    │                │
-                               VSC1 │      C_dc      │ VSC2
-                          (MSC/GSC) │  ─── V_dc ─── │ (GSC/LSC)
-                                    │    +   -       │
-                                    └────────────────┘
-                                         ▲
-                                    Condensador de bus
-                                    E = ½ C V²_dc
-```
+<div class="cfig"><img src="../figuras/btb-topologia.png" alt="Topología del convertidor back-to-back: Red AC 1 - Filtro L1 - VSC1 - bus DC con condensador - VSC2 - Filtro L2 - Red AC 2"><div class="cap">Dos VSC unidos por un bus DC común (condensador \(C_{dc}\)). Cada convertidor mira a un sistema AC independiente a través de su filtro \(L\); el bus DC los desacopla y permite flujo de potencia bidireccional. La energía del condensador \(E=\tfrac{1}{2}C_{dc}V_{dc}^2\) actúa de pulmón entre ambos lados.</div></div>
 
 Los dos VSC solo se "ven" a través del bus DC: el acoplamiento es puramente **energético**. La frecuencia,
 la fase y la amplitud de la red AC 1 son completamente independientes de las de la red AC 2. Esta
@@ -305,16 +294,7 @@ que es mucho menor. El condensador puede dimensionarse 5–10 veces más pequeñ
 
 ### 4.4 — Diagrama de bloques del lazo DC completo
 
-```
-  V*²_dc  +  ┌────────┐  i*_d,dc   ┌──────────────┐  P_GSC   ┌─────────┐
-─────────►──┤  PI_dc  ├────────────►│ Lazo corr.   ├──────────►│  2/C·s  ├──► w = V²_dc
-         -  └────────┘             │  ≈ 1 (rápido) │          └─────────┘        │
-         ▲                         └──────────────┘                               │
-         └──────────────────────────────────────────────────────────────────────────┘
-
-                        ▲
-                   P_MSC/(1.5·v_d,g)  ←── feedforward (suma en i*_d,dc)
-```
+<div class="cfig"><img src="../figuras/btb-lazo-dc.png" alt="Diagrama de bloques del lazo de tensión DC: PI sobre V_dc cuadrado, feedforward de potencia del MSC, lazo de corriente como ganancia unidad y planta integradora 2/(C_dc s)"><div class="cap">El PI actúa sobre el error de \(V_{dc}^2\) y genera la referencia de corriente activa del GSC. El feedforward de potencia \(P_{MSC}/(1.5\,v_{d,g})\) adelanta la corriente antes de que el condensador se descargue. El lazo de corriente interno se ve como ganancia unidad (separación de escalas \(\omega_{dc}=\omega_{ci}/10\)) y la planta es el integrador \(2/(C_{dc}s)\).</div></div>
 
 El bloque "Lazo corr. ≈ 1" es la aproximación de separación de escalas: a la frecuencia del lazo DC,
 el lazo de corriente tiene una ganancia de 1 y retardo despreciable.

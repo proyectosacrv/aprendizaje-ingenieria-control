@@ -14907,6 +14907,151 @@ def _btb_diagramas_bloques():
     _savefig(fig2, "btb-tensiones-explicacion")
 
 
+def _btb_topologia():
+    """Topología del convertidor back-to-back: Red AC1 - Filtro L1 - VSC1 -
+    bus DC (C_dc) - VSC2 - Filtro L2 - Red AC2, con bloques."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, ax = plt.subplots(1, 1, figsize=(14, 6.5))
+    ax.set_xlim(0, 14); ax.set_ylim(0, 8); ax.axis('off')
+    ax.set_title('Topología del convertidor back-to-back',
+                 fontsize=13, fontweight='bold', pad=12)
+
+    yc = 4.5  # eje central
+
+    def box(x, y, w, h, txt, col, fs=9):
+        ax.add_patch(mpatches.FancyBboxPatch((x-w/2, y-h/2), w, h,
+            boxstyle='round,pad=0.08', facecolor=col, edgecolor='navy', lw=1.6))
+        ax.text(x, y, txt, ha='center', va='center', fontsize=fs, fontweight='bold')
+
+    def wire(x1, x2, y=yc, col='navy', lw=2.0):
+        ax.plot([x1, x2], [y, y], color=col, lw=lw)
+
+    # Red AC 1 (fuente izquierda)
+    box(1.1, yc, 1.6, 1.4, 'Red AC 1\n' + r'$(v_{g1},\,\omega_1)$', '#D5DBDB', 10)
+    wire(1.9, 3.0)
+    # Filtro L1
+    box(3.6, yc, 1.5, 1.0, r'Filtro $L_1$' + '\n' + r'$R_1{+}jX_1$', '#FCF3CF', 9)
+    wire(4.35, 5.2)
+    # VSC1
+    box(5.9, yc, 1.5, 1.8, 'VSC 1\n(MSC/GSC)', '#AED6F1', 9.5)
+    wire(6.65, 7.35)
+    # Bus DC / condensador
+    box(8.1, yc, 1.6, 2.2, 'Bus DC\n' + r'$C_{dc}$' + '\n' + r'$V_{dc}$', '#A9DFBF', 10)
+    wire(8.9, 9.6)
+    # VSC2
+    box(10.3, yc, 1.5, 1.8, 'VSC 2\n(GSC/LSC)', '#AED6F1', 9.5)
+    wire(11.05, 11.7)
+    # Filtro L2
+    box(12.0, yc, 1.5, 1.0, r'Filtro $L_2$' + '\n' + r'$R_2{+}jX_2$', '#FCF3CF', 9)
+
+    # Red AC 2 (a la derecha, texto)
+    ax.annotate('', xy=(13.6, yc), xytext=(12.75, yc),
+                arrowprops=dict(arrowstyle='->', color='navy', lw=2.0))
+    ax.text(13.7, yc, 'Red\nAC 2\n' + r'$(v_{g2},\,\omega_2)$',
+            ha='left', va='center', fontsize=9, fontweight='bold')
+
+    # Anotación del condensador
+    ax.annotate('Condensador de bus\n' + r'$E=\frac{1}{2}C_{dc}V_{dc}^2$',
+                xy=(8.1, 3.4), xytext=(8.1, 1.6),
+                ha='center', fontsize=9, color='darkgreen',
+                arrowprops=dict(arrowstyle='->', color='darkgreen', lw=1.4))
+
+    # Flechas de flujo de potencia bidireccional
+    ax.annotate('', xy=(9.9, 6.6), xytext=(6.3, 6.6),
+                arrowprops=dict(arrowstyle='<->', color='darkred', lw=1.8))
+    ax.text(8.1, 6.9, 'Flujo de potencia bidireccional',
+            ha='center', fontsize=9.5, color='darkred', fontweight='bold')
+
+    # Etiqueta de desacoplo energético
+    ax.text(8.1, 0.7, 'El bus DC desacopla ambos lados: acoplamiento puramente energético',
+            ha='center', fontsize=9, color='gray', style='italic')
+
+    plt.tight_layout()
+    _savefig(fig, "btb-topologia")
+
+
+def _btb_lazo_dc():
+    """Diagrama de bloques del lazo de tensión DC completo con feedforward."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, ax = plt.subplots(1, 1, figsize=(13, 6))
+    ax.set_xlim(0, 13); ax.set_ylim(0, 8); ax.axis('off')
+    ax.set_title('Lazo de control de la tensión del bus DC',
+                 fontsize=13, fontweight='bold', pad=12)
+
+    yc = 5.0
+
+    def box(x, y, w, h, txt, col, fs=9.5):
+        ax.add_patch(mpatches.FancyBboxPatch((x-w/2, y-h/2), w, h,
+            boxstyle='round,pad=0.08', facecolor=col, edgecolor='navy', lw=1.6))
+        ax.text(x, y, txt, ha='center', va='center', fontsize=fs, fontweight='bold')
+
+    def circle(x, y, lbl, r=0.32):
+        ax.add_patch(plt.Circle((x, y), r, facecolor='white', edgecolor='navy', lw=1.6))
+        ax.text(x, y, lbl, ha='center', va='center', fontsize=11, fontweight='bold')
+
+    def arr(x1, y1, x2, y2, lbl='', col='navy'):
+        ax.annotate('', xy=(x2, y2), xytext=(x1, y1),
+                    arrowprops=dict(arrowstyle='->', color=col, lw=1.8))
+        if lbl:
+            ax.text((x1+x2)/2, (y1+y2)/2+0.28, lbl, ha='center', fontsize=9, color='darkred')
+
+    # Referencia V*²dc
+    ax.text(0.5, yc, r'$V_{dc}^{*2}$', ha='center', va='center', fontsize=11)
+    arr(0.95, yc, 1.5, yc)
+    circle(1.85, yc, '−')
+    arr(2.2, yc, 3.0, yc, r'$e_w$')
+    # PI_dc
+    box(3.7, yc, 1.3, 0.9, r'$PI_{dc}$', '#AED6F1')
+    arr(4.35, yc, 5.1, yc)
+    # Suma feedforward
+    circle(5.45, yc, '+')
+    arr(5.8, yc, 6.6, yc, r'$i_{d,GSC}^*$')
+    # Lazo de corriente ≈ 1
+    box(7.4, yc, 1.5, 0.9, 'Lazo\ncorr. ' + r'$\approx 1$', '#A9DFBF', 9)
+    arr(8.15, yc, 8.9, yc, r'$P_{GSC}$')
+    # Planta bus DC
+    box(9.7, yc, 1.3, 0.9, r'$\dfrac{2}{C_{dc}s}$', '#FAD7A0')
+    arr(10.35, yc, 11.2, yc)
+    ax.text(11.5, yc, r'$w=V_{dc}^2$', ha='left', va='center', fontsize=11)
+
+    # Realimentación
+    ax.plot([11.15, 11.15, 1.85], [yc, yc-1.1, yc-1.1], 'navy', lw=1.8)
+    ax.annotate('', xy=(1.85, yc-0.32), xytext=(1.85, yc-1.1),
+                arrowprops=dict(arrowstyle='->', color='navy', lw=1.8))
+
+    # Feedforward de potencia
+    ax.text(5.45, 7.3, r'$P_{MSC}$', ha='center', va='center', fontsize=11, color='darkgreen')
+    ax.annotate('', xy=(5.45, 6.7), xytext=(5.45, 7.05),
+                arrowprops=dict(arrowstyle='->', color='darkgreen', lw=1.6))
+    box(5.45, 6.35, 1.7, 0.7, r'$\div\,(1.5\,v_{d,g})$', '#ABEBC6', 8.5)
+    ax.annotate('', xy=(5.45, yc+0.32), xytext=(5.45, 6.0),
+                arrowprops=dict(arrowstyle='->', color='darkgreen', lw=1.6))
+    ax.text(5.85, 5.75, '+', ha='center', fontsize=10, color='darkgreen')
+    ax.text(7.6, 6.9, 'feedforward de potencia', ha='center', fontsize=9,
+            color='darkgreen', style='italic')
+
+    # Notas
+    ax.text(6.5, 3.2,
+            r'Separación de escalas: $\omega_{dc}=\omega_{ci}/10$   →   el lazo de corriente se ve como ganancia 1',
+            ha='center', fontsize=9,
+            bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='steelblue'))
+    ax.text(6.5, 2.3,
+            r'Sintonía: $K_{p,dc}=C_{dc}\omega_{dc}/2$,   $T_{i,dc}=4/\omega_{dc}$',
+            ha='center', fontsize=9,
+            bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='steelblue'))
+    ax.text(6.5, 1.4,
+            r'Condición de estabilidad con CPL: $K_{p,dc} > P_{2,max}/(2V_{dc,0}^2)$',
+            ha='center', fontsize=9, color='red',
+            bbox=dict(boxstyle='round', facecolor='#FDEDEC', edgecolor='red'))
+
+    plt.tight_layout()
+    _savefig(fig, "btb-lazo-dc")
+
+
 def main():
     pref = sys.argv[1] if len(sys.argv) > 1 else None
     n = 0
@@ -15339,6 +15484,12 @@ def main():
         n += 1
     if pref is None or "btb-diagramas-bloques".startswith(pref):
         _btb_diagramas_bloques()
+        n += 1
+    if pref is None or "btb-topologia".startswith(pref):
+        _btb_topologia()
+        n += 1
+    if pref is None or "btb-lazo-dc".startswith(pref):
+        _btb_lazo_dc()
         n += 1
     if pref is None or "btb-tensiones-explicacion".startswith(pref):
         _btb_diagramas_bloques()  # genera ambas figuras a la vez
