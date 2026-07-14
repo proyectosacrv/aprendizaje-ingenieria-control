@@ -370,16 +370,12 @@ En este extremo, el VSM se comporta prácticamente como un integrador de potenci
 oscilaciones), y el nadir se alcanza muy lentamente.
 
 ### 8.7 — Flujo de diseño resumido
-```
-1. Droop (%) → D = Sn / (droop * w0²)
-2. ΔP_max, RoCoF_max → J_min = ΔP_max / (2π·RoCoF_max·w0)
-                         H_min = J_min·w0²/(2·Sn)
-3. Verificar ζ = D/(2·sqrt(J·Ks/w0)) ≥ 0.5
-   - Si ζ < 0.5: reducir J (aumentar w0n) o añadir D_extra
-4. Verificar w_n = sqrt(Ks/(J·w0)) ≥ banda_deseada
-5. Elegir H en [H_min, 10 s]: compromiso RoCoF vs velocidad
-6. AVR virtual: τ_avr, k_q por droop Q-V y dinámica del lazo de corriente
-```
+1. **Droop:** \( D = S_n / (\text{droop}\cdot\omega_0^2) \)
+2. **Inercia mínima** por límite de RoCoF: \( J_{min} = \Delta P_{max} / (2\pi\,\text{RoCoF}_{max}\,\omega_0) \), con \( H_{min} = J_{min}\,\omega_0^2/(2 S_n) \)
+3. **Verificar amortiguamiento:** \( \zeta = D/\big(2\sqrt{J K_s/\omega_0}\big) \ge 0.5 \). Si \( \zeta < 0.5 \): reducir \( J \) (subir \( \omega_n \)) o añadir \( D_{extra} \)
+4. **Verificar ancho de banda:** \( \omega_n = \sqrt{K_s/(J\,\omega_0)} \ge \) banda deseada
+5. **Elegir** \( H \in [H_{min},\,10\,\text{s}] \): compromiso RoCoF vs velocidad
+6. **AVR virtual:** \( \tau_{avr},\ k_q \) por droop Q-V y dinámica del lazo de corriente
 
 ---
 

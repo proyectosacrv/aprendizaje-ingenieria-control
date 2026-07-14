@@ -14907,6 +14907,126 @@ def _btb_diagramas_bloques():
     _savefig(fig2, "btb-tensiones-explicacion")
 
 
+def _islanding_modos():
+    """Diagrama de estados de la transicion GFL -> GFM al detectar islanding."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, ax = plt.subplots(1, 1, figsize=(12, 4.6))
+    ax.set_xlim(0, 12); ax.set_ylim(0, 5); ax.axis('off')
+    ax.set_title('Lógica de modo: transición GFL → GFM al detectar islanding',
+                 fontsize=12.5, fontweight='bold', pad=10)
+
+    yc = 3.2
+
+    def box(x, y, w, h, txt, col, fs=10):
+        ax.add_patch(mpatches.FancyBboxPatch((x-w/2, y-h/2), w, h,
+            boxstyle='round,pad=0.1', facecolor=col, edgecolor='navy', lw=1.8))
+        ax.text(x, y, txt, ha='center', va='center', fontsize=fs, fontweight='bold')
+
+    def arr(x1, y1, x2, y2, lbl='', col='navy', fs=9):
+        ax.annotate('', xy=(x2, y2), xytext=(x1, y1),
+                    arrowprops=dict(arrowstyle='->', color=col, lw=1.9))
+        if lbl:
+            ax.text((x1+x2)/2, max(y1, y2)+0.28, lbl, ha='center', fontsize=fs, color='darkred')
+
+    box(1.9, yc, 2.4, 1.0, 'GFL_ACTIVE', '#AED6F1')
+    arr(3.15, yc, 5.0, yc, 'detección\nislanding')
+    box(6.3, yc, 2.5, 1.0, 'TRANSICIÓN', '#F9E79F')
+    arr(7.6, yc, 9.5, yc)
+    box(10.7, yc, 2.4, 1.0, 'GFM_ACTIVE', '#A9DFBF')
+
+    # Acción bajo TRANSICION
+    box(6.3, 1.1, 4.4, 0.9,
+        'freeze PLL + precargar estados GFM\n+ abrir interruptor de red', '#FADBD8', 9)
+    ax.annotate('', xy=(6.3, 1.6), xytext=(6.3, yc-0.5),
+                arrowprops=dict(arrowstyle='->', color='darkred', lw=1.6))
+
+    ax.text(6.0, 0.35, 'Duración típica 1–2 ciclos (20–40 ms): el GFM arranca con estados inicializados, sin discontinuidad de tensión en el PCC',
+            ha='center', fontsize=8.5, color='gray', style='italic')
+
+    plt.tight_layout()
+    _savefig(fig, "deteccion-islanding-modos")
+
+
+def _loopshaping_flujo():
+    """Flujo del procedimiento de diseno por loop-shaping."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, ax = plt.subplots(1, 1, figsize=(9, 9.5))
+    ax.set_xlim(0, 9); ax.set_ylim(0, 13); ax.axis('off')
+    ax.set_title('Procedimiento de diseño por loop-shaping',
+                 fontsize=13, fontweight='bold', pad=10)
+
+    xc = 4.5
+    pasos = [
+        (r'Especificaciones (BW, PM, GM)', '#D5DBDB'),
+        (r'Curva objetivo $L_{obj}(j\omega)$ que las cumple', '#AED6F1'),
+        (r'$C(s) = L_{obj}(s)\,/\,G_{planta}(s)$', '#A9DFBF'),
+        ('Simplificar $C(s)$: cancelar polos/ceros\ndistantes, verificar realizabilidad', '#AED6F1'),
+        ('Añadir filtro HF si hace falta\n(ruido, resonancia)', '#F9E79F'),
+        (r'Verificar PM, GM y BW con $L(s)=C(s)\,G(s)$ exacto', '#ABEBC6'),
+    ]
+    n = len(pasos)
+    y0, y1 = 11.8, 1.4
+    ys = [y0 - i*(y0-y1)/(n-1) for i in range(n)]
+    h = 1.15
+    for i, (txt, col) in enumerate(pasos):
+        y = ys[i]
+        ax.add_patch(mpatches.FancyBboxPatch((xc-3.4, y-h/2), 6.8, h,
+            boxstyle='round,pad=0.1', facecolor=col, edgecolor='navy', lw=1.7))
+        ax.text(xc, y, txt, ha='center', va='center', fontsize=10.5, fontweight='bold')
+        if i < n-1:
+            ax.annotate('', xy=(xc, ys[i+1]+h/2), xytext=(xc, y-h/2),
+                        arrowprops=dict(arrowstyle='->', color='navy', lw=2.0))
+
+    plt.tight_layout()
+    _savefig(fig, "loop-shaping-flujo")
+
+
+def _parque_offshore_cadena():
+    """Cadena electrica de un parque eolico offshore con conexion HVDC."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, ax = plt.subplots(1, 1, figsize=(11, 11))
+    ax.set_xlim(0, 11); ax.set_ylim(0, 15); ax.axis('off')
+    ax.set_title('Cadena de un parque eólico offshore con conexión HVDC',
+                 fontsize=13, fontweight='bold', pad=10)
+
+    xc = 4.4
+    etapas = [
+        ('Aerogeneradores\n' + r'$N \times P_{wt}$', '#A9DFBF', 'Nivel 0: control local MPPT', 'cables 33 kV (inter-array)'),
+        ('Subestación offshore (OSS)\n' + r'33 kV $\to$ 155/220 kV', '#AED6F1', '', 'cable de exportación AC (≤50 km)'),
+        ('Terminal HVDC offshore\n(MMC-VSC)  AC 155 kV $\\to$ ±320 kV DC', '#F9E79F', 'Nivel 2a: control HVDC', 'cable submarino DC (100–500 km)'),
+        ('Terminal HVDC onshore\n(MMC-VSC)  ±320 kV DC $\\to$ AC 400 kV', '#F9E79F', 'Nivel 2b: control HVDC + servicios red', ''),
+        ('PCC onshore\n(Point of Common Coupling)', '#AED6F1', '', ''),
+        ('Red de transmisión continental', '#D5DBDB', 'Nivel 3: TSO / AGC', ''),
+    ]
+    n = len(etapas)
+    y0, y1 = 13.4, 1.3
+    ys = [y0 - i*(y0-y1)/(n-1) for i in range(n)]
+    h = 1.25
+    for i, (txt, col, nivel, cable) in enumerate(etapas):
+        y = ys[i]
+        ax.add_patch(mpatches.FancyBboxPatch((xc-3.2, y-h/2), 6.4, h,
+            boxstyle='round,pad=0.1', facecolor=col, edgecolor='navy', lw=1.7))
+        ax.text(xc, y, txt, ha='center', va='center', fontsize=9.5, fontweight='bold')
+        if nivel:
+            ax.annotate(nivel, xy=(xc+3.2, y), xytext=(xc+3.4, y),
+                        ha='left', va='center', fontsize=8.5, color='darkgreen', fontweight='bold')
+        if i < n-1:
+            ax.annotate('', xy=(xc, ys[i+1]+h/2), xytext=(xc, y-h/2),
+                        arrowprops=dict(arrowstyle='->', color='navy', lw=2.0))
+            if cable:
+                ax.text(xc-0.15, (y-h/2 + ys[i+1]+h/2)/2, cable, ha='right', va='center',
+                        fontsize=8, color='steelblue', style='italic')
+
+    plt.tight_layout()
+    _savefig(fig, "parque-offshore-cadena")
+
+
 def _fv_po_flowchart():
     """Diagrama de flujo del algoritmo P&O (Perturbar y Observar) del MPPT FV."""
     import matplotlib.pyplot as plt
@@ -15581,6 +15701,15 @@ def main():
         n += 1
     if pref is None or "fotovoltaica-po-flowchart".startswith(pref):
         _fv_po_flowchart()
+        n += 1
+    if pref is None or "deteccion-islanding-modos".startswith(pref):
+        _islanding_modos()
+        n += 1
+    if pref is None or "loop-shaping-flujo".startswith(pref):
+        _loopshaping_flujo()
+        n += 1
+    if pref is None or "parque-offshore-cadena".startswith(pref):
+        _parque_offshore_cadena()
         n += 1
     if pref is None or "btb-topologia".startswith(pref):
         _btb_topologia()

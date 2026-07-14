@@ -185,11 +185,7 @@ Al momento de la detección (\(t=t_{det}\)):
    evento, para no hacer un escalón de potencia al arrancar el GFM.
 
 ### Lógica de modo
-```
-GFL_ACTIVE → (detección islanding) → TRANSICION → GFM_ACTIVE
-                                         ↑
-                            freeze PLL + precargar estados GFM
-```
+<div class="cfig"><img src="../figuras/deteccion-islanding-modos.png" alt="Diagrama de estados de la transición GFL a GFM: GFL_ACTIVE, detección de islanding, estado TRANSICIÓN con freeze de PLL y precarga del GFM, y GFM_ACTIVE"><div class="cap">Al detectar el islanding se pasa por un estado intermedio TRANSICIÓN (1–2 ciclos) en el que se congela la PLL, se precargan los estados del GFM y se abre el interruptor de red. El GFM arranca con los estados ya inicializados, evitando el escalón de potencia y la discontinuidad de tensión en el PCC.</div></div>
 En el modo `TRANSICION` (típico 1–2 ciclos = 20–40 ms): se congela la PLL, se precarga el GFM y
 se abre el interruptor de red. El GFM arranca con los estados ya inicializados; el PCC no ve
 discontinuidad de tensión.

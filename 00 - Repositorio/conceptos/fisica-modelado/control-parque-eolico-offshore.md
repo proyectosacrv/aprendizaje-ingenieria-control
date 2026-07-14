@@ -45,22 +45,7 @@ El primer término es el droop (regulación primaria); el segundo es la inercia 
 
 La cadena completa de un parque eólico offshore con conexión HVDC:
 
-```
-Aerogeneradores (N × P_wt)          ← Nivel 0: control local MPPT
-    ↓ cables 33 kV (inter-array)
-Subestación offshore (OSS)
-    33 kV → 155/220 kV (trafo elevador)
-    ↓ cable de exportación AC (≤50 km)
-Terminal HVDC offshore (MMC-VSC)     ← Nivel 2a: control HVDC
-    AC 155 kV → ±320 kV DC
-    ↓ cable submarino DC (100–500 km)
-Terminal HVDC onshore (MMC-VSC)      ← Nivel 2b: control HVDC + servicios red
-    ±320 kV DC → AC 400 kV
-    ↓
-PCC onshore (Point of Common Coupling)
-    ↓
-Red de transmisión continental       ← Nivel 3: TSO / AGC
-```
+<div class="cfig"><img src="../figuras/parque-offshore-cadena.png" alt="Cadena eléctrica del parque offshore: aerogeneradores, subestación offshore, terminal HVDC offshore, cable submarino DC, terminal HVDC onshore, PCC y red continental, con sus niveles de control"><div class="cap">Cadena completa desde los aerogeneradores (33 kV inter-array) hasta la red de transmisión continental, pasando por la subestación offshore, los dos terminales HVDC MMC-VSC unidos por el cable submarino DC y el PCC onshore. A la derecha, el nivel de control asociado a cada etapa (del MPPT local al TSO/AGC).</div></div>
 
 **Niveles de control y escalas de tiempo:**
 
