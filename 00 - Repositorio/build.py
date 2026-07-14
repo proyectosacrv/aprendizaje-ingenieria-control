@@ -36,6 +36,49 @@ def split_frontmatter(text):
 
 _DEV_HEAD_RE = re.compile(r"^\s*(?:Desarrollo\s+\d+|\d+)\s*[—–-]\s*")
 _H2_RE = re.compile(r"<h2>(.*?)</h2>", re.S)
+_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _anchor(text):
+    """Slug ASCII para el id de un heading (para las anclas del indice)."""
+    t = _TAG_RE.sub("", text).lower()
+    repl = (("á","a"),("é","e"),("í","i"),("ó","o"),("ú","u"),("ñ","n"),("ü","u"))
+    for a, b in repl:
+        t = t.replace(a, b)
+    t = re.sub(r"[^a-z0-9]+", "-", t).strip("-")
+    return t or "sec"
+
+
+def add_toc(html):
+    """Numera con id cada <h2> visible y antepone un indice plegable con enlaces
+    a cada seccion. Solo se añade si la ficha tiene 4 o mas secciones H2, para
+    que las fichas cortas no lo lleven."""
+    headings = _H2_RE.findall(html)
+    if len(headings) < 4:
+        # aun asi, poner ids por si se enlaza desde fuera
+        return _H2_RE.sub(lambda m: f'<h2 id="{_anchor(m.group(1))}">{m.group(1)}</h2>', html)
+
+    used = {}
+    def add_id(m):
+        txt = m.group(1)
+        aid = _anchor(txt)
+        if aid in used:
+            used[aid] += 1; aid = f"{aid}-{used[aid]}"
+        else:
+            used[aid] = 0
+        return f'<h2 id="{aid}">{txt}</h2>'
+    html = _H2_RE.sub(add_id, html)
+
+    # reconstruir la lista de (id, texto) en orden
+    items = re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', html, re.S)
+    lis = "".join(
+        f'<li><a class="toc-lnk" href="#{aid}">{_TAG_RE.sub("", txt)}</a></li>'
+        for aid, txt in items
+    )
+    toc = (f'<details class="toc" open><summary>Índice</summary>'
+           f'<ol class="toc-list">{lis}</ol></details>')
+    # insertar antes del primer <h2>
+    return html.replace("<h2 ", toc + "<h2 ", 1)
 
 
 def wrap_dev_sections(html):
@@ -43,15 +86,16 @@ def wrap_dev_sections(html):
     en un <details> plegado por defecto, para que la ficha se vea corta y el lector
     despliegue solo el desarrollo que le interesa. El resto de secciones (Definicion,
     Cuando se usa, etc.) no se tocan."""
-    parts = re.split(r"(<h2>.*?</h2>)", html, flags=re.S)
+    parts = re.split(r"(<h2[^>]*>.*?</h2>)", html, flags=re.S)
     out = [parts[0]]
     i = 1
     while i < len(parts):
         h2tag = parts[i]
         content = parts[i + 1] if i + 1 < len(parts) else ""
-        heading_text = _H2_RE.match(h2tag).group(1)
+        mh = re.match(r"<h2([^>]*)>(.*?)</h2>", h2tag, re.S)
+        attrs, heading_text = mh.group(1), mh.group(2)
         if _DEV_HEAD_RE.match(heading_text):
-            out.append(f'<details class="dev"><summary>{heading_text}</summary>'
+            out.append(f'<details class="dev"{attrs}><summary>{heading_text}</summary>'
                         f'<div class="dev-body">{content}</div></details>')
         else:
             out.append(h2tag)
@@ -79,7 +123,9 @@ def render_body(md_text):
     # 4) restaurar matematicas
     for i, s in enumerate(store):
         html = html.replace(f"@@M{i}@@", s)
-    # 5) plegar las secciones de desarrollo numeradas
+    # 5) numerar headings con id y anteponer el indice
+    html = add_toc(html)
+    # 6) plegar las secciones de desarrollo numeradas
     html = wrap_dev_sections(html)
     return html
 
@@ -171,6 +217,17 @@ header h1{margin:0;font-size:19px}header .sub{color:var(--muted);font-size:12.5p
 .metahead{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 6px}
 .metahead .chip{font-size:12px}
 .wl{border-bottom:1px dotted var(--acc)}
+/* ── Indice de la ficha ──────────────────────────────────────────── */
+.detail details.toc{border:1px solid var(--line);border-radius:9px;margin:6px 0 20px;background:var(--panel2)}
+.detail details.toc>summary{cursor:pointer;list-style:none;padding:9px 14px;font-size:13px;font-weight:700;color:var(--muted)}
+.detail details.toc>summary::-webkit-details-marker{display:none}
+.detail details.toc>summary::before{content:"▸";display:inline-block;color:var(--acc);width:14px;transition:transform .15s}
+.detail details.toc[open]>summary::before{transform:rotate(90deg)}
+.detail .toc-list{margin:0;padding:2px 14px 12px 34px;columns:2;column-gap:26px;font-size:12.5px}
+.detail .toc-list li{margin:3px 0;break-inside:avoid}
+.detail .toc-lnk{color:#bcd3ea}
+.detail .toc-lnk:hover{color:var(--acc)}
+@media(max-width:760px){.detail .toc-list{columns:1}}
 .cfig{background:#fff;border:1px solid var(--line);border-radius:9px;padding:12px;margin:16px 0;text-align:center}
 .cfig img{max-width:100%;height:auto;border-radius:4px}
 .cfig .cap{color:#555;font-size:12px;margin-top:8px;line-height:1.45}
@@ -384,6 +441,14 @@ function show(slug){
     ${d.html}${blHTML}`;
   renderStBar(slug);
   det.querySelectorAll('.wl').forEach(a=>a.onclick=()=>{const s=a.dataset.slug; if(D.find(x=>x.slug===s)) show(s);});
+  det.querySelectorAll('.toc-lnk').forEach(a=>a.onclick=e=>{
+    e.preventDefault();
+    const tgt=det.querySelector(a.getAttribute('href'));
+    if(!tgt) return;
+    if(tgt.tagName==='DETAILS') tgt.open=true;               // desplegar seccion de desarrollo
+    const d2=tgt.closest('details'); if(d2) d2.open=true;    // o el details que la contiene
+    tgt.scrollIntoView({behavior:'smooth',block:'start'});
+  });
   if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([det]);
   if(location.hash!=='#'+slug) history.pushState(null,'','#'+slug);
   document.body.classList.add('detail-open');
