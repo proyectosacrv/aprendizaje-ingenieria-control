@@ -291,6 +291,19 @@ Esta linealización no es una aproximación: la no linealidad de \(V_{dc}^2\) se
 el cambio de variable, por lo que el PI que se diseñe sobre \(w\) será lineal y sus márgenes de
 estabilidad, exactos.
 
+**¿Por qué desaparece \(P_{out}\) de la FdT?** No desaparece físicamente: una FdT relaciona **una** entrada
+con **una** salida, así que aísla la respuesta de \(w\) a una potencia con la otra en su valor de equilibrio.
+Como la planta es lineal, por superposición ambas potencias llegan por el **mismo integrador**:
+
+$$ \tilde{w}(s) = \frac{2}{C_{dc}s}\,\tilde{P}_{in}(s) - \frac{2}{C_{dc}s}\,\tilde{P}_{out}(s) $$
+
+\(G_{dc}=2/(C_{dc}s)\) es ese integrador; el signo dice si la potencia carga (\(+\)) o descarga (\(-\)) el
+condensador. Cuál es **entrada de control** y cuál **perturbación** depende de quién regula \(V_{dc}\):
+en el GSC que regula el bus, la **manipulada** es \(P_{GSC}\) (el PI comanda \(i_d\to P_{GSC}\); el signo
+\(-\) solo fija el sentido del lazo) y la **perturbación** es \(P_{MSC}\), fijada por el viento. Por eso el
+lazo lleva un **feedforward de \(P_{MSC}\)** (apartado 3.3). Es el mismo patrón que \(v_g\) en el lazo de
+corriente: la potencia que no usas como mando sale de la FdT SISO y se trata como perturbación.
+
 ### 3.2 — Control: lazo de tensión con PI
 
 El PI opera sobre el error de \(w = V_{dc}^2\):
