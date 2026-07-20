@@ -40,8 +40,8 @@ def figura(slug):
         REGISTRY.append((slug, fn)); return fn
     return deco
 
-def _savefig(fig, name):
-    fig.savefig(os.path.join(OUT, name), dpi=150, bbox_inches="tight")
+def _savefig(fig, name, dpi=150):
+    fig.savefig(os.path.join(OUT, name), dpi=dpi, bbox_inches="tight")
     plt.close(fig); print(name)
 
 
@@ -14819,7 +14819,7 @@ def _btb_diagramas_bloques():
     # ------------------------------------------------------------------ #
     fig.suptitle('Diagramas de bloques: back-to-back VSC', fontsize=13, fontweight='bold', y=0.98)
     plt.tight_layout(rect=[0, 0, 1, 0.97])
-    _savefig(fig, "btb-diagramas-bloques")
+    _savefig(fig, "btb-diagramas-bloques", dpi=200)
 
     # --- Figura explicativa de tensiones ---
     fig2, ax3 = plt.subplots(1, 1, figsize=(12, 7))
@@ -14904,7 +14904,7 @@ def _btb_diagramas_bloques():
              bbox=dict(boxstyle='round,pad=0.4', facecolor='#FDEDEC', edgecolor='red', lw=1.5))
 
     plt.tight_layout()
-    _savefig(fig2, "btb-tensiones-explicacion")
+    _savefig(fig2, "btb-tensiones-explicacion", dpi=200)
 
 
 def _islanding_modos():
