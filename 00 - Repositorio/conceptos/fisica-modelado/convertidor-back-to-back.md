@@ -47,15 +47,18 @@ bus DC: si el MSC inyecta más potencia de la que el GSC evacúa, \(V_{dc}\) sub
 - BESS ([[modelo-bateria-bess]]): batería + convertidor DC-DC + GSC.
 - Accionamientos regenerativos: motor + convertidor de motor + convertidor de red.
 
+El convertidor tiene dos lazos anidados: un **lazo de corriente** interno y rápido (apartado 2) y un
+**lazo de tensión del bus DC** externo y lento (apartado 3). Cada apartado desarrolla primero el
+**modelo** de su planta y luego el **control**.
+
 ---
 
-## 2 — Modelo físico del sistema
+## 2 — Lazo de corriente (interno): modelo y control
 
-Esta sección desarrolla el **modelo matemático** de la planta (sin control todavía): el circuito del
-lado AC con su filtro, su representación en el marco dq y la dinámica del bus DC. El diseño de los lazos
-de control se aborda en el apartado 3, ya sobre este modelo.
+El lazo de corriente es el interno y rápido. Primero se **modela** la planta del lado AC (el filtro en
+el marco dq) y luego se **controla** (VOC, desacoplo y PI de corriente).
 
-### 2.1 — El filtro y el circuito físico del lado AC
+### 2.1 — Modelo: el filtro y el circuito físico del lado AC
 
 Entre cada VSC y su sistema AC hay un **filtro inductivo**. Su función es alisar la corriente: el VSC
 impone una tensión **troceada** por el PWM (conmuta entre niveles discretos a \(f_{sw}\)), y la
@@ -76,7 +79,7 @@ $$ L\frac{d}{dt}\begin{pmatrix}i_a\\i_b\\i_c\end{pmatrix} = \begin{pmatrix}v_{co
 Esta ecuación está en frecuencia de red (50 Hz): las variables son sinusoidales en estado estacionario,
 lo que hace difícil diseñar un controlador con error nulo usando un PI ordinario. Por eso se pasa a dq.
 
-### 2.2 — Transformación de Clarke (abc → αβ)
+### 2.2 — Modelo: transformación de Clarke (abc → αβ)
 
 La transformada de Clarke proyecta las tres fases sobre dos ejes ortogonales fijos en el espacio
 (marco αβ estacionario). Para sistema equilibrado (sin componente de secuencia cero):
@@ -90,7 +93,7 @@ $$ L\frac{d}{dt}\begin{pmatrix}i_\alpha\\i_\beta\end{pmatrix} = \begin{pmatrix}v
 Las variables en αβ siguen siendo sinusoidales (rotan a \(\omega_0\) en el plano αβ), así que el PI
 todavía tendría error en estado estacionario. Se necesita el siguiente paso.
 
-### 2.3 — Transformación de Park (αβ → dq)
+### 2.3 — Modelo: transformación de Park (αβ → dq)
 
 El marco dq gira solidario con el vector de tensión de red a velocidad \(\omega_0 = 2\pi f_0\). La
 transformación de Park es una rotación de ángulo \(\theta = \omega_0 t\):
@@ -113,7 +116,7 @@ $$ L\frac{d}{dt}\begin{pmatrix}i_d\\i_q\end{pmatrix} = \begin{pmatrix}v_{d,conv}
 PI ordinario podrá regularlas con error nulo. El precio es el acoplamiento cruzado \(\pm\omega_0 L\,i\),
 que hace que la planta sea **MIMO** (si \(i_d\) varía, perturba \(i_q\) y viceversa).
 
-### 2.4 — Orientación del marco dq y la planta del lado AC
+### 2.4 — Modelo: orientación del marco dq y la planta del lado AC
 
 Se orienta el eje d alineado con el vector de tensión de red \(\vec{v}_g\). Con esta elección:
 
@@ -127,51 +130,18 @@ $$ P = \frac{3}{2}(v_{d,g}i_d + v_{q,g}i_q) = \frac{3}{2}v_{d,g}i_d $$
 $$ Q = \frac{3}{2}(v_{q,g}i_d - v_{d,g}i_q) = -\frac{3}{2}v_{d,g}i_q $$
 
 Es decir, con esta orientación \(i_d\) fija la potencia **activa** \(P\) (y por tanto \(V_{dc}\)) e \(i_q\)
-la **reactiva** \(Q\): ambas quedan separadas por la propia geometría del marco. Esta es la base del
-control orientado por tensión de red (VOC), que se desarrolla en el apartado 3.
+la **reactiva** \(Q\): ambas quedan separadas por la propia geometría del marco.
 
 Con todo lo anterior, la **planta del lado AC** que verá el control es el sistema MIMO de segundo orden:
 
 $$ L\frac{d}{dt}\begin{pmatrix}i_d\\i_q\end{pmatrix} = \underbrace{\begin{pmatrix}v_{d,conv}\\v_{q,conv}\end{pmatrix}}_{\text{entrada (convertidor)}} - \underbrace{\begin{pmatrix}v_{d,g}\\v_{q,g}\end{pmatrix}}_{\text{perturbación (red)}} - \begin{pmatrix}R & -\omega_0 L\\ \omega_0 L & R\end{pmatrix}\begin{pmatrix}i_d\\i_q\end{pmatrix} $$
 
 La diagonal es la rama RL (un \(1/(Ls+R)\) por eje si estuviera aislado); la antidiagonal \(\pm\omega_0 L\)
-es el acoplamiento cruzado. Cancelar ese acoplamiento es ya una tarea de control (apartado 3).
+es el acoplamiento cruzado. Cancelar ese acoplamiento es ya tarea del control (siguientes subapartados).
 
-### 2.5 — Modelo dinámico del bus DC
+### 2.5 — Control: estrategia VOC (Voltage Oriented Control)
 
-El bus DC es el otro subsistema a modelar. Su estado es la tensión \(V_{dc}\), gobernada por el balance
-de potencia entre lo que entra (MSC) y lo que sale (GSC):
-
-$$ C_{dc}\,V_{dc}\,\frac{dV_{dc}}{dt} = P_{MSC} - P_{GSC} - P_{losses} $$
-
-En equilibrio \(P_{MSC} \approx P_{GSC}\) y \(V_{dc}\) es constante. La **energía almacenada** en el
-condensador \(E = \tfrac{1}{2}C_{dc}V_{dc}^2\) actúa de pulmón: dimensionarla correctamente fija cuánto
-cae \(V_{dc}\) ante un transitorio de potencia (ver [[dinamica-bus-dc]] para la estabilidad con CPL).
-
-La ecuación anterior es **no lineal** en \(V_{dc}\). El cambio de variable \(w = V_{dc}^2\) la lineariza
-de forma exacta. Derivando \(\dot{w} = 2V_{dc}\dot{V}_{dc}\) y sustituyendo:
-
-$$ \frac{1}{2}C_{dc}\dot{w} = P_{in} - P_{out} \quad \Rightarrow \quad \dot{w} = \frac{2}{C_{dc}}(P_{in} - P_{out}) $$
-
-La planta del bus DC (respecto a la potencia) es entonces un **integrador puro**:
-
-$$ \boxed{G_{dc}(s) = \frac{\tilde{w}(s)}{\tilde{P}_{in}(s)} = \frac{2}{C_{dc}\,s}} $$
-
-Esta linealización no es una aproximación: la no linealidad de \(V_{dc}^2\) se elimina completamente con
-el cambio de variable, por lo que el PI que se diseñe sobre \(w\) en el apartado 3 será lineal y sus
-márgenes de estabilidad, exactos.
-
----
-
-## 3 — Control del convertidor
-
-Sobre el modelo del apartado 2 se diseñan los lazos: primero el **control orientado por tensión** y el
-**desacoplo** que reduce la planta AC a dos lazos SISO, luego el **lazo de corriente** (interno, rápido)
-y por último el **lazo de tensión del bus DC** (externo, lento).
-
-### 3.1 — Estrategia VOC (Voltage Oriented Control)
-
-Del apartado 2.4: con el eje d alineado con \(\vec v_g\), \(i_d\) manda sobre \(P\) e \(i_q\) sobre \(Q\).
+Del modelo (2.4): con el eje d alineado con \(\vec v_g\), \(i_d\) manda sobre \(P\) e \(i_q\) sobre \(Q\).
 El control aprovecha esa separación:
 
 - **\(i_d^*\)** lo fija el lazo externo (el de \(V_{dc}\) en el GSC, o el de par/MPPT en el MSC).
@@ -180,7 +150,7 @@ El control aprovecha esa separación:
 Queda por resolver el acoplamiento cruzado \(\pm\omega_0 L\,i\) de la planta, que impediría tratar cada
 eje por separado.
 
-### 3.2 — Desacoplamiento feedforward
+### 2.6 — Control: desacoplamiento feedforward
 
 Las ecuaciones dq de la planta contienen \(+\omega_0 L i_q\) (eje d) y \(-\omega_0 L i_d\) (eje q). Para
 que, vista desde el PI, la planta sean dos SISO independientes, se define la tensión de salida del
@@ -250,7 +220,7 @@ retardo). En la práctica, el retardo de muestreo introduce un error pequeño qu
 \(\omega_{ci} \ll \omega_s\) (ancho de banda del lazo de corriente mucho menor que la frecuencia de
 muestreo).
 
-### 3.3 — Lazo de corriente y diseño del PI
+### 2.7 — Control: lazo de corriente y diseño del PI
 
 Con el desacoplo, la planta es \(G_i(s) = 1/(Ls+R)\) en cada eje. El controlador PI es:
 
@@ -290,12 +260,40 @@ $$ \omega_{ci} > 10 \cdot \omega_{dc} $$
 **Margen de fase.** Con cancelación exacta del polo, la FdT de lazo abierto es un integrador puro \(K/s\)
 → \(PM = 90°\). En la práctica, el retardo del modulador PWM y del muestreo lo reducen a 60°–75°.
 
-### 3.4 — Lazo de tensión del bus DC
+---
 
-El lazo externo del GSC regula \(w = V_{dc}^2\) sobre la planta \(G_{dc}(s) = 2/(C_{dc}s)\) del apartado
-2.5, generando la referencia \(i_d^*\) del lazo de corriente.
+## 3 — Lazo de tensión del bus DC (externo): modelo y control
 
-**Lazo cerrado con PI.** El PI opera sobre el error de \(w = V_{dc}^2\):
+El lazo externo del GSC regula la tensión del bus DC generando la referencia \(i_d^*\) del lazo de
+corriente. Primero se **modela** la dinámica del bus y luego se **controla**.
+
+### 3.1 — Modelo: dinámica del bus DC
+
+El estado del bus es la tensión \(V_{dc}\), gobernada por el balance de potencia entre lo que entra (MSC)
+y lo que sale (GSC):
+
+$$ C_{dc}\,V_{dc}\,\frac{dV_{dc}}{dt} = P_{MSC} - P_{GSC} - P_{losses} $$
+
+En equilibrio \(P_{MSC} \approx P_{GSC}\) y \(V_{dc}\) es constante. La **energía almacenada** en el
+condensador \(E = \tfrac{1}{2}C_{dc}V_{dc}^2\) actúa de pulmón: dimensionarla correctamente fija cuánto
+cae \(V_{dc}\) ante un transitorio de potencia (ver [[dinamica-bus-dc]] para la estabilidad con CPL).
+
+La ecuación anterior es **no lineal** en \(V_{dc}\). El cambio de variable \(w = V_{dc}^2\) la lineariza
+de forma exacta. Derivando \(\dot{w} = 2V_{dc}\dot{V}_{dc}\) y sustituyendo:
+
+$$ \frac{1}{2}C_{dc}\dot{w} = P_{in} - P_{out} \quad \Rightarrow \quad \dot{w} = \frac{2}{C_{dc}}(P_{in} - P_{out}) $$
+
+La planta del bus DC (respecto a la potencia) es entonces un **integrador puro**:
+
+$$ \boxed{G_{dc}(s) = \frac{\tilde{w}(s)}{\tilde{P}_{in}(s)} = \frac{2}{C_{dc}\,s}} $$
+
+Esta linealización no es una aproximación: la no linealidad de \(V_{dc}^2\) se elimina completamente con
+el cambio de variable, por lo que el PI que se diseñe sobre \(w\) será lineal y sus márgenes de
+estabilidad, exactos.
+
+### 3.2 — Control: lazo de tensión con PI
+
+El PI opera sobre el error de \(w = V_{dc}^2\):
 
 $$ C_{dc}^{ctrl}(s) = K_{p,dc}\frac{T_{i,dc}s + 1}{T_{i,dc}s} $$
 
@@ -313,9 +311,11 @@ $$ \boxed{K_{p,dc} = \frac{C_{dc}\,\omega_{dc}}{2}, \qquad T_{i,dc} = \frac{4}{\
 
 $$ PM_{dc} = \arctan(\omega_{dc} T_{i,dc}) = \arctan(4) \approx 76° $$
 
-**Feedforward de potencia.** Sin feedforward, cada cambio de potencia del MSC es una perturbación que el
-lazo DC (lento) debe rechazar, y el condensador absorbe el transitorio durante \(\sim 1/\omega_{dc}\). El
-feedforward añade la potencia del lado máquina como referencia anticipada de corriente:
+### 3.3 — Control: feedforward de potencia y características del lazo
+
+Sin feedforward, cada cambio de potencia del MSC es una perturbación que el lazo DC (lento) debe rechazar,
+y el condensador absorbe el transitorio durante \(\sim 1/\omega_{dc}\). El feedforward añade la potencia
+del lado máquina como referencia anticipada de corriente:
 
 $$ i_{d,GSC}^* = \underbrace{C_{dc}^{ctrl}(e_w)}_{\text{PI}} + \underbrace{\frac{P_{MSC}}{1.5\,v_{d,g}}}_{\text{feedforward}} $$
 
