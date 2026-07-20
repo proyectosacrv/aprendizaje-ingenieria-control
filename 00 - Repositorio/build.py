@@ -184,8 +184,16 @@ header h1{margin:0;font-size:19px}header .sub{color:var(--muted);font-size:12.5p
   padding:7px 10px;border-radius:8px;font-size:13px}
 .bar input#q{flex:1;min-width:220px}
 .bar .clear{cursor:pointer;color:var(--muted);border:1px solid var(--line);padding:7px 12px;border-radius:8px}
-.wrap{display:flex;min-height:calc(100vh - 120px)}
-.list{width:420px;flex:0 0 420px;border-right:1px solid var(--line);overflow-y:auto;max-height:calc(100vh - 120px)}
+.wrap{display:flex;min-height:calc(100vh - 120px);position:relative}
+.list{width:420px;flex:0 0 420px;border-right:1px solid var(--line);overflow-y:auto;max-height:calc(100vh - 120px);
+  transition:flex-basis .2s ease,width .2s ease}
+body.list-collapsed #list{flex-basis:0;width:0;min-width:0;border-right:0;overflow:hidden}
+.listtoggle{position:absolute;top:8px;left:407px;z-index:9;width:26px;height:36px;line-height:34px;text-align:center;
+  border:1px solid var(--line);background:var(--panel2);color:var(--muted);border-radius:8px;cursor:pointer;
+  font-size:12px;transition:left .2s ease}
+.listtoggle:hover{color:var(--ink);border-color:var(--acc)}
+body.list-collapsed .listtoggle{left:8px}
+#list.hide ~ .listtoggle{display:none}
 .count{padding:10px 18px;color:var(--muted);font-size:12px;border-bottom:1px solid var(--line)}
 .card{padding:13px 18px;border-bottom:1px solid var(--line);cursor:pointer}
 .card:hover{background:var(--panel)}.card.active{background:#1d3148;border-left:3px solid var(--acc)}
@@ -547,6 +555,11 @@ window.addEventListener('DOMContentLoaded',()=>{
   $('#vlist').onclick=()=>setView('list');
   $('#vgraph').onclick=()=>setView('graph');
   $('#vrutas').onclick=()=>setView('rutas');
+  const setListCollapsed=v=>{document.body.classList.toggle('list-collapsed',v);
+    $('#listtoggle').textContent=v?'▶':'◀';
+    try{localStorage.setItem('listCollapsed',v?'1':'0')}catch(e){}};
+  $('#listtoggle').onclick=()=>setListCollapsed(!document.body.classList.contains('list-collapsed'));
+  setListCollapsed(localStorage.getItem('listCollapsed')==='1');
   render(); applyHash();
 });
 window.addEventListener('hashchange', applyHash);
@@ -583,6 +596,7 @@ TEMPLATE = """<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
 </header>
 <div class="wrap">
   <div class="list" id="list"><div class="count" id="count"></div></div>
+  <button id="listtoggle" class="listtoggle" title="Ocultar o mostrar la lista" aria-label="Ocultar o mostrar la lista">◀</button>
   <div id="graphwrap">
     <div class="glegend"><span><i style="background:#4ea3ff"></i>Física</span>
       <span><i style="background:#a78bfa"></i>Control</span>
