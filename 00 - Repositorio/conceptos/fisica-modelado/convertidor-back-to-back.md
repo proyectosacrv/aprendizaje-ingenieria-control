@@ -269,71 +269,177 @@ corriente. Primero se **modela** la dinámica del bus y luego se **controla**.
 
 ### 3.1 — Modelo: dinámica del bus DC
 
-El estado del bus es la tensión \(V_{dc}\), gobernada por el balance de potencia entre lo que entra (MSC)
-y lo que sale (GSC):
+Nomenclatura (constante en todo el apartado): \(P_{MSC}\) es la potencia que **entra** al bus desde el
+lado máquina y \(P_{GSC}\) la que **sale** hacia la red por el GSC.
 
-$$ C_{dc}\,V_{dc}\,\frac{dV_{dc}}{dt} = P_{MSC} - P_{GSC} - P_{losses} $$
+**Paso 1 — Balance de energía en el condensador.** La energía almacenada es \(E = \tfrac{1}{2}C_{dc}V_{dc}^2\)
+y su derivada es la potencia neta que carga el condensador:
 
-En equilibrio \(P_{MSC} \approx P_{GSC}\) y \(V_{dc}\) es constante. La **energía almacenada** en el
-condensador \(E = \tfrac{1}{2}C_{dc}V_{dc}^2\) actúa de pulmón: dimensionarla correctamente fija cuánto
-cae \(V_{dc}\) ante un transitorio de potencia (ver [[dinamica-bus-dc]] para la estabilidad con CPL).
+$$ \frac{dE}{dt} = P_{MSC} - P_{GSC} - P_{losses} $$
 
-La ecuación anterior es **no lineal** en \(V_{dc}\). El cambio de variable \(w = V_{dc}^2\) la lineariza
-de forma exacta. Derivando \(\dot{w} = 2V_{dc}\dot{V}_{dc}\) y sustituyendo:
+Desarrollando la derivada \(\dfrac{dE}{dt} = \dfrac{d}{dt}\!\left(\tfrac{1}{2}C_{dc}V_{dc}^2\right) = C_{dc}V_{dc}\dfrac{dV_{dc}}{dt}\)
+(despreciando \(P_{losses}\)):
 
-$$ \frac{1}{2}C_{dc}\dot{w} = P_{in} - P_{out} \quad \Rightarrow \quad \dot{w} = \frac{2}{C_{dc}}(P_{in} - P_{out}) $$
+$$ C_{dc}\,V_{dc}\,\frac{dV_{dc}}{dt} = P_{MSC} - P_{GSC} $$
 
-La planta del bus DC (respecto a la potencia) es entonces un **integrador puro**:
+En equilibrio \(P_{MSC} \approx P_{GSC}\) y \(V_{dc}\) es constante; la energía del condensador actúa de
+pulmón (ver [[dinamica-bus-dc]] para la estabilidad con CPL).
 
-$$ \boxed{G_{dc}(s) = \frac{\tilde{w}(s)}{\tilde{P}_{in}(s)} = \frac{2}{C_{dc}\,s}} $$
+**Paso 2 — Linealización exacta con \(w = V_{dc}^2\).** La ecuación es **no lineal** (producto \(V_{dc}\dot V_{dc}\)).
+Con el cambio de variable \(w = V_{dc}^2\), su derivada es \(\dot{w} = 2V_{dc}\dot{V}_{dc}\), de donde
+\(V_{dc}\dot V_{dc} = \tfrac{1}{2}\dot w\). Sustituyendo:
 
-Esta linealización no es una aproximación: la no linealidad de \(V_{dc}^2\) se elimina completamente con
-el cambio de variable, por lo que el PI que se diseñe sobre \(w\) será lineal y sus márgenes de
-estabilidad, exactos.
+$$ C_{dc}\cdot\frac{1}{2}\dot{w} = P_{MSC} - P_{GSC} \quad\Longrightarrow\quad \dot{w} = \frac{2}{C_{dc}}\big(P_{MSC} - P_{GSC}\big) $$
 
-**¿Por qué desaparece \(P_{out}\) de la FdT?** No desaparece físicamente: una FdT relaciona **una** entrada
-con **una** salida, así que aísla la respuesta de \(w\) a una potencia con la otra en su valor de equilibrio.
-Como la planta es lineal, por superposición ambas potencias llegan por el **mismo integrador**:
+**Paso 3 — La planta es un integrador.** Pasando a Laplace (variables incrementales, \(s\,\tilde w = \dot w\)):
 
-$$ \tilde{w}(s) = \frac{2}{C_{dc}s}\,\tilde{P}_{in}(s) - \frac{2}{C_{dc}s}\,\tilde{P}_{out}(s) $$
+$$ s\,\tilde{w}(s) = \frac{2}{C_{dc}}\big(\tilde{P}_{MSC}(s) - \tilde{P}_{GSC}(s)\big)
+   \quad\Longrightarrow\quad
+   \boxed{\;\tilde{w}(s) = \frac{2}{C_{dc}\,s}\big(\tilde{P}_{MSC}(s) - \tilde{P}_{GSC}(s)\big),\qquad G_{dc}(s) = \frac{2}{C_{dc}\,s}\;} $$
 
-\(G_{dc}=2/(C_{dc}s)\) es ese integrador; el signo dice si la potencia carga (\(+\)) o descarga (\(-\)) el
-condensador. Cuál es **entrada de control** y cuál **perturbación** depende de quién regula \(V_{dc}\):
-en el GSC que regula el bus, la **manipulada** es \(P_{GSC}\) (el PI comanda \(i_d\to P_{GSC}\); el signo
-\(-\) solo fija el sentido del lazo) y la **perturbación** es \(P_{MSC}\), fijada por el viento. Por eso el
-lazo lleva un **feedforward de \(P_{MSC}\)** (apartado 3.3). Es el mismo patrón que \(v_g\) en el lazo de
-corriente: la potencia que no usas como mando sale de la FdT SISO y se trata como perturbación.
+La linealización no es una aproximación: la no linealidad de \(V_{dc}^2\) se elimina por completo con el
+cambio de variable, así que el PI que se diseñe sobre \(w\) será lineal y sus márgenes, exactos.
+
+**Paso 4 — Manipulada vs perturbación.** La planta tiene **dos** entradas de potencia por el mismo
+integrador \(2/(C_{dc}s)\), una con \(+\) (carga) y otra con \(-\) (descarga). El lazo usa solo una como
+**mando**: en el GSC que regula el bus, la **variable manipulada** es \(P_{GSC}\) (el PI comanda
+\(i_d\to P_{GSC}\)) y la **perturbación** es \(P_{MSC}\), que fija el viento. Por eso, al escribir la FdT
+de lazo se toma \(P_{GSC}\) como entrada — \(\tilde w/\tilde P_{GSC} = -2/(C_{dc}s)\), el signo \(-\) solo
+fija el sentido del lazo — y \(P_{MSC}\) entra aparte como perturbación (que el feedforward de 3.3
+cancela). Es el mismo patrón que \(v_g\) en el lazo de corriente.
 
 ### 3.2 — Control: lazo de tensión con PI
 
-El PI opera sobre el error de \(w = V_{dc}^2\):
+**Paso 1 — Estructura del PI.** El PI opera sobre el error \(e_w = w^* - w\) con \(w^* = V_{dc}^{*2}\):
 
 $$ C_{dc}^{ctrl}(s) = K_{p,dc}\frac{T_{i,dc}s + 1}{T_{i,dc}s} $$
 
-FdT de lazo abierto:
+**Paso 2 — FdT de lazo abierto.** El lazo abierto es el controlador por la planta \(G_{dc}=2/(C_{dc}s)\):
 
-$$ L_{dc}(s) = K_{p,dc}\frac{T_{i,dc}s+1}{T_{i,dc}s} \cdot \frac{2}{C_{dc}s} = \frac{2K_{p,dc}}{C_{dc}T_{i,dc}} \cdot \frac{T_{i,dc}s+1}{s^2} $$
+$$ L_{dc}(s) = C_{dc}^{ctrl}(s)\,G_{dc}(s) = K_{p,dc}\frac{T_{i,dc}s+1}{T_{i,dc}s} \cdot \frac{2}{C_{dc}s} = \frac{2K_{p,dc}}{C_{dc}T_{i,dc}} \cdot \frac{T_{i,dc}s+1}{s^2} $$
 
-La planta es un integrador y el PI añade otro → **doble integrador** en lazo abierto. El cero del PI
-\(s = -1/T_{i,dc}\) es el único elemento estabilizante; su posición relativa a \(\omega_{dc}\) fija el
-margen de fase.
+La planta es un integrador y el PI añade otro → **doble integrador** (\(1/s^2\)) en lazo abierto. Sin el
+cero, la fase sería \(-180°\) a todas las frecuencias (margen nulo, inestable). El cero del PI
+\(s = -1/T_{i,dc}\) aporta la fase avanzante que estabiliza; su posición relativa a \(\omega_{dc}\) fija el
+margen. Este es el caso típico del **óptimo simétrico**.
 
-**Sintonía para \(\zeta = 0.707\) (módulo óptimo):**
+**Paso 3 — Módulo y fase en la frecuencia de cruce.** Evaluando en \(s=j\omega\):
 
-$$ \boxed{K_{p,dc} = \frac{C_{dc}\,\omega_{dc}}{2}, \qquad T_{i,dc} = \frac{4}{\omega_{dc}}, \qquad \omega_{dc} = \frac{\omega_{ci}}{10}} $$
+$$ |L_{dc}(j\omega)| = \frac{2K_{p,dc}}{C_{dc}T_{i,dc}}\cdot\frac{\sqrt{1+(T_{i,dc}\omega)^2}}{\omega^2},
+   \qquad \angle L_{dc}(j\omega) = -180° + \arctan(T_{i,dc}\omega) $$
 
-$$ PM_{dc} = \arctan(\omega_{dc} T_{i,dc}) = \arctan(4) \approx 76° $$
+Por encima del cero (\(T_{i,dc}\omega \gg 1\)) el módulo se aproxima a \(|L_{dc}| \approx \dfrac{2K_{p,dc}}{C_{dc}\,\omega}\).
 
-### 3.3 — Control: feedforward de potencia y características del lazo
+**Paso 4 — Ganancia \(K_{p,dc}\) desde la condición de cruce.** Imponiendo \(|L_{dc}(j\omega_{dc})| = 1\)
+en la frecuencia de cruce deseada \(\omega_{dc}\):
 
-Sin feedforward, cada cambio de potencia del MSC es una perturbación que el lazo DC (lento) debe rechazar,
-y el condensador absorbe el transitorio durante \(\sim 1/\omega_{dc}\). El feedforward añade la potencia
-del lado máquina como referencia anticipada de corriente:
+$$ \frac{2K_{p,dc}}{C_{dc}\,\omega_{dc}} = 1 \quad\Longrightarrow\quad \boxed{K_{p,dc} = \frac{C_{dc}\,\omega_{dc}}{2}} $$
 
-$$ i_{d,GSC}^* = \underbrace{C_{dc}^{ctrl}(e_w)}_{\text{PI}} + \underbrace{\frac{P_{MSC}}{1.5\,v_{d,g}}}_{\text{feedforward}} $$
+**Paso 5 — Tiempo integral \(T_{i,dc}\) desde el margen de fase.** El margen de fase es
+\(PM_{dc} = 180° + \angle L_{dc}(j\omega_{dc}) = \arctan(T_{i,dc}\,\omega_{dc})\). Para el óptimo simétrico
+(\(\zeta = 0.707\), \(PM \approx 76°\)) se sitúa el cero un factor 4 por debajo del cruce:
 
-Así la corriente del GSC sube casi al instante cuando sube \(P_{MSC}\); el condensador solo absorbe el
-retardo del lazo de corriente interno (\(\sim 1/\omega_{ci}\)) y puede dimensionarse 5–10 veces más pequeño.
+$$ T_{i,dc}\,\omega_{dc} = 4 \quad\Longrightarrow\quad \boxed{T_{i,dc} = \frac{4}{\omega_{dc}}},
+   \qquad PM_{dc} = \arctan(4) \approx 76° $$
+
+**Paso 6 — Separación de escalas.** El lazo DC debe ser mucho más lento que el de corriente para que este
+se vea "instantáneo":
+
+$$ \boxed{\omega_{dc} = \frac{\omega_{ci}}{10}} $$
+
+### 3.3 — Control: feedforward de potencia y diagrama de bloques
+
+**Paso 1 — El problema: el lazo por sí solo es lento ante \(P_{MSC}\).** Con solo el PI, el rechazo de la
+perturbación se obtiene de \(w = G_{dc}(P_{MSC}-P_{GSC})\) con \(P_{GSC}\) fijada por el lazo. Cerrando el
+lazo (ganancia de lazo \(L_{dc}\)):
+
+$$ \frac{\tilde{w}}{\tilde{P}_{MSC}} = \frac{G_{dc}}{1+L_{dc}} = S(s)\,G_{dc}, \qquad S(s)=\frac{1}{1+L_{dc}(s)} $$
+
+La sensibilidad \(S\) solo rechaza bien **por debajo** de \(\omega_{dc}\); como el lazo es lento, ante un
+escalón de \(P_{MSC}\) la tensión se desvía mientras el PI reacciona.
+
+**Paso 2 — Cuánta caída (argumento energético).** Durante el tiempo de reacción \(\Delta t \approx 1/\omega_{dc}\),
+el desbalance \(\Delta P\) se integra en el condensador:
+
+$$ \Delta E = \Delta P\,\Delta t = C_{dc}V_{dc}\,\Delta V_{dc} \quad\Longrightarrow\quad \Delta V_{dc} \approx \frac{\Delta P}{\omega_{dc}\,C_{dc}\,V_{dc}} $$
+
+Cuanto más lento el lazo (menor \(\omega_{dc}\)), mayor la caída, y mayor el \(C_{dc}\) necesario.
+
+**Paso 3 — ¿Por qué *se puede* hacer feedforward de la potencia?** Un feedforward de una perturbación
+requiere tres condiciones, y \(P_{MSC}\) las cumple:
+
+1. **Es medible/conocida** en tiempo real: el MSC mide sus tensiones y corrientes, así que
+   \(P_{MSC} = \tfrac{3}{2}(v_{d,gen}i_{d,gen}+v_{q,gen}i_{q,gen})\) está disponible (ambos convertidores
+   comparten controlador y bus).
+2. **Hay un actuador directo y rápido** que la contrarresta: la potencia del GSC es un grado de libertad
+   controlable, \(P_{GSC} = 1.5\,v_{d,g}\,i_d\), e \(i_d\) lo entrega el lazo de corriente interno (rápido).
+3. **La relación es algebraica e invertible** (estática, sin dinámica que invertir): para dar una potencia
+   \(P\) se necesita una corriente \(P/(1.5\,v_{d,g})\). Por eso el feedforward es realizable (propio) y
+   exacto en régimen.
+
+**Paso 4 — Ganancia del feedforward.** De la orientación VOC (2.4), la potencia activa del GSC es
+\(P_{GSC} = \tfrac{3}{2}v_{d,g}i_d = 1.5\,v_{d,g}\,i_d\). Para que el GSC evacúe justo la potencia entrante
+(\(P_{GSC} = P_{MSC}\)) al instante, la corriente de feedforward debe ser:
+
+$$ i_{d,FF}^* = \frac{P_{MSC}}{1.5\,v_{d,g}} $$
+
+**Paso 5 — Ley de control completa.** La referencia de corriente activa del GSC suma el PI (corrección
+lenta: errores de estimación, pérdidas) y el feedforward (grueso de la potencia, al instante):
+
+$$ \boxed{\,i_d^* = \underbrace{C_{dc}^{ctrl}(e_w)}_{\text{PI, }e_w=w^*-w} + \underbrace{\frac{P_{MSC}}{1.5\,v_{d,g}}}_{\text{feedforward}}\,} $$
+
+**Paso 6 — Rechazo de la perturbación con feedforward (desarrollo).** Se incluye la dinámica del lazo de
+corriente cerrado \(G_{cl}(s) = \dfrac{\omega_{ci}}{s+\omega_{ci}}\) y un filtro de feedforward \(F_{FF}(s)\).
+La potencia del GSC realmente entregada es:
+
+$$ P_{GSC} = 1.5\,v_{d,g}\,i_d = 1.5\,v_{d,g}\,G_{cl}\Big(i_{d,PI}^* + F_{FF}\frac{P_{MSC}}{1.5\,v_{d,g}}\Big)
+   = 1.5\,v_{d,g}\,G_{cl}\,i_{d,PI}^* + G_{cl}F_{FF}\,P_{MSC} $$
+
+La potencia **neta** que ve el condensador en el nudo de balance:
+
+$$ P_{net} = P_{MSC} - P_{GSC} = \underbrace{P_{MSC}\big(1 - G_{cl}F_{FF}\big)}_{\text{perturbación efectiva}} - 1.5\,v_{d,g}\,G_{cl}\,i_{d,PI}^* $$
+
+El factor **\((1 - G_{cl}F_{FF})\)** es lo que aporta el feedforward. Tres casos:
+
+- **Sin feedforward** (\(F_{FF}=0\)): factor \(=1\), la perturbación entra entera → solo la rechaza el PI (lento).
+- **Feedforward ideal** (\(F_{FF}=1\), \(G_{cl}=1\)): factor \(=1-1=0\) → **cancelación perfecta**.
+- **Feedforward real** (\(F_{FF}=1\), \(G_{cl}=\tfrac{\omega_{ci}}{s+\omega_{ci}}\)):
+
+$$ 1 - G_{cl} = 1 - \frac{\omega_{ci}}{s+\omega_{ci}} = \frac{s}{s+\omega_{ci}} $$
+
+un **filtro paso-alto**: solo se cuela lo que cambia más rápido que \(\omega_{ci}\), y ese resto multiplica
+al integrador \(2/(C_{dc}s)\) cancelando su polo en el origen. La perturbación deja de integrarse.
+
+**Paso 7 — Efecto: la caída se reduce y \(C_{dc}\) se achica.** Con feedforward, el desbalance que ve el
+condensador dura \(\sim 1/\omega_{ci}\) (retardo del lazo de corriente) en vez de \(\sim 1/\omega_{dc}\).
+Por el mismo argumento energético del Paso 2:
+
+$$ \Delta V_{dc} \approx \frac{\Delta P}{\omega_{ci}\,C_{dc}\,V_{dc}}, \qquad \frac{\omega_{ci}}{\omega_{dc}} = 10 $$
+
+→ la caída es \(\sim 10\times\) menor; para la misma \(\Delta V_{dc}\) admisible, \(C_{dc}\) puede ser
+**5–10 veces más pequeño**.
+
+**Paso 8 — Filtro del feedforward.** \(P_{MSC}\) se estima de medidas ruidosas; se filtra con
+
+$$ F_{FF}(s) = \frac{1}{T_{FF}s+1}, \qquad T_{FF} = \frac{1}{\omega_{ci}} $$
+
+Elimina el ruido de medida sin ralentizar el feedforward respecto al lazo de corriente (mismo ancho de banda).
+
+**Paso 9 — Desarrollo del diagrama de bloques.** El lazo se construye a partir de las ecuaciones anteriores:
+
+1. Referencia \(w^* = V_{dc}^{*2}\) y error \(e_w = w^* - w\).
+2. PI \(C_{dc}^{ctrl}(s)\) → corriente de corrección \(i_{d,PI}^*\).
+3. Rama de feedforward: \(P_{MSC}\) → filtro \(F_{FF}\) → \(\div(1.5\,v_{d,g})\) → \(i_{d,FF}^*\).
+4. Suma de referencias: \(i_d^* = i_{d,PI}^* + i_{d,FF}^*\).
+5. Lazo de corriente cerrado \(G_{cl}(s)=\omega_{ci}/(s+\omega_{ci}) \approx 1\) (separación de escalas) → \(i_d\).
+6. Conversión a potencia: \(\times\,1.5\,v_{d,g}\) → \(P_{GSC}\).
+7. Nudo de balance: \(P_{MSC} - P_{GSC}\) = potencia neta.
+8. Planta \(2/(C_{dc}s)\) → \(w\); raíz cuadrada → \(V_{dc}\), que se realimenta al error.
+
+La clave del feedforward está en el nudo de balance: \(P_{MSC}\) llega por **dos caminos** — directo
+(\(+\)) y por la rama de feedforward → \(i_d\) → \(\times 1.5\,v_{d,g}\) → \(P_{GSC}\) (\(-\)). Si el
+feedforward es exacto y el lazo de corriente ideal, ambos se cancelan y la perturbación **nunca llega al
+integrador**.
 
 <div class="cfig"><img src="figuras/btb-lazo-dc.png" alt="Diagrama de bloques del lazo de tensión DC: PI sobre V_dc cuadrado, feedforward de potencia del MSC, lazo de corriente como ganancia unidad y planta integradora 2/(C_dc s)"><div class="cap">El PI actúa sobre el error de \(V_{dc}^2\) y genera la referencia de corriente activa del GSC. El feedforward de potencia \(P_{MSC}/(1.5\,v_{d,g})\) adelanta la corriente antes de que el condensador se descargue. El lazo de corriente interno se ve como ganancia unidad (separación de escalas \(\omega_{dc}=\omega_{ci}/10\)) y la planta es el integrador \(2/(C_{dc}s)\).</div></div>
 
