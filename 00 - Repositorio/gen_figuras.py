@@ -14646,179 +14646,70 @@ def _btb_diagramas_bloques():
     """
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
-    from matplotlib.patches import FancyArrowPatch
-
-    fig, axes = plt.subplots(1, 2, figsize=(16, 7))
 
     # ------------------------------------------------------------------ #
-    # Panel izquierdo: lazo de corriente dq desacoplado
+    # Figura 1: lazo de corriente ÚNICO en dq (ambos ejes idénticos tras
+    # el desacoplo; el subíndice dq representa d o q indistintamente)
     # ------------------------------------------------------------------ #
-    ax = axes[0]
-    ax.set_xlim(0, 10); ax.set_ylim(0, 10); ax.axis('off')
-    ax.set_title('Lazo de corriente dq con desacoplo feedforward', fontsize=11, fontweight='bold', pad=10)
+    fig, ax = plt.subplots(1, 1, figsize=(12, 6))
+    ax.set_xlim(0, 12); ax.set_ylim(0, 8); ax.axis('off')
+    ax.set_title('Lazo de corriente en dq con desacoplo feedforward',
+                 fontsize=13, fontweight='bold', pad=10)
 
-    def box(ax, x, y, w, h, label, color='lightblue', fontsize=9):
+    def box(x, y, w, h, label, color, fontsize=10):
         ax.add_patch(mpatches.FancyBboxPatch((x - w/2, y - h/2), w, h,
-            boxstyle='round,pad=0.08', facecolor=color, edgecolor='navy', lw=1.5))
+            boxstyle='round,pad=0.08', facecolor=color, edgecolor='navy', lw=1.6))
         ax.text(x, y, label, ha='center', va='center', fontsize=fontsize, fontweight='bold')
 
-    def circle(ax, x, y, r, label, color='white'):
-        ax.add_patch(plt.Circle((x, y), r, facecolor=color, edgecolor='navy', lw=1.5))
-        ax.text(x, y, label, ha='center', va='center', fontsize=10, fontweight='bold')
+    def circle(x, y, label, r=0.32):
+        ax.add_patch(plt.Circle((x, y), r, facecolor='white', edgecolor='navy', lw=1.6))
+        ax.text(x, y, label, ha='center', va='center', fontsize=12, fontweight='bold')
 
-    def arrow(ax, x1, y1, x2, y2, label='', color='navy'):
+    def arrow(x1, y1, x2, y2, label='', color='navy'):
         ax.annotate('', xy=(x2, y2), xytext=(x1, y1),
-                    arrowprops=dict(arrowstyle='->', color=color, lw=1.5))
+                    arrowprops=dict(arrowstyle='->', color=color, lw=1.8))
         if label:
-            mx, my = (x1+x2)/2, (y1+y2)/2
-            ax.text(mx, my+0.18, label, ha='center', va='bottom', fontsize=8, color='darkred')
+            ax.text((x1+x2)/2, (y1+y2)/2+0.22, label, ha='center', va='bottom',
+                    fontsize=9.5, color='darkred')
 
-    # EJE D (y=7)
-    y_d = 7.0
-    ax.text(0.3, y_d, r'$i_d^*$', ha='center', va='center', fontsize=10)
-    arrow(ax, 0.6, y_d, 1.2, y_d)
-    circle(ax, 1.5, y_d, 0.3, '−')
-    arrow(ax, 1.8, y_d, 2.4, y_d)
-    box(ax, 2.9, y_d, 0.9, 0.7, 'PI\nd', color='#AED6F1')
-    arrow(ax, 3.35, y_d, 4.1, y_d)
-    circle(ax, 4.4, y_d, 0.3, '+')
-    arrow(ax, 4.7, y_d, 5.5, y_d, r'$v_{d,conv}^*$')
-    box(ax, 6.1, y_d, 1.0, 0.7, 'VSC\n+PWM', color='#A9DFBF')
-    arrow(ax, 6.6, y_d, 7.4, y_d)
-    box(ax, 8.0, y_d, 1.1, 0.7, r'$\frac{1}{Ls+R}$', color='#FAD7A0')
-    arrow(ax, 8.55, y_d, 9.5, y_d)
-    ax.text(9.7, y_d, r'$i_d$', ha='center', va='center', fontsize=10)
-    # realimentación eje d
-    ax.plot([9.4, 9.4, 1.5], [y_d, y_d-0.55, y_d-0.55], 'navy', lw=1.5)
-    ax.annotate('', xy=(1.5, y_d-0.3), xytext=(1.5, y_d-0.55),
-                arrowprops=dict(arrowstyle='->', color='navy', lw=1.5))
-    # feedforward vdg
-    ax.text(4.4, y_d+1.5, r'$v_{d,g}$', ha='center', va='center', fontsize=9, color='darkgreen')
-    ax.annotate('', xy=(4.4, y_d+0.3), xytext=(4.4, y_d+1.1),
-                arrowprops=dict(arrowstyle='->', color='darkgreen', lw=1.5))
-    ax.text(3.5, y_d+1.2, '+', ha='center', va='center', fontsize=9, color='darkgreen')
-    # desacoplo +ω0L·iq desde eje q
-    ax.text(4.4, y_d-1.3, r'$+\omega_0 L\, i_q$', ha='center', va='center', fontsize=9, color='darkorange')
-    ax.annotate('', xy=(4.4, y_d-0.3), xytext=(4.4, y_d-1.0),
-                arrowprops=dict(arrowstyle='->', color='darkorange', lw=1.5))
-    ax.text(3.5, y_d-0.9, '(desde q)', ha='center', va='center', fontsize=7.5, color='darkorange')
+    yc = 4.6
+    ax.text(0.35, yc, r'$i_{dq}^*$', ha='center', va='center', fontsize=12)
+    arrow(0.7, yc, 1.35, yc)
+    circle(1.7, yc, '−')
+    arrow(2.05, yc, 2.9, yc, r'$e_{dq}$')
+    box(3.6, yc, 1.3, 0.9, 'PI', '#AED6F1', 11)
+    arrow(4.25, yc, 5.15, yc, r'$v_{dq,PI}$')
+    circle(5.5, yc, '+')
+    arrow(5.85, yc, 6.9, yc, r'$v_{dq,conv}^*$', color='darkred')
+    box(7.7, yc, 1.4, 0.9, 'VSC\n+PWM', '#A9DFBF', 10)
+    arrow(8.4, yc, 9.3, yc)
+    box(10.1, yc, 1.3, 0.9, r'$\dfrac{1}{Ls+R}$', '#FAD7A0', 11)
+    arrow(10.75, yc, 11.6, yc)
+    ax.text(11.8, yc, r'$i_{dq}$', ha='center', va='center', fontsize=12)
 
-    # EJE Q (y=3)
-    y_q = 3.0
-    ax.text(0.3, y_q, r'$i_q^*$', ha='center', va='center', fontsize=10)
-    arrow(ax, 0.6, y_q, 1.2, y_q)
-    circle(ax, 1.5, y_q, 0.3, '−')
-    arrow(ax, 1.8, y_q, 2.4, y_q)
-    box(ax, 2.9, y_q, 0.9, 0.7, 'PI\nq', color='#AED6F1')
-    arrow(ax, 3.35, y_q, 4.1, y_q)
-    circle(ax, 4.4, y_q, 0.3, '+')
-    arrow(ax, 4.7, y_q, 5.5, y_q, r'$v_{q,conv}^*$')
-    box(ax, 6.1, y_q, 1.0, 0.7, 'VSC\n+PWM', color='#A9DFBF')
-    arrow(ax, 6.6, y_q, 7.4, y_q)
-    box(ax, 8.0, y_q, 1.1, 0.7, r'$\frac{1}{Ls+R}$', color='#FAD7A0')
-    arrow(ax, 8.55, y_q, 9.5, y_q)
-    ax.text(9.7, y_q, r'$i_q$', ha='center', va='center', fontsize=10)
-    # realimentación eje q
-    ax.plot([9.4, 9.4, 1.5], [y_q, y_q-0.55, y_q-0.55], 'navy', lw=1.5)
-    ax.annotate('', xy=(1.5, y_q-0.3), xytext=(1.5, y_q-0.55),
-                arrowprops=dict(arrowstyle='->', color='navy', lw=1.5))
-    # feedforward vqg
-    ax.text(4.4, y_q+1.5, r'$v_{q,g}=0$', ha='center', va='center', fontsize=9, color='darkgreen')
-    ax.annotate('', xy=(4.4, y_q+0.3), xytext=(4.4, y_q+1.1),
-                arrowprops=dict(arrowstyle='->', color='darkgreen', lw=1.5))
-    # desacoplo -ω0L·id desde eje d
-    ax.text(4.4, y_q-1.3, r'$-\omega_0 L\, i_d$', ha='center', va='center', fontsize=9, color='darkorange')
-    ax.annotate('', xy=(4.4, y_q-0.3), xytext=(4.4, y_q-1.0),
-                arrowprops=dict(arrowstyle='->', color='darkorange', lw=1.5))
-    ax.text(3.5, y_q-0.9, '(desde d)', ha='center', va='center', fontsize=7.5, color='darkorange')
+    # realimentación
+    ax.plot([11.35, 11.35, 1.7], [yc, yc-1.3, yc-1.3], 'navy', lw=1.7)
+    ax.annotate('', xy=(1.7, yc-0.33), xytext=(1.7, yc-1.3),
+                arrowprops=dict(arrowstyle='->', color='navy', lw=1.7))
 
-    # leyenda
-    ax.text(5.0, 0.4, 'Verde: feedforward de tensión de red    Naranja: desacoplo cruzado dq',
-            ha='center', fontsize=8, color='gray')
+    # feedforward tensión de red (verde, desde arriba)
+    ax.text(5.5, yc+2.0, r'$+\,v_{dq,g}$  (tensión de red)', ha='center', va='center',
+            fontsize=10, color='darkgreen')
+    ax.annotate('', xy=(5.5, yc+0.33), xytext=(5.5, yc+1.75),
+                arrowprops=dict(arrowstyle='->', color='darkgreen', lw=1.7))
 
-    # ------------------------------------------------------------------ #
-    # Panel derecho: lazo DC con feedforward de potencia
-    # ------------------------------------------------------------------ #
-    ax2 = axes[1]
-    ax2.set_xlim(0, 10); ax2.set_ylim(0, 10); ax2.axis('off')
-    ax2.set_title('Lazo de tensión DC con feedforward de potencia', fontsize=11, fontweight='bold', pad=10)
+    # feedforward desacoplo (naranja, desde abajo)
+    ax.text(5.5, yc-2.15, r'$\mp\,\omega_0 L\, i_{qd}$  (desacoplo, desde el otro eje)',
+            ha='center', va='center', fontsize=10, color='darkorange')
+    ax.annotate('', xy=(5.5, yc-0.33), xytext=(5.5, yc-1.9),
+                arrowprops=dict(arrowstyle='->', color='darkorange', lw=1.7))
 
-    def box2(x, y, w, h, label, color='lightblue', fontsize=9):
-        ax2.add_patch(mpatches.FancyBboxPatch((x-w/2, y-h/2), w, h,
-            boxstyle='round,pad=0.08', facecolor=color, edgecolor='navy', lw=1.5))
-        ax2.text(x, y, label, ha='center', va='center', fontsize=fontsize, fontweight='bold')
+    ax.text(6.0, 0.5,
+            'Un solo lazo representa ambos ejes: tras el desacoplo, d y q son idénticos '
+            r'($1/(Ls+R)$).' + '\nSigno del desacoplo: eje d usa $-\\omega_0 L i_q$; eje q usa $+\\omega_0 L i_d$.',
+            ha='center', fontsize=9, color='gray')
 
-    def circle2(x, y, r, label):
-        ax2.add_patch(plt.Circle((x, y), r, facecolor='white', edgecolor='navy', lw=1.5))
-        ax2.text(x, y, label, ha='center', va='center', fontsize=10, fontweight='bold')
-
-    def arr2(x1, y1, x2, y2, label='', color='navy'):
-        ax2.annotate('', xy=(x2, y2), xytext=(x1, y1),
-                     arrowprops=dict(arrowstyle='->', color=color, lw=1.5))
-        if label:
-            ax2.text((x1+x2)/2, (y1+y2)/2+0.2, label, ha='center', fontsize=8, color='darkred')
-
-    # Referencia
-    ax2.text(0.3, 6.0, r'$V_{dc}^{*2}$', ha='center', va='center', fontsize=10)
-    arr2(0.65, 6.0, 1.2, 6.0)
-    circle2(1.5, 6.0, 0.3, '−')
-    arr2(1.8, 6.0, 2.5, 6.0, r'$e_w$')
-    box2(3.2, 6.0, 1.2, 0.8, r'$PI_{dc}$', color='#AED6F1')
-    arr2(3.8, 6.0, 4.6, 6.0)
-
-    # Suma feedforward
-    circle2(5.0, 6.0, 0.35, '+')
-    arr2(5.35, 6.0, 6.1, 6.0, r'$i_d^*$')
-
-    # Lazo de corriente (bloque simplificado)
-    box2(6.9, 6.0, 1.3, 0.8, r'Lazo$_{i}$'+'\n'+r'$\approx 1$', color='#A9DFBF')
-    arr2(7.55, 6.0, 8.3, 6.0)
-
-    # Planta bus DC: integrador
-    box2(9.0, 6.0, 1.2, 0.8, r'$\frac{2}{C_{dc}s}$', color='#FAD7A0')
-    arr2(9.6, 6.0, 9.9, 6.0)
-    ax2.text(9.95, 6.0, r'$V_{dc}^2$', ha='left', va='center', fontsize=10)
-
-    # Realimentación V²dc
-    ax2.plot([9.7, 9.7, 1.5], [6.0, 5.2, 5.2], 'navy', lw=1.5)
-    ax2.annotate('', xy=(1.5, 5.7), xytext=(1.5, 5.2),
-                 arrowprops=dict(arrowstyle='->', color='navy', lw=1.5))
-
-    # Feedforward de potencia (rama desde P_MSC)
-    ax2.text(5.0, 8.2, r'$P_{MSC}$', ha='center', va='center', fontsize=10, color='darkgreen')
-    ax2.annotate('', xy=(5.0, 7.7), xytext=(5.0, 8.0),
-                 arrowprops=dict(arrowstyle='->', color='darkgreen', lw=1.5))
-    box2(5.0, 7.3, 1.6, 0.7, r'$\div\,V_{dc,0}$'+'\n(FF)', color='#ABEBC6', fontsize=8)
-    ax2.annotate('', xy=(5.0, 6.35), xytext=(5.0, 6.95),
-                 arrowprops=dict(arrowstyle='->', color='darkgreen', lw=1.5))
-    ax2.text(5.35, 7.65, '+', ha='center', fontsize=9, color='darkgreen')
-
-    # Anti-windup
-    box2(3.2, 4.3, 1.4, 0.65, 'Anti-\nwindup', color='#F9E79F', fontsize=8)
-    ax2.plot([3.2, 3.2], [5.6, 4.63], 'orange', lw=1.2, ls='--')
-    ax2.text(3.2, 4.05, '(limita integrador\ncuando i* satura)', ha='center', fontsize=7.5, color='gray')
-
-    # Etiquetas de anchos de banda
-    ax2.text(5.0, 2.5,
-             r'$\omega_{dc} = \omega_{ci}/10$   |   $\omega_{ci} = \omega_{sw}/10$',
-             ha='center', fontsize=9,
-             bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='steelblue'))
-    ax2.text(5.0, 1.7,
-             r'Sintonía: $K_{p,dc}=C_{dc}\omega_{dc}/2$   $T_{i,dc}=4/\omega_{dc}$',
-             ha='center', fontsize=9,
-             bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='steelblue'))
-
-    # Condición CPL
-    ax2.text(5.0, 0.8,
-             r'Condición CPL: $K_{p,dc} > P_{2,max}/(2V_{dc,0}^2)$',
-             ha='center', fontsize=9, color='red',
-             bbox=dict(boxstyle='round', facecolor='#FDEDEC', edgecolor='red'))
-
-    # ------------------------------------------------------------------ #
-    # Añadir figura separada explicando v_PI, v_conv y v_red
-    # ------------------------------------------------------------------ #
-    fig.suptitle('Diagramas de bloques: back-to-back VSC', fontsize=13, fontweight='bold', y=0.98)
-    plt.tight_layout(rect=[0, 0, 1, 0.97])
+    plt.tight_layout()
     _savefig(fig, "btb-diagramas-bloques", dpi=200)
 
     # --- Figura explicativa de tensiones ---
