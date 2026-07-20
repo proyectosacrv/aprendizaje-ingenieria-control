@@ -169,6 +169,27 @@ $$ L\dot{i}_q = v_{q,PI} - Ri_q \implies \frac{I_q(s)}{V_{q,PI}(s)} = \frac{1}{L
 
 <div class="cfig"><img src="figuras/btb-tensiones-explicacion.png" alt="Composición de la tensión de salida del convertidor en el eje d"><div class="cap">La tensión de salida del convertidor \(v_{d,conv}^*\) es la suma de tres contribuciones: la salida del PI \(v_{d,PI}\) (corrección del error de corriente), el feedforward de tensión de red \(v_{d,g}\) (cancela la perturbación de la red en la planta) y el feedforward de desacoplo \(-\omega_0 L i_q\) (cancela el acoplamiento cruzado físico del marco dq).</div></div>
 
+**Paso 5c — ¿Qué señal hay justo antes de la planta y cómo se llama?**
+
+La entrada de la planta \(1/(Ls+R)\) **no** es \(v_{d,conv}\), sino la **tensión neta sobre la rama RL del filtro**: la diferencia entre la tensión que impone el convertidor y la de la red,
+
+$$ v_{L,d} = v_{d,conv} - v_{d,g} $$
+
+Es la tensión que "empuja" la corriente a través de la inductancia (por eso a veces se llama **tensión sobre la inductancia**, \(v_L\), o tensión de la rama RL). La ecuación física del filtro es \(L\dot{i}_d + R\,i_d = v_{d,conv} - v_{d,g}\), y por eso la planta corriente/tensión es exactamente \(I_d(s)/\big(V_{d,conv}(s)-V_{d,g}(s)\big) = 1/(Ls+R)\). En el diagrama, el nudo de resta \(-v_{d,g}\) delante de la planta representa precisamente esta caída neta.
+
+**Paso 5d — ¿Por qué se suma \(v_g\) en el feedforward y luego se resta antes de la planta?**
+
+Son dos cosas distintas que ocurren en dos sitios distintos: una es **física** y la otra es **control**.
+
+- El nudo de **resta** (\(-v_{d,g}\)) del diagrama **no es una acción del control**: es el circuito real. La red se opone con su propia tensión y, por Kirchhoff, lo que ve la inductancia es \(v_{d,conv}-v_{d,g}\). Esa \(v_{d,g}\) entra sí o sí como **perturbación**.
+- El **feedforward** (\(+v_{d,g}\)) es la compensación: como sabemos que el circuito nos va a restar \(v_{d,g}\), la **añadimos por adelantado** a la referencia del convertidor para que se cancele.
+
+Sustituyendo \(v_{d,conv} = v_{d,PI} + v_{d,g} - \omega_0 L i_q\) en la caída neta:
+
+$$ v_{d,conv} - v_{d,g} = (v_{d,PI} + v_{d,g} - \omega_0 L i_q) - v_{d,g} = v_{d,PI} - \omega_0 L i_q $$
+
+La \(v_{d,g}\) **desaparece**: el PI ya no tiene que "pelear" contra la tensión de red, solo ve la planta RL limpia \(1/(Ls+R)\). Sin este feedforward, cada cambio de \(v_{d,g}\) (huecos, variaciones de red) sería un error que el PI tendría que corregir *a posteriori*, más lento y con peor seguimiento. El término \(-\omega_0 L i_q\) hace lo mismo, pero para cancelar el acoplamiento cruzado d↔q en vez de la tensión de red.
+
 **Resultado:** tras el desacoplo, ambos ejes se rigen por la misma planta de primer orden:
 
 $$ \boxed{G_i(s) = \frac{1}{Ls + R}} $$
