@@ -37,7 +37,7 @@ Red HVDC Multi-Terminal DC (MTDC): tres o más terminales VSC conectados a la mi
 - **Radial (árbol):** cada nodo está conectado por un único camino al resto. Simple, bajo coste, pero sin redundancia: un fallo de cable aísla la rama completa.
 - **Mallada (con bucles):** existen múltiples caminos entre cualquier par de nodos. Mayor redundancia y flexibilidad de despacho, pero mayor complejidad de protección (la corriente de falta puede circular por varios caminos).
 
-<div class="cfig"><img src="../figuras/mtdc-proteccion-dc-analisis.png" alt="MTDC: droop DC, corriente de falta, comparativa de protección y topologías"><div class="cap">Panel superior izquierdo: curvas droop DC para tres terminales MTDC — el punto de operación es la intersección de las tres rectas con la condición de balance de potencia. Superior derecho: corriente de falta bipolar DC desde el instante de la falta hasta la apertura del DCCB (5 ms). Inferior izquierdo: comparativa cuantitativa de los métodos de protección. Inferior derecho: esquemas de topología radial y mallada.</div></div>
+<div class="cfig"><img src="figuras/mtdc-proteccion-dc-analisis.png" alt="MTDC: droop DC, corriente de falta, comparativa de protección y topologías"><div class="cap">Panel superior izquierdo: curvas droop DC para tres terminales MTDC — el punto de operación es la intersección de las tres rectas con la condición de balance de potencia. Superior derecho: corriente de falta bipolar DC desde el instante de la falta hasta la apertura del DCCB (5 ms). Inferior izquierdo: comparativa cuantitativa de los métodos de protección. Inferior derecho: esquemas de topología radial y mallada.</div></div>
 
 ## 2 — Droop de tensión DC para MTDC
 

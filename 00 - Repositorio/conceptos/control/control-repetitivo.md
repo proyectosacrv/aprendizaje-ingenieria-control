@@ -131,7 +131,7 @@ El buffer de memoria del repetitivo ocupa 200 palabras (floats de 32 bits = 800 
 
 **Limitación: frecuencia variable.** Si la frecuencia de red varía (\( f_0 \neq 50\,\text{Hz} \)), \( N = f_s/f_0 \) deja de ser entero y el buffer circular no se sincroniza con el período de red. Solución: \( N \) fraccionario con interpolación, o adaptar \( N \) en tiempo real con la frecuencia estimada por el PLL.
 
-<div class="cfig"><img src="../figuras/control-repetitivo-analisis.png" alt="cuatro paneles: espectro antes-despues, convergencia THD, Bode controlador repetitivo, forma de onda PI vs PI+rep"><div class="cap">(a) Espectro de corriente antes y después del repetitivo: reducción del THD de ~24% a ~2%. (b) Convergencia del THD ciclo a ciclo. (c) Diagrama de Bode del controlador: peine de ganancias en armónicos de 50 Hz. (d) Forma de onda de corriente: solo PI vs PI+repetitivo.</div></div>
+<div class="cfig"><img src="figuras/control-repetitivo-analisis.png" alt="cuatro paneles: espectro antes-despues, convergencia THD, Bode controlador repetitivo, forma de onda PI vs PI+rep"><div class="cap">(a) Espectro de corriente antes y después del repetitivo: reducción del THD de ~24% a ~2%. (b) Convergencia del THD ciclo a ciclo. (c) Diagrama de Bode del controlador: peine de ganancias en armónicos de 50 Hz. (d) Forma de onda de corriente: solo PI vs PI+repetitivo.</div></div>
 
 ## Cuándo y por qué se usa
 Cuando la perturbación/​referencia es periódica y rica en armónicos: inversores de tensión (UPS/CVCF)

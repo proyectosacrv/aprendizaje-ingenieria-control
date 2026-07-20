@@ -131,7 +131,7 @@ $$ K_{PSS,GFM} = 0.503\times0.032\times10^6 \approx 16\,\text{kW/(rad/s)} $$
 
 Este valor se traduce en un estatismo virtual de frecuencia de \( R_p = 1/K_{PSS} \approx 60\,\mu\text{rad/s/W} \), compatible con el despacho normal del convertidor.
 
-<div class="cfig"><img src="../figuras/fenomenos-oscilatorios-red-analisis.png" alt="Fenómenos oscilatorios de red: mapa de frecuencias, modo inter-área, SSR y resonancia armónica"><div class="cap">(a) Mapa de fenómenos oscilatorios por banda de frecuencia: inter-área (0.1–2 Hz), modos locales (1–3 Hz), SSR/SSCI (5–50 Hz) y armónica HF (100–3000 Hz). (b) Modo inter-área de 0.5 Hz: el GFM inyecta amortiguamiento, zeta sube de 0.02 a 0.12. (c) SSR: componente subsíncrona creciente al activarse compensación serie. (d) Resonancia armónica HF: resonancia cable-transformador excitada por el PWM.</div></div>
+<div class="cfig"><img src="figuras/fenomenos-oscilatorios-red-analisis.png" alt="Fenómenos oscilatorios de red: mapa de frecuencias, modo inter-área, SSR y resonancia armónica"><div class="cap">(a) Mapa de fenómenos oscilatorios por banda de frecuencia: inter-área (0.1–2 Hz), modos locales (1–3 Hz), SSR/SSCI (5–50 Hz) y armónica HF (100–3000 Hz). (b) Modo inter-área de 0.5 Hz: el GFM inyecta amortiguamiento, zeta sube de 0.02 a 0.12. (c) SSR: componente subsíncrona creciente al activarse compensación serie. (d) Resonancia armónica HF: resonancia cable-transformador excitada por el PWM.</div></div>
 
 ## 1 — Condición de oscilación: \( \mathrm{Re}\{Z_{conv}+Z_{red}\}=0 \)
 
@@ -274,7 +274,7 @@ $$\zeta_i = \frac{\sigma_i}{|\lambda_i|}$$
 
 **Barrido paramétrico:** calcular eigenvalores vs SCR, vs ganancia de droop, vs \(\omega_{PLL}\) para trazar el mapa de estabilidad y encontrar los márgenes de diseño.
 
-<div class="cfig"><img src="../figuras/fenomenos-oscilatorios-red-analisis.png" alt="SSO HVDC, impedancia negativa GFL, eigenvalores vs SCR y oscilación de droop"><div class="cap">(a) Espectro de tensión con componente SSO visible a 25 Hz. (b) Parte real de la impedancia GFL: zona negativa alrededor de f_PLL que puede inestabilizar la red. (c) Eigenvalores en el plano complejo vs SCR: a SCR bajo los modos se acercan al semiplano derecho. (d) Oscilación de potencia entre dos inversores GFM con droop: amortiguamiento insuficiente produce intercambio oscilatorio de P.</div></div>
+<div class="cfig"><img src="figuras/fenomenos-oscilatorios-red-analisis.png" alt="SSO HVDC, impedancia negativa GFL, eigenvalores vs SCR y oscilación de droop"><div class="cap">(a) Espectro de tensión con componente SSO visible a 25 Hz. (b) Parte real de la impedancia GFL: zona negativa alrededor de f_PLL que puede inestabilizar la red. (c) Eigenvalores en el plano complejo vs SCR: a SCR bajo los modos se acercan al semiplano derecho. (d) Oscilación de potencia entre dos inversores GFM con droop: amortiguamiento insuficiente produce intercambio oscilatorio de P.</div></div>
 
 ## Conceptos relacionados
 - [[impedancia-salida-estabilidad]] · [[clasificacion-estabilidad]] · [[interaccion-pll-red-debil]] · [[filtro-lcl]] · [[red-thevenin-scr]] · [[compensacion-retardo]] · [[filtro-notch]]

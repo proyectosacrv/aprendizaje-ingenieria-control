@@ -38,7 +38,7 @@ El desacoplamiento natural: \( i_{rq} \) controla \( P_s \) e \( i_{rd} \) contr
 **Potencia del rotor en DFIG.** La fracción de potencia que fluye por el convertidor:
 \( P_r = s \cdot P_s \), donde \( s = (\omega_s - \omega_r)/\omega_s \) es el deslizamiento. Con \( |s| \leq 0.3 \), el convertidor solo procesa el 30 % de la potencia nominal.
 
-<div class="cfig"><img src="../figuras/aerogenerador-pmsg-dfig-analisis.png" alt="PMSG y DFIG: modelos, control y FRT"><div class="cap">Curvas de par-velocidad PMSG con MPPT, reparto de potencia estátor/rotor en DFIG según el deslizamiento, respuesta FRT con activación del crowbar y comparativa de características DFIG vs PMSG.</div></div>
+<div class="cfig"><img src="figuras/aerogenerador-pmsg-dfig-analisis.png" alt="PMSG y DFIG: modelos, control y FRT"><div class="cap">Curvas de par-velocidad PMSG con MPPT, reparto de potencia estátor/rotor en DFIG según el deslizamiento, respuesta FRT con activación del crowbar y comparativa de características DFIG vs PMSG.</div></div>
 
 ## 1 — Evolución de las tipologías de aerogenerador
 

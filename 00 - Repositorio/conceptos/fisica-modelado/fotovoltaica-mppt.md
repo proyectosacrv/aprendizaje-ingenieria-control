@@ -129,7 +129,7 @@ Cuanto más rápido cambia \( G \), más pasos puede dar en la dirección incorr
 
 **Paso 3 — diagrama de estados del P&O.**
 
-<div class="cfig"><img src="../figuras/fotovoltaica-po-flowchart.png" alt="Diagrama de flujo del algoritmo P&O: medir V e I, calcular incrementos de P y V, decidir el sentido de la perturbación según los signos y actualizar la referencia"><div class="cap">El algoritmo mide \(V_k, I_k\), calcula \(\Delta P\) y \(\Delta V\) respecto al paso anterior y decide el sentido de la perturbación: si \(\Delta P>0\) sigue en la misma dirección de \(\Delta V\), si \(\Delta P<0\) invierte el sentido, y si \(\Delta P\approx 0\) mantiene la tensión. Luego guarda el estado y repite. Este vaivén permanente alrededor del MPP es la causa del rizado en régimen permanente.</div></div>
+<div class="cfig"><img src="figuras/fotovoltaica-po-flowchart.png" alt="Diagrama de flujo del algoritmo P&O: medir V e I, calcular incrementos de P y V, decidir el sentido de la perturbación según los signos y actualizar la referencia"><div class="cap">El algoritmo mide \(V_k, I_k\), calcula \(\Delta P\) y \(\Delta V\) respecto al paso anterior y decide el sentido de la perturbación: si \(\Delta P>0\) sigue en la misma dirección de \(\Delta V\), si \(\Delta P<0\) invierte el sentido, y si \(\Delta P\approx 0\) mantiene la tensión. Luego guarda el estado y repite. Este vaivén permanente alrededor del MPP es la causa del rizado en régimen permanente.</div></div>
 
 ## 5 — El MPPT con control de corriente
 
@@ -187,7 +187,7 @@ Con \( T_{MPPT}=100\,\text{ms} \): tiempo de convergencia \( t_{conv}=N_{conv}\t
 
 **Óptimo:** \( \Delta V=1.0\text{–}1.5\,\text{V} \) equilibra eficiencia en permanente y respuesta aceptable (< 1 s). Para sistemas con irradiancia muy variable (nubes frecuentes), \( \Delta V=2\,\text{V} \) con \( T_{MPPT}=50\,\text{ms} \) mejora el seguimiento dinámico.
 
-<div class="cfig"><img src="../figuras/fotovoltaica-mppt-analisis.png" alt="4 paneles: curvas IV/PV, P&O trayectoria, MPPT dinámico, ΔV óptimo vs eficiencia"><div class="cap">
+<div class="cfig"><img src="figuras/fotovoltaica-mppt-analisis.png" alt="4 paneles: curvas IV/PV, P&O trayectoria, MPPT dinámico, ΔV óptimo vs eficiencia"><div class="cap">
 (a) Curva P(V) e I(V) del panel 300 W a distintas irradiancias G=200/500/800/1000 W/m²: el MPP se desplaza con G. (b) El P&O trazando su trayectoria en la curva PV: los puntos convergen al MPP real (estrella) con oscilación ±ΔV. (c) MPPT dinámico cuando una nube pasa en 2 s: P&O pierde el MPP brevemente; InC lo sigue mejor. (d) ΔV óptimo: la curva de eficiencia en permanente (roja) baja con ΔV grande; la curva de tiempo de convergencia (azul) mejora; el óptimo está en la región sombreada.
 </div></div>
 
@@ -351,7 +351,7 @@ $$ N_p = \frac{P_{pico}}{N_s \times P_{modulo}},\qquad I_{string,total} = N_p \t
 
 **Rango MPPT del inversor.** El datasheet del inversor especifica \([V_{mpp,min}, V_{mpp,max}]\). Se debe verificar que a temperatura extrema alta (módulo a 70 °C), \(V_{mpp}\) no caiga por debajo de \(V_{mpp,min}\).
 
-<div class="cfig"><img src="../figuras/fotovoltaica-mppt-analisis.png" alt="4 paneles: curvas IV y PV, convergencia P&O, variación Voc con temperatura, efecto irradiancia"><div class="cap">
+<div class="cfig"><img src="figuras/fotovoltaica-mppt-analisis.png" alt="4 paneles: curvas IV y PV, convergencia P&O, variación Voc con temperatura, efecto irradiancia"><div class="cap">
 (a) Curvas I-V para \(G=400, 700, 1000\,\text{W/m}^2\): la corriente es proporcional a \(G\) mientras la tensión de circuito abierto varía poco. (b) Curvas P-V correspondientes: el MPP se desplaza principalmente en potencia (eje vertical) y poco en tensión (eje horizontal). (c) Convergencia del P&O: la tensión de referencia oscila alrededor de \(V_{mpp}\) (línea roja) con amplitud decreciente. (d) Variación de \(V_{oc}\) con la temperatura: caída de \(-0.138\,\text{V/°C}\) para módulo de 60 células; a 50 °C, \(V_{oc}\) cae \(\approx 3.5\,\text{V}\) respecto a STC.
 </div></div>
 

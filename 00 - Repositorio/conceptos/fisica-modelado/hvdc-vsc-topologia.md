@@ -294,4 +294,4 @@ Este umbral puede ser superado por transitorios de control en condiciones normal
 discriminación debe completarse en < 2 ms para que el DCCB pueda actuar antes de que la corriente
 destruya los IGBTs.
 
-<div class="cfig"><img src="../figuras/hvdc-vsc-topologia-analisis.png" alt="HVDC-VSC topología MMC y corriente de circulación"><div class="cap">Configuraciones HVDC-VSC (monopolar/bipolar), síntesis de tensión multinivel del MMC para distintos N, THD vs. número de submódulos, y corriente de circulación con y sin CCSC.</div></div>
+<div class="cfig"><img src="figuras/hvdc-vsc-topologia-analisis.png" alt="HVDC-VSC topología MMC y corriente de circulación"><div class="cap">Configuraciones HVDC-VSC (monopolar/bipolar), síntesis de tensión multinivel del MMC para distintos N, THD vs. número de submódulos, y corriente de circulación con y sin CCSC.</div></div>

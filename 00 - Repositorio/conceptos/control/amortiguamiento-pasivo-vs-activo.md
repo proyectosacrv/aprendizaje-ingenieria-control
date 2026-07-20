@@ -202,7 +202,7 @@ Por la equivalencia demostrada en §4, \( K_{ad,opt} = R_{d,opt} \approx 2.10\,\
 
 Sin amortiguamiento: la fase cae a −270° al cruzar \( f_{res} \); el margen de fase a la frecuencia de cruce (≈500 Hz con un PI típico) es escaso porque el pico de resonancia puede sobresalir. Con \( K_{ad} = 2.10\,\Omega \): el par de polos de resonancia se desplaza hacia \( \zeta \approx 0.16 \); el pico queda acotado a +15 dB; el PM mejora a ≈45°. El lazo de corriente es estable con un ancho de banda de ≈500–800 Hz.
 
-<div class="cfig"><img src="../figuras/amortiguamiento-pasivo-vs-activo-analisis.png" alt="Comparativa amortiguamiento pasivo vs activo: Bode, Q vs Rd, pérdidas y PM"><div class="cap">(a) Bode de i_L2/v_i: sin amortiguamiento el pico diverge, con R_d=R_d_opt o K_ad=R_d_opt el pico queda acotado a Q=3. (b) Factor de calidad Q vs R_d: lineal con pendiente negativa; la regla óptima da Q=3. (c) Pérdidas en R_d vs amplitud de I_Cf: cuadráticas; el activo no disipa. (d) Bode del lazo de corriente con K_ad: el PM mejora de ~10° a ~45°.</div></div>
+<div class="cfig"><img src="figuras/amortiguamiento-pasivo-vs-activo-analisis.png" alt="Comparativa amortiguamiento pasivo vs activo: Bode, Q vs Rd, pérdidas y PM"><div class="cap">(a) Bode de i_L2/v_i: sin amortiguamiento el pico diverge, con R_d=R_d_opt o K_ad=R_d_opt el pico queda acotado a Q=3. (b) Factor de calidad Q vs R_d: lineal con pendiente negativa; la regla óptima da Q=3. (c) Pérdidas en R_d vs amplitud de I_Cf: cuadráticas; el activo no disipa. (d) Bode del lazo de corriente con K_ad: el PM mejora de ~10° a ~45°.</div></div>
 
 ## 7 — Amortiguamiento pasivo óptimo: \(R_d\) en serie con \(C_f\)
 

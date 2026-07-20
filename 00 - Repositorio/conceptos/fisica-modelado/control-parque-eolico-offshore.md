@@ -39,13 +39,13 @@ $$\Delta P_{HVDC} = -\frac{1}{R_f}\Delta f - 2H_{park}\frac{d\Delta f}{dt}$$
 
 El primer término es el droop (regulación primaria); el segundo es la inercia sintética. \( R_f \) es la ganancia de caída de frecuencia (típicamente 2–5 %) y \( H_{park} \) la constante de inercia equivalente del parque (3–6 s según el nivel de derating).
 
-<div class="cfig"><img src="../figuras/control-parque-eolico-offshore-analisis.png" alt="Control de parque eólico offshore"><div class="cap">Layout del parque con efecto estela (color = P/Pnom), respuesta FRT basada en frecuencia de la red del parque, curvas de despacho MPPT vs delta-control con reserva de regulación, y servicios de red FFR y droop por el enlace HVDC.</div></div>
+<div class="cfig"><img src="figuras/control-parque-eolico-offshore-analisis.png" alt="Control de parque eólico offshore"><div class="cap">Layout del parque con efecto estela (color = P/Pnom), respuesta FRT basada en frecuencia de la red del parque, curvas de despacho MPPT vs delta-control con reserva de regulación, y servicios de red FFR y droop por el enlace HVDC.</div></div>
 
 ## 1 — Arquitectura del sistema: del aerogenerador al PCC onshore
 
 La cadena completa de un parque eólico offshore con conexión HVDC:
 
-<div class="cfig"><img src="../figuras/parque-offshore-cadena.png" alt="Cadena eléctrica del parque offshore: aerogeneradores, subestación offshore, terminal HVDC offshore, cable submarino DC, terminal HVDC onshore, PCC y red continental, con sus niveles de control"><div class="cap">Cadena completa desde los aerogeneradores (33 kV inter-array) hasta la red de transmisión continental, pasando por la subestación offshore, los dos terminales HVDC MMC-VSC unidos por el cable submarino DC y el PCC onshore. A la derecha, el nivel de control asociado a cada etapa (del MPPT local al TSO/AGC).</div></div>
+<div class="cfig"><img src="figuras/parque-offshore-cadena.png" alt="Cadena eléctrica del parque offshore: aerogeneradores, subestación offshore, terminal HVDC offshore, cable submarino DC, terminal HVDC onshore, PCC y red continental, con sus niveles de control"><div class="cap">Cadena completa desde los aerogeneradores (33 kV inter-array) hasta la red de transmisión continental, pasando por la subestación offshore, los dos terminales HVDC MMC-VSC unidos por el cable submarino DC y el PCC onshore. A la derecha, el nivel de control asociado a cada etapa (del MPPT local al TSO/AGC).</div></div>
 
 **Niveles de control y escalas de tiempo:**
 

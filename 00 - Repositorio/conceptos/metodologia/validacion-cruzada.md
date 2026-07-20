@@ -106,7 +106,7 @@ $$ \text{NRMSE} = \frac{\|y - \hat{y}\|}{\|y - \bar{y}\|} = 1 - \frac{\text{FIT\
 
 El NRMSE=0 es ajuste perfecto; NRMSE=1 equivale a predecir siempre la media (modelo nulo). La ventaja del NRMSE frente al RMSE es que es adimensional y comparable entre señales de distintas magnitudes.
 
-<div class="cfig"><img src="../figuras/validacion-cruzada-analisis.png" alt="k-fold, curva de aprendizaje y FIT% vs orden del modelo"><div class="cap">Validación cruzada k-fold (k=5): cada fold rota el subconjunto de validación. La curva de aprendizaje muestra cómo el error de validación tiene un mínimo antes de aumentar (overfitting). El FIT% vs orden del modelo permite elegir el orden mínimo que supera el umbral del 80%.</div></div>
+<div class="cfig"><img src="figuras/validacion-cruzada-analisis.png" alt="k-fold, curva de aprendizaje y FIT% vs orden del modelo"><div class="cap">Validación cruzada k-fold (k=5): cada fold rota el subconjunto de validación. La curva de aprendizaje muestra cómo el error de validación tiene un mínimo antes de aumentar (overfitting). El FIT% vs orden del modelo permite elegir el orden mínimo que supera el umbral del 80%.</div></div>
 
 ## 4 — Overfitting y underfitting
 
@@ -268,7 +268,7 @@ El flujo de trabajo estándar para identificar el lazo de corriente de un conver
 
 $$\boxed{\text{FIT\%}>80\%\ \text{en validación de potencia}\ \Rightarrow\ \text{un solo controlador para todo el rango}}$$
 
-<div class="cfig"><img src="../figuras/validacion-cruzada-analisis.png" alt="k-fold temporal, curva de aprendizaje, FIT% vs orden y comparativa dos métodos"><div class="cap">Validación cruzada aplicada a convertidores: k-fold temporal con bloques consecutivos (izquierda), curva de aprendizaje mostrando el punto de overfitting (centro-izq.), FIT% vs orden del modelo con el "codo" en orden 2 (centro-dcha.), y comparativa analítica vs identificación experimental del lazo de corriente (derecha).</div></div>
+<div class="cfig"><img src="figuras/validacion-cruzada-analisis.png" alt="k-fold temporal, curva de aprendizaje, FIT% vs orden y comparativa dos métodos"><div class="cap">Validación cruzada aplicada a convertidores: k-fold temporal con bloques consecutivos (izquierda), curva de aprendizaje mostrando el punto de overfitting (centro-izq.), FIT% vs orden del modelo con el "codo" en orden 2 (centro-dcha.), y comparativa analítica vs identificación experimental del lazo de corriente (derecha).</div></div>
 
 ## Conceptos relacionados
 - [[niveles-validacion]] · [[pruebas-validacion]] · [[impedancia-salida-estabilidad]] · [[medicion-impedancia-inyeccion]]

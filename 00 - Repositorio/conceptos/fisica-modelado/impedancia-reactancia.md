@@ -205,7 +205,7 @@ Para un convertidor de \(P_{conv}=10\,\text{MW}\) conectado a un nudo con \(S_{s
 
 **Regla práctica:** diseñar el lazo de PLL para \(\omega_{PLL} < \omega_s/\text{SCR}^{0.5}\); en red débil (SCR = 3) limitar \(f_{PLL} < 20\,\text{Hz}\).
 
-<div class="cfig"><img src="../figuras/impedancia-reactancia-analisis.png" alt="Análisis de impedancia: diagrama fasorial, impedancia vs SCR, Nyquist y medición"><div class="cap">(a) Diagrama fasorial R+jX con ángulo de impedancia φ. (b) Módulo de impedancia de red vs SCR para distintas tensiones de punto de conexión. (c) Criterio de Nyquist fuente/carga para estabilidad por impedancia. (d) Módulo de impedancia medida vs frecuencia con método de inyección sinusoidal.</div></div>
+<div class="cfig"><img src="figuras/impedancia-reactancia-analisis.png" alt="Análisis de impedancia: diagrama fasorial, impedancia vs SCR, Nyquist y medición"><div class="cap">(a) Diagrama fasorial R+jX con ángulo de impedancia φ. (b) Módulo de impedancia de red vs SCR para distintas tensiones de punto de conexión. (c) Criterio de Nyquist fuente/carga para estabilidad por impedancia. (d) Módulo de impedancia medida vs frecuencia con método de inyección sinusoidal.</div></div>
 
 ## 8 — Impedancia de Thevenin del convertidor
 

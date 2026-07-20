@@ -160,7 +160,7 @@ El modelo promediado es **100× más rápido** que el conmutado (ratio de pasos 
 
 $$ \boxed{\frac{t_{CPU,\text{conmutado}}}{t_{CPU,\text{promediado}}} \approx \frac{h_{promediado}}{h_{conmutado}} \approx \frac{f_{sw}/10}{f_{sw}/100} = 10 \times \frac{f_{sw}}{f_{control}}} $$
 
-<div class="cfig"><img src="../figuras/simulacion-conmutada-analisis.png" alt="señal conmutada vs promediada, error vs Tsim, coste computacional y comparativa simuladores"><div class="cap">Comparativa conmutado vs promediado: el conmutado reproduce el rizado a fsw; el promediado da la trayectoria suave. El error en la fundamental aumenta con el paso h (aliasing de la conmutación). El coste computacional del conmutado es ~100× mayor, justificado solo para validación final y cálculo de THD.</div></div>
+<div class="cfig"><img src="figuras/simulacion-conmutada-analisis.png" alt="señal conmutada vs promediada, error vs Tsim, coste computacional y comparativa simuladores"><div class="cap">Comparativa conmutado vs promediado: el conmutado reproduce el rizado a fsw; el promediado da la trayectoria suave. El error en la fundamental aumenta con el paso h (aliasing de la conmutación). El coste computacional del conmutado es ~100× mayor, justificado solo para validación final y cálculo de THD.</div></div>
 
 ## 7 — Implementacion Python: conmutado con eventos
 

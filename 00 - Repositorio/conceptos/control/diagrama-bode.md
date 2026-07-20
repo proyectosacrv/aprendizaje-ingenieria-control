@@ -460,7 +460,7 @@ El polo en \( \omega_f \) añade \( -20 \) dB/dec para \( \omega>\omega_f \), re
 
 ### Resumen del procedimiento loop-shaping
 
-<div class="cfig"><img src="../figuras/loop-shaping-flujo.png" alt="Flujo del procedimiento de loop-shaping: de las especificaciones a la curva objetivo, al controlador, su simplificación, filtro HF y verificación final"><div class="cap">Se parte de las especificaciones (ancho de banda, márgenes), se construye la \(L_{obj}(j\omega)\) que las cumple y se despeja el controlador dividiendo por la planta. Después se simplifica \(C(s)\), se añade filtrado de alta frecuencia si hace falta y se verifica que \(L(s)=C(s)G(s)\) exacto mantiene los márgenes.</div></div>
+<div class="cfig"><img src="figuras/loop-shaping-flujo.png" alt="Flujo del procedimiento de loop-shaping: de las especificaciones a la curva objetivo, al controlador, su simplificación, filtro HF y verificación final"><div class="cap">Se parte de las especificaciones (ancho de banda, márgenes), se construye la \(L_{obj}(j\omega)\) que las cumple y se despeja el controlador dividiendo por la planta. Después se simplifica \(C(s)\), se añade filtrado de alta frecuencia si hace falta y se verifica que \(L(s)=C(s)G(s)\) exacto mantiene los márgenes.</div></div>
 
 ## Cuándo y por qué se usa
 

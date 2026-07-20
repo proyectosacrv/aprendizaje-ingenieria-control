@@ -78,7 +78,7 @@ $$1 + K\,G(s) = 0 \implies \text{lugar de los } s \text{ que satisfacen } G(s) =
 
 **Ventaja:** visualización directa del compromiso entre velocidad (parte real) y oscilación (parte imaginaria).
 
-<div class="cfig"><img src="../figuras/metodos-sintesis-control-analisis.png" alt="Síntesis de control: lugar de raíces, loop shaping, pesos H-inf y tabla comparativa"><div class="cap">(a) Lugar de raíces de un sistema de segundo orden con ganancia variable K. (b) Loop shaping: Bode de L con PM y GM marcados. (c) Pesos W1/W2 para diseño H-inf: plantillas de S y T. (d) Tabla comparativa de métodos de síntesis.</div></div>
+<div class="cfig"><img src="figuras/metodos-sintesis-control-analisis.png" alt="Síntesis de control: lugar de raíces, loop shaping, pesos H-inf y tabla comparativa"><div class="cap">(a) Lugar de raíces de un sistema de segundo orden con ganancia variable K. (b) Loop shaping: Bode de L con PM y GM marcados. (c) Pesos W1/W2 para diseño H-inf: plantillas de S y T. (d) Tabla comparativa de métodos de síntesis.</div></div>
 
 ## 3 — Loop shaping en Bode: diseño por forma del lazo
 

@@ -146,7 +146,7 @@ freqs = rfftfreq(len(x_signal), 1/fs)
 amplitude = np.abs(X) * 2 / len(x_signal)
 ```
 
-<div class="cfig"><img src="../figuras/series-fourier-analisis.png" alt="Reconstruccion de Fourier, espectro de amplitudes, FFT de PWM y efecto de ventana"><div class="cap">Superior izquierdo: reconstrucción de la onda cuadrada con 1, 5 y 20 armónicos — el fenómeno de Gibbs persiste en los flancos. Superior derecho: espectro de amplitudes (solo armónicos impares, decaimiento 1/n). Inferior izquierdo: espectro FFT de una señal PWM con portadora a 2 kHz y bandas laterales. Inferior derecho: efecto de la ventana — rectangular genera leakage severo; Hanning lo suprime.</div></div>
+<div class="cfig"><img src="figuras/series-fourier-analisis.png" alt="Reconstruccion de Fourier, espectro de amplitudes, FFT de PWM y efecto de ventana"><div class="cap">Superior izquierdo: reconstrucción de la onda cuadrada con 1, 5 y 20 armónicos — el fenómeno de Gibbs persiste en los flancos. Superior derecho: espectro de amplitudes (solo armónicos impares, decaimiento 1/n). Inferior izquierdo: espectro FFT de una señal PWM con portadora a 2 kHz y bandas laterales. Inferior derecho: efecto de la ventana — rectangular genera leakage severo; Hanning lo suprime.</div></div>
 
 ## Conceptos relacionados
 - [[fft-analisis-espectral]] · [[transformada-laplace]] · [[diagrama-bode]] · [[calidad-potencia]] · [[muestreo-aliasing]]

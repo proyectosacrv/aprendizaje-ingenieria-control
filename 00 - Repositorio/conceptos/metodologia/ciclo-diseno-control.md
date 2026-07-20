@@ -128,7 +128,7 @@ Cada decisión de diseño debe quedar documentada con: (a) la alternativa consid
 - Curva de respuesta al escalón con \( M_p \), \( t_s \) medidos.
 - Tabla de resultados de Monte Carlo (% de realizaciones que cumplen).
 
-<div class="cfig"><img src="../figuras/ciclo-diseno-control-analisis.png" alt="ciclo iterativo, Monte Carlo de margen de fase, compromiso de specs y checklist"><div class="cap">El ciclo de diseño: especificaciones → síntesis → evaluación → validación con realimentación en cada etapa. El análisis de Monte Carlo (variación paramétrica ±30%) verifica la robustez. El compromiso entre rapidez y margen de fase es el trade-off central en lazos de corriente de convertidores.</div></div>
+<div class="cfig"><img src="figuras/ciclo-diseno-control-analisis.png" alt="ciclo iterativo, Monte Carlo de margen de fase, compromiso de specs y checklist"><div class="cap">El ciclo de diseño: especificaciones → síntesis → evaluación → validación con realimentación en cada etapa. El análisis de Monte Carlo (variación paramétrica ±30%) verifica la robustez. El compromiso entre rapidez y margen de fase es el trade-off central en lazos de corriente de convertidores.</div></div>
 
 ## 7 — Trazabilidad completa: ejemplo GFM de 50 kW
 
@@ -271,7 +271,7 @@ El ciclo DEV es iterativo: cada fase puede revelar que una especificación no es
 - Tabla de resultados de Monte Carlo (% de realizaciones que cumplen).
 - Registro de alternativas descartadas y por qué.
 
-<div class="cfig"><img src="../figuras/ciclo-diseno-control-analisis.png" alt="ciclo DEV iterativo, Monte Carlo de margen de fase, compromiso specs y checklist"><div class="cap">Ciclo Diseñar → Evaluar → Validar con realimentación en cada etapa. Monte Carlo: distribución del margen de fase con variación paramétrica ±30% — el 94% de realizaciones supera PM=45°. El compromiso rapidez/margen de fase es el trade-off central en lazos de corriente de convertidores.</div></div>
+<div class="cfig"><img src="figuras/ciclo-diseno-control-analisis.png" alt="ciclo DEV iterativo, Monte Carlo de margen de fase, compromiso specs y checklist"><div class="cap">Ciclo Diseñar → Evaluar → Validar con realimentación en cada etapa. Monte Carlo: distribución del margen de fase con variación paramétrica ±30% — el 94% de realizaciones supera PM=45°. El compromiso rapidez/margen de fase es el trade-off central en lazos de corriente de convertidores.</div></div>
 
 ## Conceptos relacionados
 - [[especificaciones-control]] · [[metodos-sintesis-control]] · [[margenes-estabilidad]] · [[niveles-validacion]]

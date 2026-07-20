@@ -22,7 +22,7 @@ mira a un sistema AC distinto; el bus DC los **desacopla** y permite flujo de po
 entre ambos lados. Es la topología base del aerogenerador full-converter (Tipo 4), el convertidor de
 rotor del DFIG (Tipo 3), los accionamientos regenerativos y el HVDC-VSC.
 
-<div class="cfig"><img src="../figuras/btb-topologia.png" alt="Topología del convertidor back-to-back: Red AC 1 - Filtro L1 - VSC1 - bus DC con condensador - VSC2 - Filtro L2 - Red AC 2"><div class="cap">Dos VSC unidos por un bus DC común (condensador \(C_{dc}\)). Cada convertidor mira a un sistema AC independiente a través de su filtro \(L\); el bus DC los desacopla y permite flujo de potencia bidireccional. La energía del condensador \(E=\tfrac{1}{2}C_{dc}V_{dc}^2\) actúa de pulmón entre ambos lados.</div></div>
+<div class="cfig"><img src="figuras/btb-topologia.png" alt="Topología del convertidor back-to-back: Red AC 1 - Filtro L1 - VSC1 - bus DC con condensador - VSC2 - Filtro L2 - Red AC 2"><div class="cap">Dos VSC unidos por un bus DC común (condensador \(C_{dc}\)). Cada convertidor mira a un sistema AC independiente a través de su filtro \(L\); el bus DC los desacopla y permite flujo de potencia bidireccional. La energía del condensador \(E=\tfrac{1}{2}C_{dc}V_{dc}^2\) actúa de pulmón entre ambos lados.</div></div>
 
 Los dos VSC solo se "ven" a través del bus DC: el acoplamiento es puramente **energético**. La frecuencia,
 la fase y la amplitud de la red AC 1 son completamente independientes de las de la red AC 2. Esta
@@ -167,7 +167,7 @@ $$ L\dot{i}_q = \underbrace{(v_{q,PI} + v_{q,g} + \omega_0 L i_d)}_{v_{q,conv}^*
 
 $$ L\dot{i}_q = v_{q,PI} - Ri_q \implies \frac{I_q(s)}{V_{q,PI}(s)} = \frac{1}{Ls+R} $$
 
-<div class="cfig"><img src="../figuras/btb-tensiones-explicacion.png" alt="Composición de la tensión de salida del convertidor en el eje d"><div class="cap">La tensión de salida del convertidor \(v_{d,conv}^*\) es la suma de tres contribuciones: la salida del PI \(v_{d,PI}\) (corrección del error de corriente), el feedforward de tensión de red \(v_{d,g}\) (cancela la perturbación de la red en la planta) y el feedforward de desacoplo \(-\omega_0 L i_q\) (cancela el acoplamiento cruzado físico del marco dq).</div></div>
+<div class="cfig"><img src="figuras/btb-tensiones-explicacion.png" alt="Composición de la tensión de salida del convertidor en el eje d"><div class="cap">La tensión de salida del convertidor \(v_{d,conv}^*\) es la suma de tres contribuciones: la salida del PI \(v_{d,PI}\) (corrección del error de corriente), el feedforward de tensión de red \(v_{d,g}\) (cancela la perturbación de la red en la planta) y el feedforward de desacoplo \(-\omega_0 L i_q\) (cancela el acoplamiento cruzado físico del marco dq).</div></div>
 
 **Resultado:** tras el desacoplo, ambos ejes se rigen por la misma planta de primer orden:
 
@@ -179,7 +179,7 @@ El sistema MIMO acoplado se reduce a **dos lazos SISO independientes e idéntico
 
 **Diagrama de bloques — lazo de corriente dq desacoplado y lazo DC:**
 
-<div class="cfig"><img src="../figuras/btb-diagramas-bloques.png" alt="Diagramas de bloques del back-to-back: lazo de corriente dq con desacoplo feedforward y lazo de tensión DC con feedforward de potencia"><div class="cap">Izquierda: lazos de corriente d y q tras el desacoplo feedforward — cada eje ve la planta escalar \(1/(Ls+R)\) sin acoplamiento cruzado. Los términos naranja son el feedforward de desacoplo (\(\pm\omega_0 L i_{q,d}\)) y los verdes el feedforward de tensión de red (\(v_{d,g}\)). Derecha: lazo de tensión DC con el PI sobre \(V_{dc}^2\), feedforward de potencia \(P_{MSC}/V_{dc,0}\) y bloque anti-windup.</div></div>
+<div class="cfig"><img src="figuras/btb-diagramas-bloques.png" alt="Diagramas de bloques del back-to-back: lazo de corriente dq con desacoplo feedforward y lazo de tensión DC con feedforward de potencia"><div class="cap">Izquierda: lazos de corriente d y q tras el desacoplo feedforward — cada eje ve la planta escalar \(1/(Ls+R)\) sin acoplamiento cruzado. Los términos naranja son el feedforward de desacoplo (\(\pm\omega_0 L i_{q,d}\)) y los verdes el feedforward de tensión de red (\(v_{d,g}\)). Derecha: lazo de tensión DC con el PI sobre \(V_{dc}^2\), feedforward de potencia \(P_{MSC}/V_{dc,0}\) y bloque anti-windup.</div></div>
 
 ---
 
@@ -294,7 +294,7 @@ que es mucho menor. El condensador puede dimensionarse 5–10 veces más pequeñ
 
 ### 4.4 — Diagrama de bloques del lazo DC completo
 
-<div class="cfig"><img src="../figuras/btb-lazo-dc.png" alt="Diagrama de bloques del lazo de tensión DC: PI sobre V_dc cuadrado, feedforward de potencia del MSC, lazo de corriente como ganancia unidad y planta integradora 2/(C_dc s)"><div class="cap">El PI actúa sobre el error de \(V_{dc}^2\) y genera la referencia de corriente activa del GSC. El feedforward de potencia \(P_{MSC}/(1.5\,v_{d,g})\) adelanta la corriente antes de que el condensador se descargue. El lazo de corriente interno se ve como ganancia unidad (separación de escalas \(\omega_{dc}=\omega_{ci}/10\)) y la planta es el integrador \(2/(C_{dc}s)\).</div></div>
+<div class="cfig"><img src="figuras/btb-lazo-dc.png" alt="Diagrama de bloques del lazo de tensión DC: PI sobre V_dc cuadrado, feedforward de potencia del MSC, lazo de corriente como ganancia unidad y planta integradora 2/(C_dc s)"><div class="cap">El PI actúa sobre el error de \(V_{dc}^2\) y genera la referencia de corriente activa del GSC. El feedforward de potencia \(P_{MSC}/(1.5\,v_{d,g})\) adelanta la corriente antes de que el condensador se descargue. El lazo de corriente interno se ve como ganancia unidad (separación de escalas \(\omega_{dc}=\omega_{ci}/10\)) y la planta es el integrador \(2/(C_{dc}s)\).</div></div>
 
 El bloque "Lazo corr. ≈ 1" es la aproximación de separación de escalas: a la frecuencia del lazo DC,
 el lazo de corriente tiene una ganancia de 1 y retardo despreciable.
@@ -622,7 +622,7 @@ el bus DC.
 
 ---
 
-<div class="cfig"><img src="../figuras/convertidor-back-to-back-analisis.png" alt="Modelo y control del convertidor back-to-back"><div class="cap">Esquema de flujo de potencia del back-to-back, respuesta de Vdc ante escalón, curvas de eficiencia por convertidor y sistema completo, y comportamiento durante FRT.</div></div>
+<div class="cfig"><img src="figuras/convertidor-back-to-back-analisis.png" alt="Modelo y control del convertidor back-to-back"><div class="cap">Esquema de flujo de potencia del back-to-back, respuesta de Vdc ante escalón, curvas de eficiencia por convertidor y sistema completo, y comportamiento durante FRT.</div></div>
 
 ## Conceptos relacionados
 - [[filtro-lcl]] · [[convertidor-vsc]] · [[dinamica-bus-dc]] · [[control-tension-bus-dc]]

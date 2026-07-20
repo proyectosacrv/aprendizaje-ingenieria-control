@@ -152,7 +152,7 @@ $$ \omega_{r,nom}=\frac{8\times11.3}{45}=2.009\,\text{rad/s}\;\;(19.2\,\text{rpm
 $$ T_{nom}=k_{opt}\,\omega_{r,nom}^2=3.01\times10^5\times(2.009)^2\approx1.215\times10^6\,\text{N·m} $$
 Verificación: \( P=T\omega=1.215\times10^6\times2.009\approx2.44\,\text{MW} \). La diferencia respecto a 2 MW se debe a que el pitch control limita la potencia a la nominal; en la curva de potencia certificada, \( C_p \) efectivo a viento nominal es menor que \( C_p^{max} \) (la turbina opera ligeramente fuera del óptimo para respetar el límite de par).
 
-<div class="cfig"><img src="../figuras/eolica-mppt-analisis.png" alt="4 paneles: Cp(lambda,beta), P(wr) con MPP, OTC T*=k·wr², dinámica 8→12 m/s"><div class="cap">
+<div class="cfig"><img src="figuras/eolica-mppt-analisis.png" alt="4 paneles: Cp(lambda,beta), P(wr) con MPP, OTC T*=k·wr², dinámica 8→12 m/s"><div class="cap">
 (a) \(C_p(\lambda)\) para β=0°, 5°, 10°: el pitch control desplaza la curva hacia abajo; el óptimo se desplaza a menor λ. (b) Curvas \(P(\omega_r)\) para v=6, 8, 10, 12 m/s y el locus MPPT (trazado punteado) que pasa por todos los picos. (c) Parábola OTC \(T^*=k_{opt}\omega_r^2\): las iso-potencias son líneas rectas en el plano \(T\text{-}\omega\). (d) Respuesta dinámica ante cambio de viento 8→12 m/s: \(\omega_r(t)\) sube gradualmente mientras la potencia sigue el locus óptimo con un pequeño retraso inercial.
 </div></div>
 
@@ -284,7 +284,7 @@ reduce la fatiga a costa de seguir el MPP con un retraso \(\tau_{lp}\). La energ
 
 **Compromiso fundamental.** Respuesta de frecuencia rápida (inercia virtual, droop) requiere variaciones rápidas de par → más ciclos de fatiga → menor vida útil de la transmisión. Servicios de frecuencia agresivos pueden acortar la vida de la caja multiplicadora en turbinas DFIG de manera apreciable. La optimización de este compromiso es un área activa de investigación.
 
-<div class="cfig"><img src="../figuras/eolica-mppt-analisis.png" alt="4 paneles: Cp vs lambda, curvas P-omega con MPPT, referencia de par OTC, inercia sintética"><div class="cap">
+<div class="cfig"><img src="figuras/eolica-mppt-analisis.png" alt="4 paneles: Cp vs lambda, curvas P-omega con MPPT, referencia de par OTC, inercia sintética"><div class="cap">
 (a) Coeficiente de potencia \(C_p(\lambda)\) para ángulos de paso \(\beta = 0°, 5°, 10°, 15°\): el pitch control desplaza las curvas hacia abajo, reduciendo la potencia extraída. El límite de Betz (línea punteada) es inalcanzable en práctica. (b) Curvas \(P(\omega_r)\) para distintas velocidades de viento y la parábola MPPT \(P^* = k_{opt}\omega_r^3\) que pasa por todos los picos. (c) Referencia de par OTC \(T_{ref} = k_{opt}\omega_r^2\): curva parabólica que el control de par del generador sigue directamente midiendo \(\omega_r\). (d) Inercia sintética: ante una perturbación de frecuencia \(\Delta f\), el término de inercia virtual inyecta un par adicional proporcional a \(d\omega/dt\), amortiguando la caída inicial de frecuencia.
 </div></div>
 

@@ -27,7 +27,7 @@ $$ \text{THD}_I = \frac{\sqrt{\sum_{n=2}^{\infty}I_n^2}}{I_1}\times100\% $$
 
 El filtro LCL atenúa los armónicos de alta frecuencia con −60 dB/dec por encima de la frecuencia de resonancia \( f_{res}=1/(2\pi\sqrt{L_{eq}C_f}) \).
 
-<div class="cfig"><img src="../figuras/armonicos-thd-analisis.png" alt="4 paneles: espectro corriente inversor LCL, Bode LCL, THD vs L2, filtro activo APF"><div class="cap">
+<div class="cfig"><img src="figuras/armonicos-thd-analisis.png" alt="4 paneles: espectro corriente inversor LCL, Bode LCL, THD vs L2, filtro activo APF"><div class="cap">
 (a) Espectro de la corriente de red \(i_{L2}\) antes y después del LCL: las bandas de conmutación alrededor de \(f_{sw}\) se atenúan drásticamente; los armónicos de bajo orden (5°, 7°) persisten. (b) Bode del filtro LCL \(i_{L2}/i_{L1}\): la atenuación en \(f_{sw}=10\,\text{kHz}\) supera −60 dB. (c) THD en el PCC vs inductancia del filtro \(L_2\): aumentar \(L_2\) mejora el THD a costa de mayor reactancia. (d) Espectro antes y después de la compensación con APF: los armónicos 5° y 7° prácticamente desaparecen.
 </div></div>
 
@@ -224,7 +224,7 @@ Un transformador estándar con \( K=1 \) debe ser sobredimensionado (o reemplaza
 
 **Medida práctica.** El analizador de calidad de potencia debe usar una ventana de análisis de al menos 10 ciclos (200 ms a 50 Hz), sincronizada con el PLL, para evitar leakage espectral. La metodología estándar es la IEC 61000-4-7.
 
-<div class="cfig"><img src="../figuras/armonicos-thd-analisis.png" alt="4 paneles: corriente distorsionada, espectro armonicos, THD acumulado, limites IEEE 519"><div class="cap">
+<div class="cfig"><img src="figuras/armonicos-thd-analisis.png" alt="4 paneles: corriente distorsionada, espectro armonicos, THD acumulado, limites IEEE 519"><div class="cap">
 (a) Corriente distorsionada con armónicos 3°, 5° y 7° superpuestos a la fundamental de 100 A: la distorsión es visible en la forma de onda. (b) Espectro de amplitudes: la fundamental domina con 100 A; los armónicos de orden impar decrecen con el orden; el THD calculado se muestra en el título. (c) THD acumulado al aumentar el orden máximo considerado: la mayor contribución viene de los primeros armónicos impares. (d) Límites de THD_I según IEEE 519-2022 en función del SCR: redes fuertes (SCR alto) admiten mayor THD porque tienen menor impedancia para absorber la distorsión.
 </div></div>
 

@@ -215,7 +215,7 @@ $$ \text{Atenuación} \approx 60\,\text{dB/dec} \times \log_{10}(10000/2526) \ap
 
 Es decir, el rizado de conmutación a \( f_{sw} \) se atenúa aproximadamente 36 dB (factor ≈ 63) más que la fundamental. Para ondulaciones mayores puede necesitarse aumentar Cf o L2.
 
-<div class="cfig"><img src="../figuras/antiresonancia-analisis.png" alt="Análisis de antiresonancia en el LCL: Bode, admitancia, efecto de L2 y ratio fres/far"><div class="cap">(a) Bode de i_L2/v_i e i_L1/v_i: el pico de resonancia en f_res y el valle en f_ar. (b) Admitancia del paralelo C_f||L_2: el cero coincide con f_ar. (c) Efecto de L_2 en f_ar: reducir L_2 sube la antiresonancia. (d) Ratio f_res/f_ar = √(1+L_2/L_1) siempre mayor que 1.</div></div>
+<div class="cfig"><img src="figuras/antiresonancia-analisis.png" alt="Análisis de antiresonancia en el LCL: Bode, admitancia, efecto de L2 y ratio fres/far"><div class="cap">(a) Bode de i_L2/v_i e i_L1/v_i: el pico de resonancia en f_res y el valle en f_ar. (b) Admitancia del paralelo C_f||L_2: el cero coincide con f_ar. (c) Efecto de L_2 en f_ar: reducir L_2 sube la antiresonancia. (d) Ratio f_res/f_ar = √(1+L_2/L_1) siempre mayor que 1.</div></div>
 
 ## 7 — Cancelación de polos/ceros en \(\omega_{AR}\): por qué es frágil
 

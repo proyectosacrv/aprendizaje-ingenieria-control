@@ -228,7 +228,7 @@ donde \(\Delta t\) es la duración del transitorio de carga más rápido. Para \
 
 **Inestabilidad CPL:** una carga de potencia constante (CPL, Constant Power Load — como un convertidor DC/DC regulado) presenta una impedancia de entrada negativa a baja frecuencia: \(Z_{CPL}(j\omega)\approx -V^2/P\) para \(\omega\to0\). Si la impedancia de salida del convertidor fuente \(Z_{src}(j\omega)\) viola el criterio de Middlebrook (\(|Z_{src}/Z_{CPL}|<1\) en toda \(\omega\)), el bus DC se inestabiliza.
 
-<div class="cfig"><img src="../figuras/calidad-potencia-analisis.png" alt="THD con límites IEEE 519, curva de susceptibilidad al flicker, VUF y rizado DC"><div class="cap">Calidad de potencia: (a) espectro de corriente con límites IEEE 519 por armónico individual, (b) curva de susceptibilidad visual al flicker Pst con máximo a 8.8 Hz, (c) diagrama vectorial de desequilibrio de tensión (VUF), (d) rizado de bus DC con condensador de filtrado y respuesta a transitorio de carga.</div></div>
+<div class="cfig"><img src="figuras/calidad-potencia-analisis.png" alt="THD con límites IEEE 519, curva de susceptibilidad al flicker, VUF y rizado DC"><div class="cap">Calidad de potencia: (a) espectro de corriente con límites IEEE 519 por armónico individual, (b) curva de susceptibilidad visual al flicker Pst con máximo a 8.8 Hz, (c) diagrama vectorial de desequilibrio de tensión (VUF), (d) rizado de bus DC con condensador de filtrado y respuesta a transitorio de carga.</div></div>
 
 ## Conceptos relacionados
 - [[fft-analisis-espectral]] · [[convertidor-vsc|modulación PWM]] · [[filtro-lcl]] · [[fenomenos-oscilatorios-red|estabilidad armónica]] · [[deteccion-islanding]]

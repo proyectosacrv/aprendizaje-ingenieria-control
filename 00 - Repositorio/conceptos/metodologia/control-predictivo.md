@@ -115,7 +115,7 @@ con \( H_{qp}=2(\Theta^T\mathbf{Q}\Theta+\mathbf{R}) \). Los algoritmos Active S
 
 **Paso 4 — comparativa con el control vectorial PI.** Para un escalón de referencia de corriente de 0 a 1200 A con límite de 1000 A: el MPC nunca supera 1000 A; el PI con anti-windup supera 1080 A transitoriamente. El tiempo de establecimiento del MPC es 1.2 ms frente a 1.8 ms del PI porque el MPC usa toda la señal de control disponible sin saturar.
 
-<div class="cfig"><img src="../figuras/control-predictivo-analisis.png" alt="MPC extendido: prediccion, accion, coste computacional, comparativa"><div class="cap">(a) Predicción MPC $N=3$: trayectorias predichas vs real. (b) Acción de control MPC (saturación suave) vs PI con anti-windup. (c) Tiempo de cómputo del QP vs horizonte $N$: crece como $O(N^3)$, $N\leq5$ factible con DSP moderno. (d) Comparativa dinámica MPC vs PI ante escalón con restricción de corriente activa: el MPC no la viola.</div></div>
+<div class="cfig"><img src="figuras/control-predictivo-analisis.png" alt="MPC extendido: prediccion, accion, coste computacional, comparativa"><div class="cap">(a) Predicción MPC $N=3$: trayectorias predichas vs real. (b) Acción de control MPC (saturación suave) vs PI con anti-windup. (c) Tiempo de cómputo del QP vs horizonte $N$: crece como $O(N^3)$, $N\leq5$ factible con DSP moderno. (d) Comparativa dinámica MPC vs PI ante escalón con restricción de corriente activa: el MPC no la viola.</div></div>
 
 ## 6 — Diseño iterativo: MPC para el lazo de corriente del GFM
 
@@ -262,7 +262,7 @@ Para los valores anteriores y \(T_s=100\,\mu\text{s}\), \(A_d\approx0.997\): \(\
 
 El MPC supera al PI cuando las restricciones son **activas con frecuencia** o cuando hay **acoplamiento fuerte** entre canales. Para el lazo de corriente del GFM sin huecos de tensión, el PI con anti-windup tiene rendimiento comparable al MPC con \(N_p=3\) y \(N_c=1\).
 
-<div class="cfig"><img src="../figuras/control-predictivo-analisis.png" alt="MPC: receding horizon, FCS-MPC vs PI, efecto de Np, coste computacional"><div class="cap">(a) Principio de horizonte deslizante: la predicción se desplaza en cada paso y solo se aplica \(u[0]\). (b) FCS-MPC vs PI+PWM en el seguimiento de corriente: el MPC responde más rápido y sin sobreimpulso. (c) Efecto del horizonte \(N_p\) en la respuesta al escalón: mayor \(N_p\) suaviza la respuesta. (d) Coste computacional del QP vs \(N_p\): crece como \(O(N_p^{2.5})\); el límite de 1 ms a 50 Hz restringe \(N_p\lesssim6\).</div></div>
+<div class="cfig"><img src="figuras/control-predictivo-analisis.png" alt="MPC: receding horizon, FCS-MPC vs PI, efecto de Np, coste computacional"><div class="cap">(a) Principio de horizonte deslizante: la predicción se desplaza en cada paso y solo se aplica \(u[0]\). (b) FCS-MPC vs PI+PWM en el seguimiento de corriente: el MPC responde más rápido y sin sobreimpulso. (c) Efecto del horizonte \(N_p\) en la respuesta al escalón: mayor \(N_p\) suaviza la respuesta. (d) Coste computacional del QP vs \(N_p\): crece como \(O(N_p^{2.5})\); el límite de 1 ms a 50 Hz restringe \(N_p\lesssim6\).</div></div>
 
 ## Conceptos relacionados
 - [[metodos-sintesis-control]] · [[asignacion-polos-lqr]] · [[current-limiting]]

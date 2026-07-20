@@ -274,7 +274,7 @@ calidad de la resonancia puede ser 10–20 si la resistencia de red es baja. Mit
 de desintonia que desplazan \( f_{res} \) a una frecuencia no armónica (habitualmente al 5.5°
 o al 4.7°, entre el 5° y el 3° respectivamente).
 
-<div class="cfig"><img src="../figuras/armonicos-thd-convertidores-analisis.png" alt="Armónicos en convertidores PWM: espectro, dead time, normas y resonancia"><div class="cap">Espectro de corriente de un convertidor PWM con armónicos de bajo orden (5°, 7°) y bandas de conmutación; efecto del tiempo muerto en la forma de onda; comparativa de THD medido con límites IEEE 519 por rango de SCR; y resonancia paralela condensador-red que puede amplificar armónicos específicos hasta 10×.</div></div>
+<div class="cfig"><img src="figuras/armonicos-thd-convertidores-analisis.png" alt="Armónicos en convertidores PWM: espectro, dead time, normas y resonancia"><div class="cap">Espectro de corriente de un convertidor PWM con armónicos de bajo orden (5°, 7°) y bandas de conmutación; efecto del tiempo muerto en la forma de onda; comparativa de THD medido con límites IEEE 519 por rango de SCR; y resonancia paralela condensador-red que puede amplificar armónicos específicos hasta 10×.</div></div>
 
 ## Conceptos relacionados
 - [[convertidor-vsc|modulación PWM]] · [[calidad-potencia]] · [[fft-analisis-espectral]] · [[filtro-lcl]] · [[controlador-resonante]] · [[fenomenos-oscilatorios-red|estabilidad armónica]]

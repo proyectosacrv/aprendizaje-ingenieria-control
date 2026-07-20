@@ -184,7 +184,7 @@ Las bandas laterales más importantes son \( f_{sw} \pm 2f_1 \) (índice de modu
 
 $$ \boxed{T_{ventana} = 10/f_1 = 200\,\text{ms (50 Hz)};\quad \Delta f = 1/T = 5\,\text{Hz};\quad\text{armónicos en bins }k=1,2,3,\ldots} $$
 
-<div class="cfig"><img src="../figuras/fft-analisis-espectral-analisis.png" alt="comparativa ventanas, espectrograma STFT, PSD Welch y espectro de convertidor PWM"><div class="cap">Análisis espectral avanzado: comparativa de ventanas (Rectangular vs Hann vs Blackman) mostrando el leakage, espectrograma STFT de un transitorio, PSD de Welch vs periodograma simple, y espectro de un convertidor PWM con armónicos de conmutación y bandas laterales.</div></div>
+<div class="cfig"><img src="figuras/fft-analisis-espectral-analisis.png" alt="comparativa ventanas, espectrograma STFT, PSD Welch y espectro de convertidor PWM"><div class="cap">Análisis espectral avanzado: comparativa de ventanas (Rectangular vs Hann vs Blackman) mostrando el leakage, espectrograma STFT de un transitorio, PSD de Welch vs periodograma simple, y espectro de un convertidor PWM con armónicos de conmutación y bandas laterales.</div></div>
 
 ## 7 — Implementacion Python completa para medicion normativa de THD
 

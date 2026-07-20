@@ -117,7 +117,7 @@ $$ \Delta v_{bus} \approx -Z_{bus}(j\omega) \cdot \Delta i_{CPL} $$
 
 donde \( Z_{bus} \) es la impedancia de salida del sistema de alimentación (convertidor + filtro). Si \( |Z_{bus}| \) es elevada a la frecuencia de la perturbación, el hundimiento de tensión es severo.
 
-<div class="cfig"><img src="../figuras/carga-pulsante-datacenter-analisis.png" alt="Análisis de la carga pulsante de data center IA: perfiles, bus DC, Middlebrook y dimensionado BESS"><div class="cap">Cuatro paneles: perfil de potencia con ráfagas de inferencia IA, respuesta de la tensión del bus DC con y sin BESS ante un escalón, criterio de Middlebrook para estabilidad del bus, y energía mínima del BESS en función de la duración de la ráfaga para distintos niveles de $\Delta P$.</div></div>
+<div class="cfig"><img src="figuras/carga-pulsante-datacenter-analisis.png" alt="Análisis de la carga pulsante de data center IA: perfiles, bus DC, Middlebrook y dimensionado BESS"><div class="cap">Cuatro paneles: perfil de potencia con ráfagas de inferencia IA, respuesta de la tensión del bus DC con y sin BESS ante un escalón, criterio de Middlebrook para estabilidad del bus, y energía mínima del BESS en función de la duración de la ráfaga para distintos niveles de $\Delta P$.</div></div>
 
 ## 4 — Impacto en el bus DC y estabilidad
 

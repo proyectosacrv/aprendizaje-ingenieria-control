@@ -144,7 +144,7 @@ $$ s \to \frac{\omega_c}{\tan(\omega_c T_s/2)} \cdot \frac{z-1}{z+1} $$
 
 Esto fuerza \( G_{discreto}(e^{j\omega_c T_s}) = G_{continuo}(j\omega_c) \) exactamente, a costa de mayor distorsión en otras frecuencias.
 
-<div class="cfig"><img src="../figuras/discretizacion-controladores-analisis.png" alt="Métodos de discretización: plano z, warping, retardo y escalón discreto"><div class="cap">Panel superior izquierdo: mapeo de polos al plano z para los tres métodos (FE, BE, Tustin). Superior derecho: warping de frecuencia de Tustin — la frecuencia continua se comprime hacia π/Ts. Inferior izquierdo: pérdida de margen de fase por retardo de cómputo (1, 2 y 3 muestras). Inferior derecho: respuesta al escalón de segundo orden en continuo vs discreto para distintos Ts.</div></div>
+<div class="cfig"><img src="figuras/discretizacion-controladores-analisis.png" alt="Métodos de discretización: plano z, warping, retardo y escalón discreto"><div class="cap">Panel superior izquierdo: mapeo de polos al plano z para los tres métodos (FE, BE, Tustin). Superior derecho: warping de frecuencia de Tustin — la frecuencia continua se comprime hacia π/Ts. Inferior izquierdo: pérdida de margen de fase por retardo de cómputo (1, 2 y 3 muestras). Inferior derecho: respuesta al escalón de segundo orden en continuo vs discreto para distintos Ts.</div></div>
 
 ## 4 — Mapeo de polos y ceros
 

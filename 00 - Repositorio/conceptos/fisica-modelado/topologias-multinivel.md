@@ -222,7 +222,7 @@ El condensador superior \(C_1\) se carga cuando \(S_1,S_2\) conducen corriente p
 
 **THD de línea a línea:** el NPC triplica los pulsos efectivos del modulador → THD tensión \(\approx50\%\) menor que el de 2 niveles al mismo \(V_{dc}\) y \(f_s\).
 
-<div class="cfig"><img src="../figuras/topologias-multinivel-analisis.png" alt="Análisis de topologías multinivel: formas de onda, THD, espectro CHB y curva STATCOM"><div class="cap">(a) Formas de onda de tensión de fase: 2, 3 y 5 niveles. (b) THD de tensión vs número de niveles N. (c) Espectro de la tensión CHB de 5 niveles con PS-PWM. (d) Curva característica I-V de un STATCOM multinivel.</div></div>
+<div class="cfig"><img src="figuras/topologias-multinivel-analisis.png" alt="Análisis de topologías multinivel: formas de onda, THD, espectro CHB y curva STATCOM"><div class="cap">(a) Formas de onda de tensión de fase: 2, 3 y 5 niveles. (b) THD de tensión vs número de niveles N. (c) Espectro de la tensión CHB de 5 niveles con PS-PWM. (d) Curva característica I-V de un STATCOM multinivel.</div></div>
 
 ## 8 — CHB (Cascaded H-Bridge): modulación PS-PWM y fuentes aisladas
 

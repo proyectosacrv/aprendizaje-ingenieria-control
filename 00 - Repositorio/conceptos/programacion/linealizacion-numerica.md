@@ -149,7 +149,7 @@ No hay cancelación de dígitos porque la perturbación es en el eje imaginario:
 | Central | \( \varepsilon_{mach}^{1/3} \approx 6\times10^{-6} \) | \( O(\varepsilon_{mach}^{2/3}) \) |
 | Complex-step | cualquier \( h \ll 1 \) | \( O(h^2) \) arbitrariamente pequeño |
 
-<div class="cfig"><img src="../figuras/linealizacion-numerica-analisis.png" alt="Errores de diferencias finitas y Jacobiano numérico"><div class="cap">Error de diferencias finitas vs paso h (paneles superiores): la diferencia hacia adelante tiene mínimo a h≈√ε; la diferencia central a h≈ε^(1/3); el complex-step no muestra cancelación de dígitos. Panel inferior izquierdo: error del Jacobiano numérico en un sistema 2D. Panel inferior derecho: respuesta lineal vs no-lineal ante escalón pequeño.</div></div>
+<div class="cfig"><img src="figuras/linealizacion-numerica-analisis.png" alt="Errores de diferencias finitas y Jacobiano numérico"><div class="cap">Error de diferencias finitas vs paso h (paneles superiores): la diferencia hacia adelante tiene mínimo a h≈√ε; la diferencia central a h≈ε^(1/3); el complex-step no muestra cancelación de dígitos. Panel inferior izquierdo: error del Jacobiano numérico en un sistema 2D. Panel inferior derecho: respuesta lineal vs no-lineal ante escalón pequeño.</div></div>
 
 ## 4 — Matrices de estado \( A, B, C, D \) numéricas
 

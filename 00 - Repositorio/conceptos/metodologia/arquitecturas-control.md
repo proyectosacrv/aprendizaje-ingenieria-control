@@ -74,7 +74,7 @@ Con esta condición, el lazo externo "ve" el lazo interno cerrado como una diná
 
 Para \(f_s=10\,\text{kHz}\): \(f_{ci}=1\,\text{kHz}\), \(f_{cv}=200\,\text{Hz}\), \(f_{cf}=40\,\text{Hz}\).
 
-<div class="cfig"><img src="../figuras/arquitecturas-control-analisis.png" alt="Arquitecturas de control: cascada, feedforward, acoplamiento dq y comparativa"><div class="cap">(a) Diagrama de cascada con separación de escalas entre lazos de corriente y tensión. (b) Respuesta ante perturbación con y sin feedforward. (c) Acoplamiento dq sin y con desacoplamiento explícito. (d) Tabla comparativa de arquitecturas de control.</div></div>
+<div class="cfig"><img src="figuras/arquitecturas-control-analisis.png" alt="Arquitecturas de control: cascada, feedforward, acoplamiento dq y comparativa"><div class="cap">(a) Diagrama de cascada con separación de escalas entre lazos de corriente y tensión. (b) Respuesta ante perturbación con y sin feedforward. (c) Acoplamiento dq sin y con desacoplamiento explícito. (d) Tabla comparativa de arquitecturas de control.</div></div>
 
 ## 3 — Control feedforward: cancelación de perturbaciones medibles
 

@@ -229,7 +229,7 @@ el control de reactiva).
 disponible en el punto de conexión de un parque eólico. Requiere al menos 10 mediciones en
 condiciones de viento distintas para obtener una estimación estadísticamente representativa.
 
-<div class="cfig"><img src="../figuras/red-thevenin-scr-analisis.png" alt="Red Thévenin, SCR e implicaciones para el control del convertidor"><div class="cap">Equivalente Thévenin del PCC con parámetros derivados del SCR y X/R; reactancia de Thévenin en función del SCR; margen de estabilidad del PLL frente al SCR; y variación del SCR ante contingencias N-1 y N-2 en la red de transmisión.</div></div>
+<div class="cfig"><img src="figuras/red-thevenin-scr-analisis.png" alt="Red Thévenin, SCR e implicaciones para el control del convertidor"><div class="cap">Equivalente Thévenin del PCC con parámetros derivados del SCR y X/R; reactancia de Thévenin en función del SCR; margen de estabilidad del PLL frente al SCR; y variación del SCR ante contingencias N-1 y N-2 en la red de transmisión.</div></div>
 
 ## Conceptos relacionados
 - [[impedancia-salida-estabilidad]] · [[grid-forming-vs-following]]

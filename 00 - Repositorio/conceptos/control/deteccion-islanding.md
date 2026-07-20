@@ -153,7 +153,7 @@ La peor NDZ es cuando \( \Delta P \to 0 \). Para \( \Delta P = 0.05\,\text{pu} \
 
 Umbral de ROCOF = 0.5 Hz/s: detecta \( \Delta P \geq 0.1\,\text{pu} \) en ≤ 1 s. Para eventos de red típicos en esta red (pérdida de línea: ROCOF < 0.3 Hz/s durante < 100 ms), el umbral de 0.5 Hz/s no dispara falsamente si se exige que el ROCOF supere el umbral durante al menos 200 ms (filtro de ventana temporal).
 
-<div class="cfig"><img src="../figuras/deteccion-islanding-analisis.png" alt="Detección de islanding: NDZ, ROCOF, AFD y trade-off de umbral"><div class="cap">(a) Zona de no detección (NDZ) en el plano ΔP-ΔQ: dentro de la caja, OFP/OVP no disparan. (b) f(t) ante islanding: sin detección la frecuencia se estabiliza en la isla; con ROCOF dispara a 200 ms. (c) AFD: en isla la frecuencia escapa del rango; en red, se absorbe la perturbación. (d) Trade-off umbral ROCOF: umbral bajo = detección rápida pero más falsas alarmas.</div></div>
+<div class="cfig"><img src="figuras/deteccion-islanding-analisis.png" alt="Detección de islanding: NDZ, ROCOF, AFD y trade-off de umbral"><div class="cap">(a) Zona de no detección (NDZ) en el plano ΔP-ΔQ: dentro de la caja, OFP/OVP no disparan. (b) f(t) ante islanding: sin detección la frecuencia se estabiliza en la isla; con ROCOF dispara a 200 ms. (c) AFD: en isla la frecuencia escapa del rango; en red, se absorbe la perturbación. (d) Trade-off umbral ROCOF: umbral bajo = detección rápida pero más falsas alarmas.</div></div>
 
 ## Cuándo y por qué se usa
 Obligatorio por normativa (IEEE 1547, IEC 62116, VDE-AR-N 4105) para toda generación distribuida
@@ -185,7 +185,7 @@ Al momento de la detección (\(t=t_{det}\)):
    evento, para no hacer un escalón de potencia al arrancar el GFM.
 
 ### Lógica de modo
-<div class="cfig"><img src="../figuras/deteccion-islanding-modos.png" alt="Diagrama de estados de la transición GFL a GFM: GFL_ACTIVE, detección de islanding, estado TRANSICIÓN con freeze de PLL y precarga del GFM, y GFM_ACTIVE"><div class="cap">Al detectar el islanding se pasa por un estado intermedio TRANSICIÓN (1–2 ciclos) en el que se congela la PLL, se precargan los estados del GFM y se abre el interruptor de red. El GFM arranca con los estados ya inicializados, evitando el escalón de potencia y la discontinuidad de tensión en el PCC.</div></div>
+<div class="cfig"><img src="figuras/deteccion-islanding-modos.png" alt="Diagrama de estados de la transición GFL a GFM: GFL_ACTIVE, detección de islanding, estado TRANSICIÓN con freeze de PLL y precarga del GFM, y GFM_ACTIVE"><div class="cap">Al detectar el islanding se pasa por un estado intermedio TRANSICIÓN (1–2 ciclos) en el que se congela la PLL, se precargan los estados del GFM y se abre el interruptor de red. El GFM arranca con los estados ya inicializados, evitando el escalón de potencia y la discontinuidad de tensión en el PCC.</div></div>
 En el modo `TRANSICION` (típico 1–2 ciclos = 20–40 ms): se congela la PLL, se precarga el GFM y
 se abre el interruptor de red. El GFM arranca con los estados ya inicializados; el PCC no ve
 discontinuidad de tensión.
@@ -242,7 +242,7 @@ Los métodos pasivos monitorizan las variables eléctricas en el PCC y disparan 
 
 La **zona de no detección (NDZ)** es el conjunto de condiciones (\(\Delta P\), \(\Delta Q\)) para las que ningún método pasivo detecta el islanding. Para OFP/UFP con umbral ±0.5 Hz, la NDZ se extiende hasta el par (\(P_{carga}/P_{gen} \in [0.95,1.05]\), \(Q_{carga}/Q_{gen}=0\)): un desequilibrio de carga del 5% puede no detectarse.
 
-<div class="cfig"><img src="../figuras/deteccion-islanding-analisis.png" alt="Detección de islanding: NDZ, frecuencia, ROCOF y secuencia detección-reconexión"><div class="cap">(a) Zona de no detección (NDZ) en el plano P-Q normalizado para OFP/UFP ±0.5 Hz. (b) Evolución de frecuencia en operación normal vs islanding con carga desequilibrada. (c) ROCOF comparado: islanding real vs perturbación de red (trip de línea). (d) Secuencia temporal detección → apertura → espera → resincronización → cierre.</div></div>
+<div class="cfig"><img src="figuras/deteccion-islanding-analisis.png" alt="Detección de islanding: NDZ, frecuencia, ROCOF y secuencia detección-reconexión"><div class="cap">(a) Zona de no detección (NDZ) en el plano P-Q normalizado para OFP/UFP ±0.5 Hz. (b) Evolución de frecuencia en operación normal vs islanding con carga desequilibrada. (c) ROCOF comparado: islanding real vs perturbación de red (trip de línea). (d) Secuencia temporal detección → apertura → espera → resincronización → cierre.</div></div>
 
 ## 8 — Métodos activos: AFD, SFS y umbral de inyección reactiva
 
@@ -314,7 +314,7 @@ En isla, cualquier pequeño desvío de \(f\) se amplifica hasta salir del rango 
 
 **Secuencia completa:** detección → disparo del interruptor de PCC → espera obligatoria → verificación de condiciones \(\Delta V\), \(\Delta f\), \(\Delta\theta\) → reconexión suave (GFM en modo resincronización o GFL con rampa de PLL).
 
-<div class="cfig"><img src="../figuras/deteccion-islanding-analisis.png" alt="NDZ, ROCOF, frecuencia islanding y secuencia detección-reconexión"><div class="cap">(a) Zona de no-detección (NDZ) en el plano ΔP-ΔQ: dentro de la región roja ningún método pasivo dispara. (b) Frecuencia normal vs islanding con carga desequilibrada. (c) ROCOF: islanding real supera el umbral en <0.5 s; perturbación de red produce un pico transitorio que se extingue. (d) Secuencia temporal detección → apertura → espera → verificación → reconexión suave.</div></div>
+<div class="cfig"><img src="figuras/deteccion-islanding-analisis.png" alt="NDZ, ROCOF, frecuencia islanding y secuencia detección-reconexión"><div class="cap">(a) Zona de no-detección (NDZ) en el plano ΔP-ΔQ: dentro de la región roja ningún método pasivo dispara. (b) Frecuencia normal vs islanding con carga desequilibrada. (c) ROCOF: islanding real supera el umbral en <0.5 s; perturbación de red produce un pico transitorio que se extingue. (d) Secuencia temporal detección → apertura → espera → verificación → reconexión suave.</div></div>
 
 ## Conceptos relacionados
 - [[pll-srf]] · [[fault-ride-through]] · [[servicios-red-soporte]] · [[calidad-potencia]] · [[power-synchronization-control]] · [[current-limiting]] · [[grid-forming-vs-following]]

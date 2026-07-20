@@ -173,7 +173,7 @@ La certificación de convertidores de red (IEC 62690, IEC 61727, IEEE 1547) requ
 
 $$ \boxed{\text{Ahorro}_{HiL} \approx N_{iteraciones} \times \left(\text{Coste}_{lab} - \text{Coste}_{HiL}/N_{años}\right)} $$
 
-<div class="cfig"><img src="../figuras/hil-phil-analisis.png" alt="arquitectura HiL, LVRT en HiL vs real, efecto retardo en estabilidad y cobertura de pruebas"><div class="cap">Arquitectura HiL con distribución CPU/FPGA y retardos de bucle. LVRT en HiL: comparativa con ensayo real mostrando la coincidencia de formas de onda. El retardo de 100 µs reduce el margen de fase en 36°. Cobertura de pruebas HiL vs campo: el HiL cubre 85% de los casos a 5% del coste.</div></div>
+<div class="cfig"><img src="figuras/hil-phil-analisis.png" alt="arquitectura HiL, LVRT en HiL vs real, efecto retardo en estabilidad y cobertura de pruebas"><div class="cap">Arquitectura HiL con distribución CPU/FPGA y retardos de bucle. LVRT en HiL: comparativa con ensayo real mostrando la coincidencia de formas de onda. El retardo de 100 µs reduce el margen de fase en 36°. Cobertura de pruebas HiL vs campo: el HiL cubre 85% de los casos a 5% del coste.</div></div>
 
 ## 7 — Implementacion Python: bucle HiL en tiempo libre (pseudocodigo)
 

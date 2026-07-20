@@ -153,7 +153,7 @@ Un modelo se *ajusta* con un conjunto de datos y se *valida* con otro independie
 3. **Análisis de residuos:** el error \( e(t) = y_{real}(t) - y_{modelo}(t) \) debe ser ruido blanco (sin autocorrelación significativa), lo que indica que el modelo ha capturado toda la dinámica determinista.
 4. **Límites de validez:** el modelo linealizado es fiable en una región pequeña alrededor del punto de operación donde se identificó. Extrapolar a puntos de operación alejados (arranque, cortocircuito) requiere modelos no lineales o gain scheduling (ver [[gain-scheduling]]).
 
-<div class="cfig"><img src="../figuras/modelado-sistemas-analisis.png" alt="Modelado de sistemas: ciclo, promediado, validación y compromiso complejidad-generalización"><div class="cap">Cuatro paneles: ciclo completo de modelado desde el sistema real hasta la validación; señal conmutada de buck frente a su modelo promediado; comparación de la respuesta al escalón del modelo frente a medidas reales; curva de compromiso entre complejidad del modelo y precisión en entrenamiento vs validación (sobreajuste).</div></div>
+<div class="cfig"><img src="figuras/modelado-sistemas-analisis.png" alt="Modelado de sistemas: ciclo, promediado, validación y compromiso complejidad-generalización"><div class="cap">Cuatro paneles: ciclo completo de modelado desde el sistema real hasta la validación; señal conmutada de buck frente a su modelo promediado; comparación de la respuesta al escalón del modelo frente a medidas reales; curva de compromiso entre complejidad del modelo y precisión en entrenamiento vs validación (sobreajuste).</div></div>
 
 ## Conceptos relacionados
 - [[variables-estado]] · [[representacion-espacio-estados]] · [[linealizacion-teoria]] · [[convertidor-vsc|modelo promediado]]

@@ -270,7 +270,7 @@ La transición suave se implementa interpolando la referencia de tensión del GF
 
 La herramienta de análisis adecuada para estudiar estos efectos es la **función de descripción** (Describing Function), que extiende el análisis de Nyquist a sistemas con no-linealidades estáticas.
 
-<div class="cfig"><img src="../figuras/current-limiting-analisis.png" alt="cuatro paneles: plano dq con circulo, LVRT reactive boost, anti-windup back-calc, corriente durante hueco"><div class="cap">(a) Plano dq: círculo de corriente máxima y prioridad reactiva. (b) LVRT: corriente reactiva inyectada vs tensión. (c) Anti-windup back-calculation: comparativa con y sin AW. (d) Corriente durante hueco: Id disponible e Iq inyectada.</div></div>
+<div class="cfig"><img src="figuras/current-limiting-analisis.png" alt="cuatro paneles: plano dq con circulo, LVRT reactive boost, anti-windup back-calc, corriente durante hueco"><div class="cap">(a) Plano dq: círculo de corriente máxima y prioridad reactiva. (b) LVRT: corriente reactiva inyectada vs tensión. (c) Anti-windup back-calculation: comparativa con y sin AW. (d) Corriente durante hueco: Id disponible e Iq inyectada.</div></div>
 
 ## Conceptos relacionados
 - [[control-cascada]] · [[impedancia-virtual]] · [[vsm-inercia]] · [[anti-windup]] · [[fault-ride-through]]

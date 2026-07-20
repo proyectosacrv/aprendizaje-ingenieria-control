@@ -160,7 +160,7 @@ donde \( V_{neg} \) y \( V_{pos} \) son las componentes de secuencia negativa y 
 
 Estas especificaciones se derivan de los requisitos físicos, normativos y de diseño. Cada una tiene un criterio de aceptación medible que guía la síntesis y la validación.
 
-<div class="cfig"><img src="../figuras/especificaciones-control-analisis.png" alt="respuesta escalón con specs, Bode con PM/GM, THD con límites normativos y tabla de specs"><div class="cap">Especificaciones en tiempo (Ms, ts marcados en la respuesta escalón), en frecuencia (PM y GM en el Bode), de calidad de potencia (THD con límite IEEE 519) y tabla completa para un GFL de 100 kW. Cada especificación tiene su criterio numérico y su prueba de validación.</div></div>
+<div class="cfig"><img src="figuras/especificaciones-control-analisis.png" alt="respuesta escalón con specs, Bode con PM/GM, THD con límites normativos y tabla de specs"><div class="cap">Especificaciones en tiempo (Ms, ts marcados en la respuesta escalón), en frecuencia (PM y GM en el Bode), de calidad de potencia (THD con límite IEEE 519) y tabla completa para un GFL de 100 kW. Cada especificación tiene su criterio numérico y su prueba de validación.</div></div>
 
 ## 7 — Separacion de escalas en lazos en cascada
 

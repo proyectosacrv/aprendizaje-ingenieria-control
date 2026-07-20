@@ -234,7 +234,7 @@ Si no se cumple: añadir compensación de fase en la interfaz o aumentar \(Z_{si
 
 **Regla económica:** un error detectado en SiL cuesta ~10× menos de corregir que el mismo error detectado en prototipo, y ~100× menos que en campo. La secuencia óptima es completar y aprobar cada nivel antes de avanzar al siguiente.
 
-<div class="cfig"><img src="../figuras/niveles-validacion-analisis.png" alt="pirámide de validación, coste vs cobertura, retardo HiL y detección de errores"><div class="cap">Pirámide de validación: SiL (bajo coste, alta cobertura) hasta campo (alto coste, baja cobertura). El retardo de interfaz HiL reduce el margen de fase del lazo. Los errores detectados en SiL/HiL cuestan órdenes de magnitud menos que los detectados en campo.</div></div>
+<div class="cfig"><img src="figuras/niveles-validacion-analisis.png" alt="pirámide de validación, coste vs cobertura, retardo HiL y detección de errores"><div class="cap">Pirámide de validación: SiL (bajo coste, alta cobertura) hasta campo (alto coste, baja cobertura). El retardo de interfaz HiL reduce el margen de fase del lazo. Los errores detectados en SiL/HiL cuestan órdenes de magnitud menos que los detectados en campo.</div></div>
 
 ## Conceptos relacionados
 - [[validacion-cruzada]] · [[pruebas-validacion]] · [[convertidor-vsc|modelo promediado]] · [[medicion-impedancia-inyeccion]]

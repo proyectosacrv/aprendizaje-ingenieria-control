@@ -153,7 +153,7 @@ Las métricas no son independientes y maximizar una suele empeorar otra:
 
 **Ejemplo numérico:** optimizar \( K_p, T_i \) de un PI minimizando ITAE con restricción \( PM > 45° \). El ITAE sin restricción puede dar \( PM = 30° \) (inestable en la práctica); añadir la restricción mueve la solución a un controlador más lento pero robusto. Este es el problema de diseño multiobjetivo típico del ajuste de un PI de control de corriente.
 
-<div class="cfig"><img src="../figuras/metricas-desempeno-analisis.png" alt="Métricas de desempeño: IAE/ISE/ITAE comparadas, diagrama de Pareto BW vs PM, y calidad de potencia vs carga"><div class="cap">Cuatro paneles: respuestas al escalón para distintos amortiguamientos con las métricas visualizadas; gráfico de barras comparando IAE, ISE e ITAE para cada caso; diagrama de Pareto entre ancho de banda y margen de fase; curvas de THD de corriente y factor de potencia en función del nivel de carga.</div></div>
+<div class="cfig"><img src="figuras/metricas-desempeno-analisis.png" alt="Métricas de desempeño: IAE/ISE/ITAE comparadas, diagrama de Pareto BW vs PM, y calidad de potencia vs carga"><div class="cap">Cuatro paneles: respuestas al escalón para distintos amortiguamientos con las métricas visualizadas; gráfico de barras comparando IAE, ISE e ITAE para cada caso; diagrama de Pareto entre ancho de banda y margen de fase; curvas de THD de corriente y factor de potencia en función del nivel de carga.</div></div>
 
 ## Conceptos relacionados
 - [[especificaciones-control]] · [[analisis-modal]] · [[funciones-sensibilidad]] · [[margenes-estabilidad]]

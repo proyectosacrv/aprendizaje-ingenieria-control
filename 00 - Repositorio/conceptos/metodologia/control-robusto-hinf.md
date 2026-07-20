@@ -71,7 +71,7 @@ El controlador \(K\) cierra el lazo entre los puertos de error \(e\) y las seña
 
 $$\|W_1 S\|_\infty < 1, \quad \|W_u KS\|_\infty < 1, \quad \|W_2 T\|_\infty < 1$$
 
-<div class="cfig"><img src="../figuras/control-robusto-hinf-analisis.png" alt="Control robusto H-inf: pesos W1/W2, funciones S/T, región de incertidumbre y respuesta robusta"><div class="cap">(a) Pesos W1 y W2 en Bode: W1 grande a baja frecuencia, W2 grande a alta frecuencia. (b) S y T resultantes con y sin control H-inf. (c) Región de incertidumbre multiplicativa y disco de estabilidad robusta. (d) Respuesta robusta del sistema ante variación de Lgrid ×0.5 a ×2.</div></div>
+<div class="cfig"><img src="figuras/control-robusto-hinf-analisis.png" alt="Control robusto H-inf: pesos W1/W2, funciones S/T, región de incertidumbre y respuesta robusta"><div class="cap">(a) Pesos W1 y W2 en Bode: W1 grande a baja frecuencia, W2 grande a alta frecuencia. (b) S y T resultantes con y sin control H-inf. (c) Región de incertidumbre multiplicativa y disco de estabilidad robusta. (d) Respuesta robusta del sistema ante variación de Lgrid ×0.5 a ×2.</div></div>
 
 ## 4 — Diseño de pesos \(W_1(s)\), \(W_2(s)\): plantillas de sensibilidad
 

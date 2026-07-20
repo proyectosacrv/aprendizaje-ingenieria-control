@@ -380,4 +380,4 @@ $$I_{brazo,falta} \approx \frac{I_{fault,pico}}{3}$$
 corriente de brazo nominal (1–2 kA). Las restricciones de la corriente de falta son las que
 determinan el rating de los IGBTs, no la operación nominal.
 
-<div class="cfig"><img src="../figuras/mmc-modelo-control-analisis.png" alt="MMC: energía de brazos, CCSC y jerarquía de control"><div class="cap">Variación de energía de los brazos superior e inferior (componentes a \( \omega_0 \) y \( 2\omega_0 \)), corriente de circulación con y sin CCSC, jerarquía de las cuatro capas de control del MMC, y efecto del balanceo de tensiones de los submódulos.</div></div>
+<div class="cfig"><img src="figuras/mmc-modelo-control-analisis.png" alt="MMC: energía de brazos, CCSC y jerarquía de control"><div class="cap">Variación de energía de los brazos superior e inferior (componentes a \( \omega_0 \) y \( 2\omega_0 \)), corriente de circulación con y sin CCSC, jerarquía de las cuatro capas de control del MMC, y efecto del balanceo de tensiones de los submódulos.</div></div>

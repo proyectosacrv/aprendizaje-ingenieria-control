@@ -353,4 +353,4 @@ cambios de despacho o faltas AC parciales.
 | \( I_{fault,pico} \) | 14.3 kA (18 pu) |
 | \( W_{cable} \) | 12.3 MJ |
 
-<div class="cfig"><img src="../figuras/hvdc-cable-dc-analisis.png" alt="Cable DC HVDC: modelo π, resonancia LC y corriente de falta"><div class="cap">Parámetros del cable de 300 km, respuesta de \( V_{dc} \) ante escalón de carga, impedancia del cable (resonancia LC a ~59 Hz), y corriente de falta bipolar DC (hasta ~18 pu en pocos ms).</div></div>
+<div class="cfig"><img src="figuras/hvdc-cable-dc-analisis.png" alt="Cable DC HVDC: modelo π, resonancia LC y corriente de falta"><div class="cap">Parámetros del cable de 300 km, respuesta de \( V_{dc} \) ante escalón de carga, impedancia del cable (resonancia LC a ~59 Hz), y corriente de falta bipolar DC (hasta ~18 pu en pocos ms).</div></div>

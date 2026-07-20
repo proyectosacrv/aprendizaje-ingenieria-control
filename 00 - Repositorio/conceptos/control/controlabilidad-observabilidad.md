@@ -268,7 +268,7 @@ Los polos de \( A - LC \) se colocan 3–5 veces más rápidos que los del lazo 
 
 **Velocidad del observador vs ruido.** Polos del observador más rápidos → el error decae más rápido pero la ganancia \( L \) es mayor → amplificación del ruido de medida en el estado estimado \( \hat{\mathbf{x}} \). En sistemas reales con ADC de 12 bits y ruido de cuantificación, existe un límite práctico a la velocidad del observador: tipicamente \( \omega_{obs} \leq 5\,\omega_{control} \).
 
-<div class="cfig"><img src="../figuras/controlabilidad-observabilidad-analisis.png" alt="cuatro paneles: Hankel SVs, matriz controlabilidad, observador Luenberger, modos y controlabilidad modal"><div class="cap">(a) Hankel Singular Values: modos a eliminar en truncamiento balanceado. (b) Matriz de controlabilidad: visualización del rango. (c) Observador de Luenberger: estimación del estado real. (d) Controlabilidad modal: tamaño del símbolo proporcional a la proyección de B sobre cada modo.</div></div>
+<div class="cfig"><img src="figuras/controlabilidad-observabilidad-analisis.png" alt="cuatro paneles: Hankel SVs, matriz controlabilidad, observador Luenberger, modos y controlabilidad modal"><div class="cap">(a) Hankel Singular Values: modos a eliminar en truncamiento balanceado. (b) Matriz de controlabilidad: visualización del rango. (c) Observador de Luenberger: estimación del estado real. (d) Controlabilidad modal: tamaño del símbolo proporcional a la proyección de B sobre cada modo.</div></div>
 
 ## Conceptos relacionados
 - [[representacion-espacio-estados]] · [[variables-estado]] · [[asignacion-polos-lqr]] · [[observador-estados]]

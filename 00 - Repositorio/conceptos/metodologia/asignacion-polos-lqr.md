@@ -135,7 +135,7 @@ Se itera subiendo \( Q_{33} \) (peso en \( i_{L2} \)) hasta que los polos conver
 
 **Paso 6 — validación.** Escalón de \( i_{L2,ref} \) de 0 a 1000 A: el LQR muestra \( M_p\approx3\% \), \( t_s\approx1.5\,\text{ms} \); el PI muestra \( M_p\approx8\% \), \( t_s\approx1.8\,\text{ms} \). La figura (a) y (b) muestran las respuestas y los mapas de polos.
 
-<div class="cfig"><img src="../figuras/asignacion-polos-lqr-analisis.png" alt="LQR analisis extendido: escalon, polos, Bode PM, retorno"><div class="cap">(a) Respuesta al escalón del LQR vs PI en el lazo de corriente del LCL. (b) Mapa de polos de $A-BK$ al barrer la escala $\rho Q$: más $\rho$ → polos más rápidos. (c) Bode del lazo LQR con el $PM\geq60°$ verificado. (d) Valor singular mínimo de la función de retorno $I+K(j\omega I-A)^{-1}B\geq1/\sqrt{2}$: la firma de robustez del LQR.</div></div>
+<div class="cfig"><img src="figuras/asignacion-polos-lqr-analisis.png" alt="LQR analisis extendido: escalon, polos, Bode PM, retorno"><div class="cap">(a) Respuesta al escalón del LQR vs PI en el lazo de corriente del LCL. (b) Mapa de polos de $A-BK$ al barrer la escala $\rho Q$: más $\rho$ → polos más rápidos. (c) Bode del lazo LQR con el $PM\geq60°$ verificado. (d) Valor singular mínimo de la función de retorno $I+K(j\omega I-A)^{-1}B\geq1/\sqrt{2}$: la firma de robustez del LQR.</div></div>
 
 ## 7 — LQR: formulación y solución
 
@@ -202,7 +202,7 @@ $$ A = \begin{bmatrix} -R/L & \omega_0 & 0 \\ -\omega_0 & -R/L & 0 \\ 0 & 0 & -1
 
 **Figura: respuesta al escalón para distintos valores de \( Q_{11} \).** Al aumentar \( Q_{11} \) (más peso en la corriente \( i_d \)), los polos se desplazan a la izquierda, la respuesta se vuelve más rápida pero el esfuerzo de control crece. El panel (b) de la figura muestra este efecto para tres valores de \( \zeta \).
 
-<div class="cfig"><img src="../figuras/asignacion-polos-lqr-analisis.png" alt="4 paneles: lugar de raices, respuesta escalon para distintos zeta, polos LQR para distintos Q/R, comparativa coste J"><div class="cap">
+<div class="cfig"><img src="figuras/asignacion-polos-lqr-analisis.png" alt="4 paneles: lugar de raices, respuesta escalon para distintos zeta, polos LQR para distintos Q/R, comparativa coste J"><div class="cap">
 (a) Lugar de raíces de \(1/(s^2+2s+5)\) al variar la ganancia: los polos se desplazan hacia la izquierda aumentando el amortiguamiento. (b) Respuesta al escalón para \(\zeta = 0.3,\,0.7,\,1.0\) con \(\omega_n = 5\,\text{rad/s}\): la relación de amortiguamiento \(\zeta=0.7\) ofrece el mejor compromiso entre velocidad y sobreoscilación. (c) Polos de lazo cerrado del LQR al variar \(Q/R\) de 0.1 a 100: mayor cociente empuja los polos más a la izquierda. (d) Desglose del coste LQR en componente de estado y de control para cuatro diseños: diseños rápidos (Q/R alto) reducen el coste de estado a costa de mayor coste de control.
 </div></div>
 

@@ -109,7 +109,7 @@ En Python: `X = np.linalg.solve(1j*w*np.eye(n) - A, B)` seguido de `G = C @ X + 
 
 **Sistema MIMO.** Para un sistema de \( p \) salidas y \( m \) entradas, \( \mathbf{G}(j\omega) \) es una matriz \( p\times m \). El elemento \( G_{ij}(j\omega) \) es la respuesta en frecuencia desde la entrada \( j \) a la salida \( i \). En el convertidor VSC en coordenadas dq, la planta es \( 2\times2 \) con acoplamiento cruzado.
 
-<div class="cfig"><img src="../figuras/respuesta-frecuencia-ss-analisis.png" alt="Respuesta en frecuencia desde espacio de estados"><div class="cap">Panel superior izquierdo: Bode calculado directamente con np.linalg.solve. Superior derecho: valores singulares de planta MIMO 2×2. Inferior izquierdo: pérdida de fase por retardo de cómputo Td. Inferior derecho: validación modelo vs medida con ruido.</div></div>
+<div class="cfig"><img src="figuras/respuesta-frecuencia-ss-analisis.png" alt="Respuesta en frecuencia desde espacio de estados"><div class="cap">Panel superior izquierdo: Bode calculado directamente con np.linalg.solve. Superior derecho: valores singulares de planta MIMO 2×2. Inferior izquierdo: pérdida de fase por retardo de cómputo Td. Inferior derecho: validación modelo vs medida con ruido.</div></div>
 
 ## 4 — Diagrama de Bode desde matrices de estado
 

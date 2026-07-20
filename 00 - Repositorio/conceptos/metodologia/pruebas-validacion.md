@@ -144,7 +144,7 @@ Cada prueba de validación debe generar un informe con estructura fija que ligue
 
 **Hoja de pruebas (test sheet):** documento de una página que resume todos los ensayos de una sesión de validación con sus veredictos. Permite rastrear qué versión del diseño aprobó qué pruebas y cuándo.
 
-<div class="cfig"><img src="../figuras/pruebas-validacion-analisis.png" alt="escalón de corriente, LVRT, THD y timeline del plan de pruebas"><div class="cap">Cuatro pruebas clave de validación: (1) escalón de corriente con Ms y ts marcados, (2) LVRT con hueco al 30% y recuperación en 100 ms, (3) espectro FFT de la corriente con límites IEEE 519, (4) timeline del plan de pruebas desde SiL hasta campo con criterios de salida de cada nivel.</div></div>
+<div class="cfig"><img src="figuras/pruebas-validacion-analisis.png" alt="escalón de corriente, LVRT, THD y timeline del plan de pruebas"><div class="cap">Cuatro pruebas clave de validación: (1) escalón de corriente con Ms y ts marcados, (2) LVRT con hueco al 30% y recuperación en 100 ms, (3) espectro FFT de la corriente con límites IEEE 519, (4) timeline del plan de pruebas desde SiL hasta campo con criterios de salida de cada nivel.</div></div>
 
 ## 7 — Automatizacion de pruebas en Python
 

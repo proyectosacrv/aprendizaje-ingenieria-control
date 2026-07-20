@@ -157,7 +157,7 @@ Tipicamente \( m_p = 1\text{–}5\,\%\) de variación de frecuencia a plena carg
 2. Igualar el ángulo generado por el PSC al ángulo de la PLL.
 3. Transferir gradualmente la referencia de ángulo del PLL al PSC (rampa de 50–200 ms).
 
-<div class="cfig"><img src="../figuras/power-synchronization-control-analisis.png" alt="Curva P-delta red fuerte y debil, respuesta dinamica PSC, comparacion PSC vs VSM y region de estabilidad vs SCR"><div class="cap">Superior izquierdo: curva P-δ — red fuerte (X=0.1 pu) tiene mayor pendiente y mayor par sincronizante que red débil (X=0.5 pu). Superior derecho: respuesta ante escalón de P* — red fuerte converge más rápido que red débil. Inferior izquierdo: PSC vs VSM ante perturbación de frecuencia — el VSM amortigua más lentamente pero con mejor soporte. Inferior derecho: región de estabilidad K_PSC máximo en función del SCR.</div></div>
+<div class="cfig"><img src="figuras/power-synchronization-control-analisis.png" alt="Curva P-delta red fuerte y debil, respuesta dinamica PSC, comparacion PSC vs VSM y region de estabilidad vs SCR"><div class="cap">Superior izquierdo: curva P-δ — red fuerte (X=0.1 pu) tiene mayor pendiente y mayor par sincronizante que red débil (X=0.5 pu). Superior derecho: respuesta ante escalón de P* — red fuerte converge más rápido que red débil. Inferior izquierdo: PSC vs VSM ante perturbación de frecuencia — el VSM amortigua más lentamente pero con mejor soporte. Inferior derecho: región de estabilidad K_PSC máximo en función del SCR.</div></div>
 
 ## Conceptos relacionados
 - [[grid-forming-vs-following]] · [[vsm-inercia]] · [[droop-control]] · [[interaccion-pll-red-debil]] · [[ecuacion-oscilacion]]

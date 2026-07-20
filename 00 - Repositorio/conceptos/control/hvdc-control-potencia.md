@@ -334,4 +334,4 @@ comunicación solo afecta al control secundario y al FRT coordinado — ambos pu
 con estrategias locales de degradación: el offshore mantiene su tensión, el onshore sigue en droop,
 y la potencia del parque se reduce por curtailment automático si \( V_{dc} \) supera 1.05 pu.
 
-<div class="cfig"><img src="../figuras/hvdc-control-potencia-analisis.png" alt="Control HVDC-VSC: cascada, Vdc, droop MTDC y FRT"><div class="cap">Estructura de control en cascada (outer/inner loop), respuesta de \( V_{dc} \) ante perturbación de potencia, curvas droop DC de tres terminales MTDC, y evolución de \( V_{dc} \) durante una falta AC con chopper de freno.</div></div>
+<div class="cfig"><img src="figuras/hvdc-control-potencia-analisis.png" alt="Control HVDC-VSC: cascada, Vdc, droop MTDC y FRT"><div class="cap">Estructura de control en cascada (outer/inner loop), respuesta de \( V_{dc} \) ante perturbación de potencia, curvas droop DC de tres terminales MTDC, y evolución de \( V_{dc} \) durante una falta AC con chopper de freno.</div></div>

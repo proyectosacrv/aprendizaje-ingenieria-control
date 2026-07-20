@@ -41,7 +41,7 @@ referencias:
 - `python-control`: diseño LQR, márgenes robustos MIMO, lugar de raíces con interactividad.
 - Ambas juntas: `scipy.signal` para las funciones de transferencia, `python-control` para el diseño del controlador.
 
-<div class="cfig"><img src="../figuras/python-control-scipy-analisis.png" alt="Python para control: Bode, escalón, lugar de raíces y discretización"><div class="cap">Panel superior izquierdo: diagrama de Bode con doble eje (ganancia dB / fase °) calculado con scipy.signal.bode. Superior derecho: respuesta al escalón con anotaciones automáticas de Mp y ts. Inferior izquierdo: lugar de raíces numérico variando la ganancia K. Inferior derecho: comparativa continuo vs discreto con método Tustin para dos períodos de muestreo.</div></div>
+<div class="cfig"><img src="figuras/python-control-scipy-analisis.png" alt="Python para control: Bode, escalón, lugar de raíces y discretización"><div class="cap">Panel superior izquierdo: diagrama de Bode con doble eje (ganancia dB / fase °) calculado con scipy.signal.bode. Superior derecho: respuesta al escalón con anotaciones automáticas de Mp y ts. Inferior izquierdo: lugar de raíces numérico variando la ganancia K. Inferior derecho: comparativa continuo vs discreto con método Tustin para dos períodos de muestreo.</div></div>
 
 ## 2 — Sistemas LTI: definición y conversión
 

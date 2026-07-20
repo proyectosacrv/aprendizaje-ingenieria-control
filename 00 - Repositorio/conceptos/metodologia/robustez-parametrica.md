@@ -124,7 +124,7 @@ donde \( \mathcal{D} \) es el conjunto de matrices de escala que conmutan con \(
 
 **Paso 4 — menos conservador que H∞.** Para un convertidor con 3 parámetros inciertos independientes, la diferencia entre \( \max\bar\sigma(M) \) y \( \max\mu(M) \) puede ser un factor 2–3: lo que parece no robusto por H∞ puede ser perfectamente robusto bajo μ. En el GFM con \( L_1\pm20\%,\,C_f\pm15\%,\,SCR\in[3,10] \): \( \max\bar\sigma(M)=0.85 \) pero \( \max\mu(M)=0.38 \) — cómodamente por debajo de 1.
 
-<div class="cfig"><img src="../figuras/robustez-parametrica-analisis.png" alt="Bode PM vs L, autovalores, wm*T, mu(omega)"><div class="cap">(a) Bode del lazo de corriente para $L_1=1.6,2.0,2.4$ mH: el PM varía de 61° a 48°, siempre por encima del mínimo de 30°. (b) Autovalores del lazo cerrado vs $L_1$: todos en el SPL. (c) $\|w_m T\|$ vs frecuencia: por debajo de 0 dB → robusto ante ±20% en $L_1$. (d) Cota superior $\mu(\omega)$: $\mu<1$ para todo $\omega$ → estabilidad robusta con estructura $\boldsymbol{\Delta}$.</div></div>
+<div class="cfig"><img src="figuras/robustez-parametrica-analisis.png" alt="Bode PM vs L, autovalores, wm*T, mu(omega)"><div class="cap">(a) Bode del lazo de corriente para $L_1=1.6,2.0,2.4$ mH: el PM varía de 61° a 48°, siempre por encima del mínimo de 30°. (b) Autovalores del lazo cerrado vs $L_1$: todos en el SPL. (c) $\|w_m T\|$ vs frecuencia: por debajo de 0 dB → robusto ante ±20% en $L_1$. (d) Cota superior $\mu(\omega)$: $\mu<1$ para todo $\omega$ → estabilidad robusta con estructura $\boldsymbol{\Delta}$.</div></div>
 
 ## 6 — Diseño iterativo: PM mínimo y μ para el GFM con L₁∈[1.6, 2.4 mH]
 
@@ -286,7 +286,7 @@ print(f"Robusto al 95%: {np.percentile(PM_samples, 5) > 45}")
 
 Este código produce \(PM_{P5}\approx47°\) para los rangos especificados — el diseño nominal cumple la robustez al 95% de confianza con \(PM > 45°\).
 
-<div class="cfig"><img src="../figuras/robustez-parametrica-analisis.png" alt="Robustez paramétrica: sensibilidad S y T, PM vs ganancia, Monte Carlo PM, Nyquist disk margin"><div class="cap">(a) Funciones de sensibilidad \(S\) y \(T\) del lazo PI+planta de primer orden: el pico de \(|S|\) define \(M_s\). (b) Margen de fase PM vs variación de ganancia relativa: la zona verde indica operación robusta con \(PM>45°\). (c) Distribución Monte Carlo del PM con inductancia \(L\pm30\%\): el percentil 5% supera el mínimo requerido. (d) Diagrama de Nyquist con disco de exclusión \(M_s=2\): el Nyquist no entra en el disco → robusto.</div></div>
+<div class="cfig"><img src="figuras/robustez-parametrica-analisis.png" alt="Robustez paramétrica: sensibilidad S y T, PM vs ganancia, Monte Carlo PM, Nyquist disk margin"><div class="cap">(a) Funciones de sensibilidad \(S\) y \(T\) del lazo PI+planta de primer orden: el pico de \(|S|\) define \(M_s\). (b) Margen de fase PM vs variación de ganancia relativa: la zona verde indica operación robusta con \(PM>45°\). (c) Distribución Monte Carlo del PM con inductancia \(L\pm30\%\): el percentil 5% supera el mínimo requerido. (d) Diagrama de Nyquist con disco de exclusión \(M_s=2\): el Nyquist no entra en el disco → robusto.</div></div>
 
 ## Cuándo y por qué se usa
 Siempre antes de dar por bueno un diseño: el valor nominal puede ser estable y el rango real no.

@@ -308,7 +308,7 @@ para asegurar que los retardos de cómputo y PWM (modelados como \( e^{-sT_d} \a
 
 **Impacto de la red.** En sistemas con impedancia de red \( L_{grid} \), el polo real de la planta es \( s = -R/(L+L_{grid}) \). Si la red varía (p. ej. variación de la red entre modo isla y modo conectado), el cero del PI ya no cancela el polo y aparece un polo residual que puede degradar el margen de fase. Solución: ajustar \( K_p \) en función de \( L_{grid} \) estimado, o usar gain-scheduling.
 
-<div class="cfig"><img src="../figuras/sistema-primer-orden-analisis.png" alt="cuatro paneles: escalon multi-tau, Bode primer orden, filtro IIR en señal ruidosa, BW lazo corriente vs L"><div class="cap">(a) Respuesta al escalón para distintos τ. (b) Bode del primer orden con punto de −3 dB. (c) Filtro IIR primer orden sobre señal ruidosa. (d) Ancho de banda del lazo de corriente en función de la inductancia.</div></div>
+<div class="cfig"><img src="figuras/sistema-primer-orden-analisis.png" alt="cuatro paneles: escalon multi-tau, Bode primer orden, filtro IIR en señal ruidosa, BW lazo corriente vs L"><div class="cap">(a) Respuesta al escalón para distintos τ. (b) Bode del primer orden con punto de −3 dB. (c) Filtro IIR primer orden sobre señal ruidosa. (d) Ancho de banda del lazo de corriente en función de la inductancia.</div></div>
 
 ## Conceptos relacionados
 - [[polos-ceros]] · [[respuesta-segundo-orden]] · [[sintonia-pi-pid]] · [[control-cascada]]

@@ -243,7 +243,7 @@ La derivada existe en todo punto; el solver mantiene pasos razonables.
 
 4. **`t_eval` en vez de `dense_output`:** con `dense_output=True` el solver acumula todos los pasos internos en memoria; con saturación frecuente puede agotar la RAM. `t_eval` acota la memoria al número de puntos de salida deseados.
 
-<div class="cfig"><img src="../figuras/integracion-edos-stiff-analisis.png" alt="Euler explícito inestable, región estabilidad, paso adaptativo Radau y comparativa solvers"><div class="cap">Integración de EDOs rígidas: (a) Euler explícito explota con paso grande en sistema stiff; Euler implícito se mantiene estable. (b) Regiones de estabilidad: disco (explícito) vs semiplano izquierdo completo (implícito). (c) Paso adaptativo de Radau: paso grande durante la dinámica lenta, reducido en el transitorio. (d) Comparativa pasos efectivos vs error para RK45, BDF y Radau.</div></div>
+<div class="cfig"><img src="figuras/integracion-edos-stiff-analisis.png" alt="Euler explícito inestable, región estabilidad, paso adaptativo Radau y comparativa solvers"><div class="cap">Integración de EDOs rígidas: (a) Euler explícito explota con paso grande en sistema stiff; Euler implícito se mantiene estable. (b) Regiones de estabilidad: disco (explícito) vs semiplano izquierdo completo (implícito). (c) Paso adaptativo de Radau: paso grande durante la dinámica lenta, reducido en el transitorio. (d) Comparativa pasos efectivos vs error para RK45, BDF y Radau.</div></div>
 
 ## Conceptos relacionados
 - [[current-limiting]] · [[vsm-inercia]]

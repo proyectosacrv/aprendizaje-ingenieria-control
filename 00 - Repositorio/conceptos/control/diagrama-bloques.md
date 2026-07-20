@@ -153,7 +153,7 @@ En un convertidor trifásico controlado en el marco dq, la planta es el filtro R
 
 Con feedforward activo y estimación precisa de \( \omega_0 L \), cada canal opera como un lazo de corriente SISO independiente \( G(s) = 1/(Ls+R) \), lo que simplifica el diseño del PI al de un sistema de primer orden. Sin feedforward, el acoplamiento actúa como perturbación que degrada la respuesta transitoria y aumenta el sobreimpulso cruzado.
 
-<div class="cfig"><img src="../figuras/diagrama-bloques-analisis.png" alt="Algebra de bloques, lazo dq con y sin feedforward, sensibilidades S y T, rechazo de perturbacion"><div class="cap">Panel superior izquierdo: resumen del álgebra de bloques y funciones de sensibilidad. Superior derecho: efecto del feedforward de acoplamiento dq — con FF los canales quedan desacoplados. Inferior izquierdo: módulo de S y T del lazo de corriente; obsérvese S+T=1 (línea verde). Inferior derecho: respuesta ante perturbación atenuada por el lazo cerrado.</div></div>
+<div class="cfig"><img src="figuras/diagrama-bloques-analisis.png" alt="Algebra de bloques, lazo dq con y sin feedforward, sensibilidades S y T, rechazo de perturbacion"><div class="cap">Panel superior izquierdo: resumen del álgebra de bloques y funciones de sensibilidad. Superior derecho: efecto del feedforward de acoplamiento dq — con FF los canales quedan desacoplados. Inferior izquierdo: módulo de S y T del lazo de corriente; obsérvese S+T=1 (línea verde). Inferior derecho: respuesta ante perturbación atenuada por el lazo cerrado.</div></div>
 
 ## Conceptos relacionados
 - [[funcion-transferencia]] · [[realimentacion]] · [[control-cascada]] · [[funciones-sensibilidad]]

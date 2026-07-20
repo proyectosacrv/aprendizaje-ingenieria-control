@@ -164,7 +164,7 @@ El observador aumentado estima simultáneamente \( \mathbf{x} \) y \( d \), elim
 3. Verificar que el error de estimación es menor que el 5% del rango nominal.
 4. Solo entonces cerrar el lazo con \( \mathbf{u} = -K\hat{\mathbf{x}} \).
 
-<div class="cfig"><img src="../figuras/observador-estados-analisis.png" alt="cuatro paneles: ganancia Kalman vs Q/R, Kalman 1D sobre señal ruidosa, Luenberger vs Kalman error, observador con disturbio"><div class="cap">(a) Ganancia de Kalman en función de la relación Q/R. (b) Filtro de Kalman 1D: tracking de señal ruidosa. (c) Comparación del error de estimación Luenberger vs Kalman. (d) Observador con disturbio estimado: estado real, estimado y disturbio.</div></div>
+<div class="cfig"><img src="figuras/observador-estados-analisis.png" alt="cuatro paneles: ganancia Kalman vs Q/R, Kalman 1D sobre señal ruidosa, Luenberger vs Kalman error, observador con disturbio"><div class="cap">(a) Ganancia de Kalman en función de la relación Q/R. (b) Filtro de Kalman 1D: tracking de señal ruidosa. (c) Comparación del error de estimación Luenberger vs Kalman. (d) Observador con disturbio estimado: estado real, estimado y disturbio.</div></div>
 
 ## 5 — Resumen: observador completo vs reducido vs Kalman
 

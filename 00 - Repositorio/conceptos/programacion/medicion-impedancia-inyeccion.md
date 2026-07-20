@@ -118,7 +118,7 @@ donde \( V(j\omega) \) e \( I(j\omega) \) son los fasores a frecuencia \( f_p \)
 
 $$ \text{SNR} \approx \frac{A \cdot |Z(f_p)|}{v_{ruido,rms}} > 20\,\text{dB} $$
 
-<div class="cfig"><img src="../figuras/medicion-impedancia-inyeccion-analisis.png" alt="Medición de impedancia por inyección de señal"><div class="cap">Panel superior izquierdo: señal inyectada y respuesta en corriente. Superior derecho: espectro DFT mostrando el tono inyectado. Inferior izquierdo: comparación impedancia teórica vs medida en barrido de frecuencia. Inferior derecho: coherencia del barrido — válido solo donde γ²>0.9.</div></div>
+<div class="cfig"><img src="figuras/medicion-impedancia-inyeccion-analisis.png" alt="Medición de impedancia por inyección de señal"><div class="cap">Panel superior izquierdo: señal inyectada y respuesta en corriente. Superior derecho: espectro DFT mostrando el tono inyectado. Inferior izquierdo: comparación impedancia teórica vs medida en barrido de frecuencia. Inferior derecho: coherencia del barrido — válido solo donde γ²>0.9.</div></div>
 
 ## 4 — DFT y sincronización
 

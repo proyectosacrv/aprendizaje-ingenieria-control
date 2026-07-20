@@ -285,7 +285,7 @@ La variación de tensión DC es proporcional al desequilibrio de potencia e inve
 a la suma de las ganancias de droop. Los demás terminales compensan automáticamente la pérdida del
 terminal rectificador en menos de 100 ms — sin comunicación, solo por la variación de \( V_{dc} \).
 
-<div class="cfig"><img src="../figuras/control-tension-bus-dc-analisis.png" alt="Control del bus DC: lazo Vdc, CPL y droop entre convertidores"><div class="cap">Respuesta de \( V_{dc} \) ante un escalón de carga con y sin control; Bode del lazo de tensión (planta integradora + PI); criterio de Middlebrook para CPL — zona de riesgo donde la impedancia de la fuente supera a la de la carga negativa; y característica droop de tres convertidores compartiendo el bus DC.</div></div>
+<div class="cfig"><img src="figuras/control-tension-bus-dc-analisis.png" alt="Control del bus DC: lazo Vdc, CPL y droop entre convertidores"><div class="cap">Respuesta de \( V_{dc} \) ante un escalón de carga con y sin control; Bode del lazo de tensión (planta integradora + PI); criterio de Middlebrook para CPL — zona de riesgo donde la impedancia de la fuente supera a la de la carga negativa; y característica droop de tres convertidores compartiendo el bus DC.</div></div>
 
 ## Conceptos relacionados
 - [[dinamica-bus-dc]] · [[control-cascada]] · [[convertidor-vsc]] · [[desacoplo-dq]]

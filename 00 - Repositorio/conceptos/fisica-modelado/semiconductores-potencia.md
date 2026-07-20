@@ -361,7 +361,7 @@ Con 1 ciclo diario: vida estimada ≈ 600 años → la fatiga del ciclo diario n
 3. Substrato cerámico de AlN (baja expansión térmica) en vez de Al₂O₃: menos tensión mecánica.
 4. Monitorización on-line de \( T_j \) estimada mediante el parámetro \( V_{CE,0} \) (o \( V_{GS,th} \) para SiC) como indicador de envejecimiento → mantenimiento predictivo.
 
-<div class="cfig"><img src="../figuras/semiconductores-potencia-analisis.png" alt="comparativa pérdidas IGBT vs SiC y temperatura de unión"><div class="cap">Panel (a): pérdidas de conducción vs corriente para SiC MOSFET (cuadrática) e IGBT (lineal). Panel (b): pérdidas de conmutación totales vs frecuencia de conmutación — el cruce IGBT/SiC ocurre entre 5 y 15 kHz según la tensión del bus. Panel (c): temperatura de unión vs potencia disipada para distintas resistencias térmicas totales. Panel (d): SOA del IGBT 1200 V con límite térmico y de pulso.</div></div>
+<div class="cfig"><img src="figuras/semiconductores-potencia-analisis.png" alt="comparativa pérdidas IGBT vs SiC y temperatura de unión"><div class="cap">Panel (a): pérdidas de conducción vs corriente para SiC MOSFET (cuadrática) e IGBT (lineal). Panel (b): pérdidas de conmutación totales vs frecuencia de conmutación — el cruce IGBT/SiC ocurre entre 5 y 15 kHz según la tensión del bus. Panel (c): temperatura de unión vs potencia disipada para distintas resistencias térmicas totales. Panel (d): SOA del IGBT 1200 V con límite térmico y de pulso.</div></div>
 
 ## 10 — Recuperación inversa del diodo: pérdida extra y soluciones
 
@@ -407,7 +407,7 @@ $$E_{sw}(V,I) = E_{sw,test}\cdot\frac{V}{V_{dc,test}}\cdot\frac{I}{I_{c,test}}$$
 
 **Regla de diseño:** para IGBT de 1700 V a \(f_s=10\,\text{kHz}\), \(P_{sw}\approx P_{cond}\); a \(f_s=20\,\text{kHz}\) domina la conmutación → interesa SiC.
 
-<div class="cfig"><img src="../figuras/semiconductores-potencia-analisis.png" alt="Análisis de pérdidas, temperatura, IGBT vs SiC y fiabilidad de semiconductores de potencia"><div class="cap">(a) Pérdidas conducción+conmutación vs corriente para IGBT y SiC. (b) Pérdidas totales vs frecuencia de conmutación. (c) Red térmica RC de dos capas Foster. (d) Eficiencia total IGBT vs SiC vs frecuencia.</div></div>
+<div class="cfig"><img src="figuras/semiconductores-potencia-analisis.png" alt="Análisis de pérdidas, temperatura, IGBT vs SiC y fiabilidad de semiconductores de potencia"><div class="cap">(a) Pérdidas conducción+conmutación vs corriente para IGBT y SiC. (b) Pérdidas totales vs frecuencia de conmutación. (c) Red térmica RC de dos capas Foster. (d) Eficiencia total IGBT vs SiC vs frecuencia.</div></div>
 
 ## 12 — Temperatura de unión y red térmica
 

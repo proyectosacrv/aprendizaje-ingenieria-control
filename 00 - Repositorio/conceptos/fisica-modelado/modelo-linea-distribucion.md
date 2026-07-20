@@ -229,7 +229,7 @@ Para líneas aéreas de distribución de 20 kV, 10 km: \(R'\approx0.3\,\Omega/\t
 
 El modelo en cascada (varios segmentos π en serie) permite representar líneas largas sin resolver la ecuación de onda; con 5–10 segmentos el error < 1% hasta la frecuencia de resonancia del cable.
 
-<div class="cfig"><img src="../figuras/modelo-linea-distribucion-analisis.png" alt="Análisis de línea de distribución: modelo π, perfil de tensión, cargabilidad y efecto Ferranti"><div class="cap">(a) Modelo π con parámetros típicos aérea vs cable. (b) Perfil de tensión a lo largo de la línea a distintas cargas. (c) Diagrama de cargabilidad: límite térmico, límite de estabilidad y SIL. (d) Efecto Ferranti: sobretensión en vacío vs longitud de línea.</div></div>
+<div class="cfig"><img src="figuras/modelo-linea-distribucion-analisis.png" alt="Análisis de línea de distribución: modelo π, perfil de tensión, cargabilidad y efecto Ferranti"><div class="cap">(a) Modelo π con parámetros típicos aérea vs cable. (b) Perfil de tensión a lo largo de la línea a distintas cargas. (c) Diagrama de cargabilidad: límite térmico, límite de estabilidad y SIL. (d) Efecto Ferranti: sobretensión en vacío vs longitud de línea.</div></div>
 
 ## 8 — Caída de tensión y cargabilidad
 

@@ -214,7 +214,7 @@ Por tanto: \(X_{rms} = X_1\sqrt{1+\text{THD}^2}\).
 
 **Impacto en instrumentos:** un voltímetro de valor medio (rectificador + escalado por \(\pi/(2\sqrt{2})\)) solo mide correctamente señales sinusoidales. Con THD = 30% puede subestimar el RMS real hasta un 10%. Los instrumentos de verdadero RMS (true-RMS) calculan directamente la integral cuadrática.
 
-<div class="cfig"><img src="../figuras/valor-rms-factor-potencia-analisis.png" alt="RMS, potencias S/P/Q/D, FP vs THD y corrección del FP"><div class="cap">(a) Señal distorsionada (THD=30%) y su RMS vs la fundamental. (b) Triángulo de potencias extendido P/Q/S/D. (c) FP real vs THD para distintos valores de cosφ. (d) Corrección del FP con banco de condensadores: Q antes/después.</div></div>
+<div class="cfig"><img src="figuras/valor-rms-factor-potencia-analisis.png" alt="RMS, potencias S/P/Q/D, FP vs THD y corrección del FP"><div class="cap">(a) Señal distorsionada (THD=30%) y su RMS vs la fundamental. (b) Triángulo de potencias extendido P/Q/S/D. (c) FP real vs THD para distintos valores de cosφ. (d) Corrección del FP con banco de condensadores: Q antes/después.</div></div>
 
 ## 8 — Potencia aparente y potencia de distorsión
 

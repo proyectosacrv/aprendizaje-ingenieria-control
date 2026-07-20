@@ -152,7 +152,7 @@ $$ C_v(s) = K_p\!\left(1 + \frac{1}{T_i s}\right) = K_p\,\frac{T_i s + 1}{T_i s}
 
 **Verificación:** PM > 45° en el lazo de tensión; \( t_s < 20\,\text{ms} \) ante perturbación de carga; ausencia de sobreoscilación de tensión superior al 5 % ante un escalón de carga del 100 %.
 
-<div class="cfig"><img src="../figuras/compensador-adelanto-atraso-analisis.png" alt="Compensador adelanto-atraso: Bode, ratio alfa, efecto del escalón y margen de fase vs Kp"><div class="cap">Superior izquierdo: Bode del compensador de adelanto (fase positiva en la banda media) y de atraso (fase negativa, ganancia DC > 1). Superior derecho: ratio α en función del adelanto de fase máximo — α crece exponencialmente con φ_max. Inferior izquierdo: respuesta al escalón con y sin compensador de adelanto — el mayor PM produce menor sobreoscilación. Inferior derecho: margen de fase aproximado en función de Kp — la zona verde es la región de diseño válida.</div></div>
+<div class="cfig"><img src="figuras/compensador-adelanto-atraso-analisis.png" alt="Compensador adelanto-atraso: Bode, ratio alfa, efecto del escalón y margen de fase vs Kp"><div class="cap">Superior izquierdo: Bode del compensador de adelanto (fase positiva en la banda media) y de atraso (fase negativa, ganancia DC > 1). Superior derecho: ratio α en función del adelanto de fase máximo — α crece exponencialmente con φ_max. Inferior izquierdo: respuesta al escalón con y sin compensador de adelanto — el mayor PM produce menor sobreoscilación. Inferior derecho: margen de fase aproximado en función de Kp — la zona verde es la región de diseño válida.</div></div>
 
 ## Conceptos relacionados
 - [[loop-shaping]] · [[lugar-raices]] · [[diagrama-bode]] · [[margenes-estabilidad]] · [[controlador-pid]]

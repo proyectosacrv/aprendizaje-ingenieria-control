@@ -169,7 +169,7 @@ $$ \Delta SoC = \frac{P\cdot t}{E_{bess}}=\frac{500\,\text{kW}\times1\,\text{h}}
 $$ SoC_{final} = SoC_0 - \Delta SoC = 80\% - 50\% = 30\% $$
 Dentro del rango útil [20 %, 90 %]. El BESS puede continuar hasta \( SoC=20\% \) antes de reducir potencia, dando 10 % de margen adicional (\( 0.10\times1000\,\text{kWh}=100\,\text{kWh} \) extra a potencia reducida).
 
-<div class="cfig"><img src="../figuras/modelo-bateria-bess-analisis.png" alt="4 paneles: OCV LiFePO4, respuesta impulso corriente, EKF vs coulomb counting, capacidad vs ciclos"><div class="cap">
+<div class="cfig"><img src="figuras/modelo-bateria-bess-analisis.png" alt="4 paneles: OCV LiFePO4, respuesta impulso corriente, EKF vs coulomb counting, capacidad vs ciclos"><div class="cap">
 (a) Curva OCV(SoC) de LiFePO4: la región central 20–80 % es casi plana (~3.30–3.35 V/celda), dificultando la estimación de SoC por tensión; los extremos tienen mayor pendiente. (b) Respuesta de \(V_t\) a un escalón de corriente de descarga: la caída instantánea por \(R_0\), la subida gradual por \(R_1\text{-}C_1\) (τ₁) y \(R_2\text{-}C_2\) (τ₂), y la recuperación al cesar la corriente. (c) EKF vs coulomb counting en 1 h de ciclo: el coulomb counting deriva ~5 % de SoC; el EKF lo corrige usando la información de tensión. (d) Capacidad residual \(Q_{nom}(n)/Q_0\) vs número de ciclos para DOD=40 %, 60 %, 80 %: el EOL al 80 % de capacidad ocurre antes con DOD mayor.
 </div></div>
 
@@ -314,7 +314,7 @@ Para servicios de red: 15 min a 1 h (regulación de frecuencia), 1 a 4 h (peak s
 $$ E_{BESS} = 100\,\text{kW} \times 0.5\,\text{h} = 50\,\text{kWh} $$
 Con ventana útil de SOC del 70 %: capacidad instalada \( E_{inst} = 50/0.70 \approx 71.4\,\text{kWh} \). La potencia nominal del convertidor DC/AC debe ser al menos 100 kW con margen del 10–20 % para las pérdidas.
 
-<div class="cfig"><img src="../figuras/modelo-bateria-bess-analisis.png" alt="4 paneles: OCV LiFePO4, respuesta escalon corriente, SOC ciclo carga-descarga, degradacion vs temperatura"><div class="cap">
+<div class="cfig"><img src="figuras/modelo-bateria-bess-analisis.png" alt="4 paneles: OCV LiFePO4, respuesta escalon corriente, SOC ciclo carga-descarga, degradacion vs temperatura"><div class="cap">
 (a) Curva OCV(SOC) de Li-ion: polinomio cúbico típico; la tensión crece de ~3.0 V a ~4.0 V entre SOC=0 y SOC=100 %. (b) Respuesta de tensión ante un escalón de corriente de 50 A: caída instantánea por \(R_0\) y cola exponencial por la rama RC con \(\tau_1=10\,\text{s}\). (c) SOC en un ciclo de carga/descarga a corriente cuadrada: la integración coulombiana revela cómo el SOC oscila en torno al 50 % con los límites operativos al 20 % y 80 %. (d) Ciclos de vida útil en función de la temperatura: la regla de Arrhenius duplica la tasa de degradación cada 10 °C, pasando de ~3000 ciclos a 25 °C a menos de 1000 ciclos a 55 °C.
 </div></div>
 

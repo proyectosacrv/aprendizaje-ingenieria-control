@@ -204,7 +204,7 @@ $$v_{k+1}=v_k+\frac{T_s}{6}(k_1+2k_2+2k_3+k_4)$$
 
 **Escalado con potencia nominal:** los parámetros \(\mu\) (velocidad de convergencia de amplitud) y \(K_v\) (ganancia de acoplamiento de corriente) se escalan inversamente con la potencia nominal para que la dinámica sea la misma en cualquier tamaño de convertidor. La amplitud del ciclo límite determina la tensión nominal de salida: \(A_{ss}=2/\sqrt{\kappa}=V_{ref}\).
 
-<div class="cfig"><img src="../figuras/virtual-oscillator-control-analisis.png" alt="ciclo límite Van der Pol, arranque, sincronización de dos VOC y tabla comparativa"><div class="cap">(a) Ciclo límite de Van der Pol en el plano de fase: cualquier condición inicial converge al mismo atractor. (b) Tensión durante el arranque: convergencia al ciclo límite en ~50 ms. (c) Sincronización de dos VOC acoplados: a los 50 ms ambas tensiones son coherentes. (d) Tabla comparativa VOC/Droop/VSG.</div></div>
+<div class="cfig"><img src="figuras/virtual-oscillator-control-analisis.png" alt="ciclo límite Van der Pol, arranque, sincronización de dos VOC y tabla comparativa"><div class="cap">(a) Ciclo límite de Van der Pol en el plano de fase: cualquier condición inicial converge al mismo atractor. (b) Tensión durante el arranque: convergencia al ciclo límite en ~50 ms. (c) Sincronización de dos VOC acoplados: a los 50 ms ambas tensiones son coherentes. (d) Tabla comparativa VOC/Droop/VSG.</div></div>
 
 ## Errores comunes
 - Elegir \( \alpha \) muy grande: oscilaciones transitorias rápidas que saturan el convertidor.

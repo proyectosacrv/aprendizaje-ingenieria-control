@@ -192,7 +192,7 @@ print(f"Condición de J: {cond(J_num):.2e}")
 
 **Comparar con solución analítica:** cuando existe, la solución analítica del régimen permanente (p.ej. las expresiones de \( i_d, i_q \) en régimen para un PI) es la referencia para verificar que `fsolve` ha encontrado el equilibrio físico correcto y no un artefacto numérico.
 
-<div class="cfig"><img src="../figuras/equilibrio-fsolve-analisis.png" alt="convergencia Newton-Raphson, curva P-V con dos equilibrios, sensibilidad al punto inicial y error vs iteración"><div class="cap">Newton-Raphson: convergencia cuadrática del residuo. Curva P-V en red débil con dos puntos de equilibrio (solo el de alto voltaje es estable). Sensibilidad al punto inicial: distintas inicializaciones convergen a distintas raíces. Comparativa de convergencia entre Newton-Raphson, bisección y secante.</div></div>
+<div class="cfig"><img src="figuras/equilibrio-fsolve-analisis.png" alt="convergencia Newton-Raphson, curva P-V con dos equilibrios, sensibilidad al punto inicial y error vs iteración"><div class="cap">Newton-Raphson: convergencia cuadrática del residuo. Curva P-V en red débil con dos puntos de equilibrio (solo el de alto voltaje es estable). Sensibilidad al punto inicial: distintas inicializaciones convergen a distintas raíces. Comparativa de convergencia entre Newton-Raphson, bisección y secante.</div></div>
 
 ## 7 — Equilibrio del convertidor GFM: ecuaciones y solucion numerica
 

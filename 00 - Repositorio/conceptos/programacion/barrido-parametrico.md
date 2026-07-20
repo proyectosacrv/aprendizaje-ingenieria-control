@@ -130,7 +130,7 @@ esperado con \( M_s<2 \) y margen al límite > 20–30 %.
 
 **Regla práctica.** Usar al menos 100 puntos en el barrido para no perder franjas de inestabilidad estrechas (ver sección *Errores comunes*).
 
-<div class="cfig"><img src="../figuras/barrido-parametrico-analisis.png" alt="Barrido paramétrico 1D, 2D y trayectoria de eigenvalores"><div class="cap">Panel superior izquierdo: margen de fase vs Kp con zona verde de cumplimiento. Superior derecho: mapa de estabilidad 2D en el espacio (Kp, Ti). Inferior izquierdo: trayectoria de eigenvalores (verde=estable, rojo=inestable) durante barrido de ganancia. Inferior derecho: respuesta al escalón para distintos Kp.</div></div>
+<div class="cfig"><img src="figuras/barrido-parametrico-analisis.png" alt="Barrido paramétrico 1D, 2D y trayectoria de eigenvalores"><div class="cap">Panel superior izquierdo: margen de fase vs Kp con zona verde de cumplimiento. Superior derecho: mapa de estabilidad 2D en el espacio (Kp, Ti). Inferior izquierdo: trayectoria de eigenvalores (verde=estable, rojo=inestable) durante barrido de ganancia. Inferior derecho: respuesta al escalón para distintos Kp.</div></div>
 
 ## 4 — Barrido 2D: mapa de estabilidad
 

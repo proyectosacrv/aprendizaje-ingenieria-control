@@ -184,7 +184,7 @@ $$ \Delta i_L=\frac{(V_{in}-V_o)\,D}{L\,f_{sw}}=\frac{24\times0.5}{200\times10^{
 
 Rizado de tensión: \( \Delta v_C=\Delta i_L/(8\,C\,f_{sw})=1.2/(8\times200\times10^{-6}\times50000)=15\,\text{mV}\;\;(<0.1\%) \).
 
-<div class="cfig"><img src="../figuras/convertidor-dc-dc-analisis.png" alt="4 paneles: Bode Gvd buck, RHP zero boost, rizado iL y vC, diseño iterativo PM vs PI"><div class="cap">
+<div class="cfig"><img src="figuras/convertidor-dc-dc-analisis.png" alt="4 paneles: Bode Gvd buck, RHP zero boost, rizado iL y vC, diseño iterativo PM vs PI"><div class="cap">
 (a) Bode de \(G_{vd}(s)\) del buck para R=1 Ω, 2 Ω, 5 Ω: el pico de resonancia se amortigua con más carga; (b) cero RHP del boost \(f_z\) vs D: a D=0.88 la frecuencia del cero cae por debajo de 400 Hz, limitando el BW; (c) rizado de \(i_L\) y \(v_C\) en función de L y C para el buck 48→24 V; (d) PM del lazo de tensión vs ganancia \(K_p\) del PI: el margen cruza 45° al aumentar \(K_p\).
 </div></div>
 
@@ -386,7 +386,7 @@ $$ C_{min} = \frac{\Delta i_L}{8\,f_s \times 0.01\,V_o} $$
 | \(C_{min}\) | \(10 / (8 \times 20000 \times 2)\) | \(\approx 31\,\mu\text{F}\) → elegir **100 µF** |
 | \(\Delta v_C\) a \(C=100\,\mu\text{F}\) | \(10 / (8 \times 20000 \times 100\text{e-6})\) | **0.625 V** (0.31 %) |
 
-<div class="cfig"><img src="../figuras/convertidor-dc-dc-analisis.png" alt="4 paneles: rizado iL, ganancia buck y boost, Bode lazo corriente, criterio estabilidad CPL"><div class="cap">
+<div class="cfig"><img src="figuras/convertidor-dc-dc-analisis.png" alt="4 paneles: rizado iL, ganancia buck y boost, Bode lazo corriente, criterio estabilidad CPL"><div class="cap">
 (a) Rizado de \(i_L\) en el buck con \(D=0.6\): la corriente sube lineal durante ON y baja durante OFF; la media (rojo) es la corriente de carga. (b) Ganancia de conversión del buck (\(V_o/V_{in}=D\)) y boost (\(1/(1-D)\)): el boost diverge cuando \(D \to 1\). (c) Bode del lazo de corriente \(G_{il}(j\omega)\): pendiente \(-20\,\text{dB/dec}\) con cruce natural determinado por \(R/L\). (d) Criterio de estabilidad CPL: la impedancia de salida \(|Z_o|\) debe quedar por debajo de \(|Z_{CPL}|\) (línea roja) en toda la banda para garantizar margen estable (zona verde).
 </div></div>
 

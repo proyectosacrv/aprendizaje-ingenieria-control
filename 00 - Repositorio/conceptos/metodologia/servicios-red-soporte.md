@@ -156,7 +156,7 @@ Para los BESS, la FCR y la aFRR son los productos más atractivos porque requier
 
 **Tendencia:** la participación de recursos distribuidos (BESS residenciales, cargadores de VE, demanda flexible industrial) en los mercados de servicios ancillary está creciendo rápidamente a través de agregadores virtuales (VPP, *Virtual Power Plants*). El reto regulatorio es diseñar mercados que valoren adecuadamente la velocidad de respuesta, no solo la energía.
 
-<div class="cfig"><img src="../figuras/servicios-red-soporte-analisis.png" alt="Servicios de red: respuesta de frecuencia por etapas, curva Q(V), diagrama P-Q del inversor y precios de mercado FCR/aFRR"><div class="cap">Cuatro paneles: desglose de la respuesta de frecuencia en inercia sintética, FFR y FCR; curva Q(V) con dead band para soporte de tensión local; zona de operación P-Q del inversor limitada por corriente máxima; precio horario típico de los servicios FCR y aFRR en el mercado europeo de balance.</div></div>
+<div class="cfig"><img src="figuras/servicios-red-soporte-analisis.png" alt="Servicios de red: respuesta de frecuencia por etapas, curva Q(V), diagrama P-Q del inversor y precios de mercado FCR/aFRR"><div class="cap">Cuatro paneles: desglose de la respuesta de frecuencia en inercia sintética, FFR y FCR; curva Q(V) con dead band para soporte de tensión local; zona de operación P-Q del inversor limitada por corriente máxima; precio horario típico de los servicios FCR y aFRR en el mercado europeo de balance.</div></div>
 
 ## Conceptos relacionados
 - [[vsm-inercia]] · [[droop-control]] · [[fault-ride-through]] · [[ecuacion-oscilacion]] · [[grid-forming-vs-following]]

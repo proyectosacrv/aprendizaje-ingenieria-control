@@ -139,7 +139,7 @@ La **separación temporal** garantiza que los niveles no interfieran entre sí: 
 
 **Transición isla ↔ red:** al reconectar a la red, la microrred debe sincronizarse en fase, frecuencia y tensión antes de cerrar el interruptor. El nivel secundario gestiona esta sincronización ajustando gradualmente la frecuencia de referencia del primario hasta igualar la de la red, minimizando el transitorio de reconexión.
 
-<div class="cfig"><img src="../figuras/control-jerarquico-microrred-analisis.png" alt="Control jerárquico de microrred: primario droop, restauración secundaria y despacho terciario"><div class="cap">Cuatro paneles: pirámide de control jerárquico con las cuatro capas y sus escalas de tiempo; característica droop P-f del control primario; restauración de frecuencia por el nivel secundario ante una perturbación de carga; perfil de generación solar, demanda y SOC del BESS en un ciclo de 24 horas gestionado por el EMS terciario.</div></div>
+<div class="cfig"><img src="figuras/control-jerarquico-microrred-analisis.png" alt="Control jerárquico de microrred: primario droop, restauración secundaria y despacho terciario"><div class="cap">Cuatro paneles: pirámide de control jerárquico con las cuatro capas y sus escalas de tiempo; característica droop P-f del control primario; restauración de frecuencia por el nivel secundario ante una perturbación de carga; perfil de generación solar, demanda y SOC del BESS en un ciclo de 24 horas gestionado por el EMS terciario.</div></div>
 
 ## Conceptos relacionados
 - [[droop-control]] · [[droop-dc]] · [[microrred-hibrida-ac-dc]] · [[servicios-red-soporte]] · [[vsm-inercia]]
