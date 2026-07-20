@@ -188,11 +188,12 @@ header h1{margin:0;font-size:19px}header .sub{color:var(--muted);font-size:12.5p
 .list{width:420px;flex:0 0 420px;border-right:1px solid var(--line);overflow-y:auto;max-height:calc(100vh - 120px);
   transition:flex-basis .2s ease,width .2s ease}
 body.list-collapsed #list{flex-basis:0;width:0;min-width:0;border-right:0;overflow:hidden}
-.listtoggle{position:absolute;top:8px;left:407px;z-index:9;width:26px;height:36px;line-height:34px;text-align:center;
-  border:1px solid var(--line);background:var(--panel2);color:var(--muted);border-radius:8px;cursor:pointer;
-  font-size:12px;transition:left .2s ease}
-.listtoggle:hover{color:var(--ink);border-color:var(--acc)}
-body.list-collapsed .listtoggle{left:8px}
+.listtoggle{position:absolute;top:0;bottom:0;left:420px;z-index:9;width:15px;
+  display:flex;align-items:center;justify-content:center;
+  border:0;border-right:1px solid var(--line);background:var(--panel);color:var(--muted);
+  cursor:pointer;font-size:10px;transition:left .2s ease,background .15s,color .15s}
+.listtoggle:hover{background:var(--panel2);color:var(--acc)}
+body.list-collapsed .listtoggle{left:0}
 #list.hide ~ .listtoggle{display:none}
 .count{padding:10px 18px;color:var(--muted);font-size:12px;border-bottom:1px solid var(--line)}
 .card{padding:13px 18px;border-bottom:1px solid var(--line);cursor:pointer}
