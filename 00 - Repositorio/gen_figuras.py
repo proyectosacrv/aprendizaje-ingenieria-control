@@ -14822,10 +14822,10 @@ def _btb_diagramas_bloques():
     _savefig(fig, "btb-diagramas-bloques")
 
     # --- Figura explicativa de tensiones ---
-    fig2, ax3 = plt.subplots(1, 1, figsize=(11, 6))
-    ax3.set_xlim(0, 12); ax3.set_ylim(0, 8); ax3.axis('off')
+    fig2, ax3 = plt.subplots(1, 1, figsize=(12, 7))
+    ax3.set_xlim(0, 12); ax3.set_ylim(0, 9); ax3.axis('off')
     ax3.set_title('Composición de la tensión de salida del convertidor — eje d',
-                  fontsize=12, fontweight='bold', pad=12)
+                  fontsize=12, fontweight='bold', pad=10)
 
     def bx(x, y, w, h, txt, col):
         ax3.add_patch(mpatches.FancyBboxPatch((x-w/2, y-h/2), w, h,
@@ -14884,7 +14884,7 @@ def _btb_diagramas_bloques():
              ha='center', va='center', fontsize=8.5,
              bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='#AED6F1'))
 
-    ax3.text(7.0, 7.2,
+    ax3.text(9.7, 7.2,
              r'$v_{d,g}$: tensión de red (feedforward)'+'\n'
              r'Se conoce por medida directa'+'\n'
              r'Cancela el término $-v_{d,g}$ de la planta',
@@ -14898,10 +14898,10 @@ def _btb_diagramas_bloques():
              ha='center', va='center', fontsize=8.5,
              bbox=dict(boxstyle='round', facecolor='#FEF9E7', edgecolor='darkorange'))
 
-    ax3.text(5.2, 7.5,
+    ax3.text(6.0, 8.5,
              r'$v_{d,conv}^* = v_{d,PI} + v_{d,g} - \omega_0 L i_q$',
-             ha='center', va='center', fontsize=11, color='darkred', fontweight='bold',
-             bbox=dict(boxstyle='round', facecolor='#FDEDEC', edgecolor='red', lw=1.5))
+             ha='center', va='center', fontsize=12, color='darkred', fontweight='bold',
+             bbox=dict(boxstyle='round,pad=0.4', facecolor='#FDEDEC', edgecolor='red', lw=1.5))
 
     plt.tight_layout()
     _savefig(fig2, "btb-tensiones-explicacion")
