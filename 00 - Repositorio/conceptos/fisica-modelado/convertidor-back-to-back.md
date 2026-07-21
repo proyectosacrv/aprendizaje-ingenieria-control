@@ -433,9 +433,10 @@ $$ \boxed{\omega_{dc} = \frac{\omega_{ci}}{10}} $$
 Aquí \(\omega_{ci}\) **no es libre**: ya se fijó al diseñar el lazo de corriente (apartado 2.7), acotada por
 arriba por la conmutación (\(\omega_{ci} < \omega_{sw}/10\), para no excitar el rizado del PWM) y por abajo
 por esta misma separación (\(\omega_{ci} > 10\,\omega_{dc}\)). En el ejemplo \(\omega_{ci}=1885\) rad/s
-(\(=\omega_{sw}/10\)), luego \(\omega_{dc}=188.5\) rad/s. Consecuencia clave para el Paso 6: el polo del lazo
+(\(=\omega_{sw}/10\)), luego \(\omega_{dc}=188.5\) rad/s. Además, el polo del lazo
 de corriente cerrado \(G_{cl}=\omega_{ci}/(s+\omega_{ci})\) queda en \(\omega_{ci}=10\,\omega_{dc}\), es decir
-**un factor 10 por encima** del cruce; su retardo de fase en el cruce es solo
+**un factor 10 por encima** del cruce. Como todo polo de primer orden \(1/(1+s/\omega_{ci})\) aporta una
+fase \(-\arctan(\omega/\omega_{ci})\), su retardo en el cruce es solo
 \(\arctan(\omega_{dc}/\omega_{ci})=\arctan(0.1)\approx 5.7°\) (pequeño, pero no nulo).
 
 **Paso 5 — Ganancia \(K_{p,dc}\) desde la condición de cruce.** Imponiendo \(|L_{dc}(j\omega_{dc})| = 1\) con
@@ -464,12 +465,26 @@ escalas, \(a=\omega_{ci}/\omega_{dc}=10\):
 
 $$ T_{i,dc}\,\omega_{dc}=a=10 \quad\Longrightarrow\quad \boxed{T_{i,dc} = \frac{10}{\omega_{dc}}} $$
 
-El margen de fase, restando ya el retardo del lazo de corriente (Paso 4):
+**De dónde sale la resta de arcotangentes.** Hasta aquí la fase del Paso 3 (\(\angle L_{dc}=-180°+\arctan(T_{i,dc}\omega)\))
+solo contaba el doble integrador y el cero del PI. Pero el lazo real lleva **además** el polo del lazo de
+corriente \(G_{cl}=\dfrac{\omega_{ci}}{s+\omega_{ci}}\) (Paso 4). Ese polo, igual que cualquier factor
+\(1/(1+s/\omega_{ci})\), aporta fase \(-\arctan(\omega/\omega_{ci})\) (negativa porque está en el
+**denominador**, al revés que el cero del PI). La fase completa del lazo es entonces la **suma** de las tres
+contribuciones:
 
-$$ PM_{dc} = \arctan(a) - \arctan\frac{1}{a} = \arctan 10 - \arctan 0.1 \approx 84.3° - 5.7° \approx 79° $$
+$$ \angle L_{dc}(j\omega) = \underbrace{-180°}_{\text{doble integrador }1/s^2} + \underbrace{\arctan(T_{i,dc}\,\omega)}_{\text{cero PI (avanza)}} - \underbrace{\arctan(\omega/\omega_{ci})}_{\text{polo lazo corr. (retrasa)}} $$
 
-un lazo **muy amortiguado y robusto** (lo que interesa frente a la CPL). El nombre "óptimo simétrico" viene
-precisamente de esa colocación simétrica del cero y el polo alrededor del cruce.
+El margen de fase es lo que le sobra a la fase sobre \(-180°\) en el cruce, \(PM_{dc}=180°+\angle L_{dc}(j\omega_{dc})\).
+El \(-180°\) se cancela y quedan las **dos** arcotangentes; evaluando en \(\omega_{dc}\) con
+\(T_{i,dc}\,\omega_{dc}=a\) (recién obtenido) y \(\omega_{dc}/\omega_{ci}=1/a\) (Paso 4):
+
+$$ PM_{dc} = \underbrace{\arctan(T_{i,dc}\,\omega_{dc})}_{=\,\arctan a\ \text{(cero PI)}} - \underbrace{\arctan(\omega_{dc}/\omega_{ci})}_{=\,\arctan(1/a)\ \text{(polo corr.)}} = \arctan 10 - \arctan 0.1 \approx 84.3° - 5.7° \approx 79° $$
+
+Es decir: el \(+\arctan(a)\) es la fase que **avanza el cero del PI** en el cruce (la que da el margen), y el
+\(-\arctan(1/a)\) es la fase que **retrasa el polo del lazo de corriente** (pequeña porque ese polo está un
+factor \(a=10\) por encima). El resultado es un lazo **muy amortiguado y robusto** (lo que interesa frente a
+la CPL). El nombre "óptimo simétrico" viene precisamente de esa colocación simétrica del cero y el polo
+alrededor del cruce.
 
 <div class="cfig"><img src="figuras/btb-lazo-tension-bode.png" alt="Bode del lazo de tensión DC: doble integrador de pendiente -40 dB/dec que pasa a -20 dB/dec en el cero del PI, cruce en omega_dc entre el cero y el polo del lazo de corriente colocados simetricamente, con margen de fase de 79 grados"><div class="cap">Lazo de tensión DC. La planta \(2/(C_{dc}s)\) más el integral del PI dan un doble integrador (\(1/s^2\), \(-40\) dB/dec y \(-180°\)); el cero del PI en \(\omega_{dc}/10\) sube la pendiente a \(-20\) dB/dec y **levanta la fase**. El cero (\(\omega_{dc}/10\)) y el polo del lazo de corriente (\(\omega_{ci}=10\,\omega_{dc}\)) quedan **simétricos** respecto al cruce \(\omega_{dc}\) (media geométrica), dando el margen \(PM_{dc}=\arctan 10-\arctan 0.1\approx 79°\).</div></div>
 
