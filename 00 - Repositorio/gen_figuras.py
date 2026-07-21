@@ -15157,6 +15157,71 @@ def _btb_lazo_dc():
     _savefig(fig, "btb-lazo-dc")
 
 
+def _optimo_simetrico():
+    """Bode de la ganancia de lazo del optimo simetrico: el cero del PI y el polo
+    de la planta quedan simetricos respecto a la frecuencia de cruce (media
+    geometrica), y la fase alcanza su maximo (maximo PM) justo en el cruce."""
+    import matplotlib.pyplot as plt
+
+    T_sig = 1.0          # retardo pequeno equivalente T_Sigma
+    a = 3.0              # factor del optimo simetrico
+    Ti = a**2 * T_sig    # tiempo integral
+    Ks = 1.0
+    Kp = 1.0/(a*Ks*T_sig)
+
+    w = np.logspace(-2, 2, 3000)
+    s = 1j*w
+    L = Kp*Ks*(1+s*Ti)/(s**2 * Ti * (1+s*T_sig))
+    mag = 20*np.log10(np.abs(L))
+    ph = np.degrees(np.unwrap(np.angle(L)))
+    if ph[0] > 0:
+        ph -= 360.0
+
+    wz = 1.0/Ti          # cero del PI
+    wc = 1.0/(a*T_sig)   # cruce (media geometrica de wz y wp)
+    wp = 1.0/T_sig       # polo de la planta
+    PM = np.degrees(np.arctan(a) - np.arctan(1.0/a))
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 7.5), sharex=True)
+    fig.suptitle('Óptimo simétrico: Bode de la ganancia de lazo  '
+                 r'$L(s)=K_p K_s\dfrac{1+sT_i}{s^2 T_i(1+sT_\Sigma)}$  (a = 3)',
+                 fontsize=12, fontweight='bold')
+
+    lines = [(wz, r'$1/T_i$ (cero PI)', 'darkgreen'),
+             (wc, r'$\omega_c$ (cruce)', 'darkred'),
+             (wp, r'$1/T_\Sigma$ (polo planta)', 'darkorange')]
+
+    ax1.semilogx(w, mag, color='navy', lw=2.2)
+    ax1.axhline(0, color='gray', lw=0.9, ls='--')
+    for wx, lbl, col in lines:
+        ax1.axvline(wx, color=col, lw=1.3, ls=':')
+        ax1.text(wx, mag.max()-2, lbl, rotation=90, va='top', ha='right',
+                 fontsize=8.5, color=col)
+    ax1.text(0.02, 0.15, '−40 dB/dec', transform=ax1.transAxes, fontsize=8.5, color='gray')
+    ax1.text(0.44, 0.55, '−20 dB/dec', transform=ax1.transAxes, fontsize=8.5, color='gray')
+    ax1.text(0.80, 0.30, '−40 dB/dec', transform=ax1.transAxes, fontsize=8.5, color='gray')
+    ax1.set_ylabel('|L|  (dB)'); ax1.grid(True, which='both', alpha=0.3)
+
+    ax2.semilogx(w, ph, color='navy', lw=2.2)
+    ax2.axhline(-180, color='gray', lw=0.9, ls='--')
+    for wx, lbl, col in lines:
+        ax2.axvline(wx, color=col, lw=1.3, ls=':')
+    ax2.plot([wc], [-180+PM], 'o', color='darkred', ms=7)
+    ax2.annotate(f'PM = arctan(a) − arctan(1/a) = {PM:.0f}°',
+                 xy=(wc, -180+PM), xytext=(wc*1.6, -180+PM+22),
+                 color='darkred', fontsize=10,
+                 arrowprops=dict(arrowstyle='->', color='darkred', lw=1.4))
+    ax2.set_ylabel('∠L  (°)'); ax2.set_xlabel('ω  (rad/s, escala log)')
+    ax2.grid(True, which='both', alpha=0.3)
+
+    fig.text(0.5, 0.005,
+             r'$\omega_c$ es la media geométrica de $1/T_i$ y $1/T_\Sigma$ → el Bode es simétrico '
+             'y la fase alcanza su máximo (máximo PM) justo en el cruce',
+             ha='center', fontsize=9, color='gray')
+    plt.tight_layout(rect=[0, 0.03, 1, 0.96])
+    _savefig(fig, "optimo-simetrico-bode", dpi=160)
+
+
 def main():
     pref = sys.argv[1] if len(sys.argv) > 1 else None
     n = 0
@@ -15592,6 +15657,9 @@ def main():
         n += 1
     if pref is None or "fotovoltaica-po-flowchart".startswith(pref):
         _fv_po_flowchart()
+        n += 1
+    if pref is None or "optimo-simetrico-bode".startswith(pref):
+        _optimo_simetrico()
         n += 1
     if pref is None or "deteccion-islanding-modos".startswith(pref):
         _islanding_modos()

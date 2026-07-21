@@ -9,7 +9,7 @@ objetivos: [desacoplar dos sistemas AC con flujo de potencia bidireccional, mode
 tags: [back-to-back, vsc, bus-dc, hvdc, eolica, full-converter, bidireccional, modelado]
 fecha_creacion: 2026-06-10
 fecha_actualizacion: 2026-07-14
-relacionados: [convertidor-vsc, dinamica-bus-dc, control-tension-bus-dc, eolica-mppt, modelo-bateria-bess]
+relacionados: [convertidor-vsc, dinamica-bus-dc, control-tension-bus-dc, eolica-mppt, modelo-bateria-bess, optimo-simetrico]
 referencias:
   - "Yazdani, Iravani, Voltage-Sourced Converters in Power Systems, Wiley 2010"
   - "Teodorescu, Liserre, Rodríguez, Grid Converters for PV and Wind Power Systems, Wiley 2011"
@@ -321,14 +321,38 @@ $$ L_{dc}(s) = C_{dc}^{ctrl}(s)\,G_{dc}(s) = K_{p,dc}\frac{T_{i,dc}s+1}{T_{i,dc}
 La planta es un integrador y el PI añade otro → **doble integrador** (\(1/s^2\)) en lazo abierto. Sin el
 cero, la fase sería \(-180°\) a todas las frecuencias (margen nulo, inestable). El cero del PI
 \(s = -1/T_{i,dc}\) aporta la fase avanzante que estabiliza; su posición relativa a \(\omega_{dc}\) fija el
-margen. Este es el caso típico del **óptimo simétrico**.
+margen. Este es el caso típico del **[[optimo-simetrico|óptimo simétrico]]**.
 
-**Paso 3 — Módulo y fase en la frecuencia de cruce.** Evaluando en \(s=j\omega\):
+**Paso 3 — Módulo y fase de \(L_{dc}(j\omega)\) (de dónde sale cada término).** Se sustituye \(s=j\omega\) en
+\(L_{dc}(s) = \dfrac{2K_{p,dc}}{C_{dc}T_{i,dc}}\cdot\dfrac{T_{i,dc}s+1}{s^2}\).
 
-$$ |L_{dc}(j\omega)| = \frac{2K_{p,dc}}{C_{dc}T_{i,dc}}\cdot\frac{\sqrt{1+(T_{i,dc}\omega)^2}}{\omega^2},
-   \qquad \angle L_{dc}(j\omega) = -180° + \arctan(T_{i,dc}\omega) $$
+*Módulo.* El módulo de un producto/cociente es el producto/cociente de los módulos, así que se trata cada
+factor por separado:
 
-Por encima del cero (\(T_{i,dc}\omega \gg 1\)) el módulo se aproxima a \(|L_{dc}| \approx \dfrac{2K_{p,dc}}{C_{dc}\,\omega}\).
+- La constante \(\dfrac{2K_{p,dc}}{C_{dc}T_{i,dc}}\) es real positiva → su módulo es ella misma.
+- El numerador \(1+j\,T_{i,dc}\omega\) es un complejo de parte real \(1\) y parte imaginaria \(T_{i,dc}\omega\);
+  su módulo es \(\sqrt{\text{Re}^2+\text{Im}^2}=\sqrt{1+(T_{i,dc}\omega)^2}\) → **de ahí la raíz**.
+- El denominador \(s^2=(j\omega)^2=j^2\omega^2=-\omega^2\); su módulo es \(\omega^2\) → **de ahí el \(/\omega^2\)**.
+
+$$ |L_{dc}(j\omega)| = \frac{2K_{p,dc}}{C_{dc}T_{i,dc}}\cdot\frac{\sqrt{1+(T_{i,dc}\omega)^2}}{\omega^2} $$
+
+*Fase.* La fase de un producto/cociente es la suma/resta de las fases:
+
+- La constante positiva aporta \(0°\).
+- El numerador \(1+j\,T_{i,dc}\omega\) tiene fase \(\arctan\dfrac{\text{Im}}{\text{Re}}=\arctan(T_{i,dc}\omega)\)
+  → **de ahí el arcotangente**.
+- El denominador \(s^2=(j\omega)^2\): \(j\omega\) tiene fase \(+90°\), al cuadrado \(+180°\); como está en el
+  denominador, **resta** \(180°\) → **de ahí el \(-180°\)**.
+
+$$ \angle L_{dc}(j\omega) = 0 + \arctan(T_{i,dc}\omega) - 180° = -180° + \arctan(T_{i,dc}\omega) $$
+
+*Aproximación por encima del cero.* En el cruce se tendrá \(T_{i,dc}\omega_{dc}=4\gg1\) (Paso 5), así que
+dentro de la raíz \(1+(T_{i,dc}\omega)^2\approx(T_{i,dc}\omega)^2\) y \(\sqrt{\;}\approx T_{i,dc}\omega\).
+Sustituyendo, el \(T_{i,dc}\) se cancela:
+
+$$ |L_{dc}(j\omega)| \approx \frac{2K_{p,dc}}{C_{dc}T_{i,dc}}\cdot\frac{T_{i,dc}\omega}{\omega^2} = \frac{2K_{p,dc}}{C_{dc}\,\omega} $$
+
+válida **cerca del cruce**, porque este queda por encima del cero del PI.
 
 **Paso 4 — Ganancia \(K_{p,dc}\) desde la condición de cruce.** Imponiendo \(|L_{dc}(j\omega_{dc})| = 1\)
 en la frecuencia de cruce deseada \(\omega_{dc}\):
@@ -336,8 +360,8 @@ en la frecuencia de cruce deseada \(\omega_{dc}\):
 $$ \frac{2K_{p,dc}}{C_{dc}\,\omega_{dc}} = 1 \quad\Longrightarrow\quad \boxed{K_{p,dc} = \frac{C_{dc}\,\omega_{dc}}{2}} $$
 
 **Paso 5 — Tiempo integral \(T_{i,dc}\) desde el margen de fase.** El margen de fase es
-\(PM_{dc} = 180° + \angle L_{dc}(j\omega_{dc}) = \arctan(T_{i,dc}\,\omega_{dc})\). Para el óptimo simétrico
-(\(\zeta = 0.707\), \(PM \approx 76°\)) se sitúa el cero un factor 4 por debajo del cruce:
+\(PM_{dc} = 180° + \angle L_{dc}(j\omega_{dc}) = \arctan(T_{i,dc}\,\omega_{dc})\). Para el
+[[optimo-simetrico|óptimo simétrico]] (\(\zeta = 0.707\), \(PM \approx 76°\)) se sitúa el cero un factor 4 por debajo del cruce:
 
 $$ T_{i,dc}\,\omega_{dc} = 4 \quad\Longrightarrow\quad \boxed{T_{i,dc} = \frac{4}{\omega_{dc}}},
    \qquad PM_{dc} = \arctan(4) \approx 76° $$

@@ -9,7 +9,7 @@ objetivos: [obtener las ganancias de un PI a partir del ancho de banda]
 tags: [PI, PID, sintonia, cancelacion-polo, modulo-optimo, Ziegler-Nichols, IMC, especificacion-PM]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-07-02
-relacionados: [metodos-sintesis-control, control-cascada, especificaciones-control, loop-shaping]
+relacionados: [metodos-sintesis-control, control-cascada, especificaciones-control, loop-shaping, optimo-simetrico]
 referencias:
   - "Aström, Hägglund, Advanced PID Control, ISA 2006"
   - "Rivera et al., Internal Model Control. A Unifying Review, Ind. Eng. Chem. Res. 1986"
