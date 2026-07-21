@@ -424,24 +424,54 @@ $$ |L_{dc}(j\omega)| \approx \frac{2K_{p,dc}}{C_{dc}T_{i,dc}}\cdot\frac{T_{i,dc}
 
 Esta forma simplificada es válida en toda la banda por encima del cero del PI (\(\omega > 1/T_{i,dc}\)).
 
-**Paso 4 — Ganancia \(K_{p,dc}\) desde la condición de cruce.** Imponiendo \(|L_{dc}(j\omega_{dc})| = 1\)
-en la frecuencia de cruce deseada \(\omega_{dc}\):
-
-$$ \frac{2K_{p,dc}}{C_{dc}\,\omega_{dc}} = 1 \quad\Longrightarrow\quad \boxed{K_{p,dc} = \frac{C_{dc}\,\omega_{dc}}{2}} $$
-
-**Paso 5 — Tiempo integral \(T_{i,dc}\) desde el margen de fase.** El margen de fase es
-\(PM_{dc} = 180° + \angle L_{dc}(j\omega_{dc}) = \arctan(T_{i,dc}\,\omega_{dc})\). Para el
-[[optimo-simetrico|óptimo simétrico]] (\(\zeta = 0.707\), \(PM \approx 76°\)) se sitúa el cero un factor 4 por debajo del cruce:
-
-$$ T_{i,dc}\,\omega_{dc} = 4 \quad\Longrightarrow\quad \boxed{T_{i,dc} = \frac{4}{\omega_{dc}}},
-   \qquad PM_{dc} = \arctan(4) \approx 76° $$
-
-**Paso 6 — Separación de escalas.** El lazo DC debe ser mucho más lento que el de corriente para que este
-se vea "instantáneo":
+**Paso 4 — Separación de escalas: dónde se coloca el cruce \(\omega_{dc}\).** El diseño del lazo DC ha
+supuesto que el lazo de corriente interno responde "al instante" (\(G_{cl}\approx 1\)). Para que eso sea
+cierto, el lazo DC debe ser **mucho más lento** que el de corriente; la regla habitual es un factor 10:
 
 $$ \boxed{\omega_{dc} = \frac{\omega_{ci}}{10}} $$
 
-<div class="cfig"><img src="figuras/btb-lazo-tension-bode.png" alt="Bode del lazo de tensión DC: doble integrador de pendiente -40 dB/dec que pasa a -20 dB/dec en el cero del PI, cruce en omega_dc y fase que sube desde -180 grados formando el margen de fase de 76 grados"><div class="cap">Lazo de tensión DC. La planta \(2/(C_{dc}s)\) más el integral del PI dan un doble integrador (\(1/s^2\), \(-40\) dB/dec y \(-180°\)); el cero del PI en \(1/T_{i,dc}\) sube la pendiente a \(-20\) dB/dec y **levanta la fase**, dando el margen \(PM_{dc}=\arctan(T_{i,dc}\omega_{dc})=\arctan 4\approx 76°\) en el cruce \(\omega_{dc}\).</div></div>
+Aquí \(\omega_{ci}\) **no es libre**: ya se fijó al diseñar el lazo de corriente (apartado 2.7), acotada por
+arriba por la conmutación (\(\omega_{ci} < \omega_{sw}/10\), para no excitar el rizado del PWM) y por abajo
+por esta misma separación (\(\omega_{ci} > 10\,\omega_{dc}\)). En el ejemplo \(\omega_{ci}=1885\) rad/s
+(\(=\omega_{sw}/10\)), luego \(\omega_{dc}=188.5\) rad/s. Consecuencia clave para el Paso 6: el polo del lazo
+de corriente cerrado \(G_{cl}=\omega_{ci}/(s+\omega_{ci})\) queda en \(\omega_{ci}=10\,\omega_{dc}\), es decir
+**un factor 10 por encima** del cruce; su retardo de fase en el cruce es solo
+\(\arctan(\omega_{dc}/\omega_{ci})=\arctan(0.1)\approx 5.7°\) (pequeño, pero no nulo).
+
+**Paso 5 — Ganancia \(K_{p,dc}\) desde la condición de cruce.** Imponiendo \(|L_{dc}(j\omega_{dc})| = 1\) con
+la forma simplificada del Paso 3:
+
+$$ \frac{2K_{p,dc}}{C_{dc}\,\omega_{dc}} = 1 \quad\Longrightarrow\quad \boxed{K_{p,dc} = \frac{C_{dc}\,\omega_{dc}}{2}} $$
+
+**Paso 6 — Tiempo integral \(T_{i,dc}\): el óptimo simétrico y su "factor".** El margen de fase (Paso 3) es
+\(PM_{dc} = 180° + \angle L_{dc}(j\omega_{dc}) = \arctan(T_{i,dc}\,\omega_{dc})\), menos el retardo del lazo
+de corriente. Depende **solo** del producto \(T_{i,dc}\,\omega_{dc}\), que tiene un significado geométrico:
+como el cero del PI está en \(\omega_z=1/T_{i,dc}\),
+
+$$ T_{i,dc}\,\omega_{dc} = \frac{\omega_{dc}}{1/T_{i,dc}} = \frac{\omega_{dc}}{\omega_z} $$
+
+es **cuántas veces el cruce está por encima del cero del PI** (o, al revés, cuántos factores está el cero
+por debajo del cruce). Por eso "situar el cero un factor \(a\) por debajo del cruce" **es** fijar
+\(T_{i,dc}\,\omega_{dc}=a\); y entonces la fase avanzante que aporta el cero en el cruce —que **es** el
+margen de fase, porque el doble integrador solo daría \(-180°\) (margen cero)— vale \(\arctan(a)\).
+
+¿Qué \(a\) elegir? El **[[optimo-simetrico|óptimo simétrico]]** coloca el cero del PI y el polo rápido del
+lazo (aquí el del lazo de corriente, en \(\omega_{ci}\)) **simétricos** respecto al cruce en escala
+logarítmica: el cruce es su **media geométrica**. Del Paso 4, ese polo está un factor 10 por **encima** del
+cruce (\(\omega_{ci}=10\,\omega_{dc}\)); la simetría obliga a poner el cero un factor 10 por **debajo**
+(\(\omega_z=\omega_{dc}/10\)), es decir \(a=10\). Nótese que \(a\) coincide con la razón de separación de
+escalas, \(a=\omega_{ci}/\omega_{dc}=10\):
+
+$$ T_{i,dc}\,\omega_{dc}=a=10 \quad\Longrightarrow\quad \boxed{T_{i,dc} = \frac{10}{\omega_{dc}}} $$
+
+El margen de fase, restando ya el retardo del lazo de corriente (Paso 4):
+
+$$ PM_{dc} = \arctan(a) - \arctan\frac{1}{a} = \arctan 10 - \arctan 0.1 \approx 84.3° - 5.7° \approx 79° $$
+
+un lazo **muy amortiguado y robusto** (lo que interesa frente a la CPL). El nombre "óptimo simétrico" viene
+precisamente de esa colocación simétrica del cero y el polo alrededor del cruce.
+
+<div class="cfig"><img src="figuras/btb-lazo-tension-bode.png" alt="Bode del lazo de tensión DC: doble integrador de pendiente -40 dB/dec que pasa a -20 dB/dec en el cero del PI, cruce en omega_dc entre el cero y el polo del lazo de corriente colocados simetricamente, con margen de fase de 79 grados"><div class="cap">Lazo de tensión DC. La planta \(2/(C_{dc}s)\) más el integral del PI dan un doble integrador (\(1/s^2\), \(-40\) dB/dec y \(-180°\)); el cero del PI en \(\omega_{dc}/10\) sube la pendiente a \(-20\) dB/dec y **levanta la fase**. El cero (\(\omega_{dc}/10\)) y el polo del lazo de corriente (\(\omega_{ci}=10\,\omega_{dc}\)) quedan **simétricos** respecto al cruce \(\omega_{dc}\) (media geométrica), dando el margen \(PM_{dc}=\arctan 10-\arctan 0.1\approx 79°\).</div></div>
 
 ### 3.3 — Control: feedforward de potencia y diagrama de bloques
 
@@ -810,16 +840,16 @@ $$ \omega_{dc} = \omega_{ci}/10 = 188.5\,\text{rad/s} $$
 
 $$ K_{p,dc} = \frac{C_{dc}\,\omega_{dc}}{2} = \frac{0.020\times188.5}{2} = 1.885\,\text{A/V}^2 $$
 
-$$ T_{i,dc} = \frac{4}{\omega_{dc}} = \frac{4}{188.5} = 21.2\,\text{ms} $$
+$$ T_{i,dc} = \frac{a}{\omega_{dc}} = \frac{10}{188.5} = 53.1\,\text{ms} \qquad (a=\omega_{ci}/\omega_{dc}=10) $$
 
-Verificar margen de fase del lazo DC. La FdT de lazo abierto:
+Verificar margen de fase del lazo DC. La FdT de lazo abierto (con el polo del lazo de corriente):
 
-$$ L_{dc}(s) = \frac{2K_{p,dc}}{C_{dc}T_{i,dc}} \cdot \frac{T_{i,dc}s+1}{s^2} $$
+$$ L_{dc}(s) = \frac{2K_{p,dc}}{C_{dc}T_{i,dc}} \cdot \frac{T_{i,dc}s+1}{s^2}\cdot\frac{\omega_{ci}}{s+\omega_{ci}} $$
 
-En \(s = j\omega_{dc}\): el término \(T_{i,dc}s+1\) contribuye \(\arctan(\omega_{dc}T_{i,dc}) = \arctan(4) = 76°\)
-de fase avanzante. La fase de lazo abierto en \(\omega_{dc}\):
+En \(s = j\omega_{dc}\): el cero \(T_{i,dc}s+1\) aporta \(\arctan(\omega_{dc}T_{i,dc}) = \arctan(10) = 84.3°\)
+de fase avanzante, y el polo del lazo de corriente resta \(\arctan(\omega_{dc}/\omega_{ci})=\arctan(0.1)=5.7°\):
 
-$$ \angle L_{dc}(j\omega_{dc}) = -180° + 76° = -104° \quad \Rightarrow \quad PM_{dc} = 76° \checkmark $$
+$$ \angle L_{dc}(j\omega_{dc}) = -180° + 84.3° - 5.7° = -101.4° \quad \Rightarrow \quad PM_{dc} = 78.6° \approx 79° \checkmark $$
 
 **Paso 3 — Verificación con CPL:**
 
@@ -862,8 +892,8 @@ ancho de banda), pero elimina el ruido de medida del MSC.
 | \(T_{i,i}\) | \(L/R\) | 5 ms |
 | \(\omega_{dc}\) | \(\omega_{ci}/10\) | 188.5 rad/s |
 | \(K_{p,dc}\) | \(C_{dc}\omega_{dc}/2\) | 1.885 A/V² |
-| \(T_{i,dc}\) | \(4/\omega_{dc}\) | 21.2 ms |
-| \(PM_{dc}\) | \(\arctan(\omega_{dc}T_{i,dc})\) | ~76° |
+| \(T_{i,dc}\) | \(a/\omega_{dc}\), \(a=\omega_{ci}/\omega_{dc}=10\) | 53.1 ms |
+| \(PM_{dc}\) | \(\arctan a-\arctan(1/a)\) | ~79° |
 | \(\eta_{B2B}\) | \(\eta_{MSC}\times\eta_{GSC}\) | ~95.4% |
 
 ---

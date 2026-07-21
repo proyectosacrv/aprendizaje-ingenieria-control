@@ -139,8 +139,9 @@ corriente interno, \(T_\Sigma \approx 1/\omega_{ci}\). Aplicando las fórmulas:
 $$ K_{p,dc} = \frac{1}{a K_s T_\Sigma} = \frac{C_{dc}}{2\,a\,T_\Sigma} = \frac{C_{dc}\,\omega_{ci}}{2a}, \qquad
    \omega_{dc} = \frac{\omega_{ci}}{a} $$
 
-Con la separación de escalas habitual \(a = \omega_{ci}/\omega_{dc} = 10\) se obtiene
-\(K_{p,dc}=C_{dc}\omega_{dc}/2\) y \(PM \approx 79°\): un lazo DC muy amortiguado, robusto frente a la carga
+Con la separación de escalas habitual \(a = \omega_{ci}/\omega_{dc} = 10\) (mayor que el \(2\text{–}4\)
+clásico de la tabla del apartado 3, porque en este lazo en cascada la separación de escalas **fija** \(a\))
+se obtiene \(K_{p,dc}=C_{dc}\omega_{dc}/2\) y \(PM \approx 79°\): un lazo DC muy amortiguado, robusto frente a la carga
 de potencia constante (CPL) del otro convertidor. La razón de fondo es la misma que en cualquier planta con
 integrador: no se puede cancelar el polo en el origen, así que se coloca el cero simétricamente para exprimir
 el margen de fase.

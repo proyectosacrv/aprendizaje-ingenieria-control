@@ -15287,40 +15287,46 @@ def _btb_lazo_tension_bode():
     import matplotlib.pyplot as plt
 
     Cdc = 0.02; w_ci = 1885.0; w_dc = w_ci/10
-    Kp = Cdc*w_dc/2; Ti = 4.0/w_dc
-    w = np.logspace(0, 4, 2500)
+    a = w_ci/w_dc                         # factor del optimo simetrico (= 10)
+    Kp = Cdc*w_dc/2; Ti = a/w_dc          # cero en w_dc/10, simetrico al polo w_ci
+    w = np.logspace(0, 4.5, 2500)
     s = 1j*w
-    Ldc = (2*Kp/(Cdc*Ti))*(Ti*s + 1)/s**2
+    Ldc = (2*Kp/(Cdc*Ti))*(Ti*s + 1)/s**2 * w_ci/(s + w_ci)   # incluye polo del lazo de corriente
     mag = 20*np.log10(np.abs(Ldc))
     ph = np.degrees(np.unwrap(np.angle(Ldc)))
     if ph[0] > 0:
         ph -= 360.0
-    PM = np.degrees(np.arctan(Ti*w_dc))
+    PM = np.degrees(np.arctan(a) - np.arctan(1.0/a))
 
     fig, (a1, a2) = plt.subplots(2, 1, figsize=(9, 7.5), sharex=True)
     fig.suptitle('Lazo de tensión DC: doble integrador + cero del PI',
                  fontsize=12, fontweight='bold')
 
+    lineas = [(1/Ti, r'$\omega_{dc}/10$ (cero PI)', 'darkgreen'),
+              (w_dc, r'$\omega_{dc}$ (cruce)', 'darkred'),
+              (w_ci, r'$\omega_{ci}=10\,\omega_{dc}$ (polo lazo corr.)', 'darkorange')]
+
     a1.semilogx(w, mag, color='navy', lw=2.4)
     a1.axhline(0, color='gray', lw=0.9, ls='--')
-    a1.axvline(1/Ti, color='darkgreen', lw=1.2, ls=':'); a1.text(1/Ti, mag.max()-3, r'$1/T_{i,dc}$ (cero)', rotation=90, va='top', ha='right', fontsize=8.5, color='darkgreen')
-    a1.axvline(w_dc, color='darkred', lw=1.2, ls=':'); a1.text(w_dc, mag.max()-3, r'$\omega_{dc}$ (cruce)', rotation=90, va='top', ha='right', fontsize=8.5, color='darkred')
+    for wx, lbl, col in lineas:
+        a1.axvline(wx, color=col, lw=1.2, ls=':')
+        a1.text(wx, mag.max()-3, lbl, rotation=90, va='top', ha='right', fontsize=8, color=col)
     a1.text(0.03, 0.2, '−40 dB/dec', transform=a1.transAxes, fontsize=8.5, color='gray')
-    a1.text(0.62, 0.4, '−20 dB/dec', transform=a1.transAxes, fontsize=8.5, color='gray')
+    a1.text(0.50, 0.42, '−20 dB/dec', transform=a1.transAxes, fontsize=8.5, color='gray')
     a1.set_ylabel('|L| (dB)'); a1.grid(True, which='both', alpha=0.3)
 
     a2.semilogx(w, ph, color='navy', lw=2.4)
     a2.axhline(-180, color='gray', lw=0.9, ls='--')
-    a2.axvline(1/Ti, color='darkgreen', lw=1.2, ls=':')
-    a2.axvline(w_dc, color='darkred', lw=1.2, ls=':')
+    for wx, lbl, col in lineas:
+        a2.axvline(wx, color=col, lw=1.2, ls=':')
     a2.plot([w_dc], [-180+PM], 'o', color='darkred', ms=7)
-    a2.annotate(f'PM = arctan($T_{{i,dc}}\\omega_{{dc}}$) = arctan(4) ≈ {PM:.0f}°',
-                xy=(w_dc, -180+PM), xytext=(w_dc/60, -180+PM+16),
+    a2.annotate(f'PM = arctan(10) − arctan(0.1) ≈ {PM:.0f}°',
+                xy=(w_dc, -180+PM), xytext=(w_dc/45, -180+PM+16),
                 color='darkred', fontsize=9.5, arrowprops=dict(arrowstyle='->', color='darkred'))
     a2.set_ylabel('fase (°)'); a2.set_xlabel('ω (rad/s)'); a2.grid(True, which='both', alpha=0.3)
 
-    fig.text(0.5, 0.005, r'La planta $2/(C_{dc}s)$ y el integral del PI dan $1/s^2$ ($-180°$); '
-             r'el cero del PI en $1/T_{i,dc}$ levanta la fase y da el margen en $\omega_{dc}$',
+    fig.text(0.5, 0.005, r'Cero del PI ($\omega_{dc}/10$) y polo del lazo de corriente ($\omega_{ci}=10\,\omega_{dc}$) '
+             r'colocados simétricos respecto al cruce $\omega_{dc}$ (media geométrica): óptimo simétrico, $PM\approx79°$',
              ha='center', fontsize=9, color='gray')
     plt.tight_layout(rect=[0, 0.03, 1, 0.96])
     _savefig(fig, "btb-lazo-tension-bode", dpi=160)
