@@ -86,6 +86,17 @@ La transformada de Clarke proyecta las tres fases sobre dos ejes ortogonales fij
 
 $$ \begin{pmatrix}i_\alpha\\i_\beta\end{pmatrix} = \frac{2}{3}\begin{pmatrix}1 & -\frac{1}{2} & -\frac{1}{2}\\ 0 & \frac{\sqrt{3}}{2} & -\frac{\sqrt{3}}{2}\end{pmatrix}\begin{pmatrix}i_a\\i_b\\i_c\end{pmatrix} $$
 
+**De dónde salen las entradas.** Los tres devanados apuntan a \(0°,\,120°,\,240°\). El eje α se alinea con
+la fase \(a\) y el eje β va \(90°\) adelantado. Cada componente es la **proyección** de las tres fases sobre
+el eje:
+
+- Fila α = \([\cos 0°,\,\cos 120°,\,\cos 240°] = [1,\,-\tfrac12,\,-\tfrac12]\).
+- Fila β = \([\sin 0°,\,\sin 120°,\,\sin 240°] = [0,\,\tfrac{\sqrt3}{2},\,-\tfrac{\sqrt3}{2}]\).
+
+El factor \(\tfrac{2}{3}\) es la convención **invariante en amplitud**: hace que una senoide de pico
+\(\hat I\) en abc dé un vector de módulo \(\hat I\) en αβ (al sumar tres proyecciones desfasadas se acumula
+un factor \(3/2\), que este \(2/3\) compensa).
+
 Las ecuaciones en αβ conservan la misma estructura que en abc:
 
 $$ L\frac{d}{dt}\begin{pmatrix}i_\alpha\\i_\beta\end{pmatrix} = \begin{pmatrix}v_{conv,\alpha}\\v_{conv,\beta}\end{pmatrix} - \begin{pmatrix}v_{g,\alpha}\\v_{g,\beta}\end{pmatrix} - R\begin{pmatrix}i_\alpha\\i_\beta\end{pmatrix} $$
@@ -100,13 +111,41 @@ transformación de Park es una rotación de ángulo \(\theta = \omega_0 t\):
 
 $$ \begin{pmatrix}i_d\\i_q\end{pmatrix} = \begin{pmatrix}\cos\theta & \sin\theta\\ -\sin\theta & \cos\theta\end{pmatrix}\begin{pmatrix}i_\alpha\\i_\beta\end{pmatrix} $$
 
-Al derivar la corriente en dq aparece un término adicional por la rotación del marco de referencia
-(regla de la cadena sobre la transformación dependiente del tiempo). Ese término produce el **acoplamiento
-cruzado** entre los ejes d y q:
+**Derivación del acoplamiento (fasor complejo).** Es más limpio agrupar cada par de ejes en un número
+complejo: \(\underline{i}_{\alpha\beta} = i_\alpha + j\,i_\beta\) y \(\underline{i}_{dq} = i_d + j\,i_q\).
+La rotación de Park equivale a multiplicar por \(e^{-j\theta}\), luego:
+
+$$ \underline{i}_{dq} = \underline{i}_{\alpha\beta}\,e^{-j\theta} \quad\Longleftrightarrow\quad \underline{i}_{\alpha\beta} = \underline{i}_{dq}\,e^{j\theta} $$
+
+**Paso 1 — Ecuación en αβ en forma compleja:**
+
+$$ L\frac{d\underline{i}_{\alpha\beta}}{dt} = \underline{v}_{conv,\alpha\beta} - \underline{v}_{g,\alpha\beta} - R\,\underline{i}_{\alpha\beta} $$
+
+**Paso 2 — Sustituir \(\underline{i}_{\alpha\beta} = \underline{i}_{dq}e^{j\theta}\) y derivar el producto**
+(regla del producto, con \(\dot\theta = \omega_0\)):
+
+$$ \frac{d}{dt}\big(\underline{i}_{dq}e^{j\theta}\big) = \frac{d\underline{i}_{dq}}{dt}e^{j\theta} + \underline{i}_{dq}\,j\omega_0\,e^{j\theta} = e^{j\theta}\Big(\frac{d\underline{i}_{dq}}{dt} + j\omega_0\,\underline{i}_{dq}\Big) $$
+
+El término \(j\omega_0\underline{i}_{dq}\) es el **que introduce la rotación del marco**: es el origen del acoplamiento.
+
+**Paso 3 — Sustituir y dividir por \(e^{j\theta}\)** (aparece en los dos lados y se cancela):
+
+$$ L\Big(\frac{d\underline{i}_{dq}}{dt} + j\omega_0\,\underline{i}_{dq}\Big) = \underline{v}_{conv,dq} - \underline{v}_{g,dq} - R\,\underline{i}_{dq} $$
+
+$$ \Longrightarrow\quad L\frac{d\underline{i}_{dq}}{dt} = \underline{v}_{conv,dq} - \underline{v}_{g,dq} - R\,\underline{i}_{dq} - \underbrace{j\omega_0 L\,\underline{i}_{dq}}_{\text{acoplamiento}} $$
+
+**Paso 4 — Separar en parte real (eje d) e imaginaria (eje q).** Con \(\underline{i}_{dq}=i_d+ji_q\):
+
+$$ -j\omega_0 L\,\underline{i}_{dq} = -j\omega_0 L(i_d + j i_q) = \underbrace{\omega_0 L\,i_q}_{\text{real}} - \underbrace{j\,\omega_0 L\,i_d}_{\text{imag}} $$
+
+(porque \(-j\cdot j = +1\)). La parte real da la ecuación del eje d y la imaginaria la del eje q:
 
 $$ L\dot{i}_d = v_{d,conv} - v_{d,g} - Ri_d + \omega_0 L i_q $$
 
 $$ L\dot{i}_q = v_{q,conv} - v_{q,g} - Ri_q - \omega_0 L i_d $$
+
+Los signos opuestos (\(+\omega_0 L i_q\) en d, \(-\omega_0 L i_d\) en q) vienen directamente del \(-j\cdot j=+1\)
+y del \(-j\cdot 1=-j\) del Paso 4.
 
 En forma matricial compacta:
 
@@ -123,14 +162,22 @@ Se orienta el eje d alineado con el vector de tensión de red \(\vec{v}_g\). Con
 - \(v_{d,g} = |\vec{v}_g|\) (módulo de la tensión de red)
 - \(v_{q,g} = 0\) (por definición de la orientación)
 
-Las potencias activa y reactiva en dq se simplifican:
+**De dónde salen \(P\) y \(Q\).** La potencia compleja trifásica es \(S = P + jQ = \tfrac{3}{2}\,\underline{v}_{dq}\,\underline{i}_{dq}^{\,*}\),
+donde \(\underline{i}_{dq}^{\,*}\) es el conjugado. Desarrollando con \(\underline{v}_{dq}=v_{d,g}+jv_{q,g}\)
+e \(\underline{i}_{dq}=i_d+ji_q\):
+
+$$ S = \frac{3}{2}(v_{d,g}+jv_{q,g})(i_d - j i_q) = \frac{3}{2}\big[(v_{d,g}i_d + v_{q,g}i_q) + j(v_{q,g}i_d - v_{d,g}i_q)\big] $$
+
+La parte real es \(P\) y la imaginaria \(Q\). El **\(3/2\)** viene de la Clarke invariante en amplitud (la
+potencia de tres fases con la convención de pico). Con la orientación elegida (\(v_{q,g}=0\)):
 
 $$ P = \frac{3}{2}(v_{d,g}i_d + v_{q,g}i_q) = \frac{3}{2}v_{d,g}i_d $$
 
 $$ Q = \frac{3}{2}(v_{q,g}i_d - v_{d,g}i_q) = -\frac{3}{2}v_{d,g}i_q $$
 
 Es decir, con esta orientación \(i_d\) fija la potencia **activa** \(P\) (y por tanto \(V_{dc}\)) e \(i_q\)
-la **reactiva** \(Q\): ambas quedan separadas por la propia geometría del marco.
+la **reactiva** \(Q\): ambas quedan separadas por la propia geometría del marco. (El signo \(-\) en \(Q\) es
+solo convenio de orientación; con \(i_q<0\) el convertidor inyecta reactiva.)
 
 Con todo lo anterior, la **planta del lado AC** que verá el control es el sistema MIMO de segundo orden:
 
@@ -230,18 +277,27 @@ $$ C_{PI}(s) = K_p \frac{T_i s + 1}{T_i s} $$
 
 $$ L_i(s) = C_{PI}(s) \cdot G_i(s) = K_p\frac{T_i s + 1}{T_i s} \cdot \frac{1}{Ls+R} $$
 
-**Cancelación del polo de la planta.** Eligiendo \(T_i = L/R\), el cero del PI cancela el polo de la planta:
+**Cancelación del polo de la planta.** Primero se pone la planta en forma de constante de tiempo dividiendo
+numerador y denominador por \(R\): \(\dfrac{1}{Ls+R} = \dfrac{1/R}{(L/R)s+1}\), con polo en \(s=-R/L\).
+Eligiendo el cero del PI igual a ese polo, \(T_i = L/R\), el factor \((T_i s+1)\) del PI cancela el
+\(((L/R)s+1)\) de la planta:
 
-$$ L_i(s) = K_p \frac{T_i s + 1}{T_i s} \cdot \frac{1/R}{(L/R)s+1} = \frac{K_p}{T_i R} \cdot \frac{1}{s} = \frac{K_p}{L} \cdot \frac{1}{s} $$
+$$ L_i(s) = K_p \frac{T_i s + 1}{T_i s} \cdot \frac{1/R}{(L/R)s+1} = \frac{K_p}{T_i R} \cdot \frac{1}{s} $$
 
-La FdT de lazo cerrado resultante es de **primer orden**:
+y como \(T_i R = (L/R)R = L\), queda un **integrador puro**:
 
-$$ T_i(s) = \frac{L_i}{1+L_i} = \frac{K_p/L}{s + K_p/L} = \frac{\omega_{ci}}{s + \omega_{ci}} $$
+$$ L_i(s) = \frac{K_p}{L}\cdot\frac{1}{s} $$
 
-con frecuencia de cruce \(\omega_{ci} = K_p/L\).
+**Lazo cerrado.** Con \(L_i = (K_p/L)/s\), la FdT de lazo cerrado (realimentación unitaria) se obtiene
+multiplicando numerador y denominador por \(s\):
 
-**Sintonía por método IMC.** El control interno por modelo da directamente los parámetros del PI a partir
-de \(\omega_{ci}\):
+$$ T_i(s) = \frac{L_i}{1+L_i} = \frac{(K_p/L)/s}{1 + (K_p/L)/s} = \frac{K_p/L}{s + K_p/L} = \frac{\omega_{ci}}{s + \omega_{ci}} $$
+
+un **primer orden** con frecuencia de cruce (= ancho de banda) \(\omega_{ci} = K_p/L\).
+
+**Sintonía por método IMC.** La idea del control interno por modelo es **imponer** que el lazo cerrado sea
+ese primer orden \(\omega_{ci}/(s+\omega_{ci})\) y despejar el PI. De \(\omega_{ci}=K_p/L\) sale \(K_p\), y
+la cancelación fija \(T_i\):
 
 $$ \boxed{K_p = \omega_{ci} L, \qquad T_i = \frac{L}{R}, \qquad K_i = \frac{K_p}{T_i} = \omega_{ci} R} $$
 
@@ -495,20 +551,33 @@ donde \(R_s\) es la resistencia de estátor, \(L_d\), \(L_q\) son las inductanci
 en cuadratura, \(\psi_m\) es el flujo de los imanes y \(\omega_r = p\,\Omega_{mec}\) es la
 velocidad eléctrica del rotor (\(p\) = pares de polos).
 
-El par electromagnético:
+**De dónde salen estas ecuaciones.** Son las mismas ecuaciones de un circuito RL en marco giratorio de
+§2.3, pero con dos diferencias: (1) el flujo concatenado incluye el de los imanes, \(\psi_d = L_d i_d + \psi_m\)
+y \(\psi_q = L_q i_q\); (2) el término de rotación \(\omega_r\times\)flujo genera la **fuerza
+contraelectromotriz** \(-\omega_r\psi_m\) en el eje q (el \(-\omega_r\psi_m\) del segundo renglón) además del
+acoplamiento cruzado \(\pm\omega_r L_{q,d} i\). El signo de \(\omega_r\) es opuesto al del lado red porque
+aquí la máquina **genera** (la fem impulsa la corriente).
 
-$$ T_{em} = \frac{3}{2}p\left[\psi_m i_{q,gen} + (L_d - L_q)i_{d,gen}i_{q,gen}\right] $$
+**Par electromagnético.** El par es \(T_{em} = \tfrac{3}{2}p\,(\psi_d i_q - \psi_q i_d)\) (producto vectorial
+flujo × corriente). Sustituyendo los enlaces de flujo \(\psi_d = L_d i_d + \psi_m\), \(\psi_q = L_q i_q\):
 
-Para máquinas no salientes (\(L_d = L_q\), típico de PMSG de imanes en superficie):
+$$ T_{em} = \frac{3}{2}p\big[(L_d i_{d,gen} + \psi_m)i_{q,gen} - L_q i_{q,gen}\,i_{d,gen}\big]
+   = \frac{3}{2}p\left[\psi_m i_{q,gen} + (L_d - L_q)i_{d,gen}i_{q,gen}\right] $$
+
+Para máquinas no salientes (\(L_d = L_q\), típico de PMSG de imanes en superficie) el segundo término
+(par de reluctancia) desaparece:
 
 $$ T_{em} = \frac{3}{2}p\,\psi_m i_{q,gen} $$
+
+El par es **proporcional a \(i_{q,gen}\)**: por eso el MSC controla el par actuando solo sobre \(i_q\).
 
 **Control del MSC (lado máquina):**
 
 La frecuencia del marco dq del MSC es la velocidad eléctrica del rotor \(\omega_r = p\Omega_{mec}\),
 que varía con el viento. El MSC controla:
 
-- **Eje q:** \(i_{q,gen}^* = T_{ref}/(1.5\,p\,\psi_m)\), donde \(T_{ref} = K_{opt}\Omega_r^2\) es la
+- **Eje q:** despejando \(i_{q,gen}\) de \(T_{em} = \tfrac{3}{2}p\,\psi_m i_{q,gen}\) se obtiene la
+  referencia \(i_{q,gen}^* = T_{ref}/(1.5\,p\,\psi_m)\), donde \(T_{ref} = K_{opt}\Omega_r^2\) es la
   referencia de par MPPT ([[eolica-mppt]]). El control de par controla indirectamente la velocidad y
   el punto de máxima potencia.
 - **Eje d:** \(i_{d,gen}^* = 0\) (máximo par por amperio, sin componente de flujo de armadura).
@@ -548,22 +617,30 @@ donde \(P_{sw,MSC}\) y \(P_{cond,MSC}\) son las pérdidas de conmutación y cond
 
 Las pérdidas en cada VSC se descomponen en cuatro componentes por semiconductor:
 
-**Pérdidas de conducción del IGBT:**
+**Pérdidas de conducción del IGBT.** Se parte de la característica de salida del IGBT, que se aproxima por
+una recta \(v_{ce}(i) = V_{ce0} + R_{ce}\,i\) (tensión umbral + resistencia). La potencia disipada
+instantánea es \(v_{ce}\,i = V_{ce0}\,i + R_{ce}\,i^2\); promediando sobre el periodo fundamental:
 
 $$ P_{cond,IGBT} = V_{ce0} \cdot \bar{I} + R_{ce} \cdot \overline{I^2} $$
 
 donde \(V_{ce0}\) es la tensión umbral (~1 V para IGBT Si, ~0.5 V para SiC), \(R_{ce}\) la resistencia
-de conducción y \(\bar{I}\), \(\overline{I^2}\) son la media y la media cuadrática de la corriente de
-colector. Para corriente sinusoidal de amplitud \(\hat{I}\) con índice de modulación \(m\):
+de conducción y \(\bar{I}\), \(\overline{I^2}\) son la media y la media cuadrática de la corriente **que
+realmente circula por el IGBT**. El IGBT no conduce todo el ciclo: solo cuando su duty (que depende del
+índice de modulación \(m\)) lo activa. Al pesar la corriente sinusoidal \(\hat I\sin\theta\) por ese duty
+salen los factores con \(m\):
 
-$$ \bar{I} = \frac{\hat{I}}{\pi}\left(1+\frac{m}{4}\right), \qquad \overline{I^2} = \frac{\hat{I}^2}{8}\left(1+\frac{2m}{3}\right) $$
+$$ \bar{I} = \frac{\hat{I}}{\pi}\left(1+\frac{m}{4}\right)\ \Big[\tfrac{\hat I}{\pi}\text{: media de }|\text{sin}|\Big],
+   \qquad \overline{I^2} = \frac{\hat{I}^2}{8}\left(1+\frac{2m}{3}\right)\ \Big[\tfrac{\hat I^2}{4}\text{ RMS}^2\!\cdot\!\tfrac12\Big] $$
 
-**Pérdidas de conmutación del IGBT:**
+**Pérdidas de conmutación del IGBT.** El datasheet da la energía por conmutación \((E_{on}+E_{off})\) medida
+a \(V_{test}\), \(I_{test}\). Esa energía escala **linealmente** con la corriente conmutada y con la tensión
+del bus, y se producen \(f_s\) conmutaciones por segundo; promediando la corriente sinusoidal sobre el
+periodo (de ahí el \(1/\pi\), media de \(|\sin|\)):
 
 $$ P_{sw,IGBT} = \frac{f_s}{\pi}(E_{on} + E_{off})\frac{\hat{I}}{I_{test}}\frac{V_{dc}}{V_{test}} $$
 
-donde \(E_{on}\), \(E_{off}\) son las energías de conmutación del datasheet a tensión \(V_{test}\) y
-corriente \(I_{test}\). La energía de recuperación inversa del diodo antiparalelo añade \(E_{rr}\):
+donde el factor \(\hat I/I_{test}\) reescala por corriente y \(V_{dc}/V_{test}\) por tensión. La energía de
+recuperación inversa del diodo antiparalelo añade \(E_{rr}\):
 
 $$ P_{sw,diodo} = \frac{f_s}{\pi} E_{rr} \frac{\hat{I}}{I_{test}}\frac{V_{dc}}{V_{test}} $$
 
@@ -637,9 +714,12 @@ Antes de diseñar nada, definir las especificaciones de sistema:
 
 **Iteración 1 — Tensión del bus DC:**
 
-La tensión del bus DC debe ser suficiente para modular la tensión de red con margen de saturación:
+La tensión del bus DC debe ser suficiente para **sintetizar** el pico de la tensión de red con margen de
+saturación. En un VSC de dos niveles con SPWM, el pico de tensión de fase que puede generar es
+\(\hat v_{fase} = m\,V_{dc}/2\), luego \(V_{dc} \ge 2\hat v_{fase}/m_{max}\). Como el pico de fase es
+\(\hat v_{fase} = \sqrt{2}\,V_{ac,fase} = \sqrt{2}\,V_{ac}/\sqrt{3}\) (de línea a fase):
 
-$$ V_{dc} \geq \frac{2\sqrt{2}\,V_{ac,max}}{m_{max}\sqrt{3}}, \quad m_{max} \approx 0.9 $$
+$$ V_{dc} \geq \frac{2\hat v_{fase}}{m_{max}} = \frac{2\sqrt{2}\,V_{ac,max}}{m_{max}\sqrt{3}}, \quad m_{max} \approx 0.9 $$
 
 Por ejemplo: \(V_{ac} = 690\,\text{V}\) (línea) → \(V_{ac,fase,pico} = 690\sqrt{2}/\sqrt{3} = 563\,\text{V}\):
 $$ V_{dc} \geq \frac{2\times563}{0.9} = 1251\,\text{V} $$
@@ -649,9 +729,12 @@ Elegir \(V_{dc} = 1150\,\text{V}\) (con \(m_{max}=0.98\) en casos de emergencia)
 **Iteración 2 — Inductancia del filtro \(L\):**
 
 Criterio de rizado de corriente \(\Delta i_L \leq 20\,\%\,\hat{I}_{nom}\) (rizado pico-pico en la
-frecuencia de conmutación):
+frecuencia de conmutación). De dónde sale: en una inductancia \(v_L = L\,di/dt\), así que el rizado durante
+el tiempo que se aplica una tensión \(V_{dc}\) es \(\Delta i_L = V_{dc}\,\Delta t/L\). En SPWM de dos niveles
+el peor caso ocurre a mitad de modulación, donde el intervalo efectivo es \(\Delta t = 1/(4 f_s)\) (de ahí
+el **4**):
 
-$$ L \geq \frac{V_{dc}}{4\,f_s\,\Delta i_{L,max}} $$
+$$ \Delta i_L = \frac{V_{dc}}{4\,f_s\,L} \quad\Longrightarrow\quad L \geq \frac{V_{dc}}{4\,f_s\,\Delta i_{L,max}} $$
 
 Con \(V_{dc}=1150\,\text{V}\), \(f_s=3000\,\text{Hz}\), \(\Delta i_{L,max} = 0.20\times2366 = 473\,\text{A}\):
 
@@ -664,9 +747,17 @@ Elegir \(L = 0.25\,\text{mH}\). Verificar caída de tensión en pu:
 
 **Iteración 3 — Condensador del bus DC:**
 
-*Criterio energético* (transitorio más severo: escalón de \(P_{nom}\) en \(\Delta t \approx 1/\omega_{ci}\)):
+*Criterio energético* (transitorio más severo: escalón de \(P_{nom}\) en \(\Delta t \approx 1/\omega_{ci}\)).
+De dónde sale: la energía \(P_{nom}\Delta t\) que el condensador debe aportar/absorber es la diferencia de
+su energía almacenada entre \(V_{dc}\) y la tensión caída \(V_{dc}-\Delta V_{dc,max}\):
 
-$$ C_{dc} \geq \frac{2\,P_{nom}\,\Delta t}{V_{dc}^2 - (V_{dc}-\Delta V_{dc,max})^2} \approx \frac{2\,P_{nom}\,\Delta t}{2\,V_{dc}\,\Delta V_{dc,max}} $$
+$$ P_{nom}\,\Delta t = \tfrac{1}{2}C_{dc}\big[V_{dc}^2 - (V_{dc}-\Delta V_{dc,max})^2\big]
+   \quad\Longrightarrow\quad C_{dc} \geq \frac{2\,P_{nom}\,\Delta t}{V_{dc}^2 - (V_{dc}-\Delta V_{dc,max})^2} $$
+
+Desarrollando el cuadrado \(V_{dc}^2-(V_{dc}-\Delta V)^2 = 2V_{dc}\Delta V - \Delta V^2 \approx 2V_{dc}\Delta V\)
+(el \(\Delta V^2\) es despreciable frente a \(2V_{dc}\Delta V\) porque \(\Delta V \ll V_{dc}\)):
+
+$$ C_{dc} \approx \frac{2\,P_{nom}\,\Delta t}{2\,V_{dc}\,\Delta V_{dc,max}} = \frac{P_{nom}\,\Delta t}{V_{dc}\,\Delta V_{dc,max}} $$
 
 Con \(P_{nom}=2\,\text{MW}\), \(\Delta t = 1/1885 = 0.53\,\text{ms}\), \(V_{dc}=1150\,\text{V}\),
 \(\Delta V_{dc,max} = 57.5\,\text{V}\) (5 %):
