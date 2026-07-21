@@ -402,13 +402,14 @@ $$ |L_{dc}(j\omega)| = \frac{2K_{p,dc}}{C_{dc}T_{i,dc}}\cdot\frac{\sqrt{1+(T_{i,
 
 $$ \angle L_{dc}(j\omega) = 0 + \arctan(T_{i,dc}\omega) - 180° = -180° + \arctan(T_{i,dc}\omega) $$
 
-*Aproximación por encima del cero.* En el cruce se tendrá \(T_{i,dc}\omega_{dc}=4\gg1\) (Paso 5), así que
-dentro de la raíz \(1+(T_{i,dc}\omega)^2\approx(T_{i,dc}\omega)^2\) y \(\sqrt{\;}\approx T_{i,dc}\omega\).
+*Aproximación por encima del cero del PI.* Para frecuencias por encima del cero del PI, es decir cuando
+\(T_{i,dc}\,\omega \gg 1\), el \(1\) dentro de la raíz es despreciable frente a \((T_{i,dc}\omega)^2\), así que
+\(1+(T_{i,dc}\omega)^2\approx(T_{i,dc}\omega)^2\) y \(\sqrt{1+(T_{i,dc}\omega)^2}\approx T_{i,dc}\omega\).
 Sustituyendo, el \(T_{i,dc}\) se cancela:
 
 $$ |L_{dc}(j\omega)| \approx \frac{2K_{p,dc}}{C_{dc}T_{i,dc}}\cdot\frac{T_{i,dc}\omega}{\omega^2} = \frac{2K_{p,dc}}{C_{dc}\,\omega} $$
 
-válida **cerca del cruce**, porque este queda por encima del cero del PI.
+Esta forma simplificada es válida en toda la banda de frecuencias por encima del cero del PI.
 
 **Paso 4 — Ganancia \(K_{p,dc}\) desde la condición de cruce.** Imponiendo \(|L_{dc}(j\omega_{dc})| = 1\)
 en la frecuencia de cruce deseada \(\omega_{dc}\):
