@@ -179,6 +179,8 @@ Es decir, con esta orientación \(i_d\) fija la potencia **activa** \(P\) (y por
 la **reactiva** \(Q\): ambas quedan separadas por la propia geometría del marco. (El signo \(-\) en \(Q\) es
 solo convenio de orientación; con \(i_q<0\) el convertidor inyecta reactiva.)
 
+<div class="cfig"><img src="figuras/btb-dq-transformacion.png" alt="Diagrama vectorial de los marcos abc, alfa-beta y dq girando con la tensión de red, y la orientación VOC con v_g sobre el eje d y la descomposición de la corriente en i_d e i_q"><div class="cap">Izquierda: los ejes fijos αβ y el marco dq que gira con \(\vec v_g\) a \(\theta=\omega_0 t\); por eso las componentes dq son continuas en régimen. Derecha: la orientación VOC alinea \(\vec v_g\) con el eje d (\(v_{q,g}=0\)), de modo que \(i_d\) fija la potencia activa \(P\) e \(i_q\) la reactiva \(Q\).</div></div>
+
 Con todo lo anterior, la **planta del lado AC** que verá el control es el sistema MIMO de segundo orden:
 
 $$ L\frac{d}{dt}\begin{pmatrix}i_d\\i_q\end{pmatrix} = \underbrace{\begin{pmatrix}v_{d,conv}\\v_{q,conv}\end{pmatrix}}_{\text{entrada (convertidor)}} - \underbrace{\begin{pmatrix}v_{d,g}\\v_{q,g}\end{pmatrix}}_{\text{perturbación (red)}} - \begin{pmatrix}R & -\omega_0 L\\ \omega_0 L & R\end{pmatrix}\begin{pmatrix}i_d\\i_q\end{pmatrix} $$
@@ -301,6 +303,8 @@ la cancelación fija \(T_i\):
 
 $$ \boxed{K_p = \omega_{ci} L, \qquad T_i = \frac{L}{R}, \qquad K_i = \frac{K_p}{T_i} = \omega_{ci} R} $$
 
+<div class="cfig"><img src="figuras/btb-lazo-corriente-bode.png" alt="Bode del lazo de corriente: la planta 1/(Ls+R) con polo en R/L, el PI con cero en R/L más integrador, y el lazo abierto resultante que es un integrador puro con cruce en omega_ci y fase plana en -90 grados"><div class="cap">Cancelación de polo en el lazo de corriente. El cero del PI (\(1/T_i=R/L\)) cae justo sobre el polo de la planta (\(R/L\)) y lo cancela: el lazo abierto queda como el integrador puro \(L_i=\omega_{ci}/s\) (azul oscuro), que cruza 0 dB en \(\omega_{ci}\) con la fase plana en \(-90°\) → \(PM=90°\).</div></div>
+
 **Selección de \(\omega_{ci}\).** Dos restricciones:
 
 **Superior** — no excitar la conmutación ni el rizado de la portadora PWM:
@@ -402,14 +406,23 @@ $$ |L_{dc}(j\omega)| = \frac{2K_{p,dc}}{C_{dc}T_{i,dc}}\cdot\frac{\sqrt{1+(T_{i,
 
 $$ \angle L_{dc}(j\omega) = 0 + \arctan(T_{i,dc}\omega) - 180° = -180° + \arctan(T_{i,dc}\omega) $$
 
-*Aproximación por encima del cero del PI.* Para frecuencias por encima del cero del PI, es decir cuando
-\(T_{i,dc}\,\omega \gg 1\), el \(1\) dentro de la raíz es despreciable frente a \((T_{i,dc}\omega)^2\), así que
-\(1+(T_{i,dc}\omega)^2\approx(T_{i,dc}\omega)^2\) y \(\sqrt{1+(T_{i,dc}\omega)^2}\approx T_{i,dc}\omega\).
-Sustituyendo, el \(T_{i,dc}\) se cancela:
+*Aproximación por encima del cero del PI.* Conviene explicar qué es "el cero del PI". El PI
+\(C_{dc}(s)=K_{p,dc}\dfrac{T_{i,dc}s+1}{T_{i,dc}s}\) tiene un **cero** (una frecuencia donde su numerador se
+anula) en \(T_{i,dc}s+1=0 \Rightarrow s=-1/T_{i,dc}\); su frecuencia es \(\omega_z = 1/T_{i,dc}\). Decir
+"para frecuencias por encima del cero" es decir \(\omega > \omega_z = 1/T_{i,dc}\), y eso es exactamente la
+condición \(T_{i,dc}\,\omega > 1\) (con \(\gg 1\) si es **bastante** por encima). El porqué físico: por
+debajo de \(\omega_z\) domina el término **integral** del PI (el \(1/(T_{i,dc}s)\), que añade \(-20\) dB/dec
+y \(-90°\)); por encima de \(\omega_z\), el término \(T_{i,dc}s\) del numerador supera al \(1\) y domina la
+parte **proporcional** (respuesta plana). El cero es, pues, la frecuencia de transición entre "integral" y
+"proporcional".
+
+En esa banda (\(T_{i,dc}\omega \gg 1\)), dentro de la raíz el \(1\) es despreciable frente a
+\((T_{i,dc}\omega)^2\), así que \(\sqrt{1+(T_{i,dc}\omega)^2}\approx T_{i,dc}\omega\). Sustituyendo, el
+\(T_{i,dc}\) se cancela:
 
 $$ |L_{dc}(j\omega)| \approx \frac{2K_{p,dc}}{C_{dc}T_{i,dc}}\cdot\frac{T_{i,dc}\omega}{\omega^2} = \frac{2K_{p,dc}}{C_{dc}\,\omega} $$
 
-Esta forma simplificada es válida en toda la banda de frecuencias por encima del cero del PI.
+Esta forma simplificada es válida en toda la banda por encima del cero del PI (\(\omega > 1/T_{i,dc}\)).
 
 **Paso 4 — Ganancia \(K_{p,dc}\) desde la condición de cruce.** Imponiendo \(|L_{dc}(j\omega_{dc})| = 1\)
 en la frecuencia de cruce deseada \(\omega_{dc}\):
@@ -427,6 +440,8 @@ $$ T_{i,dc}\,\omega_{dc} = 4 \quad\Longrightarrow\quad \boxed{T_{i,dc} = \frac{4
 se vea "instantáneo":
 
 $$ \boxed{\omega_{dc} = \frac{\omega_{ci}}{10}} $$
+
+<div class="cfig"><img src="figuras/btb-lazo-tension-bode.png" alt="Bode del lazo de tensión DC: doble integrador de pendiente -40 dB/dec que pasa a -20 dB/dec en el cero del PI, cruce en omega_dc y fase que sube desde -180 grados formando el margen de fase de 76 grados"><div class="cap">Lazo de tensión DC. La planta \(2/(C_{dc}s)\) más el integral del PI dan un doble integrador (\(1/s^2\), \(-40\) dB/dec y \(-180°\)); el cero del PI en \(1/T_{i,dc}\) sube la pendiente a \(-20\) dB/dec y **levanta la fase**, dando el margen \(PM_{dc}=\arctan(T_{i,dc}\omega_{dc})=\arctan 4\approx 76°\) en el cruce \(\omega_{dc}\).</div></div>
 
 ### 3.3 — Control: feedforward de potencia y diagrama de bloques
 

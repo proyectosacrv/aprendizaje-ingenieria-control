@@ -15157,6 +15157,175 @@ def _btb_lazo_dc():
     _savefig(fig, "btb-lazo-dc")
 
 
+def _btb_dq_transformacion():
+    """Diagrama vectorial: marcos abc, alfa-beta y dq (girando con v_g), con la
+    orientacion VOC (v_g sobre el eje d) y la descomposicion de la corriente."""
+    import matplotlib.pyplot as plt
+
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(13, 6.2))
+
+    # ---- Panel izquierdo: los tres marcos ----
+    axL.set_aspect('equal'); axL.axis('off')
+    axL.set_xlim(-1.5, 1.6); axL.set_ylim(-1.4, 1.6)
+    axL.set_title('Marcos de referencia: abc → αβ → dq', fontsize=11, fontweight='bold')
+
+    def vec(ax, x, y, txt, col, lw=2.2, tx=None, ty=None, fs=11):
+        ax.annotate('', xy=(x, y), xytext=(0, 0),
+                    arrowprops=dict(arrowstyle='-|>', color=col, lw=lw))
+        ax.text(tx if tx is not None else x*1.12, ty if ty is not None else y*1.12,
+                txt, color=col, fontsize=fs, ha='center', va='center', fontweight='bold')
+
+    # ejes abc (gris claro, a 0, 120, 240)
+    for ang, lbl in [(0, 'a'), (120, 'b'), (240, 'c')]:
+        r = np.radians(ang)
+        axL.plot([0, 1.25*np.cos(r)], [0, 1.25*np.sin(r)], color='#c9c9c9', lw=1.4, ls='-')
+        axL.text(1.38*np.cos(r), 1.38*np.sin(r), lbl, color='#9a9a9a', fontsize=10, ha='center', va='center')
+
+    # ejes alfa-beta (fijos, gris oscuro)
+    vec(axL, 1.15, 0, r'$\alpha$', '#555', lw=1.6, tx=1.28, ty=0)
+    vec(axL, 0, 1.15, r'$\beta$', '#555', lw=1.6, tx=0, ty=1.28)
+
+    # marco dq girado un angulo theta
+    th = np.radians(35)
+    d = np.array([np.cos(th), np.sin(th)])
+    q = np.array([-np.sin(th), np.cos(th)])
+    vec(axL, d[0], d[1], 'd', 'navy', lw=2.2, tx=d[0]*1.18, ty=d[1]*1.18)
+    vec(axL, q[0]*0.95, q[1]*0.95, 'q', 'navy', lw=2.2, tx=q[0]*1.15, ty=q[1]*1.15)
+
+    # vector v_g sobre el eje d (verde)
+    vg = 1.0*d
+    vec(axL, vg[0], vg[1], r'$\vec v_g$', 'darkgreen', lw=3.0, tx=vg[0]*0.62, ty=vg[1]*0.62+0.12, fs=12)
+
+    # arco theta
+    tt = np.linspace(0, th, 30)
+    axL.plot(0.32*np.cos(tt), 0.32*np.sin(tt), color='navy', lw=1.3)
+    axL.text(0.44*np.cos(th/2), 0.44*np.sin(th/2), r'$\theta=\omega_0 t$', color='navy', fontsize=9.5)
+
+    axL.text(0, -1.32, 'El marco dq gira con $\\vec v_g$: en régimen las componentes son continuas',
+             ha='center', fontsize=8.5, color='gray')
+
+    # ---- Panel derecho: orientacion VOC y descomposicion de i ----
+    axR.set_aspect('equal'); axR.axis('off')
+    axR.set_xlim(-0.4, 1.7); axR.set_ylim(-1.2, 1.5)
+    axR.set_title('Orientación VOC: $v_{q,g}=0$ y descomposición de $\\vec i$',
+                  fontsize=11, fontweight='bold')
+
+    # ejes d (horizontal) y q (vertical)
+    axR.annotate('', xy=(1.55, 0), xytext=(-0.3, 0), arrowprops=dict(arrowstyle='-|>', color='navy', lw=1.8))
+    axR.annotate('', xy=(0, 1.4), xytext=(0, -1.0), arrowprops=dict(arrowstyle='-|>', color='navy', lw=1.8))
+    axR.text(1.6, -0.1, 'd', color='navy', fontsize=12, fontweight='bold')
+    axR.text(0.08, 1.42, 'q', color='navy', fontsize=12, fontweight='bold')
+
+    # v_g sobre d
+    axR.annotate('', xy=(1.2, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='-|>', color='darkgreen', lw=3))
+    axR.text(0.6, 0.13, r'$\vec v_g = v_{d,g}$', color='darkgreen', fontsize=11, fontweight='bold')
+    axR.text(1.24, -0.16, r'$v_{q,g}=0$', color='darkgreen', fontsize=9.5)
+
+    # corriente i con componentes id, iq
+    ix, iy = 0.85, 0.7
+    axR.annotate('', xy=(ix, iy), xytext=(0, 0), arrowprops=dict(arrowstyle='-|>', color='darkred', lw=2.6))
+    axR.text(ix+0.05, iy+0.1, r'$\vec i$', color='darkred', fontsize=12, fontweight='bold')
+    axR.plot([ix, ix], [0, iy], color='darkred', lw=1.1, ls='--')
+    axR.plot([0, ix], [iy, iy], color='darkred', lw=1.1, ls='--')
+    axR.text(ix, -0.16, r'$i_d\;(\to P)$', color='darkred', fontsize=10, ha='center')
+    axR.text(-0.06, iy, r'$i_q\;(\to Q)$', color='darkred', fontsize=10, ha='right', va='center')
+
+    axR.text(0.6, -1.05,
+             r'$P=\frac{3}{2}v_{d,g}i_d,\qquad Q=-\frac{3}{2}v_{d,g}i_q$',
+             ha='center', fontsize=10,
+             bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='steelblue'))
+
+    plt.tight_layout()
+    _savefig(fig, "btb-dq-transformacion", dpi=160)
+
+
+def _btb_lazo_corriente_bode():
+    """Bode del lazo de corriente: planta 1/(Ls+R), PI con cancelacion de polo,
+    y lazo abierto resultante = integrador puro (cruce w_ci, PM 90 grados)."""
+    import matplotlib.pyplot as plt
+
+    L, R = 0.25e-3, 0.05
+    w_ci = 1885.0
+    Kp = w_ci*L; Ti = L/R
+    w = np.logspace(1, 5, 2000)
+    s = 1j*w
+    G = 1.0/(L*s + R)                      # planta
+    C = Kp*(1 + Ti*s)/(Ti*s)               # PI
+    Li = C*G                               # lazo abierto (= w_ci/s)
+
+    fig, (a1, a2) = plt.subplots(2, 1, figsize=(9, 7.5), sharex=True)
+    fig.suptitle('Lazo de corriente: cancelación de polo → integrador puro',
+                 fontsize=12, fontweight='bold')
+
+    a1.semilogx(w, 20*np.log10(np.abs(G)), color='#e08a00', lw=2, label=r'planta $G_i=\frac{1}{Ls+R}$')
+    a1.semilogx(w, 20*np.log10(np.abs(C)), color='#2e86c1', lw=2, label=r'PI $C(s)$')
+    a1.semilogx(w, 20*np.log10(np.abs(Li)), color='navy', lw=2.6, label=r'lazo abierto $L_i=\frac{\omega_{ci}}{s}$')
+    a1.axhline(0, color='gray', lw=0.9, ls='--')
+    a1.axvline(R/L, color='#e08a00', lw=1.1, ls=':')
+    a1.text(R/L, a1.get_ylim()[1]-2 if False else 46, r'polo/cero $R/L$', rotation=90, va='top', ha='right', fontsize=8, color='#a06000')
+    a1.axvline(w_ci, color='navy', lw=1.1, ls=':')
+    a1.text(w_ci, 46, r'$\omega_{ci}$', rotation=90, va='top', ha='right', fontsize=8.5, color='navy')
+    a1.set_ylabel('|·| (dB)'); a1.grid(True, which='both', alpha=0.3); a1.legend(fontsize=8.5, loc='lower left')
+
+    a2.semilogx(w, np.degrees(np.angle(G)), color='#e08a00', lw=2)
+    a2.semilogx(w, np.degrees(np.angle(C)), color='#2e86c1', lw=2)
+    a2.semilogx(w, np.degrees(np.angle(Li)), color='navy', lw=2.6)
+    a2.axhline(-90, color='gray', lw=0.9, ls='--')
+    a2.axvline(w_ci, color='navy', lw=1.1, ls=':')
+    a2.annotate('lazo abierto plano en −90° → PM = 90°', xy=(w_ci, -90), xytext=(w_ci/25, -55),
+                color='navy', fontsize=9.5, arrowprops=dict(arrowstyle='->', color='navy'))
+    a2.set_ylabel('fase (°)'); a2.set_xlabel('ω (rad/s)'); a2.grid(True, which='both', alpha=0.3)
+
+    fig.text(0.5, 0.005, r'El cero del PI en $R/L$ cancela el polo de la planta: queda $L_i=\omega_{ci}/s$, '
+             'un integrador puro que cruza 0 dB en $\\omega_{ci}$', ha='center', fontsize=9, color='gray')
+    plt.tight_layout(rect=[0, 0.03, 1, 0.96])
+    _savefig(fig, "btb-lazo-corriente-bode", dpi=160)
+
+
+def _btb_lazo_tension_bode():
+    """Bode del lazo de tension DC: doble integrador + cero del PI; cruce w_dc y PM."""
+    import matplotlib.pyplot as plt
+
+    Cdc = 0.02; w_ci = 1885.0; w_dc = w_ci/10
+    Kp = Cdc*w_dc/2; Ti = 4.0/w_dc
+    w = np.logspace(0, 4, 2500)
+    s = 1j*w
+    Ldc = (2*Kp/(Cdc*Ti))*(Ti*s + 1)/s**2
+    mag = 20*np.log10(np.abs(Ldc))
+    ph = np.degrees(np.unwrap(np.angle(Ldc)))
+    if ph[0] > 0:
+        ph -= 360.0
+    PM = np.degrees(np.arctan(Ti*w_dc))
+
+    fig, (a1, a2) = plt.subplots(2, 1, figsize=(9, 7.5), sharex=True)
+    fig.suptitle('Lazo de tensión DC: doble integrador + cero del PI',
+                 fontsize=12, fontweight='bold')
+
+    a1.semilogx(w, mag, color='navy', lw=2.4)
+    a1.axhline(0, color='gray', lw=0.9, ls='--')
+    a1.axvline(1/Ti, color='darkgreen', lw=1.2, ls=':'); a1.text(1/Ti, mag.max()-3, r'$1/T_{i,dc}$ (cero)', rotation=90, va='top', ha='right', fontsize=8.5, color='darkgreen')
+    a1.axvline(w_dc, color='darkred', lw=1.2, ls=':'); a1.text(w_dc, mag.max()-3, r'$\omega_{dc}$ (cruce)', rotation=90, va='top', ha='right', fontsize=8.5, color='darkred')
+    a1.text(0.03, 0.2, '−40 dB/dec', transform=a1.transAxes, fontsize=8.5, color='gray')
+    a1.text(0.62, 0.4, '−20 dB/dec', transform=a1.transAxes, fontsize=8.5, color='gray')
+    a1.set_ylabel('|L| (dB)'); a1.grid(True, which='both', alpha=0.3)
+
+    a2.semilogx(w, ph, color='navy', lw=2.4)
+    a2.axhline(-180, color='gray', lw=0.9, ls='--')
+    a2.axvline(1/Ti, color='darkgreen', lw=1.2, ls=':')
+    a2.axvline(w_dc, color='darkred', lw=1.2, ls=':')
+    a2.plot([w_dc], [-180+PM], 'o', color='darkred', ms=7)
+    a2.annotate(f'PM = arctan($T_{{i,dc}}\\omega_{{dc}}$) = arctan(4) ≈ {PM:.0f}°',
+                xy=(w_dc, -180+PM), xytext=(w_dc/60, -180+PM+16),
+                color='darkred', fontsize=9.5, arrowprops=dict(arrowstyle='->', color='darkred'))
+    a2.set_ylabel('fase (°)'); a2.set_xlabel('ω (rad/s)'); a2.grid(True, which='both', alpha=0.3)
+
+    fig.text(0.5, 0.005, r'La planta $2/(C_{dc}s)$ y el integral del PI dan $1/s^2$ ($-180°$); '
+             r'el cero del PI en $1/T_{i,dc}$ levanta la fase y da el margen en $\omega_{dc}$',
+             ha='center', fontsize=9, color='gray')
+    plt.tight_layout(rect=[0, 0.03, 1, 0.96])
+    _savefig(fig, "btb-lazo-tension-bode", dpi=160)
+
+
 def _optimo_simetrico():
     """Bode de la ganancia de lazo del optimo simetrico: el cero del PI y el polo
     de la planta quedan simetricos respecto a la frecuencia de cruce (media
@@ -15660,6 +15829,15 @@ def main():
         n += 1
     if pref is None or "optimo-simetrico-bode".startswith(pref):
         _optimo_simetrico()
+        n += 1
+    if pref is None or "btb-dq-transformacion".startswith(pref):
+        _btb_dq_transformacion()
+        n += 1
+    if pref is None or "btb-lazo-corriente-bode".startswith(pref):
+        _btb_lazo_corriente_bode()
+        n += 1
+    if pref is None or "btb-lazo-tension-bode".startswith(pref):
+        _btb_lazo_tension_bode()
         n += 1
     if pref is None or "deteccion-islanding-modos".startswith(pref):
         _islanding_modos()
