@@ -64,7 +64,7 @@ $$ \boxed{\;\frac{dE}{dt} = P_{in} - P_{out}\;} $$
 
 En la variable \(E\) (equivalentemente \(V_{dc}^2\)) la planta es **lineal**: la energía evoluciona exactamente como el integrador de la diferencia de potencias. Por eso el lazo de tensión se cierra sobre \(V_{dc}^2\) en lugar de sobre \(V_{dc}\) (ver [[control-tension-bus-dc]]): la planta linealizada en \(V_{dc}^2\) tiene ganancia constante \(1/C\) independiente del punto de operación, mientras que la planta en \(V_{dc}\) tiene una ganancia \(1/(C\,V_{dc})\) que varía con la tensión.
 
-**Nota sobre la no linealidad.** Si la carga es una resistencia \(R\), entonces \(i_{out} = V_{dc}/R\) y la ecuación sí contiene \(V_{dc}\) en el lado derecho, haciendo el sistema no lineal pero estable (tiene un polo en \(-1/(RC)\)). La CPL, en cambio, hace \(i_{out} = P/V_{dc}\), lo que introduce una no linealidad con resistencia incremental negativa, como se verá en el apartado 2.
+**Nota sobre la no linealidad.** Si la carga es una resistencia \(R\), entonces \(i_{out} = V_{dc}/R\) y la ecuación sí contiene \(V_{dc}\) en el lado derecho, haciendo el sistema no lineal pero estable (tiene un polo en \(-1/(RC)\)). La CPL, en cambio, hace \(i_{out} = P/V_{dc}\), lo que introduce una no linealidad con **resistencia incremental negativa**: derivando, \(di_{out}/dV_{dc} = -P/V_{dc}^2 < 0\), es decir, si \(V_{dc}\) sube la CPL baja su corriente (lo contrario que una resistencia normal), y esa pendiente negativa es la que puede desestabilizar el bus.
 
 ## 2 — Por qué la CPL da resistencia incremental negativa y fija \( P_{crit} \)
 

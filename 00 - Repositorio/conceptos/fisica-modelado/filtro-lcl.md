@@ -80,7 +80,7 @@ La derivación de abajo obtiene primero \( i_2 \) en función de las dos entrada
 <div class="cfig"><img src="figuras/filtro-lcl-familia.png" alt="Magnitud de las tres FDT del LCL frente a vi: i2/vi, i1/vi y vC/vi"><div class="cap">Las tres FDT frente a \(v_i\) (con \(v_{pcc}=0\)): \(i_2/v_i\) (planta de red) solo tiene el pico de resonancia; \(i_1/v_i\) añade el valle de antiresonancia en \(f_{ar}\) antes del pico (por eso es fácil de realimentar); \(v_C/v_i\) es la tensión del condensador. Comparten denominador (misma resonancia), difieren en los ceros.</div></div>
 
 ### Versión reducida (sin resistencias, \( R_1=R_2=0 \))
-**Paso 1 — pasar las tres ecuaciones a Laplace.** Con \( R_1 \) y \( R_2 \) despreciables para ver la estructura (se reintroducen en la versión completa de más abajo), las tres ecuaciones de partida en el dominio de Laplace son:
+**Paso 1 — pasar las tres ecuaciones a Laplace.** Con \( R_1 \) y \( R_2 \) despreciables para ver la estructura (el modelo con pérdidas es idéntico añadiendo \( R_1,R_2 \) en serie a cada bobina, lo que solo aporta amortiguamiento sin cambiar el orden ni las resonancias), las tres ecuaciones de partida en el dominio de Laplace son:
 
 $$ s\,L_1\,I_1 = V_i - V_C, \qquad s\,C_f\,V_C = I_1 - I_2, \qquad s\,L_2\,I_2 = V_C - V_{pcc} $$
 
