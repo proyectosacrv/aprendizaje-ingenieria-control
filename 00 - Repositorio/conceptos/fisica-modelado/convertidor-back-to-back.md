@@ -545,12 +545,27 @@ reaccionado toda la potencia sobrante entra o sale de él.
 
    $$ \Delta E = \Delta P\,\Delta t $$
 
-3. **Esa energía cambia la del condensador.** Con \(E=\tfrac12 C_{dc}V_{dc}^2\), un cambio de tensión
-   \(\Delta V_{dc}\) supone
+3. **Esa energía cambia la del condensador.** El condensador almacena \(E=\tfrac12 C_{dc}V_{dc}^2\). Pero
+   \(\Delta E\) **no** es esa energía, sino su **variación**: la energía que tenía **antes** (a \(V_{dc}\))
+   menos la que tiene **después** (cuando la tensión ha caído a \(V_{dc}-\Delta V_{dc}\)). Por eso aparece
+   una **resta de dos cuadrados** —no es que \(V_{dc}^2\) sea el corchete, sino la diferencia entre el estado
+   inicial y el final:
 
-   $$ \Delta E = \tfrac12 C_{dc}\big[V_{dc}^2-(V_{dc}-\Delta V_{dc})^2\big] = \tfrac12 C_{dc}\big(2V_{dc}\Delta V_{dc}-\Delta V_{dc}^2\big) \approx C_{dc}V_{dc}\,\Delta V_{dc} $$
+   $$ \Delta E = E(V_{dc}) - E(V_{dc}-\Delta V_{dc}) = \tfrac12 C_{dc}V_{dc}^2 - \tfrac12 C_{dc}(V_{dc}-\Delta V_{dc})^2 = \tfrac12 C_{dc}\big[V_{dc}^2-(V_{dc}-\Delta V_{dc})^2\big] $$
 
-   (el \(\Delta V_{dc}^2\) es despreciable frente a \(2V_{dc}\Delta V_{dc}\) porque \(\Delta V_{dc}\ll V_{dc}\)).
+   Ahora se **desarrolla el cuadrado** del binomio (no se deriva nada), con \((a-b)^2=a^2-2ab+b^2\):
+
+   $$ (V_{dc}-\Delta V_{dc})^2 = V_{dc}^2 - 2V_{dc}\Delta V_{dc} + \Delta V_{dc}^2 $$
+
+   Al restarlo de \(V_{dc}^2\), los \(V_{dc}^2\) se cancelan y queda el **término cruzado** (de ahí el factor
+   2) menos el pequeño:
+
+   $$ V_{dc}^2-(V_{dc}-\Delta V_{dc})^2 = 2V_{dc}\Delta V_{dc} - \Delta V_{dc}^2
+      \;\;\Longrightarrow\;\; \Delta E = \tfrac12 C_{dc}\big(2V_{dc}\Delta V_{dc}-\Delta V_{dc}^2\big) \approx C_{dc}V_{dc}\,\Delta V_{dc} $$
+
+   (el \(\Delta V_{dc}^2\) es despreciable frente a \(2V_{dc}\Delta V_{dc}\) porque \(\Delta V_{dc}\ll V_{dc}\).
+   Equivale a quedarse con el término lineal: como \(dE/dV_{dc}=C_{dc}V_{dc}\), a primer orden
+   \(\Delta E\approx C_{dc}V_{dc}\,\Delta V_{dc}\), el mismo resultado por derivada).
 4. **Igualar y despejar** la caída, usando \(\Delta t=1/\omega_{dc}\):
 
    $$ \Delta P\,\Delta t = C_{dc}V_{dc}\,\Delta V_{dc} \;\;\Longrightarrow\;\; \boxed{\ \Delta V_{dc} \approx \frac{\Delta P}{\omega_{dc}\,C_{dc}\,V_{dc}}\ } $$
