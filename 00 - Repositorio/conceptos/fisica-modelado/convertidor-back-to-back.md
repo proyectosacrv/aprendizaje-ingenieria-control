@@ -490,21 +490,76 @@ alrededor del cruce.
 
 ### 3.3 — Control: feedforward de potencia y diagrama de bloques
 
-**Paso 1 — El problema: el lazo por sí solo es lento ante \(P_{MSC}\).** Con solo el PI, el rechazo de la
-perturbación se obtiene de \(w = G_{dc}(P_{MSC}-P_{GSC})\) con \(P_{GSC}\) fijada por el lazo. Cerrando el
-lazo (ganancia de lazo \(L_{dc}\)):
+**Paso 1 — El problema: por qué el lazo por sí solo es "lento" ante \(P_{MSC}\).**
 
-$$ \frac{\tilde{w}}{\tilde{P}_{MSC}} = \frac{G_{dc}}{1+L_{dc}} = S(s)\,G_{dc}, \qquad S(s)=\frac{1}{1+L_{dc}(s)} $$
+*¿Qué significa "rápido" o "lento"?* La velocidad de un lazo la fija su **ancho de banda**, que es su
+frecuencia de cruce (aquí \(\omega_{dc}\)). Un lazo **rápido** (ancho de banda alto) corrige lo que cambia
+hasta frecuencias altas y su tiempo de respuesta es corto, del orden de \(1/\omega_{dc}\); uno **lento**
+(ancho de banda bajo) solo sigue lo que varía despacio, y cualquier perturbación **más rápida** que
+\(\omega_{dc}\) le "pasa por delante" antes de reaccionar. El lazo DC es lento **a propósito**:
+\(\omega_{dc}=\omega_{ci}/10\) (separación de escalas, 3.2 Paso 4), así que su tiempo de respuesta
+\(\sim 1/\omega_{dc}\) es unas 10 veces el del lazo de corriente.
 
-La sensibilidad \(S\) solo rechaza bien **por debajo** de \(\omega_{dc}\); como el lazo es lento, ante un
-escalón de \(P_{MSC}\) la tensión se desvía mientras el PI reacciona.
+*Cómo se cierra el lazo (deducción de la respuesta a la perturbación).* De la planta del bus (3.1), la
+tensión sale de integrar la **potencia neta**:
 
-**Paso 2 — Cuánta caída (argumento energético).** Durante el tiempo de reacción \(\Delta t \approx 1/\omega_{dc}\),
-el desbalance \(\Delta P\) se integra en el condensador:
+$$ \tilde w = G_{dc}\,(\tilde P_{MSC} - \tilde P_{GSC}), \qquad G_{dc}(s)=\frac{2}{C_{dc}s} $$
 
-$$ \Delta E = \Delta P\,\Delta t = C_{dc}V_{dc}\,\Delta V_{dc} \quad\Longrightarrow\quad \Delta V_{dc} \approx \frac{\Delta P}{\omega_{dc}\,C_{dc}\,V_{dc}} $$
+Aquí \(P_{MSC}\) es la **perturbación** (la fija el viento) y \(P_{GSC}\) la **manipulada** (la fija el
+control). El lazo mide \(w\) y ajusta \(P_{GSC}\) para llevarlo a \(w^*\). Llamando \(L_{dc}(s)\) a la
+**ganancia de lazo** —todo lo que recorre la señal en una vuelta: PI, lazo de corriente, conversión
+\(i_d\to P_{GSC}\) y planta \(G_{dc}\), la misma \(L_{dc}\) de 3.2— el efecto de esa realimentación sobre
+\(w\) es, por definición, \(-L_{dc}\,\tilde w\). Con \(w^*\) constante (\(\tilde w^*=0\)):
 
-Cuanto más lento el lazo (menor \(\omega_{dc}\)), mayor la caída, y mayor el \(C_{dc}\) necesario.
+$$ \tilde w = G_{dc}\,\tilde P_{MSC} - L_{dc}\,\tilde w \;\;\Longrightarrow\;\; \tilde w\,(1+L_{dc}) = G_{dc}\,\tilde P_{MSC} $$
+
+$$ \boxed{\ \frac{\tilde w}{\tilde P_{MSC}} = \frac{G_{dc}}{1+L_{dc}} = S(s)\,G_{dc}\ }, \qquad S(s)=\frac{1}{1+L_{dc}(s)} $$
+
+*Qué es la sensibilidad \(S\).* \(S(s)=1/(1+L_{dc})\) es la **función de sensibilidad** ([[funciones-sensibilidad]]),
+que mide **cuánta perturbación se cuela** a la salida a cada frecuencia:
+
+- Donde el lazo tiene **mucha ganancia** (\(|L_{dc}|\gg1\), a **bajas** frecuencias, por debajo de
+  \(\omega_{dc}\)): \(S\approx 1/L_{dc}\to 0\) → la perturbación se **rechaza** bien.
+- Donde el lazo tiene **poca ganancia** (\(|L_{dc}|\ll1\), a **altas** frecuencias, por encima de
+  \(\omega_{dc}\)): \(S\approx 1\) → la perturbación **pasa entera**.
+
+Por eso el lazo solo rechaza \(P_{MSC}\) por debajo de \(\omega_{dc}\). Un **escalón** de \(P_{MSC}\)
+contiene componentes de todas las frecuencias, incluidas las de por encima de \(\omega_{dc}\): esas se
+cuelan y hacen que \(V_{dc}\) se desvíe transitoriamente hasta que el (lento) PI alcanza a corregir, en un
+tiempo \(\sim 1/\omega_{dc}\).
+
+**Paso 2 — Cuánta cae \(V_{dc}\): el argumento energético.**
+
+*¿Qué es y por qué se usa?* En vez de resolver la respuesta temporal exacta de \(\tilde w/\tilde P_{MSC}\)
+(que se puede, pero es farragosa), se estima el **pico de caída** con un balance de energía: es rápido,
+físico, da la dependencia correcta con los parámetros y conecta directamente con el dimensionado del
+condensador. El condensador es un **almacén de energía**, y durante el rato en que el control aún no ha
+reaccionado toda la potencia sobrante entra o sale de él.
+
+*Paso a paso:*
+
+1. **Tiempo de reacción.** El lazo tarda \(\Delta t \approx 1/\omega_{dc}\) en responder (un lazo tarda del
+   orden de un periodo de su ancho de banda). Durante ese rato \(P_{GSC}\) todavía no se ha ajustado, así
+   que el desbalance completo \(\Delta P = P_{MSC}-P_{GSC}\approx \Delta P_{MSC}\) va íntegro al condensador.
+2. **Energía que absorbe el condensador.** Potencia por tiempo:
+
+   $$ \Delta E = \Delta P\,\Delta t $$
+
+3. **Esa energía cambia la del condensador.** Con \(E=\tfrac12 C_{dc}V_{dc}^2\), un cambio de tensión
+   \(\Delta V_{dc}\) supone
+
+   $$ \Delta E = \tfrac12 C_{dc}\big[V_{dc}^2-(V_{dc}-\Delta V_{dc})^2\big] = \tfrac12 C_{dc}\big(2V_{dc}\Delta V_{dc}-\Delta V_{dc}^2\big) \approx C_{dc}V_{dc}\,\Delta V_{dc} $$
+
+   (el \(\Delta V_{dc}^2\) es despreciable frente a \(2V_{dc}\Delta V_{dc}\) porque \(\Delta V_{dc}\ll V_{dc}\)).
+4. **Igualar y despejar** la caída, usando \(\Delta t=1/\omega_{dc}\):
+
+   $$ \Delta P\,\Delta t = C_{dc}V_{dc}\,\Delta V_{dc} \;\;\Longrightarrow\;\; \boxed{\ \Delta V_{dc} \approx \frac{\Delta P}{\omega_{dc}\,C_{dc}\,V_{dc}}\ } $$
+
+*Qué implica.* La caída es **inversamente proporcional** a \(\omega_{dc}\) (lazo más lento → más caída) y a
+\(C_{dc}\) (condensador más grande → menos caída). Con un lazo lento, mantener \(\Delta V_{dc}\) dentro de
+límites obliga a un \(C_{dc}\) grande. La salida es acelerar la **reacción efectiva** ante \(P_{MSC}\) sin
+tocar el lazo lento: eso es justo lo que hace el feedforward de los pasos siguientes (reduce el \(\Delta t\)
+efectivo de \(1/\omega_{dc}\) a \(\sim 1/\omega_{ci}\), un factor 10, y con ello la caída y el \(C_{dc}\)).
 
 **Paso 3 — ¿Por qué *se puede* hacer feedforward de la potencia?** Un feedforward de una perturbación
 requiere tres condiciones, y \(P_{MSC}\) las cumple:
