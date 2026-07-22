@@ -599,18 +599,60 @@ lenta: errores de estimación, pérdidas) y el feedforward (grueso de la potenci
 
 $$ \boxed{\,i_d^* = \underbrace{C_{dc}^{ctrl}(e_w)}_{\text{PI, }e_w=w^*-w} + \underbrace{\frac{P_{MSC}}{1.5\,v_{d,g}}}_{\text{feedforward}}\,} $$
 
-**Paso 6 — Rechazo de la perturbación con feedforward (desarrollo).** Se incluye la dinámica del lazo de
-corriente cerrado \(G_{cl}(s) = \dfrac{\omega_{ci}}{s+\omega_{ci}}\) y un filtro de feedforward \(F_{FF}(s)\).
-La potencia del GSC realmente entregada es:
+**Paso 6 — Las dos dinámicas que entran en juego.** Hasta el Paso 5 el feedforward era instantáneo e ideal.
+En la realidad intervienen **dos** bloques dinámicos, y de ahí sale la "dinámica" del desarrollo:
 
-$$ P_{GSC} = 1.5\,v_{d,g}\,i_d = 1.5\,v_{d,g}\,G_{cl}\Big(i_{d,PI}^* + F_{FF}\frac{P_{MSC}}{1.5\,v_{d,g}}\Big)
-   = 1.5\,v_{d,g}\,G_{cl}\,i_{d,PI}^* + G_{cl}F_{FF}\,P_{MSC} $$
+*(a) El lazo de corriente cerrado \(G_{cl}(s)\).* La corriente \(i_d\) **no** sigue a su referencia \(i_d^*\)
+al instante: lo hace con el retardo del propio lazo de corriente. Su FdT de lazo cerrado ya se obtuvo en
+2.7 (el primer orden \(\omega_{ci}/(s+\omega_{ci})\)):
 
-La potencia **neta** que ve el condensador en el nudo de balance:
+$$ i_d = G_{cl}(s)\,i_d^*, \qquad G_{cl}(s) = \frac{\omega_{ci}}{s+\omega_{ci}} $$
 
-$$ P_{net} = P_{MSC} - P_{GSC} = \underbrace{P_{MSC}\big(1 - G_{cl}F_{FF}\big)}_{\text{perturbación efectiva}} - 1.5\,v_{d,g}\,G_{cl}\,i_{d,PI}^* $$
+A frecuencias bajas (\(\omega\ll\omega_{ci}\)) \(G_{cl}\approx1\) y la corriente sigue la referencia; por
+encima de \(\omega_{ci}\) se queda atrás. **Aquí está la dinámica** que el Paso 5 (ideal) no tenía.
 
-El factor **\((1 - G_{cl}F_{FF})\)** es lo que aporta el feedforward. Tres casos:
+*(b) El filtro del feedforward \(F_{FF}(s)\).* \(P_{MSC}\) no se conoce exacta: se **estima** de las medidas
+del MSC, \(P_{MSC}=\tfrac32(v_{d,gen}i_{d,gen}+v_{q,gen}i_{q,gen})\), que traen ruido de conmutación. Antes
+de sumarla al feedforward se pasa por un paso-bajo:
+
+$$ F_{FF}(s) = \frac{1}{T_{FF}s+1}, \qquad T_{FF} = \frac{1}{\omega_{ci}} $$
+
+Se toma \(T_{FF}=1/\omega_{ci}\) para que el filtro tenga el **mismo ancho de banda** que el lazo de
+corriente: quita el ruido sin frenar el feedforward más de lo que ya lo frena el propio \(G_{cl}\).
+
+**Paso 7 — Cómo se construye \(P_{GSC}\) y la potencia neta (desarrollo).** Se encadenan tres bloques, en
+este orden físico:
+
+1. **Referencia de corriente** (ley del Paso 5, con el filtro del Paso 6b): el PI aporta \(i_{d,PI}^*\) y el
+   feedforward aporta \(i_{d,FF}^*=F_{FF}\,P_{MSC}/(1.5v_{d,g})\):
+
+   $$ i_d^* = i_{d,PI}^* + F_{FF}\,\frac{P_{MSC}}{1.5\,v_{d,g}} $$
+
+2. **El lazo de corriente** convierte esa referencia en corriente real (Paso 6a): \(i_d = G_{cl}\,i_d^*\).
+3. **La orientación VOC** convierte la corriente en potencia (Paso 4): \(P_{GSC}=1.5\,v_{d,g}\,i_d\).
+
+Sustituyendo 1 → 2 → 3, uno dentro de otro:
+
+$$ P_{GSC} = 1.5\,v_{d,g}\,i_d = 1.5\,v_{d,g}\,G_{cl}\,i_d^*
+   = 1.5\,v_{d,g}\,G_{cl}\Big(i_{d,PI}^* + F_{FF}\,\frac{P_{MSC}}{1.5\,v_{d,g}}\Big) $$
+
+Distribuyendo \(1.5\,v_{d,g}\,G_{cl}\) sobre el paréntesis; en el segundo término el \(1.5v_{d,g}\) de fuera
+**se cancela** con el \(1/(1.5v_{d,g})\) del feedforward:
+
+$$ P_{GSC} = \underbrace{1.5\,v_{d,g}\,G_{cl}\,i_{d,PI}^*}_{\text{parte de realimentación (PI)}} + \underbrace{G_{cl}\,F_{FF}\,P_{MSC}}_{\text{parte de feedforward}} $$
+
+**Potencia neta que ve el condensador.** En el nudo de balance (3.1), la planta integra
+\(P_{net}=P_{MSC}-P_{GSC}\). Restando lo anterior y agrupando el \(P_{MSC}\):
+
+$$ P_{net} = P_{MSC} - \big(1.5\,v_{d,g}\,G_{cl}\,i_{d,PI}^* + G_{cl}F_{FF}\,P_{MSC}\big)
+   = \underbrace{P_{MSC}\,(1 - G_{cl}F_{FF})}_{\text{perturbación efectiva}} - \underbrace{1.5\,v_{d,g}\,G_{cl}\,i_{d,PI}^*}_{\text{acción del PI}} $$
+
+Es decir: la perturbación \(P_{MSC}\) ya **no** entra entera al condensador, sino **atenuada** por el factor
+\((1-G_{cl}F_{FF})\). Ese factor es todo el efecto del feedforward.
+
+<div class="cfig"><img src="figuras/btb-ff-loop.png" alt="Diagrama de bloques del lazo de tensión DC con feedforward: referencia w*, PI, suma con la rama de feedforward (filtro F_FF y division por 1.5 v_dg), lazo de corriente G_cl, conversion a potencia, nudo de balance con los dos caminos de P_MSC y planta integradora"><div class="cap">Lazo de tensión DC con feedforward, con las dinámicas explícitas. \(P_{MSC}\) (verde) llega al nudo de balance por **dos caminos**: directo (\(+\)) y por la rama de feedforward (\(F_{FF}\to\div1.5v_{d,g}\to G_{cl}\to\times1.5v_{d,g}\), que da \(-G_{cl}F_{FF}P_{MSC}\)). Su suma es \(P_{MSC}(1-G_{cl}F_{FF})\): si \(G_{cl}F_{FF}\approx1\) se cancelan y la perturbación no llega al integrador \(2/(C_{dc}s)\).</div></div>
+
+**Paso 8 — El factor \((1 - G_{cl}F_{FF})\): tres casos.** Ese factor lo resume todo:
 
 - **Sin feedforward** (\(F_{FF}=0\)): factor \(=1\), la perturbación entra entera → solo la rechaza el PI (lento).
 - **Feedforward ideal** (\(F_{FF}=1\), \(G_{cl}=1\)): factor \(=1-1=0\) → **cancelación perfecta**.
@@ -621,7 +663,7 @@ $$ 1 - G_{cl} = 1 - \frac{\omega_{ci}}{s+\omega_{ci}} = \frac{s}{s+\omega_{ci}} 
 un **filtro paso-alto**: solo se cuela lo que cambia más rápido que \(\omega_{ci}\), y ese resto multiplica
 al integrador \(2/(C_{dc}s)\) cancelando su polo en el origen. La perturbación deja de integrarse.
 
-**Paso 7 — Efecto: la caída se reduce y \(C_{dc}\) se achica.** Con feedforward, el desbalance que ve el
+**Paso 9 — Efecto: la caída se reduce y \(C_{dc}\) se achica.** Con feedforward, el desbalance que ve el
 condensador dura \(\sim 1/\omega_{ci}\) (retardo del lazo de corriente) en vez de \(\sim 1/\omega_{dc}\).
 Por el mismo argumento energético del Paso 2:
 
@@ -630,29 +672,10 @@ $$ \Delta V_{dc} \approx \frac{\Delta P}{\omega_{ci}\,C_{dc}\,V_{dc}}, \qquad \f
 → la caída es \(\sim 10\times\) menor; para la misma \(\Delta V_{dc}\) admisible, \(C_{dc}\) puede ser
 **5–10 veces más pequeño**.
 
-**Paso 8 — Filtro del feedforward.** \(P_{MSC}\) se estima de medidas ruidosas; se filtra con
+**Paso 10 — Diagrama de bloques resumido.** Reuniendo todo, el lazo completo, con el lazo de corriente
+aproximado como ganancia unidad (\(G_{cl}\approx1\), separación de escalas) y el anti-windup:
 
-$$ F_{FF}(s) = \frac{1}{T_{FF}s+1}, \qquad T_{FF} = \frac{1}{\omega_{ci}} $$
-
-Elimina el ruido de medida sin ralentizar el feedforward respecto al lazo de corriente (mismo ancho de banda).
-
-**Paso 9 — Desarrollo del diagrama de bloques.** El lazo se construye a partir de las ecuaciones anteriores:
-
-1. Referencia \(w^* = V_{dc}^{*2}\) y error \(e_w = w^* - w\).
-2. PI \(C_{dc}^{ctrl}(s)\) → corriente de corrección \(i_{d,PI}^*\).
-3. Rama de feedforward: \(P_{MSC}\) → filtro \(F_{FF}\) → \(\div(1.5\,v_{d,g})\) → \(i_{d,FF}^*\).
-4. Suma de referencias: \(i_d^* = i_{d,PI}^* + i_{d,FF}^*\).
-5. Lazo de corriente cerrado \(G_{cl}(s)=\omega_{ci}/(s+\omega_{ci}) \approx 1\) (separación de escalas) → \(i_d\).
-6. Conversión a potencia: \(\times\,1.5\,v_{d,g}\) → \(P_{GSC}\).
-7. Nudo de balance: \(P_{MSC} - P_{GSC}\) = potencia neta.
-8. Planta \(2/(C_{dc}s)\) → \(w\); raíz cuadrada → \(V_{dc}\), que se realimenta al error.
-
-La clave del feedforward está en el nudo de balance: \(P_{MSC}\) llega por **dos caminos** — directo
-(\(+\)) y por la rama de feedforward → \(i_d\) → \(\times 1.5\,v_{d,g}\) → \(P_{GSC}\) (\(-\)). Si el
-feedforward es exacto y el lazo de corriente ideal, ambos se cancelan y la perturbación **nunca llega al
-integrador**.
-
-<div class="cfig"><img src="figuras/btb-lazo-dc.png" alt="Diagrama de bloques del lazo de tensión DC: PI sobre V_dc cuadrado, feedforward de potencia del MSC, lazo de corriente como ganancia unidad y planta integradora 2/(C_dc s)"><div class="cap">El PI actúa sobre el error de \(V_{dc}^2\) y genera la referencia de corriente activa del GSC. El feedforward de potencia \(P_{MSC}/(1.5\,v_{d,g})\) adelanta la corriente antes de que el condensador se descargue. El lazo de corriente interno se ve como ganancia unidad (separación de escalas \(\omega_{dc}=\omega_{ci}/10\)) y la planta es el integrador \(2/(C_{dc}s)\).</div></div>
+<div class="cfig"><img src="figuras/btb-lazo-dc.png" alt="Diagrama de bloques del lazo de tensión DC: PI sobre V_dc cuadrado, feedforward de potencia del MSC, lazo de corriente como ganancia unidad y planta integradora 2/(C_dc s)"><div class="cap">Versión resumida del lazo de tensión DC. El PI actúa sobre el error de \(V_{dc}^2\) y genera la referencia de corriente activa del GSC; el feedforward de potencia \(P_{MSC}/(1.5\,v_{d,g})\) adelanta la corriente antes de que el condensador se descargue. A la frecuencia del lazo DC el de corriente se ve como ganancia unidad, y la planta es el integrador \(2/(C_{dc}s)\); se añade el anti-windup del integrador.</div></div>
 
 **Características que debe cumplir el lazo DC:**
 

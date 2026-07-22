@@ -15157,6 +15157,92 @@ def _btb_lazo_dc():
     _savefig(fig, "btb-lazo-dc")
 
 
+def _btb_ff_loop():
+    """Diagrama de bloques detallado del lazo de tension DC con feedforward:
+    dinamicas G_cl y F_FF explicitas y los dos caminos de P_MSC hacia el nudo
+    de balance (directo y por la rama de feedforward)."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, ax = plt.subplots(1, 1, figsize=(15, 8.5))
+    ax.set_xlim(0, 15); ax.set_ylim(0, 9); ax.axis('off')
+    ax.set_title('Lazo de tensión del bus DC con feedforward de potencia',
+                 fontsize=13, fontweight='bold', pad=8)
+
+    def box(x, y, w, h, txt, col, fs=10):
+        ax.add_patch(mpatches.FancyBboxPatch((x-w/2, y-h/2), w, h,
+            boxstyle='round,pad=0.06', facecolor=col, edgecolor='navy', lw=1.6))
+        ax.text(x, y, txt, ha='center', va='center', fontsize=fs, fontweight='bold')
+
+    def circ(x, y, lbl, col='navy', r=0.28):
+        ax.add_patch(plt.Circle((x, y), r, facecolor='white', edgecolor=col, lw=1.6))
+        ax.text(x, y, lbl, ha='center', va='center', fontsize=11, fontweight='bold', color=col)
+
+    def arr(x1, y1, x2, y2, col='navy', lbl='', dy=0.22, lw=1.8):
+        ax.annotate('', xy=(x2, y2), xytext=(x1, y1),
+                    arrowprops=dict(arrowstyle='-|>', color=col, lw=lw))
+        if lbl:
+            ax.text((x1+x2)/2, max(y1, y2)+dy, lbl, ha='center', fontsize=9, color='darkred')
+
+    y = 6.0
+    # cadena principal
+    ax.text(0.4, y, r'$w^*=V_{dc}^{*2}$', ha='center', va='center', fontsize=10)
+    arr(0.95, y, 1.25, y)
+    circ(1.55, y, '−')
+    arr(1.83, y, 2.4, y, lbl=r'$e_w$')
+    box(3.05, y, 1.3, 0.8, r'$PI_{dc}$', '#AED6F1')
+    arr(3.7, y, 4.45, y, lbl=r'$i_{d,PI}^*$')
+    circ(4.75, y, '+')
+    arr(5.03, y, 5.7, y, lbl=r'$i_d^*$')
+    box(6.5, y, 1.6, 0.9, r'$G_{cl}=\dfrac{\omega_{ci}}{s+\omega_{ci}}$', '#A9DFBF', 9.5)
+    arr(7.3, y, 7.9, y, lbl=r'$i_d$')
+    box(8.6, y, 1.5, 0.8, r'$\times\,1.5\,v_{d,g}$', '#FCF3CF', 9)
+    arr(9.35, y, 9.95, y, lbl=r'$P_{GSC}$')
+    circ(10.3, y, '−')
+    arr(10.58, y, 11.15, y, lbl=r'$P_{net}$')
+    box(11.9, y, 1.4, 0.9, r'$\dfrac{2}{C_{dc}s}$', '#FAD7A0', 11)
+    arr(12.6, y, 13.3, y)
+    ax.text(13.75, y, r'$w=V_{dc}^2$', ha='center', va='center', fontsize=10)
+
+    # realimentacion
+    ax.plot([13.05, 13.05, 1.55], [y, y-1.4, y-1.4], 'navy', lw=1.6)
+    ax.annotate('', xy=(1.55, y-0.28), xytext=(1.55, y-1.4),
+                arrowprops=dict(arrowstyle='-|>', color='navy', lw=1.6))
+
+    # ---- P_MSC y sus dos caminos (verde) ----
+    g = 'darkgreen'
+    ym = 8.1
+    ax.text(6.2, ym+0.25, r'$P_{MSC}$ (perturbación, medida del MSC)', ha='center', fontsize=9.5, color=g, fontweight='bold')
+    ax.plot([1.8, 10.3], [ym, ym], color=g, lw=1.8)
+    ax.plot([6.2], [ym], marker='o', color=g, ms=6)   # nudo de reparto
+
+    # camino directo: P_MSC -> nudo de balance (+)
+    ax.annotate('', xy=(10.3, y+0.28), xytext=(10.3, ym),
+                arrowprops=dict(arrowstyle='-|>', color=g, lw=1.8))
+    ax.text(10.5, (ym+y)/2, 'directo (+)', ha='left', fontsize=8.5, color=g)
+
+    # camino feedforward: P_MSC -> F_FF -> /1.5vdg -> suma (+)
+    ax.plot([1.8, 1.8], [ym, 3.58], color=g, lw=1.8)
+    box(1.8, 3.2, 1.5, 0.75, r'$F_{FF}=\dfrac{1}{T_{FF}s+1}$', '#ABEBC6', 8.5)
+    arr(2.55, 3.2, 4.05, 3.2, col=g)
+    box(4.75, 3.2, 1.4, 0.75, r'$\div\,1.5\,v_{d,g}$', '#ABEBC6', 8.5)
+    ax.text(5.35, 3.2, r'$i_{d,FF}^*$', ha='left', va='center', fontsize=9, color=g)
+    ax.annotate('', xy=(4.75, y-0.28), xytext=(4.75, 3.58),
+                arrowprops=dict(arrowstyle='-|>', color=g, lw=1.8))
+    ax.text(5.05, 4.9, 'feedforward (+)', ha='left', fontsize=8.5, color=g)
+
+    # anotacion de cancelacion
+    ax.text(7.5, 0.7,
+            r'En el nudo de balance: $P_{net}=P_{MSC}-P_{GSC}=P_{MSC}\,(1-G_{cl}F_{FF})-1.5v_{d,g}G_{cl}i_{d,PI}^*$'
+            '\n'
+            r'Si $G_{cl}F_{FF}\approx1$, los dos caminos verdes de $P_{MSC}$ se cancelan y la perturbación no llega al integrador',
+            ha='center', fontsize=9.5,
+            bbox=dict(boxstyle='round', facecolor='#EAFAF1', edgecolor='darkgreen'))
+
+    plt.tight_layout()
+    _savefig(fig, "btb-ff-loop", dpi=170)
+
+
 def _btb_dq_transformacion():
     """Diagrama vectorial: marcos abc, alfa-beta y dq (girando con v_g), con la
     orientacion VOC (v_g sobre el eje d) y la descomposicion de la corriente."""
@@ -15835,6 +15921,9 @@ def main():
         n += 1
     if pref is None or "optimo-simetrico-bode".startswith(pref):
         _optimo_simetrico()
+        n += 1
+    if pref is None or "btb-ff-loop".startswith(pref):
+        _btb_ff_loop()
         n += 1
     if pref is None or "btb-dq-transformacion".startswith(pref):
         _btb_dq_transformacion()
