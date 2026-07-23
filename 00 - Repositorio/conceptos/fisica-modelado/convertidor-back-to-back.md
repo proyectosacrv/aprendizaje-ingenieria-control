@@ -672,11 +672,6 @@ $$ \Delta V_{dc} \approx \frac{\Delta P}{\omega_{ci}\,C_{dc}\,V_{dc}}, \qquad \f
 → la caída es \(\sim 10\times\) menor; para la misma \(\Delta V_{dc}\) admisible, \(C_{dc}\) puede ser
 **5–10 veces más pequeño**.
 
-**Paso 10 — Diagrama de bloques resumido.** Reuniendo todo, el lazo completo, con el lazo de corriente
-aproximado como ganancia unidad (\(G_{cl}\approx1\), separación de escalas) y el anti-windup:
-
-<div class="cfig"><img src="figuras/btb-lazo-dc.png" alt="Diagrama de bloques del lazo de tensión DC: PI sobre V_dc cuadrado, feedforward de potencia del MSC, lazo de corriente como ganancia unidad y planta integradora 2/(C_dc s)"><div class="cap">Versión resumida del lazo de tensión DC. El PI actúa sobre el error de \(V_{dc}^2\) y genera la referencia de corriente activa del GSC; el feedforward de potencia \(P_{MSC}/(1.5\,v_{d,g})\) adelanta la corriente antes de que el condensador se descargue. A la frecuencia del lazo DC el de corriente se ve como ganancia unidad, y la planta es el integrador \(2/(C_{dc}s)\); se añade el anti-windup del integrador.</div></div>
-
 **Características que debe cumplir el lazo DC:**
 
 - **Separación de escalas:** \(\omega_{dc} = \omega_{ci}/10\) para que el lazo de corriente sea

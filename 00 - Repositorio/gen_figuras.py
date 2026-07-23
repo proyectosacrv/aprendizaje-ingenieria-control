@@ -15946,9 +15946,6 @@ def main():
     if pref is None or "btb-topologia".startswith(pref):
         _btb_topologia()
         n += 1
-    if pref is None or "btb-lazo-dc".startswith(pref):
-        _btb_lazo_dc()
-        n += 1
     if pref is None or "btb-tensiones-explicacion".startswith(pref):
         _btb_diagramas_bloques()  # genera ambas figuras a la vez
         n += 1
