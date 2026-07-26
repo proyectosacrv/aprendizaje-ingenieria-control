@@ -15157,6 +15157,103 @@ def _btb_lazo_dc():
     _savefig(fig, "btb-lazo-dc")
 
 
+def _btb_pmsg_modelo():
+    """Modelo del PMSG en dq del rotor: (a) diagrama vectorial que muestra por
+    que el eje d se alinea con el flujo del iman; (b) circuito equivalente dq."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, (axV, axC) = plt.subplots(1, 2, figsize=(15, 6.3),
+                                   gridspec_kw={'width_ratios': [1, 1.4]})
+    fig.suptitle('Modelo del generador PMSG en el marco dq del rotor',
+                 fontsize=13, fontweight='bold')
+
+    # ---------- (a) diagrama vectorial ----------
+    axV.set_aspect('equal'); axV.axis('off')
+    axV.set_xlim(-1.7, 1.9); axV.set_ylim(-1.5, 1.9)
+    axV.set_title('(a) El eje d se alinea con el flujo del imán', fontsize=10.5, fontweight='bold')
+
+    def vec(x, y, txt, col, lw=2.4, tx=None, ty=None, fs=11):
+        axV.annotate('', xy=(x, y), xytext=(0, 0), arrowprops=dict(arrowstyle='-|>', color=col, lw=lw))
+        axV.text(tx if tx is not None else x*1.13, ty if ty is not None else y*1.13,
+                 txt, color=col, fontsize=fs, ha='center', va='center', fontweight='bold')
+
+    vec(1.6, 0, 'd', 'navy', 1.5, 1.78, 0)
+    vec(0, 1.6, 'q', 'navy', 1.5, 0, 1.78)
+    # imán (barra) sobre el eje d: S (izq), N (der)
+    axV.add_patch(mpatches.Rectangle((-0.55, -0.16), 0.55, 0.32, facecolor='#5b8def', edgecolor='k'))
+    axV.add_patch(mpatches.Rectangle((0, -0.16), 0.55, 0.32, facecolor='#e15a5a', edgecolor='k'))
+    axV.text(-0.30, 0, 'S', ha='center', va='center', color='white', fontsize=9, fontweight='bold')
+    axV.text(0.30, 0, 'N', ha='center', va='center', color='white', fontsize=9, fontweight='bold')
+    # flujo del imán sobre d
+    vec(1.15, 0, r'$\psi_m$', '#b5179e', 3.2, 0.78, 0.18, 12)
+    # fem sobre q
+    vec(0, 1.05, r'$e=\omega_r\psi_m$', '#1d3557', 2.3, -0.30, 1.18, 9.5)
+    # corriente i con componentes
+    ix, iy = 0.33, 0.92
+    axV.annotate('', xy=(ix, iy), xytext=(0, 0), arrowprops=dict(arrowstyle='-|>', color='darkgreen', lw=2.4))
+    axV.text(ix+0.13, iy+0.05, r'$\vec i$', color='darkgreen', fontsize=12, fontweight='bold')
+    axV.plot([ix, ix], [0, iy], color='darkgreen', lw=1, ls='--')
+    axV.plot([0, ix], [iy, iy], color='darkgreen', lw=1, ls='--')
+    axV.text(ix, -0.20, r'$i_d$', color='darkgreen', fontsize=9, ha='center')
+    axV.text(-0.10, iy, r'$i_q$', color='darkgreen', fontsize=9, ha='right', va='center')
+    axV.text(0.1, -1.28, r'MTPA: $i_d=0\Rightarrow \vec i$ sobre $q$ (todo par)', ha='center', fontsize=8.5, color='gray')
+
+    # ---------- (b) circuito equivalente dq ----------
+    axC.axis('off'); axC.set_xlim(0, 12); axC.set_ylim(0, 8)
+    axC.set_title('(b) Circuito equivalente dq', fontsize=10.5, fontweight='bold')
+
+    def rbox(x, y, txt, col='#FCF3CF', w=0.95):
+        axC.add_patch(mpatches.FancyBboxPatch((x-w/2, y-0.32), w, 0.64,
+            boxstyle='round,pad=0.03', facecolor=col, edgecolor='navy', lw=1.5))
+        axC.text(x, y, txt, ha='center', va='center', fontsize=10, fontweight='bold')
+
+    def src(x, y, txt, ec='navy', tcol='navy'):
+        axC.add_patch(plt.Circle((x, y), 0.33, facecolor='white', edgecolor=ec, lw=1.6))
+        axC.text(x, y, '~', ha='center', va='center', fontsize=12, color=tcol)
+        axC.text(x, y-0.62, txt, ha='center', va='top', fontsize=8.5, color=tcol)
+
+    def wire(x1, x2, y):
+        axC.plot([x1, x2], [y, y], 'navy', lw=1.6)
+
+    def port(x, y, lbl):
+        axC.plot([x], [y], 'o', color='navy', ms=6)
+        axC.text(x, y+0.42, lbl, fontsize=10, ha='center')
+
+    def icur(x, y, lbl):
+        axC.annotate('', xy=(x+0.5, y+0.3), xytext=(x, y+0.3), arrowprops=dict(arrowstyle='-|>', color='darkred', lw=1.4))
+        axC.text(x+0.25, y+0.55, lbl, color='darkred', fontsize=9, ha='center')
+
+    # eje d
+    yd = 5.7
+    axC.text(0.4, yd, 'eje d', fontsize=10, fontweight='bold', color='navy', ha='center')
+    port(1.2, yd, r'$v_d$'); icur(1.4, yd, r'$i_d$')
+    wire(1.2, 1.85, yd); rbox(2.35, yd, r'$R_s$'); wire(2.83, 3.35, yd)
+    rbox(3.85, yd, r'$L_d$'); wire(4.33, 5.37, yd)
+    src(5.7, yd, r'$-\omega_r L_q i_q$'); wire(6.03, 7.3, yd)
+    port(7.3, yd, ''); axC.text(7.5, yd, 'neutro', fontsize=8, color='gray', va='center')
+
+    # eje q
+    yq = 2.3
+    axC.text(0.4, yq, 'eje q', fontsize=10, fontweight='bold', color='navy', ha='center')
+    port(1.2, yq, r'$v_q$'); icur(1.4, yq, r'$i_q$')
+    wire(1.2, 1.85, yq); rbox(2.35, yq, r'$R_s$'); wire(2.83, 3.35, yq)
+    rbox(3.85, yq, r'$L_q$'); wire(4.33, 5.37, yq)
+    src(5.7, yq, r'$\omega_r L_d i_d$'); wire(6.03, 7.67, yq)
+    src(8.0, yq, r'$\omega_r\psi_m$', ec='#c0392b', tcol='#c0392b'); wire(8.33, 9.6, yq)
+    port(9.6, yq, ''); axC.text(9.8, yq, 'neutro', fontsize=8, color='gray', va='center')
+
+    axC.annotate('fem del imán:\nSOLO en el eje q\n(porque d va sobre $\\psi_m$)',
+                 xy=(8.0, yq-0.9), xytext=(8.7, 0.55),
+                 fontsize=8.5, color='#c0392b', ha='center',
+                 arrowprops=dict(arrowstyle='->', color='#c0392b'))
+    axC.text(6.0, 7.1, r'Términos $\omega_r L\,i$: acoplamiento cruzado d$\leftrightarrow$q (fem de velocidad)',
+             ha='center', fontsize=8.5, color='gray')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    _savefig(fig, 'btb-pmsg-modelo', dpi=165)
+
+
 def _btb_ff_loop():
     """Diagrama de bloques detallado del lazo de tension DC con feedforward:
     dinamicas G_cl y F_FF explicitas y los dos caminos de P_MSC hacia el nudo
@@ -15924,6 +16021,9 @@ def main():
         n += 1
     if pref is None or "btb-ff-loop".startswith(pref):
         _btb_ff_loop()
+        n += 1
+    if pref is None or "btb-pmsg-modelo".startswith(pref):
+        _btb_pmsg_modelo()
         n += 1
     if pref is None or "btb-dq-transformacion".startswith(pref):
         _btb_dq_transformacion()

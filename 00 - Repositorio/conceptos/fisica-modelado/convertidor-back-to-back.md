@@ -707,6 +707,25 @@ contraelectromotriz** \(-\omega_r\psi_m\) en el eje q (el \(-\omega_r\psi_m\) de
 acoplamiento cruzado \(\pm\omega_r L_{q,d} i\). El signo de \(\omega_r\) es opuesto al del lado red porque
 aquí la máquina **genera** (la fem impulsa la corriente).
 
+<div class="cfig"><img src="figuras/btb-pmsg-modelo.png" alt="Modelo del PMSG en dq: diagrama vectorial con el eje d alineado con el flujo del imán y la fem sobre el eje q, y circuito equivalente dq con la fem del imán solo en el eje q"><div class="cap">(a) El marco dq gira con el rotor y el eje d se alinea con el flujo del imán \(\psi_m\); la fem inducida \(e=\omega_r\psi_m\) queda \(90°\) adelantada, sobre el eje q, y la corriente \(\vec i\) se descompone en \(i_d\) (campo) e \(i_q\) (par). (b) Circuito equivalente dq: cada eje es una rama \(R_s\)–\(L\) con la fem de velocidad \(\pm\omega_r L\,i\) (acoplamiento cruzado); la fem del imán \(\omega_r\psi_m\) aparece **solo en el eje q**, consecuencia directa de alinear el eje d con \(\psi_m\).</div></div>
+
+**¿Por qué el eje d se alinea con el flujo del imán?** El marco dq gira **solidario con el rotor** (a
+\(\omega_r\)), y se elige el eje d **sobre el flujo del imán** \(\psi_m\) por tres motivos encadenados:
+
+1. **El flujo del imán queda solo en d.** Con esa elección \(\psi_d = L_d i_d + \psi_m\) (lleva el imán) y
+   \(\psi_q = L_q i_q\) (sin imán). Como la fem es la derivada del flujo en el marco giratorio, \(\psi_m\) en
+   d produce una fem \(e=\omega_r\psi_m\) **90° adelantada, sobre el eje q** (panel a).
+2. **El par se simplifica y se desacopla.** Al meter esos flujos en \(T=\tfrac32 p(\psi_d i_q-\psi_q i_d)\)
+   queda \(T=\tfrac32 p\,\psi_m i_q\) (no saliente): **\(i_q\) es la corriente de par** (en fase con la fem →
+   potencia activa) e **\(i_d\) la de campo** (magnetizante). Los dos papeles quedan separados, igual que en
+   el control vectorial de máquinas (FOC).
+3. **Máximo par por amperio.** Como el imán ya aporta el flujo, no hace falta magnetizar: se fija
+   \(i_d=0\) (MTPA), y **toda** la corriente produce par.
+
+Es el mismo principio que el VOC del lado de red (2.4), pero cambiando la referencia: en la red el eje d se
+alinea con la **tensión** (la impone la red); en la máquina, con el **flujo del rotor** (lo impone el imán).
+En ambos casos se orienta el marco sobre la magnitud física que manda.
+
 **Par electromagnético.** El par es \(T_{em} = \tfrac{3}{2}p\,(\psi_d i_q - \psi_q i_d)\) (producto vectorial
 flujo × corriente). Sustituyendo los enlaces de flujo \(\psi_d = L_d i_d + \psi_m\), \(\psi_q = L_q i_q\):
 
