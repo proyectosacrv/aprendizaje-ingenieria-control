@@ -802,79 +802,137 @@ donde \(P_{sw,MSC}\) y \(P_{cond,MSC}\) son las pérdidas de conmutación y cond
 
 Las pérdidas en cada VSC se descomponen en cuatro componentes por semiconductor:
 
-**Pérdidas de conducción del IGBT.** Se parte de la característica de salida del IGBT, que se aproxima por
-una recta \(v_{ce}(i) = V_{ce0} + R_{ce}\,i\) (tensión umbral + resistencia). La potencia disipada
-instantánea es \(v_{ce}\,i = V_{ce0}\,i + R_{ce}\,i^2\); promediando sobre el periodo fundamental:
+En un semiconductor hay **dos** mecanismos de pérdida: **conducción** (mientras lleva corriente, cae una
+tensión y disipa) y **conmutación** (en cada encendido/apagado hay un pulso de energía). Los derivamos desde
+cero.
 
-$$ P_{cond,IGBT} = V_{ce0} \cdot \bar{I} + R_{ce} \cdot \overline{I^2} $$
+#### A — Pérdidas de conducción
 
-donde \(V_{ce0}\) es la tensión umbral (~1 V para IGBT Si, ~0.5 V para SiC), \(R_{ce}\) la resistencia
-de conducción y \(\bar{I}\), \(\overline{I^2}\) son la media y la media cuadrática de la corriente **que
-realmente circula por el IGBT**. El IGBT no conduce todo el ciclo: solo cuando su duty (que depende del
-índice de modulación \(m\)) lo activa. Al pesar la corriente sinusoidal \(\hat I\sin\theta\) por ese duty
-salen los factores con \(m\):
+**Paso 1 — Qué es.** Cuando el IGBT está encendido y lleva una corriente \(i\), entre sus terminales cae una
+tensión pequeña \(v_{ce}\); la potencia que disipa en ese instante es \(p = v_{ce}\,i\).
 
-$$ \bar{I} = \frac{\hat{I}}{\pi}\left(1+\frac{m}{4}\right)\ \Big[\tfrac{\hat I}{\pi}\text{: media de }|\text{sin}|\Big],
-   \qquad \overline{I^2} = \frac{\hat{I}^2}{8}\left(1+\frac{2m}{3}\right)\ \Big[\tfrac{\hat I^2}{4}\text{ RMS}^2\!\cdot\!\tfrac12\Big] $$
+**Paso 2 — Modelo de la característica \(v_{ce}(i)\).** La curva real tensión–corriente del IGBT en
+conducción se aproxima por una **recta**:
 
-**Pérdidas de conmutación del IGBT.** El datasheet da la energía por conmutación \((E_{on}+E_{off})\) medida
-a \(V_{test}\), \(I_{test}\). Esa energía escala **linealmente** con la corriente conmutada y con la tensión
-del bus, y se producen \(f_s\) conmutaciones por segundo; promediando la corriente sinusoidal sobre el
-periodo (de ahí el \(1/\pi\), media de \(|\sin|\)):
+$$ v_{ce}(i) = V_{ce0} + R_{ce}\,i $$
+
+donde \(V_{ce0}\) es la **tensión umbral** (el codo de la curva, ~1 V en IGBT de Si, ~0.5 V en SiC) y
+\(R_{ce}\) la **resistencia de conducción** (la pendiente de la recta).
+
+**Paso 3 — Potencia instantánea.** Sustituyendo:
+
+$$ p_{cond}(t) = v_{ce}\,i = V_{ce0}\,i + R_{ce}\,i^2 $$
+
+**Paso 4 — Promediar sobre un periodo.** La pérdida de conducción es el valor medio de \(p_{cond}\) sobre un
+periodo de la fundamental (50 Hz), y como el promedio es lineal:
+
+$$ P_{cond,IGBT} = V_{ce0}\,\bar{I} + R_{ce}\,\overline{I^2} $$
+
+donde \(\bar I\) es la **corriente media** y \(\overline{I^2}\) la **media del cuadrado** de la corriente
+**que pasa por el IGBT** (no la de la fase entera: hay que pesar por cuándo conduce).
+
+**Paso 5 — La corriente que pasa por el IGBT (aquí salen los factores con \(m\)).** Dos efectos:
+
+- *(i) Solo conduce medio ciclo.* La corriente de fase es senoidal, \(i(\theta)=\hat I\sin\theta\). El IGBT
+  superior solo la lleva cuando \(i>0\) (θ de \(0\) a \(\pi\)); la otra mitad la lleva su diodo antiparalelo.
+- *(ii) Dentro de cada periodo de conmutación solo está ON una fracción \(d(\theta)\)* = el **duty**. En
+  SPWM se compara la referencia \(m\sin\theta\) con la portadora triangular, y la fracción de tiempo que el
+  interruptor superior está cerrado es
+
+  $$ d(\theta) = \tfrac{1}{2}\big(1 + m\sin\theta\big) $$
+
+  siendo \(m\in[0,1]\) el **índice de modulación** (cuánto del bus DC usa la salida). Así, la corriente que
+  el IGBT lleva **promediada en la conmutación** es \(i(\theta)\,d(\theta)\).
+
+**Paso 6 — Las integrales.** Promediando \(i(\theta)\,d(\theta)\) sobre el periodo completo (\(2\pi\)), con
+la corriente positiva solo en \([0,\pi]\):
+
+$$ \bar I = \frac{1}{2\pi}\int_0^{\pi}\hat I\sin\theta\cdot\tfrac12(1+m\sin\theta)\,d\theta
+   = \frac{\hat I}{4\pi}\Big(\underbrace{\textstyle\int_0^\pi\sin\theta\,d\theta}_{=\,2} + m\underbrace{\textstyle\int_0^\pi\sin^2\theta\,d\theta}_{=\,\pi/2}\Big)
+   = \frac{\hat I}{4\pi}\Big(2+\frac{m\pi}{2}\Big) $$
+
+$$ \boxed{\ \bar I = \frac{\hat I}{2\pi}\Big(1+\frac{\pi m}{4}\Big)\ } $$
+
+Igual con el cuadrado (aparece \(\int_0^\pi\sin^3\theta\,d\theta=4/3\)):
+
+$$ \overline{I^2} = \frac{1}{2\pi}\int_0^{\pi}\hat I^2\sin^2\theta\cdot\tfrac12(1+m\sin\theta)\,d\theta
+   = \frac{\hat I^2}{4\pi}\Big(\underbrace{\textstyle\int_0^\pi\sin^2\theta\,d\theta}_{=\,\pi/2} + m\underbrace{\textstyle\int_0^\pi\sin^3\theta\,d\theta}_{=\,4/3}\Big)
+   = \frac{\hat I^2}{4\pi}\Big(\frac{\pi}{2}+\frac{4m}{3}\Big) $$
+
+$$ \boxed{\ \overline{I^2} = \frac{\hat I^2}{8}\Big(1+\frac{8m}{3\pi}\Big)\ } $$
+
+(Se ha tomado factor de potencia unidad, \(i\) en fase con la conmutación; para \(\cos\varphi\ne1\) aparecen
+factores \(\cos\varphi\). El diodo antiparalelo lleva la mitad complementaria, con las mismas integrales
+sobre el otro semiciclo y duty \(1-d\).)
+
+#### B — Pérdidas de conmutación
+
+**Paso 1 — Qué es.** En cada encendido y apagado, la corriente y la tensión se solapan durante un instante
+y se disipa un **pulso de energía**: \(E_{on}\) al encender y \(E_{off}\) al apagar. Ocurre **una vez por
+periodo de conmutación**.
+
+**Paso 2 — Datos del datasheet.** El fabricante da \(E_{on}+E_{off}\) medidos a una tensión \(V_{test}\) y
+una corriente \(I_{test}\) de referencia.
+
+**Paso 3 — Escalado.** Esa energía crece **linealmente** con la corriente que se conmuta y con la tensión
+del bus: \(E_{sw}(i)\approx(E_{on}+E_{off})\dfrac{i}{I_{test}}\dfrac{V_{dc}}{V_{test}}\).
+
+**Paso 4 — Cuántas por segundo y promedio.** Hay \(f_s\) conmutaciones por segundo, y la corriente conmutada
+recorre \(\hat I\sin\theta\) en su semiciclo; su **media sobre el periodo completo** es
+\(\frac{1}{2\pi}\int_0^\pi\hat I\sin\theta\,d\theta=\dfrac{\hat I}{\pi}\) (de ahí el \(1/\pi\)). Multiplicando:
 
 $$ P_{sw,IGBT} = \frac{f_s}{\pi}(E_{on} + E_{off})\frac{\hat{I}}{I_{test}}\frac{V_{dc}}{V_{test}} $$
 
-donde el factor \(\hat I/I_{test}\) reescala por corriente y \(V_{dc}/V_{test}\) por tensión. La energía de
-recuperación inversa del diodo antiparalelo añade \(E_{rr}\):
+El diodo antiparalelo añade su energía de recuperación inversa \(E_{rr}\):
 
 $$ P_{sw,diodo} = \frac{f_s}{\pi} E_{rr} \frac{\hat{I}}{I_{test}}\frac{V_{dc}}{V_{test}} $$
 
-**Pérdidas totales por VSC** (6 IGBTs + 6 diodos antiparalelos):
+#### C — Totales y eficiencia
+
+Un VSC trifásico de dos niveles tiene **6 IGBTs + 6 diodos**:
 
 $$ P_{loss,VSC} = 6\left(P_{cond,IGBT} + P_{sw,IGBT} + P_{cond,diodo} + P_{sw,diodo}\right) $$
 
-**Eficiencia del convertidor y del sistema completo:**
+$$ \eta_{VSC} = 1 - \frac{P_{loss,VSC}}{P_{nominal}}, \qquad \eta_{B2B} = \eta_{MSC} \cdot \eta_{GSC} $$
 
-$$ \eta_{VSC} = 1 - \frac{P_{loss,VSC}}{P_{nominal}} $$
-
-$$ \eta_{B2B} = \eta_{MSC} \cdot \eta_{GSC} = (1-\epsilon_{MSC})(1-\epsilon_{GSC}) $$
-
-**Ejemplo numérico completo:**
+#### Ejemplo numérico completo
 
 Aerogenerador PMSG de 2 MW, \(V_{dc} = 1100\,\text{V}\), \(f_s = 3\,\text{kHz}\), IGBT con
 \(V_{ce0}=1.0\,\text{V}\), \(R_{ce}=1\,\text{m}\Omega\), \(E_{on}+E_{off}=50\,\text{mJ}\) a
-600 V / 1000 A. Tensión de red \(V_{ac} = 690\,\text{V}\) (tensión de fase pico
-\(\hat{V}_{ac} = 690\sqrt{2}/\sqrt{3} = 563\,\text{V}\)).
+600 V / 1000 A. Tensión de red \(V_{ac} = 690\,\text{V}\) (pico de fase
+\(\hat{V}_{ac} = 690\sqrt{2}/\sqrt{3} = 563\,\text{V}\)), \(m=0.9\).
 
-Corriente nominal (pico por fase, con índice de modulación \(m=0.9\)):
+Corriente de pico por fase (de \(P=\tfrac32\hat V\hat I\)):
 
 $$ \hat{I} = \frac{2P_{nom}}{3\,\hat{V}_{ac}} = \frac{2\times2\times10^6}{3\times563} = 2366\,\text{A} $$
 
-Con \(m=0.9\):
+Corriente media y cuadrática por el IGBT (fórmulas del bloque A):
 
-$$ \bar{I} = \frac{2366}{\pi}\left(1+\frac{0.9}{4}\right) = 753\times1.225 = 922\,\text{A} $$
+$$ \bar{I} = \frac{2366}{2\pi}\Big(1+\frac{\pi\cdot0.9}{4}\Big) = 376.6\times1.707 = 643\,\text{A} $$
 
-$$ \overline{I^2} = \frac{2366^2}{8}\left(1+\frac{2\times0.9}{3}\right) = 699698\times1.6 = 1.12\times10^6\,\text{A}^2 $$
+$$ \overline{I^2} = \frac{2366^2}{8}\Big(1+\frac{8\times0.9}{3\pi}\Big) = 6.997\times10^5\times1.764 = 1.234\times10^6\,\text{A}^2 $$
 
 Pérdidas de conducción por IGBT:
 
-$$ P_{cond} = 1.0\times922 + 0.001\times1.12\times10^6 = 922 + 1120 = 2042\,\text{W} $$
+$$ P_{cond} = 1.0\times643 + 0.001\times1.234\times10^6 = 643 + 1234 = 1877\,\text{W} $$
 
-Pérdidas de conmutación por IGBT (escalar a \(V_{dc}=1100\,\text{V}\)):
+Pérdidas de conmutación por IGBT (escalando a \(V_{dc}=1100\,\text{V}\)):
 
-$$ P_{sw} = \frac{3000}{\pi}\times0.05\times\frac{2366}{1000}\times\frac{1100}{600} = 955\times0.05\times2.366\times1.833 = 207\,\text{W} \cdot 4.34 = 4328\,\text{W} $$
+$$ P_{sw} = \frac{3000}{\pi}\times0.05\times\frac{2366}{1000}\times\frac{1100}{600} = 954.9\times0.05\times2.366\times1.833 = 207\,\text{W} $$
 
-Total por IGBT: \(\approx 6370\,\text{W}\). Asumiendo pérdidas del diodo \(\approx 40\,\%\) del IGBT:
+Total por IGBT: \(1877+207 = 2084\,\text{W}\) (aquí domina la **conducción**). Asumiendo pérdidas del diodo
+\(\approx 40\,\%\) del IGBT:
 
-$$ P_{loss,GSC} \approx 6\times6370\times1.4 \approx 53.5\,\text{kW} $$
+$$ P_{loss,GSC} \approx 6\times2084\times1.4 \approx 17.5\,\text{kW} $$
 
 Eficiencia del GSC a plena carga:
-$$ \eta_{GSC} = 1 - \frac{53500}{2000000} = 97.3\,\% $$
+$$ \eta_{GSC} = 1 - \frac{17500}{2\,000\,000} = 99.1\,\% $$
 
-El MSC opera a frecuencia de conmutación típicamente menor (para reducir pérdidas en el generador y
-porque la frecuencia del generador es baja a velocidad parcial) → \(\eta_{MSC} \approx 98.0\,\%\):
+El MSC opera a frecuencia de conmutación menor (menos pérdidas de conmutación) → \(\eta_{MSC} \approx 99.3\,\%\):
 
-$$ \eta_{B2B} = 0.973\times0.980 = 95.4\,\% $$
+$$ \eta_{B2B} = 0.991\times0.993 = 98.4\,\% $$
+
+un valor típico de un back-to-back de dos niveles con IGBT bien dimensionado (98–99 %).
 
 ---
 
@@ -1033,7 +1091,7 @@ ancho de banda), pero elimina el ruido de medida del MSC.
 | \(K_{p,dc}\) | \(C_{dc}\omega_{dc}/2\) | 1.885 A/V² |
 | \(T_{i,dc}\) | \(a/\omega_{dc}\), \(a=\omega_{ci}/\omega_{dc}=10\) | 53.1 ms |
 | \(PM_{dc}\) | \(\arctan a-\arctan(1/a)\) | ~79° |
-| \(\eta_{B2B}\) | \(\eta_{MSC}\times\eta_{GSC}\) | ~95.4% |
+| \(\eta_{B2B}\) | \(\eta_{MSC}\times\eta_{GSC}\) | ~98.4% |
 
 ---
 
