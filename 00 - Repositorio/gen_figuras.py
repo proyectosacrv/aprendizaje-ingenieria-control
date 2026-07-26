@@ -15157,6 +15157,111 @@ def _btb_lazo_dc():
     _savefig(fig, "btb-lazo-dc")
 
 
+def _btb_perdidas():
+    """Perdidas del VSC: (a) caracteristica de conduccion v_ce=Vce0+Rce*i,
+    (b) corriente por el IGBT i(theta)*d(theta) sobre un periodo, (c) reparto
+    de perdidas (conduccion vs conmutacion, IGBT vs diodo)."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2, a3) = plt.subplots(1, 3, figsize=(15.5, 4.6))
+    fig.suptitle('Pérdidas del convertidor: de dónde salen', fontsize=13, fontweight='bold')
+
+    # (a) caracteristica de conduccion
+    Vce0, Rce = 1.0, 0.001
+    ii = np.linspace(0, 2600, 200)
+    a1.plot(ii, Vce0 + Rce*ii, color='navy', lw=2.4, label=r'modelo $v_{ce}=V_{ce0}+R_{ce}i$')
+    a1.plot(ii, 0.78 + Rce*ii*1.02 + 0.22*np.tanh(ii/300), color='#e08a00', lw=1.6, ls='--', label='curva real (aprox.)')
+    a1.axhline(Vce0, color='gray', lw=0.8, ls=':')
+    a1.annotate(r'$V_{ce0}$ (umbral)', xy=(0, Vce0), xytext=(600, 1.35), fontsize=9,
+                arrowprops=dict(arrowstyle='->', color='gray'))
+    a1.annotate(r'pendiente $R_{ce}$', xy=(1800, Vce0+Rce*1800), xytext=(700, 2.7), fontsize=9,
+                arrowprops=dict(arrowstyle='->', color='gray'))
+    a1.set_xlabel('corriente $i$ (A)'); a1.set_ylabel(r'$v_{ce}$ (V)')
+    a1.set_title('(a) Característica de conducción', fontsize=10.5, fontweight='bold')
+    a1.legend(fontsize=8); a1.grid(alpha=0.3); a1.set_ylim(0, 3.6)
+
+    # (b) corriente por el IGBT sobre un periodo
+    m = 0.9; Ihat = 2366.0
+    th = np.linspace(0, 2*np.pi, 600)
+    iph = Ihat*np.sin(th)
+    d = 0.5*(1 + m*np.sin(th))
+    iIGBT = np.where(iph > 0, iph*d, 0.0)
+    a2.plot(np.degrees(th), iph, color='#999', lw=1.4, label=r'$i(\theta)=\hat I\sin\theta$ (fase)')
+    a2.fill_between(np.degrees(th), 0, iIGBT, color='#AED6F1', alpha=0.8, label=r'$i\cdot d(\theta)$ (por el IGBT)')
+    a2.plot(np.degrees(th), iIGBT, color='navy', lw=1.8)
+    a2b = a2.twinx()
+    a2b.plot(np.degrees(th), d, color='#c0392b', lw=1.5, ls='--', label=r'$d(\theta)=\frac{1}{2}(1+m\sin\theta)$')
+    a2b.set_ylabel('duty $d$', color='#c0392b'); a2b.set_ylim(0, 1.05); a2b.tick_params(axis='y', colors='#c0392b')
+    a2.axhline(0, color='k', lw=0.8)
+    a2.set_xlabel(r'$\theta$ (°)'); a2.set_ylabel('corriente (A)')
+    a2.set_title('(b) Corriente que pasa por el IGBT', fontsize=10.5, fontweight='bold')
+    a2.set_xlim(0, 360); a2.grid(alpha=0.3)
+    l1, la1 = a2.get_legend_handles_labels(); l2, la2 = a2b.get_legend_handles_labels()
+    a2.legend(l1+l2, la1+la2, fontsize=7.5, loc='upper right')
+
+    # (c) reparto de perdidas (numeros del ejemplo)
+    labels = ['IGBT\ncond.', 'IGBT\nconm.', 'diodo\ncond.', 'diodo\nconm.']
+    vals = [1877, 207, 0.4*1877, 0.4*207]
+    cols = ['#2e86c1', '#5dade2', '#e67e22', '#f0b27a']
+    a3.bar(labels, vals, color=cols, edgecolor='navy', lw=1.2)
+    for i, v in enumerate(vals):
+        a3.text(i, v+30, f'{v:.0f} W', ha='center', fontsize=8.5)
+    a3.set_ylabel('pérdidas por dispositivo (W)')
+    a3.set_title('(c) Reparto (ejemplo, plena carga)', fontsize=10.5, fontweight='bold')
+    a3.grid(axis='y', alpha=0.3)
+    a3.text(0.5, 0.9, 'domina la conducción', transform=a3.transAxes, ha='center', fontsize=9, color='gray', style='italic')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.94])
+    _savefig(fig, 'btb-perdidas', dpi=160)
+
+
+def _btb_mppt():
+    """MPPT del aerogenerador: (a) curva Cp(lambda) con lambda_opt; (b) potencia
+    mecanica vs velocidad para varios vientos y el lugar MPPT."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(12.5, 4.6))
+    fig.suptitle('MPPT del aerogenerador (§4.2)', fontsize=13, fontweight='bold')
+
+    def Cp(lam, beta=0.0):
+        li = 1.0/(lam + 0.08*beta) - 0.035/(beta**3 + 1)
+        cp = 0.5176*(116*li - 0.4*beta - 5)*np.exp(-21*li) + 0.0068*lam
+        return np.maximum(cp, 0)
+
+    # (a) Cp(lambda)
+    lam = np.linspace(0.1, 14, 400)
+    cp = Cp(lam)
+    lam_opt = lam[np.argmax(cp)]; cp_max = cp.max()
+    a1.plot(lam, cp, color='navy', lw=2.4)
+    a1.plot([lam_opt], [cp_max], 'o', color='#c0392b', ms=8)
+    a1.axvline(lam_opt, color='#c0392b', lw=1, ls=':')
+    a1.annotate(f'$C_{{p,max}}\\approx{cp_max:.2f}$\n$\\lambda_{{opt}}\\approx{lam_opt:.1f}$',
+                xy=(lam_opt, cp_max), xytext=(lam_opt+1.5, cp_max-0.08),
+                fontsize=9, color='#c0392b', arrowprops=dict(arrowstyle='->', color='#c0392b'))
+    a1.set_xlabel(r'$\lambda=\Omega_r R/v_w$ (velocidad específica)'); a1.set_ylabel(r'$C_p$')
+    a1.set_title(r'(a) Coeficiente de potencia $C_p(\lambda)$', fontsize=10.5, fontweight='bold')
+    a1.grid(alpha=0.3); a1.set_ylim(0, cp_max*1.15)
+
+    # (b) P_mec vs Omega para varios vientos + lugar MPPT
+    rho, R = 1.225, 40.0
+    A = np.pi*R**2
+    Om = np.linspace(0.3, 3.0, 400)
+    for vw, col in [(7,'#5dade2'), (9,'#2e86c1'), (11,'#1a5276'), (13,'#154360')]:
+        lam_v = Om*R/vw
+        P = 0.5*rho*A*Cp(lam_v)*vw**3/1e6
+        a2.plot(Om, np.maximum(P,0), color=col, lw=1.8, label=f'{vw} m/s')
+    # lugar MPPT: P = k_opt Omega^3
+    Om_opt = np.linspace(0.5, 2.6, 100)
+    kopt = 0.5*rho*A*cp_max*(R/lam_opt)**3/1e6
+    a2.plot(Om_opt, kopt*Om_opt**3, color='#c0392b', lw=2.4, ls='--', label='lugar MPPT\n$P\\propto\\Omega^3$')
+    a2.set_xlabel(r'velocidad del rotor $\Omega_r$ (rad/s)'); a2.set_ylabel('$P_{mec}$ (MW)')
+    a2.set_title('(b) Potencia y seguimiento MPPT', fontsize=10.5, fontweight='bold')
+    a2.legend(fontsize=7.5, loc='upper left'); a2.grid(alpha=0.3); a2.set_ylim(0, None)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    _savefig(fig, 'btb-mppt', dpi=160)
+
+
 def _btb_pmsg_modelo():
     """Modelo del PMSG: (a) maquina fisica (estator con devanados abc, rotor con
     iman) y modelo por fase de donde salen las ecuaciones; (b) desarrollo en dq."""
@@ -16057,6 +16162,12 @@ def main():
         n += 1
     if pref is None or "btb-pmsg-modelo".startswith(pref):
         _btb_pmsg_modelo()
+        n += 1
+    if pref is None or "btb-perdidas".startswith(pref):
+        _btb_perdidas()
+        n += 1
+    if pref is None or "btb-mppt".startswith(pref):
+        _btb_mppt()
         n += 1
     if pref is None or "btb-dq-transformacion".startswith(pref):
         _btb_dq_transformacion()

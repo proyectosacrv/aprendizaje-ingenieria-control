@@ -783,6 +783,8 @@ $$ P_{mec} = \frac{1}{2}\rho A C_p(\lambda,\beta)v_w^3 $$
 donde \(\rho\) es la densidad del aire, \(A = \pi R^2\) el área barrida y \(\lambda = R\Omega_r/v_w\)
 la velocidad específica. El MPPT opera en el punto \(\lambda_{opt}\) donde \(C_p\) es máximo.
 
+<div class="cfig"><img src="figuras/btb-mppt.png" alt="MPPT: curva del coeficiente de potencia Cp en función de la velocidad específica lambda con su máximo, y potencia mecánica frente a la velocidad del rotor para varios vientos con el lugar de seguimiento MPPT"><div class="cap">(a) Coeficiente de potencia \(C_p(\lambda)\): tiene un máximo \(C_{p,max}\) en \(\lambda_{opt}\); operar ahí extrae la máxima potencia del viento. (b) Potencia mecánica \(P_{mec}\) frente a la velocidad del rotor \(\Omega_r\) para varios vientos: cada viento da una curva con su pico; el **lugar MPPT** (\(P\propto\Omega_r^3\), equivalente a \(T_{ref}=K_{opt}\Omega_r^2\)) pasa por todos los picos, y es la consigna que sigue el MSC.</div></div>
+
 La potencia eléctrica en el estátor del PMSG:
 
 $$ P_{elec} = P_{mec} - P_{Cu,gen} - P_{Fe,gen} $$
@@ -871,8 +873,12 @@ sobre el otro semiciclo y duty \(1-d\).)
 y se disipa un **pulso de energía**: \(E_{on}\) al encender y \(E_{off}\) al apagar. Ocurre **una vez por
 periodo de conmutación**.
 
-**Paso 2 — Datos del datasheet.** El fabricante da \(E_{on}+E_{off}\) medidos a una tensión \(V_{test}\) y
-una corriente \(I_{test}\) de referencia.
+**Paso 2 — Datos del datasheet.** El fabricante da \(E_{on}+E_{off}\) medidos a unas **condiciones de
+referencia**: una tensión de bus \(V_{test}\) y una corriente conmutada \(I_{test}\). No son magnitudes de
+tu convertidor, sino los valores fijos del **ensayo estandarizado** (*double-pulse test*) con que se
+caracteriza el dispositivo; suelen estar cerca del nominal del módulo (en el ejemplo, 600 V y 1000 A). Para
+tu punto real (\(\hat I\), \(V_{dc}\)) hay que **reescalar** desde esas condiciones, que es justo lo que
+hacen los factores \(\hat I/I_{test}\) y \(V_{dc}/V_{test}\) del Paso 3.
 
 **Paso 3 — Escalado.** Esa energía crece **linealmente** con la corriente que se conmuta y con la tensión
 del bus: \(E_{sw}(i)\approx(E_{on}+E_{off})\dfrac{i}{I_{test}}\dfrac{V_{dc}}{V_{test}}\).
@@ -886,6 +892,8 @@ $$ P_{sw,IGBT} = \frac{f_s}{\pi}(E_{on} + E_{off})\frac{\hat{I}}{I_{test}}\frac{
 El diodo antiparalelo añade su energía de recuperación inversa \(E_{rr}\):
 
 $$ P_{sw,diodo} = \frac{f_s}{\pi} E_{rr} \frac{\hat{I}}{I_{test}}\frac{V_{dc}}{V_{test}} $$
+
+<div class="cfig"><img src="figuras/btb-perdidas.png" alt="Pérdidas del convertidor: característica de conducción v_ce con el modelo lineal, corriente que pasa por el IGBT como i por el duty a lo largo de un periodo, y reparto de pérdidas entre conducción y conmutación de IGBT y diodo"><div class="cap">(a) Característica de conducción: la curva real \(v_{ce}(i)\) se aproxima por la recta \(V_{ce0}+R_{ce}i\). (b) La corriente que **pasa por el IGBT** es la de fase solo en su medio ciclo (\(i>0\)) y pesada por el duty \(d(\theta)\) (área azul); su media e integral del cuadrado dan los factores con \(m\). (c) Reparto de pérdidas del ejemplo: domina la **conducción**.</div></div>
 
 #### C — Totales y eficiencia
 
