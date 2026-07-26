@@ -707,14 +707,15 @@ contraelectromotriz** \(-\omega_r\psi_m\) en el eje q (el \(-\omega_r\psi_m\) de
 acoplamiento cruzado \(\pm\omega_r L_{q,d} i\). El signo de \(\omega_r\) es opuesto al del lado red porque
 aquí la máquina **genera** (la fem impulsa la corriente).
 
-<div class="cfig"><img src="figuras/btb-pmsg-modelo.png" alt="Modelo del PMSG en dq: diagrama vectorial con el eje d alineado con el flujo del imán y la fem sobre el eje q, y circuito equivalente dq con la fem del imán solo en el eje q"><div class="cap">(a) El marco dq gira con el rotor y el eje d se alinea con el flujo del imán \(\psi_m\); la fem inducida \(e=\omega_r\psi_m\) queda \(90°\) adelantada, sobre el eje q, y la corriente \(\vec i\) se descompone en \(i_d\) (campo) e \(i_q\) (par). (b) Circuito equivalente dq: cada eje es una rama \(R_s\)–\(L\) con la fem de velocidad \(\pm\omega_r L\,i\) (acoplamiento cruzado); la fem del imán \(\omega_r\psi_m\) aparece **solo en el eje q**, consecuencia directa de alinear el eje d con \(\psi_m\).</div></div>
+<div class="cfig"><img src="figuras/btb-pmsg-modelo.png" alt="Modelo del PMSG: máquina física con estator de devanados abc y rotor con imán permanente girando, el modelo por fase con Rs, L y la fem, y el circuito equivalente dq tras la transformación de Park"><div class="cap">(a) <b>Máquina física</b>: el estator lleva los tres devanados a, b, c; el rotor lleva el imán permanente (N-S) que gira a \(\Omega\) y crea el flujo \(\psi_m\). Cada fase es una rama \(R_s\)–\(L\) con una fem \(e_a\) inducida por el imán girando, de donde salen las ecuaciones abc: \(v_a=R_s i_a + d\lambda_a/dt\) con \(\lambda_a=L i_a + \psi_m\cos\theta_r\). (b) <b>Modelo en dq</b> (tras Park): cada eje queda como una rama \(R_s\)–\(L\) con la fem de velocidad \(\pm\omega_r L\,i\) (acoplamiento cruzado); la fem del imán \(\omega_r\psi_m\) aparece **solo en el eje q**, consecuencia de alinear el eje d con \(\psi_m\).</div></div>
 
 **¿Por qué el eje d se alinea con el flujo del imán?** El marco dq gira **solidario con el rotor** (a
 \(\omega_r\)), y se elige el eje d **sobre el flujo del imán** \(\psi_m\) por tres motivos encadenados:
 
 1. **El flujo del imán queda solo en d.** Con esa elección \(\psi_d = L_d i_d + \psi_m\) (lleva el imán) y
    \(\psi_q = L_q i_q\) (sin imán). Como la fem es la derivada del flujo en el marco giratorio, \(\psi_m\) en
-   d produce una fem \(e=\omega_r\psi_m\) **90° adelantada, sobre el eje q** (panel a).
+   d produce una fem \(e=\omega_r\psi_m\) **90° adelantada, sobre el eje q** (por eso en el circuito dq del
+   panel b la fem del imán está solo en q).
 2. **El par se simplifica y se desacopla.** Al meter esos flujos en \(T=\tfrac32 p(\psi_d i_q-\psi_q i_d)\)
    queda \(T=\tfrac32 p\,\psi_m i_q\) (no saliente): **\(i_q\) es la corriente de par** (en fase con la fem →
    potencia activa) e **\(i_d\) la de campo** (magnetizante). Los dos papeles quedan separados, igual que en
