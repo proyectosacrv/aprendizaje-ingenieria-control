@@ -727,8 +727,24 @@ Es el mismo principio que el VOC del lado de red (2.4), pero cambiando la refere
 alinea con la **tensión** (la impone la red); en la máquina, con el **flujo del rotor** (lo impone el imán).
 En ambos casos se orienta el marco sobre la magnitud física que manda.
 
-**Par electromagnético.** El par es \(T_{em} = \tfrac{3}{2}p\,(\psi_d i_q - \psi_q i_d)\) (producto vectorial
-flujo × corriente). Sustituyendo los enlaces de flujo \(\psi_d = L_d i_d + \psi_m\), \(\psi_q = L_q i_q\):
+**Par electromagnético.** *¿De dónde sale la fórmula del par?* El par es la **potencia mecánica convertida
+dividida por la velocidad**. En las ecuaciones dq, los términos de **fem de velocidad** (los
+\(\pm\omega_r\times\)flujo) son los que intercambian potencia con el eje. Escribiendo las tensiones dq en
+forma general —despejando \(v\) de las ecuaciones de §4.1, con \(\psi_d=L_d i_d+\psi_m\) y \(\psi_q=L_q i_q\)—:
+
+$$ v_d = R_s i_d + \dot\psi_d - \omega_r\psi_q, \qquad v_q = R_s i_q + \dot\psi_q + \omega_r\psi_d $$
+
+La potencia eléctrica que se convierte en mecánica es la suma de (fem de velocidad \(\times\) corriente):
+
+$$ P_{em} = \frac{3}{2}\big[(-\omega_r\psi_q)\,i_d + (\omega_r\psi_d)\,i_q\big] = \frac{3}{2}\,\omega_r\,(\psi_d i_q - \psi_q i_d) $$
+
+(el \(\tfrac32\) viene de la potencia trifásica con Park invariante en amplitud, §2.4). Como
+\(P_{em}=T_{em}\,\Omega_{mec}\) y \(\omega_r=p\,\Omega_{mec}\), despejando el par:
+
+$$ T_{em} = \frac{P_{em}}{\Omega_{mec}} = \frac{P_{em}\,p}{\omega_r} = \frac{3}{2}p\,(\psi_d i_q - \psi_q i_d) $$
+
+que es el **producto vectorial flujo \(\times\) corriente** \(\vec\psi\times\vec i=\psi_d i_q-\psi_q i_d\).
+Sustituyendo los enlaces de flujo \(\psi_d = L_d i_d + \psi_m\), \(\psi_q = L_q i_q\):
 
 $$ T_{em} = \frac{3}{2}p\big[(L_d i_{d,gen} + \psi_m)i_{q,gen} - L_q i_{q,gen}\,i_{d,gen}\big]
    = \frac{3}{2}p\left[\psi_m i_{q,gen} + (L_d - L_q)i_{d,gen}i_{q,gen}\right] $$
