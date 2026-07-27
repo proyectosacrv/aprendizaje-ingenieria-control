@@ -1107,6 +1107,18 @@ $$ K_p = \omega_{ci}L = 1885\times0.25\times10^{-3} = 0.471\,\text{V/A} $$
 
 $$ T_i = L/R = 0.25\times10^{-3}/0.05 = 5\,\text{ms}, \qquad K_i = K_p/T_i = 94.2\,\text{V/(A\,s)} $$
 
+*Por qué esas fórmulas* (método IMC, derivado en §2.7):
+
+- **\(T_i = L/R\) — cancela el polo de la planta.** La planta \(1/(Ls+R)\) tiene el polo en \(-R/L\)
+  (constante de tiempo \(L/R\)); el PI tiene un cero en \(-1/T_i\). Con \(T_i=L/R\) el cero **cancela** el
+  polo y el lazo abierto queda como un integrador puro.
+- **\(K_p = \omega_{ci}L\) — fija el ancho de banda.** Tras la cancelación, el lazo abierto es
+  \(L_i(s)=\dfrac{K_p/L}{s}\), cuya frecuencia de cruce (el ancho de banda del lazo cerrado de primer orden)
+  es \(\omega_{ci}=K_p/L\); despejando, \(K_p=\omega_{ci}L\).
+- **\(K_i = K_p/T_i\) — es la definición.** El PI en forma paralela es
+  \(K_p\frac{T_i s+1}{T_i s}=K_p+\frac{K_p/T_i}{s}=K_p+\frac{K_i}{s}\), luego \(K_i=K_p/T_i\) (la ganancia
+  integral); aquí \(K_i=\omega_{ci}R=94.2\).
+
 Verificar: PM del lazo de corriente = 90° (integrador puro tras cancelación del polo) → OK.
 
 **Paso 2 — Lazo de tensión DC:**
