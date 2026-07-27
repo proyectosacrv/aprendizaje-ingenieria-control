@@ -1010,9 +1010,32 @@ baja en triángulo** siguiendo la conmutación (figura, panel a).
 
 $$ \Delta i_L = \frac{v_L^+}{L}\,t_{on} = \frac{(V_{dc}/2 - \bar v)}{L}\,d\,T_s $$
 
-**Paso 3 — Escribirlo en función de la modulación.** La referencia es \(\bar v = \frac{V_{dc}}{2}m\sin\theta\)
-y el duty \(d = \frac12(1+m\sin\theta)\). Llamando \(x = m\sin\theta\) (\(v_L^+ = \frac{V_{dc}}{2}(1-x)\),
-\(t_{on} = \frac{1+x}{2}T_s\)):
+**Paso 3 — Escribir el rizado en función de la modulación.**
+
+*De dónde salen la referencia y el duty (fundamentos del SPWM).* El nudo de salida del VSC solo puede
+conectarse a \(+V_{dc}/2\) (interruptor superior ON) o a \(-V_{dc}/2\) (inferior ON); lo que se controla es
+su **valor medio** en cada periodo de conmutación. Se quiere que esa media sea una senoide de pico
+\(\hat v\): \(\bar v(\theta)=\hat v\sin\theta\). Como el máximo que se puede dar es \(V_{dc}/2\), se define el
+**índice de modulación** \(m=\hat v/(V_{dc}/2)\in[0,1]\), de donde:
+
+$$ \bar v(\theta) = m\,\frac{V_{dc}}{2}\sin\theta $$
+
+El **duty** \(d\) es la fracción del periodo en que el superior está ON. El valor medio de la salida es el
+promedio ponderado de los dos niveles:
+
+$$ \bar v = d\Big(+\frac{V_{dc}}{2}\Big) + (1-d)\Big(-\frac{V_{dc}}{2}\Big) = \frac{V_{dc}}{2}\,(2d-1) $$
+
+Igualando a la referencia, \(\frac{V_{dc}}{2}(2d-1) = m\frac{V_{dc}}{2}\sin\theta\), se despeja el duty:
+
+$$ d(\theta) = \frac{1}{2}\big(1+m\sin\theta\big) $$
+
+(Comprobación: referencia cero → \(d=0.5\); en el pico \(m\sin\theta=1\) → \(d=1\), todo ON; en el valle
+\(d=0\). En la práctica \(d\) se genera **comparando** la referencia \(m\sin\theta\) con una portadora
+triangular de \(-1\) a \(+1\): la fracción de tiempo en que la referencia supera a la portadora es
+exactamente \((1+m\sin\theta)/2\).)
+
+*Sustitución.* Llamando \(x = m\sin\theta\), se tiene \(v_L^+ = V_{dc}/2-\bar v = \frac{V_{dc}}{2}(1-x)\) y
+\(t_{on} = d\,T_s = \frac{1+x}{2}T_s\); metiendo en el Paso 2:
 
 $$ \Delta i_L = \frac{V_{dc}}{2L}(1-x)\cdot\frac{1+x}{2}\,T_s = \frac{V_{dc}\,T_s}{4L}\,(1-x^2) = \frac{V_{dc}}{4 f_s L}\big(1-m^2\sin^2\theta\big) $$
 
