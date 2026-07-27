@@ -965,17 +965,34 @@ Antes de diseñar nada, definir las especificaciones de sistema:
 
 **Iteración 1 — Tensión del bus DC:**
 
-La tensión del bus DC debe ser suficiente para **sintetizar** el pico de la tensión de red con margen de
-saturación. En un VSC de dos niveles con SPWM, el pico de tensión de fase que puede generar es
-\(\hat v_{fase} = m\,V_{dc}/2\), luego \(V_{dc} \ge 2\hat v_{fase}/m_{max}\). Como el pico de fase es
-\(\hat v_{fase} = \sqrt{2}\,V_{ac,fase} = \sqrt{2}\,V_{ac}/\sqrt{3}\) (de línea a fase):
+La tensión del bus DC debe ser suficiente para **sintetizar** el pico de la tensión de red. En un VSC de
+dos niveles el pico de tensión de fase de la fundamental es \(\hat v_{fase} = m\,\dfrac{V_{dc}}{2}\), donde
+\(m\) es el índice de modulación. El límite de la **zona lineal** depende de la modulación:
 
-$$ V_{dc} \geq \frac{2\hat v_{fase}}{m_{max}} = \frac{2\sqrt{2}\,V_{ac,max}}{m_{max}\sqrt{3}}, \quad m_{max} \approx 0.9 $$
+- **SPWM senoidal pura:** lineal hasta \(m=1\), luego \(\hat v_{fase,max} = V_{dc}/2\).
+- **SVPWM o inyección de 3.er armónico:** la zona lineal se **extiende un factor \(2/\sqrt3\approx1.15\)**,
+  hasta \(\hat v_{fase,max} = V_{dc}/\sqrt3\). El truco: el 3.er armónico (o el vector cero de la SVPWM) baja
+  el pico de la referencia de fase pero **no aparece en la tensión línea-línea** (se cancela entre fases),
+  dejando sitio para más fundamental. Por eso se suele decir que la modulación efectiva llega a \(\approx1.15\).
 
-Por ejemplo: \(V_{ac} = 690\,\text{V}\) (línea) → \(V_{ac,fase,pico} = 690\sqrt{2}/\sqrt{3} = 563\,\text{V}\):
-$$ V_{dc} \geq \frac{2\times563}{0.9} = 1251\,\text{V} $$
+**\(m_{max}\) no es el límite, sino un margen de diseño.** Se opera **por debajo** del límite lineal para
+dejar **holgura al control**: el PI necesita poder pedir tensión de más en transitorios (huecos de red,
+picos de corriente, la caída en el filtro \(L\)). Con SPWM se toma \(m_{max}\approx0.9\); con SVPWM/3.er
+armónico se puede llegar a \(\approx1.0\text{–}1.1\) manteniendo margen.
 
-Elegir \(V_{dc} = 1150\,\text{V}\) (con \(m_{max}=0.98\) en casos de emergencia).
+Con \(\hat v_{fase} = \sqrt{2}\,V_{ac,fase} = \sqrt{2}\,V_{ac}/\sqrt{3}\) (de línea a fase), la condición de
+dimensionado es:
+
+$$ V_{dc} \geq \frac{2\,\hat v_{fase}}{m_{max}} = \frac{2\sqrt{2}\,V_{ac,max}}{m_{max}\sqrt{3}} $$
+
+Para \(V_{ac} = 690\,\text{V}\) (línea) → \(\hat v_{fase} = 690\sqrt{2}/\sqrt{3} = 563\,\text{V}\):
+
+- Con **SPWM** (\(m_{max}=0.9\)): \(V_{dc}\ge 2\times563/0.9 = 1251\,\text{V}\).
+- Con **SVPWM/3.er armónico** (\(m_{max}\approx1.0\), gracias al factor \(1.15\)): \(V_{dc}\ge 2\times563/1.0 = 1126\,\text{V}\), \(\sim15\%\) menos.
+
+Elegir \(V_{dc} = 1150\,\text{V}\): cómodo con SVPWM (queda margen), y suficiente para SPWM en emergencia
+subiendo a \(m\approx0.98\). Bajar \(V_{dc}\) reduce las pérdidas de conmutación (\(\propto V_{dc}\)) pero
+recorta el margen de control.
 
 **Iteración 2 — Inductancia del filtro \(L\):**
 
