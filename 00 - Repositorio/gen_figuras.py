@@ -15157,6 +15157,58 @@ def _btb_lazo_dc():
     _savefig(fig, "btb-lazo-dc")
 
 
+def _btb_rizado_L():
+    """Rizado de corriente en L: (a) tension conmutada y triangulo de corriente
+    en el peor caso (referencia por cero, duty 50%); (b) amplitud del rizado a lo
+    largo del periodo fundamental, maxima donde la referencia pasa por cero."""
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure(figsize=(14, 5.4))
+    gs = fig.add_gridspec(2, 2, width_ratios=[1, 1.05], hspace=0.4, wspace=0.3)
+    axV = fig.add_subplot(gs[0, 0])
+    axI = fig.add_subplot(gs[1, 0], sharex=axV)
+    axE = fig.add_subplot(gs[:, 1])
+    fig.suptitle('Rizado de corriente en la inductancia del filtro', fontsize=13, fontweight='bold')
+
+    Ts = 1.0
+    t = np.linspace(0, 2*Ts, 2000)
+    vconv = np.where((t % Ts) < 0.5*Ts, 0.5, -0.5)
+    axV.step(t, vconv, where='post', color='navy', lw=2, label=r'$v_{conv}$ ($\pm V_{dc}/2$)')
+    axV.axhline(0, color='#c0392b', lw=1.6, ls='--', label=r'$\bar v=0$ (referencia)')
+    axV.set_ylabel(r'$v/V_{dc}$'); axV.set_ylim(-0.8, 0.9)
+    axV.legend(fontsize=7.5, loc='upper right'); axV.grid(alpha=0.3)
+    axV.set_title('(a) Peor caso: referencia por cero → duty 50%', fontsize=9.5, fontweight='bold')
+    axV.annotate('', xy=(0.5*Ts, 0.66), xytext=(0, 0.66), arrowprops=dict(arrowstyle='<->', color='gray'))
+    axV.text(0.25*Ts, 0.72, r'$t_{on}=T_s/2$', ha='center', fontsize=8, color='gray')
+
+    itri = np.where((t % Ts) < 0.5*Ts, (t % Ts)/(0.5*Ts), 1 - ((t % Ts)-0.5*Ts)/(0.5*Ts))
+    axI.plot(t, itri, color='#e08a00', lw=2.2)
+    axI.set_ylabel(r'$i_L$ (rizado)'); axI.set_xlabel(r'tiempo $/\,T_s$')
+    axI.grid(alpha=0.3); axI.set_ylim(-0.15, 1.3)
+    axI.annotate('', xy=(0.5*Ts, 0), xytext=(0.5*Ts, 1), arrowprops=dict(arrowstyle='<->', color='#c0392b', lw=1.6))
+    axI.text(0.54*Ts, 0.5, r'$\Delta i_{L,max}$', color='#c0392b', fontsize=9.5, va='center')
+    axI.text(0.12*Ts, 0.62, r'pendiente $\dfrac{V_{dc}/2}{L}$', fontsize=8, color='#a06000', rotation=30)
+
+    m = 0.9
+    th = np.linspace(0, 2*np.pi, 600)
+    env = 1 - m**2*np.sin(th)**2
+    axE.plot(np.degrees(th), env, color='navy', lw=2.4, label=r'$\Delta i_L(\theta)/\Delta i_{L,max}=1-m^2\sin^2\theta$')
+    axE.plot(np.degrees(th), 0.5*(1+m*np.sin(th)), color='#c0392b', lw=1.4, ls='--', label=r'duty $d(\theta)=\frac{1}{2}(1+m\sin\theta)$')
+    axE.plot(np.degrees(th), np.abs(m*np.sin(th)), color='#7f8c8d', lw=1.2, ls=':', label=r'|referencia| $|m\sin\theta|$')
+    for thm in [0, 180, 360]:
+        axE.plot([thm], [1], 'o', color='navy', ms=6)
+    axE.axhline(1, color='gray', lw=0.7, ls=':')
+    axE.annotate('máximo donde\nla referencia = 0', xy=(180, 1), xytext=(230, 0.72),
+                 fontsize=8.5, color='navy', ha='center', arrowprops=dict(arrowstyle='->', color='navy'))
+    axE.text(90, (1-m**2)-0.06, r'mínimo en el pico ($1-m^2$)', fontsize=8, ha='center', color='gray')
+    axE.set_xlabel(r'$\theta$ (°)'); axE.set_ylabel('rizado normalizado / duty')
+    axE.set_title('(b) Rizado a lo largo del periodo fundamental', fontsize=9.5, fontweight='bold')
+    axE.legend(fontsize=7.3, loc='lower center'); axE.grid(alpha=0.3); axE.set_xlim(0, 360); axE.set_ylim(0, 1.18)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.94])
+    _savefig(fig, 'btb-rizado-L', dpi=160)
+
+
 def _btb_perdidas():
     """Perdidas del VSC: (a) caracteristica de conduccion v_ce=Vce0+Rce*i,
     (b) corriente por el IGBT i(theta)*d(theta) sobre un periodo, (c) reparto
@@ -16165,6 +16217,9 @@ def main():
         n += 1
     if pref is None or "btb-perdidas".startswith(pref):
         _btb_perdidas()
+        n += 1
+    if pref is None or "btb-rizado-L".startswith(pref):
+        _btb_rizado_L()
         n += 1
     if pref is None or "btb-mppt".startswith(pref):
         _btb_mppt()

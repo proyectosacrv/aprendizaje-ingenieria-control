@@ -996,13 +996,43 @@ recorta el margen de control.
 
 **Iteración 2 — Inductancia del filtro \(L\):**
 
-Criterio de rizado de corriente \(\Delta i_L \leq 20\,\%\,\hat{I}_{nom}\) (rizado pico-pico en la
-frecuencia de conmutación). De dónde sale: en una inductancia \(v_L = L\,di/dt\), así que el rizado durante
-el tiempo que se aplica una tensión \(V_{dc}\) es \(\Delta i_L = V_{dc}\,\Delta t/L\). En SPWM de dos niveles
-el peor caso ocurre a mitad de modulación, donde el intervalo efectivo es \(\Delta t = 1/(4 f_s)\) (de ahí
-el **4**):
+Criterio: el rizado de corriente pico-pico a la frecuencia de conmutación debe ser \(\Delta i_L \leq 20\,\%\,\hat{I}_{nom}\).
+Derivación paso a paso:
 
-$$ \Delta i_L = \frac{V_{dc}}{4\,f_s\,L} \quad\Longrightarrow\quad L \geq \frac{V_{dc}}{4\,f_s\,\Delta i_{L,max}} $$
+**Paso 1 — La tensión sobre \(L\) hace el rizado.** El VSC no da una tensión suave: su salida \(v_{conv}\)
+**conmuta** entre \(+V_{dc}/2\) y \(-V_{dc}/2\) a \(f_s\). Sobre la inductancia queda \(v_L = v_{conv} - \bar v\)
+(diferencia con la tensión media/referencia \(\bar v\)), y como \(v_L = L\,di/dt\), la corriente **sube y
+baja en triángulo** siguiendo la conmutación (figura, panel a).
+
+**Paso 2 — Amplitud del rizado en un periodo de conmutación.** Mientras el interruptor superior está ON
+(un tiempo \(t_{on} = d\,T_s\), con duty \(d\) y \(T_s = 1/f_s\)), la tensión sobre \(L\) es
+\(v_L^+ = V_{dc}/2 - \bar v\) y la corriente sube con pendiente \(v_L^+/L\):
+
+$$ \Delta i_L = \frac{v_L^+}{L}\,t_{on} = \frac{(V_{dc}/2 - \bar v)}{L}\,d\,T_s $$
+
+**Paso 3 — Escribirlo en función de la modulación.** La referencia es \(\bar v = \frac{V_{dc}}{2}m\sin\theta\)
+y el duty \(d = \frac12(1+m\sin\theta)\). Llamando \(x = m\sin\theta\) (\(v_L^+ = \frac{V_{dc}}{2}(1-x)\),
+\(t_{on} = \frac{1+x}{2}T_s\)):
+
+$$ \Delta i_L = \frac{V_{dc}}{2L}(1-x)\cdot\frac{1+x}{2}\,T_s = \frac{V_{dc}\,T_s}{4L}\,(1-x^2) = \frac{V_{dc}}{4 f_s L}\big(1-m^2\sin^2\theta\big) $$
+
+**Paso 4 — El peor caso: la referencia por cero (duty 50%).** El rizado es máximo cuando \(x=0\), es decir
+cuando la referencia \(m\sin\theta\) **pasa por cero** (¡no cuando \(m=0.5\)!): ahí el duty es 50%, el
+triángulo es simétrico y el producto \((1-x)(1+x)\) es máximo. Sustituyendo \(x=0\):
+
+$$ \boxed{\ \Delta i_{L,max} = \frac{V_{dc}}{4 f_s L}\ } $$
+
+**Qué es el "intervalo efectivo".** Escribir \(\Delta i_{L,max} = V_{dc}\,\Delta t/L\) con
+\(\Delta t = T_s/4 = 1/(4 f_s)\) es solo la forma **corta**: junta los dos factores \(\tfrac12\) del peor
+caso —**media tensión** sobre \(L\) (\(V_{dc}/2\)) durante **medio periodo** (\(t_{on}=T_s/2\))—, porque
+\(\frac{V_{dc}}{2}\cdot\frac{T_s}{2} = V_{dc}\cdot\frac{T_s}{4}\). De ahí el **4**. (En los picos de la
+senoide el rizado es \(\propto 1-m^2\), bastante menor; panel b.)
+
+<div class="cfig"><img src="figuras/btb-rizado-L.png" alt="Rizado de corriente en la inductancia: tensión conmutada del VSC entre +Vdc/2 y -Vdc/2 con duty 50% y el triángulo de corriente resultante en el peor caso, y la amplitud del rizado a lo largo del periodo fundamental máxima donde la referencia pasa por cero"><div class="cap">(a) Peor caso: cuando la referencia \(\bar v\) pasa por cero el duty es 50%; \(v_{conv}\) conmuta \(\pm V_{dc}/2\) y la corriente en \(L\) forma un triángulo simétrico de pendiente \((V_{dc}/2)/L\) durante \(t_{on}=T_s/2\), con amplitud \(\Delta i_{L,max}\). (b) A lo largo del periodo fundamental el rizado vale \(\Delta i_L(\theta)=\Delta i_{L,max}(1-m^2\sin^2\theta)\): máximo donde la referencia cruza cero y mínimo (\(\propto 1-m^2\)) en los picos de tensión.</div></div>
+
+**Paso 5 — Despejar \(L\).** Imponiendo que el rizado no supere el objetivo:
+
+$$ L \geq \frac{V_{dc}}{4\,f_s\,\Delta i_{L,max}} $$
 
 Con \(V_{dc}=1150\,\text{V}\), \(f_s=3000\,\text{Hz}\), \(\Delta i_{L,max} = 0.20\times2366 = 473\,\text{A}\):
 
