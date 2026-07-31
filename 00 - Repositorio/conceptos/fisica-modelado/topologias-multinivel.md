@@ -9,7 +9,7 @@ objetivos: [elegir la topologia de convertidor segun tension, potencia y calidad
 tags: [multinivel, NPC, T-type, flying-capacitor, MMC, CHB, HVDC, STATCOM]
 fecha_creacion: 2026-06-08
 fecha_actualizacion: 2026-07-03
-relacionados: [convertidor-vsc, marco-dq, control-vectorial, semiconductores-potencia]
+relacionados: [convertidor-vsc, marco-dq, control-vectorial, semiconductores-potencia, npc-3-niveles, mmc-modelo-control]
 referencias:
   - "Rodriguez, Lai, Peng, Multilevel Inverters: Survey of Topologies, IEEE TIE 2002"
   - "Akagi, Classification and Terminology of MMC, IEEE TPEL 2011"
@@ -87,6 +87,9 @@ $$ \frac{\Delta i_{NPC}}{\Delta i_{2L}}=\frac{(V_{dc}/2)^2}{V_{dc}^2}\cdot\frac{
 Esto permite reducir la inductancia del filtro a ~1/4 con el mismo rizado de corriente, o mantener la inductancia y reducir el rizado 4 veces. En la práctica: NPC a 5 kHz + filtro LCL comparable a 2 niveles a 20 kHz.
 
 **El reto del balanceo del punto neutro.** Los condensadores superior e inferior del bus DC deben mantenerse a \( V_{dc}/2 \) cada uno. La corriente que fluye hacia/desde \( O \) es impulsiva y puede desbalancear los condensadores. Se necesita modulación con gestión de neutro (p.ej. SVPWM con inyección de 3ª armónica) o un lazo de control adicional de balanceo. En el T-type (variante moderna), el conmutador bidireccional al neutro simplifica el balanceo y reduce las pérdidas en el nivel cero.
+
+> Desarrollo completo del NPC (tabla de conmutación con los diodos, derivación del balance de neutro
+> paso a paso, dimensionado iterativo): ver [[npc-3-niveles]].
 
 ## 3 — El convertidor modular multinivel (MMC)
 El MMC, desarrollado por Lesnicar y Marquardt en 2003, es la topología estándar para HVDC y FACTS de alta potencia. Su característica esencial es que el número de niveles de salida puede ser arbitrariamente grande apilando submódulos en serie.

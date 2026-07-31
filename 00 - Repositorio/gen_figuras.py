@@ -15157,6 +15157,200 @@ def _btb_lazo_dc():
     _savefig(fig, "btb-lazo-dc")
 
 
+def _npc_topologia():
+    """NPC de 3 niveles: rama de fase completa con los 4 IGBTs, los 2 diodos
+    de anclaje y los 2 condensadores de bus, etiquetando P, O, N."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, ax = plt.subplots(1, 1, figsize=(7, 8.5))
+    ax.set_aspect('equal'); ax.axis('off')
+    ax.set_xlim(-2.8, 3.2); ax.set_ylim(-0.8, 6.2)
+    ax.set_title('Rama de fase del NPC de 3 niveles', fontsize=13, fontweight='bold', pad=10)
+
+    def sw(x, y, lbl):
+        ax.add_patch(mpatches.FancyBboxPatch((x-0.4, y-0.26), 0.8, 0.52, boxstyle='round,pad=0.04',
+            facecolor='#AED6F1', edgecolor='navy', lw=1.6))
+        ax.text(x, y, lbl, ha='center', va='center', fontsize=10, fontweight='bold')
+    def wire(pts, col='navy', lw=1.8):
+        ax.plot([p[0] for p in pts], [p[1] for p in pts], color=col, lw=lw)
+    def dot(x, y):
+        ax.plot([x], [y], 'o', color='navy', ms=6)
+    def cap(x, y, lbl):
+        ax.plot([x-0.32, x+0.32], [y+0.08, y+0.08], 'navy', lw=2.6)
+        ax.plot([x-0.32, x+0.32], [y-0.08, y-0.08], 'navy', lw=2.6)
+        ax.text(x+0.48, y, lbl, fontsize=9.5, va='center')
+
+    # buses
+    ax.plot([-2.3, 0.9], [5.7, 5.7], 'navy', lw=2.4); ax.text(-2.5, 5.7, 'P', ha='right', va='center', fontsize=12, fontweight='bold')
+    ax.plot([-2.3, 0.9], [2.85, 2.85], 'navy', lw=1.6); ax.text(-2.5, 2.85, 'O', ha='right', va='center', fontsize=12, fontweight='bold')
+    ax.plot([-2.3, 0.9], [0.0, 0.0], 'navy', lw=2.4); ax.text(-2.5, 0.0, 'N', ha='right', va='center', fontsize=12, fontweight='bold')
+
+    # condensadores de bus
+    cap(-1.7, 4.28, r'$C_1,\ V_{dc}/2$'); wire([(-1.7, 5.7), (-1.7, 4.36)]); wire([(-1.7, 4.20), (-1.7, 2.85)])
+    cap(-1.7, 1.43, r'$C_2,\ V_{dc}/2$'); wire([(-1.7, 2.85), (-1.7, 1.51)]); wire([(-1.7, 1.35), (-1.7, 0.0)])
+
+    # rama con 4 IGBTs
+    xs = 0.0
+    wire([(xs, 5.7), (xs, 5.15)]); sw(xs, 4.85, 'T1'); wire([(xs, 4.55), (xs, 4.0)])
+    sw(xs, 3.7, 'T2'); wire([(xs, 3.4), (xs, 2.85)])
+    dot(xs, 2.85)
+    ax.annotate('', xy=(xs+1.6, 2.85), xytext=(xs, 2.85), arrowprops=dict(arrowstyle='-|>', color='darkred', lw=2.2))
+    ax.text(xs+1.75, 2.85, 'salida (fase)', color='darkred', fontsize=10, va='center')
+    wire([(xs, 2.85), (xs, 2.3)]); sw(xs, 2.0, 'T3'); wire([(xs, 1.7), (xs, 1.15)])
+    sw(xs, 0.85, 'T4'); wire([(xs, 0.55), (xs, 0.0)])
+
+    # diodos de anclaje D1 (de O a nudo T1-T2) y D2 (de nudo T3-T4 a O)
+    ax.annotate('', xy=(xs-0.42, 4.0), xytext=(-1.1, 2.85), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.7))
+    wire([(-1.7, 2.85), (-1.1, 2.85)], col='#c0392b', lw=1.4)
+    ax.text(-1.15, 3.55, 'D1', color='#c0392b', fontsize=10, fontweight='bold')
+    ax.annotate('', xy=(-1.1, 2.85), xytext=(xs-0.42, 1.7), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.7))
+    ax.text(-1.15, 2.15, 'D2', color='#c0392b', fontsize=10, fontweight='bold')
+
+    ax.text(0.5, -0.55, 'Cada IGBT bloquea $V_{dc}/2$ · el nivel de salida depende de\nqué par (T1T2 / T2T3 / T3T4) está en ON',
+            ha='center', fontsize=9, color='gray')
+
+    plt.tight_layout()
+    _savefig(fig, 'npc-topologia', dpi=165)
+
+
+def _npc_conmutacion():
+    """NPC: (a) tabla visual de estados de conmutacion (heatmap de ON/OFF por
+    IGBT y nivel de salida); (b) formas de onda: portadoras PD-PWM, referencia,
+    tension de fase de 3 niveles y espectro comparado con 2 niveles."""
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure(figsize=(14, 8.6))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1, 1.2], hspace=0.42, wspace=0.28)
+    axT = fig.add_subplot(gs[0, :])
+    axW = fig.add_subplot(gs[1, 0])
+    axS = fig.add_subplot(gs[1, 1])
+    fig.suptitle('NPC 3 niveles: estados de conmutación y modulación PD-PWM', fontsize=13, fontweight='bold')
+
+    # ---- (a) tabla de estados como texto formateado ----
+    axT.axis('off')
+    estados = [
+        ('P',  '1','1','0','0', r'$+V_{dc}/2$', 'T1,T2 ON — salida a P'),
+        ('O+', '0','1','1','0', r'$0$',          'T2,T3 ON, $i_o>0$ → D1 conduce'),
+        ('O-', '0','1','1','0', r'$0$',          'T2,T3 ON, $i_o<0$ → D2 conduce'),
+        ('N',  '0','0','1','1', r'$-V_{dc}/2$', 'T3,T4 ON — salida a N'),
+    ]
+    headers = ['Estado', 'T1', 'T2', 'T3', 'T4', 'Salida', 'Comentario']
+    colw = [0.09, 0.05, 0.05, 0.05, 0.05, 0.13, 0.50]
+    x0 = 0.02
+    xs = [x0]
+    for w in colw: xs.append(xs[-1]+w)
+    y0 = 0.95
+    for j, h in enumerate(headers):
+        axT.text(xs[j], y0, h, fontsize=10, fontweight='bold', color='#cdd9e5')
+    axT.plot([0.02, 0.97], [y0-0.08, y0-0.08], color='#555', lw=1)
+    rowh = 0.20
+    cols_sw = {'1': '#A9DFBF', '0': '#F5B7B1'}
+    for i, row in enumerate(estados):
+        y = y0 - 0.08 - rowh*(i+1) + 0.02
+        axT.text(xs[0], y, row[0], fontsize=10.5, fontweight='bold')
+        for j in range(4):
+            val = row[1+j]
+            axT.add_patch(plt.Rectangle((xs[1+j], y-0.045), 0.038, 0.09,
+                          facecolor=cols_sw[val], edgecolor='#333', lw=0.6, transform=axT.transAxes))
+            axT.text(xs[1+j]+0.019, y, val, ha='center', va='center', fontsize=9.5, transform=axT.transAxes)
+        axT.text(xs[5], y, row[5], fontsize=10)
+        axT.text(xs[6], y, row[6], fontsize=8.8, color='#aaa')
+    axT.set_xlim(0, 1); axT.set_ylim(0, 1)
+    axT.set_title('(a) Tabla de estados (verde=ON, rojo=OFF) — T1,T3 y T2,T4 son complementarios',
+                  fontsize=10.5, fontweight='bold', loc='left')
+
+    # ---- (b) PD-PWM: dos portadoras + referencia + salida ----
+    m = 0.85; fs = 1500.0; f0 = 50.0
+    t = np.linspace(0, 1/f0, 3000)
+    ref = m*np.sin(2*np.pi*f0*t)
+    fase = np.mod(t*fs, 1.0); tri = 4*np.abs(fase-0.5)-1
+    port_hi = 0.5*tri + 0.5   # 0..1
+    port_lo = 0.5*tri - 0.5   # -1..0
+    vout = np.where(ref > port_hi, 1.0, np.where(ref < port_lo, -1.0, 0.0))
+    axW.plot(t*1000, port_hi, color='#999', lw=0.9)
+    axW.plot(t*1000, port_lo, color='#999', lw=0.9, label='portadoras PD')
+    axW.plot(t*1000, ref, color='navy', lw=1.8, label='referencia $m\\sin\\theta$')
+    axW.plot(t*1000, vout*0.5, color='#c0392b', lw=1.6, drawstyle='steps-post', label='$v_{aO}/(V_{dc}/2)$ (offset visual)')
+    axW.set_xlabel('t [ms]'); axW.set_ylabel('p.u.'); axW.grid(alpha=.3)
+    axW.legend(fontsize=7.5, loc='lower right')
+    axW.set_title('(b) PD-PWM: dos portadoras apiladas → 3 niveles', fontsize=10.5, fontweight='bold')
+
+    # ---- (c) espectro comparado 2L vs NPC (armonicos de fs) ----
+    fs2 = 1500.0
+    n = np.arange(1, 12)
+    # amplitud relativa de las bandas laterales alrededor de fs y 2fs (aprox ilustrativa)
+    amp2L = np.exp(-0.15*(n-1))
+    ampNPC = np.exp(-0.15*(n-1))*0.5**n  # cae mas rapido: aprox factor (Vdc/2)/Vdc por nivel extra
+    axS.bar(n-0.15, amp2L, width=0.3, color='#e67e22', label='2 niveles')
+    axS.bar(n+0.15, ampNPC, width=0.3, color='#2e86c1', label='NPC 3 niveles')
+    axS.set_yscale('log'); axS.set_ylim(1e-3, 1.5)
+    axS.set_xlabel('orden de banda alrededor de $f_{sw}$'); axS.set_ylabel('amplitud relativa')
+    axS.set_title('(c) Contenido armónico (ilustrativo): NPC cae mucho más rápido', fontsize=10.5, fontweight='bold')
+    axS.legend(fontsize=8.5); axS.grid(alpha=.3, axis='y')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    _savefig(fig, 'npc-conmutacion', dpi=160)
+
+
+def _npc_neutro():
+    """NPC: balance del punto neutro. (a) caminos de corriente para el estado O
+    segun el signo de i_o (D1 vs D2 conducen, cargan C2 o C1); (b) simulacion
+    simplificada de V_C1, V_C2 con y sin compensacion (inyeccion 3er armonico)."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13, 5.6), gridspec_kw={'width_ratios': [0.85, 1.15]})
+    fig.suptitle('NPC: balance del punto neutro O', fontsize=13, fontweight='bold')
+
+    # ---- (a) esquema de caminos de corriente ----
+    a1.set_aspect('equal'); a1.axis('off')
+    a1.set_xlim(-2.2, 2.4); a1.set_ylim(-0.6, 5.6)
+    a1.set_title('(a) Estado "O": camino según signo de $i_o$', fontsize=10.5, fontweight='bold')
+    a1.plot([-1.6, 0.6], [5.2, 5.2], 'navy', lw=2)
+    a1.plot([-1.6, 0.6], [2.6, 2.6], 'navy', lw=1.3)
+    a1.plot([-1.6, 0.6], [0.0, 0.0], 'navy', lw=2)
+    a1.text(-1.85, 5.2, 'P', fontsize=10, va='center'); a1.text(-1.85, 2.6, 'O', fontsize=10, va='center'); a1.text(-1.85, 0.0, 'N', fontsize=10, va='center')
+    a1.plot([-1.2, -1.2], [5.2, 3.05], 'navy', lw=1.6); a1.plot([-1.2, -1.2], [2.15, 0.0], 'navy', lw=1.6)
+    a1.text(-1.0, 3.9, r'$C_1$', fontsize=9); a1.text(-1.0, 1.3, r'$C_2$', fontsize=9)
+    a1.annotate('', xy=(0.0, 3.9), xytext=(-0.55, 2.6), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=2))
+    a1.text(0.1, 3.9, r'$i_o>0$: D1 conduce' + '\n' + r'descarga $C_1$, carga $C_2$', fontsize=8.5, color='#c0392b')
+    a1.annotate('', xy=(-0.55, 2.6), xytext=(0.0, 1.3), arrowprops=dict(arrowstyle='-|>', color='#1e8449', lw=2))
+    a1.text(0.1, 1.0, r'$i_o<0$: D2 conduce' + '\n' + r'descarga $C_2$, carga $C_1$', fontsize=8.5, color='#1e8449')
+
+    # ---- (b) evolucion de VC1, VC2 con y sin compensacion ----
+    # Modelo simplificado: una carga desbalanceada monofasica conectada entre O y N
+    # (peor caso realista) fuerza una corriente media hacia O que descarga C1 y
+    # carga C2 progresivamente si no se compensa. La compensacion inyecta una
+    # pequena componente de secuencia cero (3er armonico) proporcional al
+    # desbalance medido, que reduce el tiempo neto en el estado O.
+    V0 = 575.0; C = 6e-3
+    t = np.linspace(0, 2.0, 20000); dt = t[1]-t[0]
+    Idc_bias = 0.6    # [A] componente de continua de la corriente hacia O (desbalance de carga)
+    def sim(kcomp):
+        vc1 = np.zeros(len(t)); vc2 = np.zeros(len(t))
+        vc1[0] = V0; vc2[0] = V0
+        for k in range(len(t)-1):
+            err = vc1[k] - vc2[k]                  # desbalance actual (V_C1 - V_C2)
+            iO = Idc_bias + kcomp*err              # a mas err, MAS corriente hacia O que lo corrige
+            vc1[k+1] = vc1[k] - iO*dt/C             # iO descarga C1...
+            vc2[k+1] = vc2[k] + iO*dt/C             # ...y carga C2 (por continuidad en el nudo O)
+        return vc1, vc2
+    vc1n, vc2n = sim(0.0)      # sin compensacion: deriva libre (integrador puro)
+    vc1c, vc2c = sim(3.0)      # con compensacion: realimentacion proporcional que la frena (1er orden estable)
+    a2.plot(t*1000, vc1n, color='#c0392b', lw=1.8, label='$V_{C1}$ sin comp.')
+    a2.plot(t*1000, vc2n, color='#e08a00', lw=1.8, ls='--', label='$V_{C2}$ sin comp.')
+    a2.plot(t*1000, vc1c, color='navy', lw=1.8, label='$V_{C1}$ con comp.')
+    a2.plot(t*1000, vc2c, color='#2e86c1', lw=1.8, ls='--', label='$V_{C2}$ con comp.')
+    a2.axhline(V0, color='gray', lw=0.8, ls=':')
+    a2.set_xlabel('t [ms]'); a2.set_ylabel('V'); a2.grid(alpha=.3)
+    a2.legend(fontsize=8, ncol=2, loc='center right')
+    a2.set_title('(b) Ante una carga desbalanceada: deriva sin compensación\nvs. estabilización con compensación proporcional', fontsize=10, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.94])
+    _savefig(fig, 'npc-neutro', dpi=160)
+
+
 def _mmc_estructura():
     """MMC: (a) estructura trifasica (6 brazos, bus DC, salida AC);
     (b) descomposicion de corrientes en una fase: brazo sup/inf, corriente de
@@ -16439,6 +16633,15 @@ def main():
         n += 1
     if pref is None or "mmc-estructura".startswith(pref):
         _mmc_estructura()
+        n += 1
+    if pref is None or "npc-topologia".startswith(pref):
+        _npc_topologia()
+        n += 1
+    if pref is None or "npc-conmutacion".startswith(pref):
+        _npc_conmutacion()
+        n += 1
+    if pref is None or "npc-neutro".startswith(pref):
+        _npc_neutro()
         n += 1
     if pref is None or "btb-mppt".startswith(pref):
         _btb_mppt()
