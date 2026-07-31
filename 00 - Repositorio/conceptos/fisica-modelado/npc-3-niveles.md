@@ -42,7 +42,15 @@ que en un puente de 2 niveles para el mismo \(V_{dc}\), o doblar \(V_{dc}\) con 
 (\(T_1\), \(T_2\)) hay 4 combinaciones binarias, pero **una es redundante** en corriente para el estado 0
 (según el signo de \(i_o\)):
 
-<div class="cfig"><img src="figuras/npc-conmutacion.png" alt="cuatro mini-circuitos del NPC mostrando la trayectoria de corriente resaltada para los estados P, O con io positivo (D5 conduce), O con io negativo (D6 conduce) y N, con los IGBT coloreados en verde si conducen y rojo si no, y debajo la tabla completa de estados junto con las formas de onda de la modulacion PD-PWM y el espectro comparado con dos niveles"><div class="cap">(a)-(d) Los cuatro circuitos equivalentes de cada estado, con la trayectoria de corriente resaltada en rojo y los IGBT en verde (ON) o rojo (OFF): P (\(T_1,T_2\)), O con \(i_o>0\) (\(D_5\) conduce), O con \(i_o<0\) (\(D_6\) conduce) y N (\(T_3,T_4\)). Debajo, la tabla completa de estados. (e) Modulación PD-PWM: dos portadoras triangulares apiladas (una entre 0 y 1, otra entre −1 y 0) comparadas con la misma referencia generan directamente los 3 niveles. (f) El contenido armónico alrededor de \(f_{sw}\) cae mucho más rápido que en 2 niveles.</div></div>
+<div class="cfig"><img src="figuras/npc-conmutacion.png" alt="seis mini-circuitos del NPC (P, O, N cruzados con io positivo e io negativo) mostrando la trayectoria de corriente resaltada y que dispositivo conduce en cada caso -canal del IGBT o diodo antiparalelo o de anclaje-, con tabla completa de 6 filas mostrando S o D para cada dispositivo T1-T4, D1-D6, y debajo las formas de onda de la modulacion PD-PWM y el espectro comparado con dos niveles"><div class="cap">(a)-(f) Análisis completo de los 6 estados físicos (3 niveles de salida × signo de \(i_o\)), con la trayectoria de corriente resaltada en rojo: (a) P con \(i_o>0\), conducen los canales de \(T_1,T_2\); (b) O con \(i_o>0\), \(T_2,T_3\) ON y conduce \(D_5\); (c) N con \(i_o>0\), conducen los diodos antiparalelo \(D_3,D_4\) (no el canal); (d) P con \(i_o<0\), conducen los diodos antiparalelo \(D_1,D_2\); (e) O con \(i_o<0\), \(T_2,T_3\) ON y conduce \(D_6\); (f) N con \(i_o<0\), conducen los canales de \(T_3,T_4\). Debajo, la tabla completa con S (canal del IGBT) o D (diodo) para cada uno de los 10 dispositivos en los 6 estados. (e) Modulación PD-PWM: dos portadoras triangulares apiladas (una entre 0 y 1, otra entre −1 y 0) comparadas con la misma referencia generan directamente los 3 niveles. (f) El contenido armónico alrededor de \(f_{sw}\) cae mucho más rápido que en 2 niveles.</div></div>
+
+**Por qué hay 6 estados y no 3.** La tabla de \((T_1,T_2,T_3,T_4)\) solo fija a qué nudo del bus (P, O o N)
+queda conectada la salida — decide el **nivel de tensión**. Pero el IGBT es un interruptor unidireccional en
+tensión y bidireccional en corriente **solo gracias a su diodo antiparalelo**: el canal únicamente deja pasar
+corriente en un sentido (colector→emisor cuando está en ON), y si \(i_o\) intenta circular al revés mientras
+la puerta sigue en ON, es el diodo antiparalelo — no el canal — quien físicamente conduce. Por eso, para
+saber **qué dispositivo semiconductor concreto** lleva la corriente (y por tanto dónde disipa pérdidas) hace
+falta cruzar cada uno de los 3 niveles con el signo de \(i_o\): resultan **6 combinaciones**, no 3.
 
 **Deducción de la regla de complementariedad (por qué exactamente esos pares).** La rama tiene 4
 interruptores en serie entre P y N. Si se permitieran combinaciones distintas de las de la tabla, dos casos
@@ -59,12 +67,20 @@ Por tanto la única familia de combinaciones **seguras y que cubre los tres nive
 \((T_1,T_2)=(1,0)\) **no se usa**: dejaría al nudo intermedio T1-T2 conectado a P por \(T_1\) pero
 desconectado de la salida (ni O ni N), un estado sin sentido para la síntesis de tensión.
 
-| Estado | \(T_1\) | \(T_2\) | \(T_3\) | \(T_4\) | Dispositivo que conduce | \(v_{aO}\) |
-|---|---|---|---|---|---|---|
-| **P** | 1 | 1 | 0 | 0 | \(T_1, T_2\) | \(+V_{dc}/2\) |
-| **O** (\(i_o>0\)) | 0 | 1 | 1 | 0 | \(D_5\), \(T_2\) | \(0\) |
-| **O** (\(i_o<0\)) | 0 | 1 | 1 | 0 | \(D_6\), \(T_3\) | \(0\) |
-| **N** | 0 | 0 | 1 | 1 | \(T_3, T_4\) | \(-V_{dc}/2\) |
+| Estado | Gate \((T_1,T_2,T_3,T_4)\) | \(i_o\) | Dispositivo que conduce realmente | \(v_{aO}\) |
+|---|---|---|---|---|
+| **P** | 1,1,0,0 | \(>0\) | canal de \(T_1, T_2\) (S) | \(+V_{dc}/2\) |
+| **P** | 1,1,0,0 | \(<0\) | diodos antiparalelo \(D_1, D_2\) (D) | \(+V_{dc}/2\) |
+| **O** | 0,1,1,0 | \(>0\) | canal de \(T_2,T_3\) + diodo de anclaje \(D_5\) | \(0\) |
+| **O** | 0,1,1,0 | \(<0\) | canal de \(T_2,T_3\) + diodo de anclaje \(D_6\) | \(0\) |
+| **N** | 0,0,1,1 | \(>0\) | diodos antiparalelo \(D_3, D_4\) (D) | \(-V_{dc}/2\) |
+| **N** | 0,0,1,1 | \(<0\) | canal de \(T_3, T_4\) (S) | \(-V_{dc}/2\) |
+
+La orden de puerta (columna "Gate") es la misma en las dos filas de P y en las dos de N — el modulador no
+decide entre esos dos casos, es \(i_o\) quien decide si es el canal o el diodo antiparalelo quien realmente
+conduce. Esto es distinto del estado O, donde la orden de puerta también es siempre \((0,1,1,0)\) pero además
+hay una **elección física** de cuál de los dos diodos de anclaje (\(D_5\) o \(D_6\)) cierra el camino,
+también gobernada por el signo de \(i_o\).
 
 **Por qué el estado O tiene dos caminos.** Con \(T_2\) y \(T_3\) en ON, la salida queda "flotando" entre P y
 N a través de esos dos interruptores; el **diodo de anclaje** que realmente conduce lo decide el signo de
