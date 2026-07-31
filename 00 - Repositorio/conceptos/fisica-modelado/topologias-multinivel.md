@@ -38,6 +38,8 @@ caen y la tensión de bloqueo por dispositivo es \( \approx V_{dc}/(n-1) \). Fam
 Modulación: PD/POD-PWM multinivel, **SVM** multinivel, o selección de estados (MMC). La
 **redundancia** de estados de conmutación se aprovecha para balancear condensadores.
 
+<div class="cfig"><img src="figuras/multinivel-circuitos.png" alt="ramas de fase de las topologías multinivel: 2 niveles con dos interruptores, NPC de 3 niveles con cuatro interruptores y diodos de anclaje al neutro, y MMC con brazos de submódulos e inductancias de brazo y el submódulo half-bridge"><div class="cap">Rama de fase de cada familia. (a) <b>2 niveles</b>: dos interruptores (T1, T2) conmutan la salida entre \(\pm V_{dc}/2\). (b) <b>NPC 3 niveles</b>: cuatro interruptores (T1–T4) y dos diodos de anclaje (D1, D2) al neutro O del bus (partido por C1, C2) generan tres valores \(+\tfrac{V_{dc}}2,0,-\tfrac{V_{dc}}2\). (c) <b>MMC</b>: cada fase tiene un brazo superior y otro inferior con \(N\) submódulos en serie e inductancias de brazo \(L_{arm}\); el submódulo half-bridge (S1, S2, \(C_{SM}\)) inserta o puentea su condensador → \(N+1\) niveles.</div></div>
+
 <div class="cfig"><img src="figuras/topologias-multinivel-ondas.png" alt="ondas de tension de 2, 3 y 7 niveles frente a la referencia"><div class="cap">Síntesis de la tensión de salida: con más niveles la onda escalonada se acerca a la senoidal de referencia, reduciendo el contenido armónico y el $dv/dt$. Además la tensión de bloqueo por dispositivo baja a $V_{dc}/(n-1)$, lo que permite alcanzar tensiones/potencias mayores (NPC/T-type en BT-MT, MMC en HVDC).</div></div>
 
 ## 1 — Por qué \( n \) niveles reduce el \( dv/dt \) y los armónicos

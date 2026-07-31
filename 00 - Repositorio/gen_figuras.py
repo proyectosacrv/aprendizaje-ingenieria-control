@@ -15157,6 +15157,160 @@ def _btb_lazo_dc():
     _savefig(fig, "btb-lazo-dc")
 
 
+def _mmc_estructura():
+    """MMC: (a) estructura trifasica (6 brazos, bus DC, salida AC);
+    (b) descomposicion de corrientes en una fase: brazo sup/inf, corriente de
+    salida i_out = i_u - i_l y corriente de circulacion i_circ = (i_u+i_l)/2."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 6.4), gridspec_kw={'width_ratios': [1.25, 1]})
+    fig.suptitle('MMC: estructura y descomposición de corrientes', fontsize=13, fontweight='bold')
+    for ax in (a1, a2):
+        ax.set_aspect('equal'); ax.axis('off')
+
+    def armbox(ax, x, y, txt):
+        ax.add_patch(mpatches.FancyBboxPatch((x-0.32, y-0.5), 0.64, 1.0, boxstyle='round,pad=0.04',
+            facecolor='#A9DFBF', edgecolor='navy', lw=1.5))
+        ax.text(x, y, txt, ha='center', va='center', fontsize=7.5, fontweight='bold')
+    def Lb(ax, x, y):
+        ax.add_patch(mpatches.FancyBboxPatch((x-0.12, y-0.2), 0.24, 0.4, boxstyle='round',
+            facecolor='#FCF3CF', edgecolor='navy', lw=1.2))
+    def wire(ax, pts, col='navy', lw=1.6):
+        ax.plot([p[0] for p in pts], [p[1] for p in pts], color=col, lw=lw)
+
+    # ---- (a) estructura trifasica ----
+    a1.set_title('(a) Estructura trifásica', fontsize=10.5, fontweight='bold')
+    a1.set_xlim(-0.4, 5.2); a1.set_ylim(-0.6, 6.2)
+    a1.plot([0.2, 4.6], [5.8, 5.8], 'navy', lw=2.2); a1.text(0.0, 5.8, r'$+\frac{V_{dc}}{2}$', ha='right', va='center', fontsize=9)
+    a1.plot([0.2, 4.6], [0.0, 0.0], 'navy', lw=2.2); a1.text(0.0, 0.0, r'$-\frac{V_{dc}}{2}$', ha='right', va='center', fontsize=9)
+    for x, ph in [(1.0, 'a'), (2.4, 'b'), (3.8, 'c')]:
+        wire(a1, [(x, 5.8), (x, 5.3)])
+        armbox(a1, x, 4.7, 'N SM\nsup.'); wire(a1, [(x, 4.2), (x, 4.0)]); Lb(a1, x, 3.8); wire(a1, [(x, 3.6), (x, 3.3)])
+        a1.plot([x], [3.3], 'o', color='darkred', ms=5)
+        a1.annotate('', xy=(x+0.7, 3.3), xytext=(x, 3.3), arrowprops=dict(arrowstyle='-|>', color='darkred', lw=1.6))
+        a1.text(x+0.75, 3.3, ph, color='darkred', fontsize=9, va='center', fontweight='bold')
+        wire(a1, [(x, 3.3), (x, 3.0)]); Lb(a1, x, 2.8); wire(a1, [(x, 2.6), (x, 2.4)])
+        armbox(a1, x, 1.8, 'N SM\ninf.'); wire(a1, [(x, 1.3), (x, 0.0)])
+    a1.text(2.4, -0.5, '6 brazos (2 por fase), salida AC a/b/c', ha='center', fontsize=8.5, color='gray')
+
+    # ---- (b) corrientes de una fase ----
+    a2.set_title('(b) Corrientes en una fase', fontsize=10.5, fontweight='bold')
+    a2.set_xlim(-1.4, 3); a2.set_ylim(-0.6, 6.2)
+    a2.plot([-0.6, 1.2], [5.8, 5.8], 'navy', lw=2); a2.plot([-0.6, 1.2], [0.0, 0.0], 'navy', lw=2)
+    x = 0.3
+    wire(a2, [(x, 5.8), (x, 5.3)]); armbox(a2, x, 4.7, 'brazo\nsup.'); wire(a2, [(x, 4.2), (x, 3.3)])
+    a2.plot([x], [3.3], 'o', color='navy', ms=5)
+    wire(a2, [(x, 3.3), (x, 2.4)]); armbox(a2, x, 1.8, 'brazo\ninf.'); wire(a2, [(x, 1.3), (x, 0.0)])
+    # corriente brazo superior e inferior (hacia abajo)
+    a2.annotate('', xy=(x-0.55, 4.4), xytext=(x-0.55, 5.0), arrowprops=dict(arrowstyle='-|>', color='#2e86c1', lw=1.8))
+    a2.text(x-0.62, 5.15, r'$i_u$', color='#2e86c1', fontsize=10, ha='center')
+    a2.annotate('', xy=(x-0.55, 1.5), xytext=(x-0.55, 2.1), arrowprops=dict(arrowstyle='-|>', color='#1e8449', lw=1.8))
+    a2.text(x-0.62, 2.25, r'$i_l$', color='#1e8449', fontsize=10, ha='center')
+    # salida
+    a2.annotate('', xy=(x+1.4, 3.3), xytext=(x, 3.3), arrowprops=dict(arrowstyle='-|>', color='darkred', lw=2))
+    a2.text(x+1.5, 3.3, r'$i_{out}$', color='darkred', fontsize=10, va='center')
+    # relaciones
+    a2.text(0.8, 0.6,
+            r'$i_{out}=i_u-i_l$' + '\n' + r'$i_{circ}=\dfrac{i_u+i_l}{2}$',
+            ha='center', fontsize=10,
+            bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='steelblue'))
+
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    _savefig(fig, 'mmc-estructura', dpi=160)
+
+
+def _multinivel_circuitos():
+    """Ramas de fase de las topologias multinivel: 2 niveles, NPC 3 niveles y
+    MMC (brazos + submodulo half-bridge). Dibujo simplificado con interruptores
+    como cajas, diodos como flechas y condensadores como barras."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, (a1, a2, a3) = plt.subplots(1, 3, figsize=(15, 6.4))
+    fig.suptitle('Topologías multinivel: una rama de fase', fontsize=13, fontweight='bold')
+    for ax in (a1, a2, a3):
+        ax.set_aspect('equal'); ax.axis('off')
+
+    def sw(ax, x, y, lbl, col='#AED6F1'):
+        ax.add_patch(mpatches.FancyBboxPatch((x-0.35, y-0.24), 0.7, 0.48,
+            boxstyle='round,pad=0.04', facecolor=col, edgecolor='navy', lw=1.5))
+        ax.text(x, y, lbl, ha='center', va='center', fontsize=8.5, fontweight='bold')
+    def wire(ax, pts, col='navy', lw=1.6):
+        ax.plot([p[0] for p in pts], [p[1] for p in pts], color=col, lw=lw)
+    def dot(ax, x, y):
+        ax.plot([x], [y], 'o', color='navy', ms=5)
+    def cap(ax, x, y, lbl=''):
+        ax.plot([x-0.28, x+0.28], [y+0.07, y+0.07], 'navy', lw=2.4)
+        ax.plot([x-0.28, x+0.28], [y-0.07, y-0.07], 'navy', lw=2.4)
+        if lbl:
+            ax.text(x+0.42, y, lbl, fontsize=8, va='center')
+    def out(ax, x, y):
+        ax.annotate('', xy=(x+1.0, y), xytext=(x, y), arrowprops=dict(arrowstyle='-|>', color='darkred', lw=2))
+        ax.text(x+1.1, y, 'salida', color='darkred', fontsize=8.5, va='center')
+
+    # -------- (a) 2 niveles --------
+    a1.set_title('(a) 2 niveles', fontsize=10.5, fontweight='bold')
+    a1.set_xlim(-2, 2.6); a1.set_ylim(-0.6, 4.2)
+    a1.plot([-1.4, 0.5], [3.8, 3.8], 'navy', lw=2); a1.text(-1.6, 3.8, r'$+\frac{V_{dc}}{2}$', ha='right', va='center', fontsize=9)
+    a1.plot([-1.4, 0.5], [0.0, 0.0], 'navy', lw=2); a1.text(-1.6, 0.0, r'$-\frac{V_{dc}}{2}$', ha='right', va='center', fontsize=9)
+    wire(a1, [(0, 3.8), (0, 2.9)]); sw(a1, 0, 2.6, 'T1'); wire(a1, [(0, 2.3), (0, 1.9)])
+    dot(a1, 0, 1.9); out(a1, 0, 1.9)
+    wire(a1, [(0, 1.9), (0, 1.5)]); sw(a1, 0, 1.2, 'T2'); wire(a1, [(0, 0.9), (0, 0.0)])
+    a1.text(0, -0.45, '2 valores', ha='center', fontsize=8.5, color='gray')
+
+    # -------- (b) NPC 3 niveles --------
+    a2.set_title('(b) NPC 3 niveles', fontsize=10.5, fontweight='bold')
+    a2.set_xlim(-2.6, 3); a2.set_ylim(-0.6, 5.4)
+    a2.plot([-2, 0.6], [5.0, 5.0], 'navy', lw=2); a2.text(-2.2, 5.0, 'P', ha='right', va='center', fontsize=9)
+    a2.plot([-2, 0.6], [2.5, 2.5], 'navy', lw=1.5); a2.text(-2.2, 2.5, 'O', ha='right', va='center', fontsize=9)
+    a2.plot([-2, 0.6], [0.0, 0.0], 'navy', lw=2); a2.text(-2.2, 0.0, 'N', ha='right', va='center', fontsize=9)
+    cap(a2, -1.6, 3.75, 'C1'); wire(a2, [(-1.6, 5.0), (-1.6, 3.82)]); wire(a2, [(-1.6, 3.68), (-1.6, 2.5)])
+    cap(a2, -1.6, 1.25, 'C2'); wire(a2, [(-1.6, 2.5), (-1.6, 1.32)]); wire(a2, [(-1.6, 1.18), (-1.6, 0.0)])
+    xs = 0.3
+    wire(a2, [(xs, 5.0), (xs, 4.5)]); sw(a2, xs, 4.2, 'T1'); wire(a2, [(xs, 3.9), (xs, 3.6)]); sw(a2, xs, 3.3, 'T2')
+    wire(a2, [(xs, 3.0), (xs, 2.5)]); dot(a2, xs, 2.5); out(a2, xs, 2.5)
+    wire(a2, [(xs, 2.5), (xs, 2.0)]); sw(a2, xs, 1.7, 'T3'); wire(a2, [(xs, 1.4), (xs, 1.1)]); sw(a2, xs, 0.8, 'T4'); wire(a2, [(xs, 0.5), (xs, 0.0)])
+    # diodos de anclaje al neutro O
+    a2.annotate('', xy=(xs-0.36, 3.6), xytext=(-0.8, 2.5), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.3))
+    a2.annotate('', xy=(-0.8, 2.5), xytext=(xs-0.36, 1.4), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.3))
+    wire(a2, [(-0.8, 2.5), (-1.6, 2.5)])
+    a2.text(-0.95, 3.15, 'D1', fontsize=7.5, color='#c0392b'); a2.text(-0.95, 1.7, 'D2', fontsize=7.5, color='#c0392b')
+    a2.text(0.3, -0.45, r'3 valores: $+\frac{V_{dc}}{2},\,0,\,-\frac{V_{dc}}{2}$', ha='center', fontsize=8.5, color='gray')
+
+    # -------- (c) MMC --------
+    a3.set_title('(c) MMC: brazos + submódulo', fontsize=10.5, fontweight='bold')
+    a3.set_xlim(-0.6, 4.4); a3.set_ylim(-0.6, 5.4)
+    a3.text(0.0, 5.15, r'$+V_{dc}/2$', ha='center', fontsize=8)
+    a3.text(0.0, -0.35, r'$-V_{dc}/2$', ha='center', fontsize=8)
+    # brazo superior (caja con N SM) + L_arm
+    a3.add_patch(mpatches.FancyBboxPatch((-0.5, 3.5), 1.0, 0.9, boxstyle='round,pad=0.05', facecolor='#A9DFBF', edgecolor='navy', lw=1.5))
+    a3.text(0.0, 3.95, 'N SM\n(sup.)', ha='center', va='center', fontsize=8, fontweight='bold')
+    wire(a3, [(0, 5.0), (0, 4.4)])
+    a3.add_patch(mpatches.FancyBboxPatch((-0.18, 2.9), 0.36, 0.45, boxstyle='round', facecolor='#FCF3CF', edgecolor='navy', lw=1.3)); a3.text(0.32, 3.12, r'$L_{arm}$', fontsize=7.5)
+    wire(a3, [(0, 3.5), (0, 3.35)]); wire(a3, [(0, 2.9), (0, 2.55)])
+    dot(a3, 0, 2.55); out(a3, 0, 2.55)
+    a3.add_patch(mpatches.FancyBboxPatch((-0.18, 1.75), 0.36, 0.45, boxstyle='round', facecolor='#FCF3CF', edgecolor='navy', lw=1.3)); a3.text(0.32, 1.98, r'$L_{arm}$', fontsize=7.5)
+    wire(a3, [(0, 2.55), (0, 2.2)]); wire(a3, [(0, 1.75), (0, 1.6)])
+    a3.add_patch(mpatches.FancyBboxPatch((-0.5, 0.7), 1.0, 0.9, boxstyle='round,pad=0.05', facecolor='#A9DFBF', edgecolor='navy', lw=1.5))
+    a3.text(0.0, 1.15, 'N SM\n(inf.)', ha='center', va='center', fontsize=8, fontweight='bold')
+    wire(a3, [(0, 0.7), (0, 0.0)])
+    # inset: submodulo half-bridge
+    a3.add_patch(mpatches.FancyBboxPatch((2.1, 1.6), 2.0, 2.1, boxstyle='round,pad=0.05', facecolor='none', edgecolor='#888', lw=1, linestyle='--'))
+    a3.text(3.1, 3.55, 'submódulo (half-bridge)', ha='center', fontsize=8, color='#555')
+    sw(a3, 2.7, 3.0, 'S1'); sw(a3, 2.7, 2.1, 'S2')
+    wire(a3, [(2.7, 2.76), (2.7, 2.34)])
+    cap(a3, 3.7, 2.55, r'$C_{SM}$')
+    wire(a3, [(2.35, 3.0), (2.05, 3.0)]); wire(a3, [(2.7, 3.24), (2.7, 3.4), (3.7, 3.4), (3.7, 2.62)])
+    wire(a3, [(2.7, 1.86), (2.7, 1.7), (3.7, 1.7), (3.7, 2.48)])
+    a3.text(1.95, 3.0, 'a', ha='right', fontsize=7.5); a3.text(1.95, 1.7, 'b', ha='right', fontsize=7.5)
+    a3.plot([2.05], [1.7], 'o', color='navy', ms=3); wire(a3, [(2.05, 1.7), (2.7, 1.7)])
+    a3.text(0.0, -0.55, 'N+1 valores', ha='center', fontsize=8.5, color='gray')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    _savefig(fig, 'multinivel-circuitos', dpi=160)
+
+
 def _btb_lazo_tension_verif():
     """Verificacion del lazo DC con los valores del ejemplo: Bode de L_dc con el
     margen de fase marcado y respuesta al escalon del lazo cerrado."""
@@ -16279,6 +16433,12 @@ def main():
         n += 1
     if pref is None or "btb-lazo-tension-verif".startswith(pref):
         _btb_lazo_tension_verif()
+        n += 1
+    if pref is None or "multinivel-circuitos".startswith(pref):
+        _multinivel_circuitos()
+        n += 1
+    if pref is None or "mmc-estructura".startswith(pref):
+        _mmc_estructura()
         n += 1
     if pref is None or "btb-mppt".startswith(pref):
         _btb_mppt()

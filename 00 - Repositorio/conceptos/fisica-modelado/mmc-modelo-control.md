@@ -17,6 +17,8 @@ referencias:
 
 ## 1 — Modelo eléctrico del MMC
 
+<div class="cfig"><img src="figuras/mmc-estructura.png" alt="estructura trifásica del MMC con seis brazos de submódulos e inductancias de brazo entre el bus DC y las salidas AC, y la descomposición de la corriente de una fase en corriente de brazo superior e inferior, corriente de salida y corriente de circulación"><div class="cap">(a) Estructura trifásica: seis brazos (superior e inferior por fase), cada uno con \(N\) submódulos en serie y una inductancia de brazo \(L_{arm}\), entre el bus DC y las salidas AC a/b/c. (b) La corriente de cada brazo (\(i_u\), \(i_l\)) se descompone en la <b>corriente de salida</b> \(i_{out}=i_u-i_l\) (va a la red) y la <b>corriente de circulación</b> \(i_{circ}=(i_u+i_l)/2\) (interna, entre brazos y el bus DC).</div></div>
+
 El MMC de tres fases tiene seis brazos (dos por fase). La ecuación de tensión-corriente de cada brazo
 se obtiene aplicando la KVL entre el bus DC y el punto medio de la fase. Para el brazo superior de
 la fase a:
