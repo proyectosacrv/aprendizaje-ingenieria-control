@@ -15351,6 +15351,91 @@ def _npc_neutro():
     _savefig(fig, 'npc-neutro', dpi=160)
 
 
+def _npc_svm():
+    """NPC SVM: (a) diagrama hexagonal con los 27 estados (19 posiciones fisicas,
+    vectores largos/medios/cortos redundantes/cero) y los 6 sectores + triangulos;
+    (b) zoom de un triangulo con los 3 vectores adyacentes y el vector de referencia
+    descompuesto para el calculo de tiempos."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 7), gridspec_kw={'width_ratios': [1.15, 1]})
+    fig.suptitle('NPC 3 niveles: modulación vectorial (SVM)', fontsize=13, fontweight='bold')
+
+    # ---- (a) hexagono completo de 19 posiciones ----
+    a1.set_aspect('equal'); a1.axis('off')
+    a1.set_xlim(-2.6, 2.6); a1.set_ylim(-2.4, 2.4)
+    a1.set_title('(a) 19 posiciones físicas (27 estados de conmutación)', fontsize=10.5, fontweight='bold')
+
+    def abc_to_xy(a, b, c):
+        # proyeccion de las tres componentes de fase (niveles -1,0,+1) sobre alfa-beta
+        x = a - 0.5*b - 0.5*c
+        y = (np.sqrt(3)/2)*(b - c)
+        return x, y
+
+    # generar los 27 estados (cada fase en {-1,0,1}) y agrupar por posicion fisica
+    pts = {}
+    for na in (-1, 0, 1):
+        for nb in (-1, 0, 1):
+            for nc in (-1, 0, 1):
+                x, y = abc_to_xy(na, nb, nc)
+                key = (round(x, 3), round(y, 3))
+                pts.setdefault(key, []).append((na, nb, nc))
+
+    # dibujar hexagono exterior (guia)
+    hexang = np.linspace(0, 2*np.pi, 7)
+    a1.plot(1.5*np.cos(hexang+np.pi/6), 1.5*np.sin(hexang+np.pi/6), color='#ccc', lw=1, ls='--')
+    # sectores (6 lineas desde el centro)
+    for k in range(6):
+        ang = k*np.pi/3
+        a1.plot([0, 1.7*np.cos(ang)], [0, 1.7*np.sin(ang)], color='#ddd', lw=0.8)
+
+    for (x, y), states in pts.items():
+        n = len(states)
+        r = np.hypot(x, y)
+        if r < 0.05:
+            col, sz = '#888', 60      # vector cero (origen), 3 estados redundantes
+        elif n >= 2:
+            col, sz = '#2e86c1', 70   # vector corto/medio redundante
+        elif r > 1.3:
+            col, sz = '#c0392b', 55   # vector largo (esquina)
+        else:
+            col, sz = '#e08a00', 55   # vector medio/corto no redundante
+        a1.scatter([x], [y], s=sz, color=col, edgecolor='navy', lw=0.8, zorder=5)
+        if n >= 2:
+            a1.text(x, y+0.14, f'{n}×', fontsize=7, ha='center', color='#2e86c1')
+
+    a1.text(-2.5, -2.3, 'gris=cero (3) · azul=redundante (2) · naranja=único · rojo=largo (esquina)',
+            fontsize=7.5, color='gray')
+
+    # ---- (b) zoom de un triangulo con vector de referencia ----
+    a2.set_aspect('equal'); a2.axis('off')
+    a2.set_xlim(-0.3, 2.0); a2.set_ylim(-0.3, 1.9)
+    a2.set_title('(b) Descomposición en un triángulo: cálculo de tiempos', fontsize=10.5, fontweight='bold')
+
+    V1 = np.array([1.0, 0.0])     # vector corto (nivel medio, ej. POO)
+    V2 = np.array([1.5, 0.866])   # vector largo (esquina, ej. PPO)
+    V0 = np.array([0.5, 0.866])   # vector medio (ej. PON), forma el triangulo con V1,V2
+
+    for P, lbl, col in [(V1, r'$V_1$ (corto)', '#e08a00'), (V2, r'$V_2$ (largo)', '#c0392b'), (V0, r'$V_0$ (medio)', '#8e44ad')]:
+        a2.plot([0, P[0]], [0, P[1]], color=col, lw=1.2, ls=':')
+        a2.plot([P[0]], [P[1]], 'o', color=col, ms=8, zorder=5)
+        a2.text(P[0]+0.05, P[1]+0.05, lbl, fontsize=9, color=col)
+    a2.plot([V1[0], V2[0], V0[0], V1[0]], [V1[1], V2[1], V0[1], V1[1]], color='#888', lw=1.3)
+
+    Vref = 0.45*V1 + 0.30*V2 + 0.25*V0
+    a2.annotate('', xy=tuple(Vref), xytext=(0, 0), arrowprops=dict(arrowstyle='-|>', color='navy', lw=2.4))
+    a2.text(Vref[0]+0.08, Vref[1]-0.05, r'$\vec V_{ref}$', color='navy', fontsize=11, fontweight='bold')
+
+    a2.text(1.0, -0.15,
+            r'$\vec V_{ref}=d_1\vec V_1+d_2\vec V_2+d_0\vec V_0,\quad d_1+d_2+d_0=1$',
+            ha='center', fontsize=9.5,
+            bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='steelblue'))
+
+    plt.tight_layout(rect=[0, 0, 1, 0.94])
+    _savefig(fig, 'npc-svm', dpi=160)
+
+
 def _mmc_estructura():
     """MMC: (a) estructura trifasica (6 brazos, bus DC, salida AC);
     (b) descomposicion de corrientes en una fase: brazo sup/inf, corriente de
@@ -16642,6 +16727,9 @@ def main():
         n += 1
     if pref is None or "npc-neutro".startswith(pref):
         _npc_neutro()
+        n += 1
+    if pref is None or "npc-svm".startswith(pref):
+        _npc_svm()
         n += 1
     if pref is None or "btb-mppt".startswith(pref):
         _btb_mppt()
