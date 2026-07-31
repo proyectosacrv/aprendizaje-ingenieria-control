@@ -56,6 +56,8 @@ coste del convertidor (crece con la tensión). Tensiones típicas actuales: \( \
 (cables submarinos), \( \pm 500\,\text{kV} \) (líneas aéreas); potencias: 200 MW–2 GW por enlace
 punto a punto.
 
+<div class="cfig"><img src="figuras/hvdc-configuraciones.png" alt="Configuraciones de enlace HVDC: monopolar con retorno por tierra, bipolar con dos polos independientes y simetrica monopolar sin conexion a tierra, y topologias MTDC radial con un nodo central y mallada con disyuntores DC en cada extremo de linea"><div class="cap">(a)-(c) Las tres configuraciones de enlace punto a punto. (e)-(f) Las dos topologías de red MTDC: la radial concentra el riesgo en el nodo central; la mallada añade redundancia a costa de un DCCB en cada extremo de cada línea (apartado 10).</div></div>
+
 ## 3 — El MMC: Modular Multilevel Converter
 
 El MMC es el convertidor dominante en HVDC moderno desde ~2010. Sustituyó al VSC de dos niveles con
@@ -262,7 +264,8 @@ toda la red MTDC.
 
 **Topología mallada.** Múltiples conexiones redundantes entre terminales. Mayor coste de cables y
 DCCB (uno por conexión), pero sin punto único de fallo. Es la topología objetivo de las futuras
-superredes DC offshore (North Sea Network, European Supergrid).
+superredes DC offshore (North Sea Network, European Supergrid). Ver panels (e)-(f) de la figura del
+apartado 2 para el esquema de ambas topologías.
 
 **Protección DC: el reto central del MTDC.** En una red AC, los disyuntores tienen 50–100 ms
 para interrumpir una falta — tiempo suficiente para que el arco AC se extinga naturalmente en el

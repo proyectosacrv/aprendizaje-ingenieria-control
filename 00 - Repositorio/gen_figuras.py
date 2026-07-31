@@ -15351,6 +15351,87 @@ def _npc_neutro():
     _savefig(fig, 'npc-neutro', dpi=160)
 
 
+def _hvdc_configuraciones():
+    """HVDC: (a) monopolar con retorno por tierra, bipolar y simetrica monopolar,
+    esquemas de conductores entre dos terminales; (b) topologias MTDC radial y
+    mallada con varios terminales y DCCB en cada extremo de linea."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig = plt.figure(figsize=(14, 9.5))
+    gs = fig.add_gridspec(3, 2, height_ratios=[1, 1, 1.3], hspace=0.55, wspace=0.28)
+    fig.suptitle('HVDC: configuraciones y topologías MTDC', fontsize=13, fontweight='bold')
+
+    def term(ax, x, y, lbl='VSC'):
+        ax.add_patch(mpatches.FancyBboxPatch((x-0.4, y-0.35), 0.8, 0.7, boxstyle='round,pad=0.04',
+            facecolor='#AED6F1', edgecolor='navy', lw=1.5))
+        ax.text(x, y, lbl, ha='center', va='center', fontsize=8, fontweight='bold')
+
+    # ---- Monopolar ----
+    ax1 = fig.add_subplot(gs[0, 0]); ax1.axis('off'); ax1.set_xlim(0, 10); ax1.set_ylim(-1.5, 1.8)
+    ax1.set_title('(a) Monopolar con retorno por tierra', fontsize=10, fontweight='bold', loc='left')
+    term(ax1, 1.0, 0.5); term(ax1, 9.0, 0.5)
+    ax1.plot([1.4, 8.6], [0.5, 0.5], 'navy', lw=2.4); ax1.text(5, 0.75, r'$+V_{dc}$', fontsize=8, ha='center')
+    ax1.plot([1.0, 1.0, 9.0, 9.0], [0.15, -1.0, -1.0, 0.15], color='#8B5A2B', lw=1.6, ls='--')
+    ax1.text(5, -1.3, 'retorno por tierra / mar', fontsize=7.5, color='#8B5A2B', ha='center')
+
+    # ---- Bipolar ----
+    ax2 = fig.add_subplot(gs[0, 1]); ax2.axis('off'); ax2.set_xlim(0, 10); ax2.set_ylim(-1.7, 1.8)
+    ax2.set_title('(b) Bipolar (dos polos independientes)', fontsize=10, fontweight='bold', loc='left')
+    term(ax2, 1.0, 0.9, 'VSC+'); term(ax2, 9.0, 0.9, 'VSC+')
+    ax2.plot([1.4, 8.6], [0.9, 0.9], 'navy', lw=2.4); ax2.text(5, 1.15, r'$+V_{dc}$', fontsize=8, ha='center')
+    term(ax2, 1.0, -0.9, 'VSC−'); term(ax2, 9.0, -0.9, 'VSC−')
+    ax2.plot([1.4, 8.6], [-0.9, -0.9], 'navy', lw=2.4); ax2.text(5, -1.15, r'$-V_{dc}$', fontsize=8, ha='center')
+    ax2.plot([1.0, 9.0], [0.0, 0.0], color='#8B5A2B', lw=1.2, ls=':')
+    ax2.text(5, 0.18, 'retorno metálico / tierra (redundancia)', fontsize=7, color='#8B5A2B', ha='center')
+
+    # ---- Simetrica monopolar ----
+    ax3 = fig.add_subplot(gs[1, 0]); ax3.axis('off'); ax3.set_xlim(0, 10); ax3.set_ylim(-1.5, 1.8)
+    ax3.set_title('(c) Simétrica monopolar (sin tierra)', fontsize=10, fontweight='bold', loc='left')
+    term(ax3, 1.0, 0.7); term(ax3, 9.0, 0.7)
+    ax3.plot([1.4, 8.6], [0.7, 0.7], 'navy', lw=2.4); ax3.text(5, 0.95, r'$+V_{dc}/2$', fontsize=8, ha='center')
+    ax3.plot([1.4, 8.6], [-0.7, -0.7], 'navy', lw=2.4); ax3.text(5, -0.95, r'$-V_{dc}/2$', fontsize=8, ha='center')
+    ax3.text(5, -1.3, 'sin conexión a tierra', fontsize=7.5, color='gray', ha='center')
+
+    # ---- comparativa breve ----
+    ax4 = fig.add_subplot(gs[1, 1]); ax4.axis('off')
+    ax4.text(0.02, 0.9, '(d) Resumen', fontsize=10, fontweight='bold', transform=ax4.transAxes)
+    ax4.text(0.02, 0.65, '• Monopolar: barata, corrientes vagabundas (en desuso)', fontsize=8.5, transform=ax4.transAxes)
+    ax4.text(0.02, 0.45, '• Bipolar: estándar; 50% de potencia si falla un polo', fontsize=8.5, transform=ax4.transAxes)
+    ax4.text(0.02, 0.25, '• Simétrica: sin transformador de tierra, sin redundancia', fontsize=8.5, transform=ax4.transAxes)
+
+    # ---- MTDC radial ----
+    ax5 = fig.add_subplot(gs[2, 0]); ax5.set_aspect('equal'); ax5.axis('off')
+    ax5.set_xlim(-2.4, 2.4); ax5.set_ylim(-2.4, 2.4)
+    ax5.set_title('(e) MTDC radial', fontsize=10, fontweight='bold')
+    ax5.add_patch(plt.Circle((0, 0), 0.35, facecolor='#F9E79F', edgecolor='navy', lw=1.5))
+    ax5.text(0, 0, 'nodo', fontsize=7, ha='center', va='center', fontweight='bold')
+    for ang in [90, 210, 330, 30]:
+        r = np.radians(ang); x, y = 1.7*np.cos(r), 1.7*np.sin(r)
+        ax5.plot([0.35*np.cos(r), x-0.32*np.cos(r)], [0.35*np.sin(r), y-0.32*np.sin(r)], 'navy', lw=1.6)
+        term(ax5, x, y, 'VSC')
+    ax5.text(0, -2.2, 'punto único de fallo en el nodo', fontsize=7.5, color='gray', ha='center')
+
+    # ---- MTDC mallada ----
+    ax6 = fig.add_subplot(gs[2, 1]); ax6.set_aspect('equal'); ax6.axis('off')
+    ax6.set_xlim(-2.4, 2.4); ax6.set_ylim(-2.4, 2.4)
+    ax6.set_title('(f) MTDC mallada (con DCCB)', fontsize=10, fontweight='bold')
+    pos = {k: (1.8*np.cos(np.radians(a)), 1.8*np.sin(np.radians(a))) for k, a in zip('ABCD', [90, 0, 270, 180])}
+    edges = [('A', 'B'), ('B', 'C'), ('C', 'D'), ('D', 'A'), ('A', 'C')]
+    for k1, k2 in edges:
+        x1, y1 = pos[k1]; x2, y2 = pos[k2]
+        ax6.plot([x1, x2], [y1, y2], 'navy', lw=1.4)
+        for f in (0.22, 0.78):
+            xm, ym = x1+f*(x2-x1), y1+f*(y2-y1)
+            ax6.add_patch(plt.Rectangle((xm-0.09, ym-0.09), 0.18, 0.18, facecolor='#c0392b', edgecolor='k', lw=0.6, zorder=5))
+    for k, (x, y) in pos.items():
+        term(ax6, x, y, 'VSC')
+    ax6.text(0, -2.2, 'rojo = DCCB en cada extremo de línea', fontsize=7.5, color='#c0392b', ha='center')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    _savefig(fig, 'hvdc-configuraciones', dpi=155)
+
+
 def _mmc_submodulo_ccsc():
     """MMC: (a) submodulo half-bridge en los dos estados (insertado/bypass) con
     el camino de corriente; (b) jerarquia de las 4 capas de control como
@@ -16810,6 +16891,9 @@ def main():
         n += 1
     if pref is None or "mmc-submodulo-ccsc".startswith(pref):
         _mmc_submodulo_ccsc()
+        n += 1
+    if pref is None or "hvdc-configuraciones".startswith(pref):
+        _hvdc_configuraciones()
         n += 1
     if pref is None or "btb-mppt".startswith(pref):
         _btb_mppt()
