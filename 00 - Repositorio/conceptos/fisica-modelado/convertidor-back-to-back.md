@@ -4,7 +4,7 @@ slug: convertidor-back-to-back
 categoria: fisica-modelado
 tipo: concepto
 nivel: intermedio
-proyectos: []
+proyectos: [05-B2B-Simulacion]
 objetivos: [desacoplar dos sistemas AC con flujo de potencia bidireccional, modelar el bus DC compartido]
 tags: [back-to-back, vsc, bus-dc, hvdc, eolica, full-converter, bidireccional, modelado]
 fecha_creacion: 2026-06-10

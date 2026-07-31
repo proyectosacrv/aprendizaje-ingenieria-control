@@ -23,7 +23,8 @@ CAT_COLOR = {"fisica-modelado": "#4ea3ff", "control": "#a78bfa", "programacion":
 
 PROJECT_LINK = {"01-GFM-Impedance": "../01%20-%20GFM-Impedance/informe.html",
                 "02-GFL-Impedance": "../02%20-%20GFL-Impedance/informe.html",
-                "03-DataCenter-IA": "../03%20-%20Energia-DataCenter-IA/informe.html"}
+                "03-DataCenter-IA": "../03%20-%20Energia-DataCenter-IA/informe.html",
+                "05-B2B-Simulacion": "../05%20-%20B2B-Simulacion/informe.html"}
 
 
 def split_frontmatter(text):

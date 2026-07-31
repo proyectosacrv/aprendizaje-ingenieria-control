@@ -1,0 +1,131 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proyecto: Simulación del convertidor back-to-back</title>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},svg:{fontCache:'global'}};</script>
+<script src="../00%20-%20Repositorio/assets/mathjax-tex-svg.js" async></script>
+<style>
+:root{--bg:#0f1419;--panel:#161d26;--ink:#e6edf3;--muted:#9aa7b4;--acc:#4ea3ff;--line:#2a3542}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.65 -apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:26px 20px 60px}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+h1{font-size:26px;margin:0 0 4px}h2{font-size:20px;margin:30px 0 8px;border-bottom:1px solid var(--line);padding-bottom:6px;color:#cdd9e5}
+h3{font-size:16px;color:#cdd9e5;margin:18px 0 6px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+.fig{background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px;margin:16px 0;text-align:center}
+.fig img{max-width:100%;height:auto;border-radius:4px}
+.cap{color:#555;font-size:12.5px;margin-top:8px;line-height:1.45;text-align:left;padding:0 6px}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}th{background:var(--panel)}
+code{background:var(--panel);padding:2px 6px;border-radius:5px;font:13px monospace;color:#ffd9a0}
+pre{background:#0b0f14;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;font:12.5px monospace;color:#cfe3f5}
+.box{background:var(--panel);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;padding:10px 14px;margin:14px 0}
+.home{display:inline-block;margin-bottom:14px;color:var(--muted)}
+</style></head><body><div class="wrap">
+
+<a class="home" href="../00%20-%20Repositorio/index.html">🏠 Volver al repositorio de conocimiento</a>
+<h1>Simulación y control del convertidor back-to-back</h1>
+<div class="sub">Aerogenerador full-converter PMSG → bus DC → red · Simulación en Scilab · Metodología de la ficha <em>convertidor-back-to-back</em></div>
+
+<div class="box">
+Proyecto que <b>modela, controla y simula</b> un back-to-back siguiendo la metodología de la ficha:
+especificaciones → diseño iterativo de componentes → diseño de lazos → ensayos. El código está en
+<b>Scilab</b>, comentado línea a línea. Las figuras de resultados de esta página se han validado
+numéricamente (mismo algoritmo que los <code>.sce</code>).
+</div>
+
+<h2>1 — Objetivo y especificaciones</h2>
+<p>Caso real de referencia (el ejemplo de la ficha): aerogenerador PMSG de <b>2 MW</b> conectado a una red
+de <b>690 V</b> a través de un back-to-back con bus DC de <b>1150 V</b>.</p>
+<table>
+<tr><th>Especificación</th><th>Símbolo</th><th>Valor</th></tr>
+<tr><td>Potencia nominal</td><td>\(P_{nom}\)</td><td>2 MW</td></tr>
+<tr><td>Tensión de red (línea)</td><td>\(V_{ac}\)</td><td>690 V</td></tr>
+<tr><td>Tensión del bus DC</td><td>\(V_{dc}\)</td><td>1150 V</td></tr>
+<tr><td>Frecuencia de red</td><td>\(f_0\)</td><td>50 Hz</td></tr>
+<tr><td>Frecuencia de conmutación</td><td>\(f_s\)</td><td>3 kHz</td></tr>
+<tr><td>Inductancia de filtro</td><td>\(L\)</td><td>0.25 mH</td></tr>
+<tr><td>Condensador de bus</td><td>\(C_{dc}\)</td><td>20 mF</td></tr>
+</table>
+
+<h2>2 — Metodología</h2>
+<p>El proyecto se organiza en módulos de Scilab, cada uno un paso de la metodología:</p>
+<table>
+<tr><th>#</th><th>Módulo</th><th>Qué valida</th></tr>
+<tr><td>1</td><td><code>01_modulacion.sce</code></td><td>Modulador PWM: portadora, referencias y pulsos. SPWM vs 3.er armónico vs SVPWM.</td></tr>
+<tr><td>2</td><td><code>02_etapa_potencia.sce</code></td><td>VSC conmutado + filtro L: rizado de corriente y THD frente a lo previsto.</td></tr>
+<tr><td>3</td><td><code>03_lazos.sce</code></td><td>Lazos de control: corriente (interno) y tensión del bus DC (externo).</td></tr>
+<tr><td>4</td><td><code>04_diseno.sce</code></td><td>Diseño iterativo de componentes (\(V_{dc}, L, C\)) desde las especificaciones.</td></tr>
+</table>
+
+<h2>3 — Módulo 1: modulación y pulsos</h2>
+<p>El modulador de dos niveles compara una <b>referencia</b> (la tensión media que se quiere sintetizar,
+\(\bar v = m\,\frac{V_{dc}}{2}\sin\theta\)) con una <b>portadora triangular</b> a \(f_s\); el interruptor
+superior está ON mientras la referencia supere a la portadora. Se comparan tres estrategias:</p>
+<ul>
+<li><b>SPWM</b> senoidal: lineal hasta \(m=1\) (pico de fase \(V_{dc}/2\)).</li>
+<li><b>Inyección de 3.er armónico</b> y <b>SVPWM</b> (min-max): extienden la zona lineal un factor
+\(2/\sqrt3\approx1.15\) (pico de fase \(V_{dc}/\sqrt3\)), porque la componente de secuencia cero no aparece
+en la tensión línea-línea. Validado: con \(m=1.155\), SPWM satura pero SVPWM queda justo en el límite.</li>
+</ul>
+<pre>// pulsos: el superior conduce mientras la referencia &gt; portadora
+pulso_a = bool2s(va &gt; portadora);
+vconv_a = (pulso_a*2 - 1) * (Vdc/2);   // +Vdc/2 o -Vdc/2</pre>
+
+<h2>4 — Módulo 2: etapa de potencia conmutada</h2>
+<p>Se integra la ecuación del filtro \(L\frac{di}{dt}=v_{conv}-v_g-R\,i\) con la tensión conmutada real. La
+corriente resulta ser la <b>fundamental</b> deseada más un <b>rizado</b> a la frecuencia de conmutación.</p>
+<div class="fig"><img src="figuras/sim-etapa-potencia.png" alt="tension conmutada, corriente con rizado y espectro">
+<div class="cap">(a) Tensión conmutada \(v_{conv}\) (SPWM). (b) La corriente sigue la fundamental \(i_{ref}\) con un
+rizado pico-pico ≈ 429 A, que coincide con la fórmula de diseño \(\Delta i_{L,max}=V_{dc}/(4 f_s L)\)
+(≈ 417 A). (c) Espectro de la corriente: el filtro \(L\) atenúa los armónicos de conmutación en torno a
+\(f_s=3\) kHz; THD ≈ 9 % (mejorable con filtro LCL).</div></div>
+
+<h2>5 — Módulo 3: lazos de control</h2>
+<h3>Lazo de corriente (interno)</h3>
+<p>Planta \(1/(Ls+R)\); PI sintonizado por IMC (\(T_i=L/R\) cancela el polo, \(K_p=\omega_{ci}L\) fija el
+ancho de banda \(\omega_{ci}=1885\) rad/s). El lazo cerrado es de primer orden:</p>
+<div class="fig"><img src="figuras/sim-lazo-corriente.png" alt="respuesta al escalon del lazo de corriente">
+<div class="cap">Respuesta al escalón del lazo de corriente: primer orden, sin sobreoscilación, tiempo de
+subida \(\approx 2.2/\omega_{ci}\approx 1.2\) ms. Coherente con \(PM=90°\) tras la cancelación del polo.</div></div>
+
+<h3>Lazo de tensión del bus DC (externo)</h3>
+<p>Regula \(w=V_{dc}^2\) (planta integradora \(2/(C_{dc}s)\)) con un PI de óptimo simétrico y un
+<b>feedforward de potencia</b> \(P_{MSC}/(1.5\,v_{d,g})\) que adelanta la corriente del GSC.</p>
+<div class="fig"><img src="figuras/sim-bus-dc.png" alt="respuesta del bus DC a un escalon de potencia">
+<div class="cap">Bus DC ante un escalón de \(P_{MSC}\) de 0 a 2 MW. (a) Con el condensador de diseño (20 mF) la
+tensión queda muy regulada (excursión pequeña). (b) Con un condensador menor (4 mF) se aprecia que el
+<b>feedforward</b> reduce la excursión: adelanta la potencia del GSC en vez de esperar a que el (lento) lazo
+de tensión reaccione. Es lo que permite reducir \(C_{dc}\).</div></div>
+
+<h2>6 — Diseño iterativo de componentes</h2>
+<p>A partir de las especificaciones se dimensionan \(V_{dc}\), \(L\) y \(C_{dc}\) y se comprueba que cumplen
+(módulo 4):</p>
+<table>
+<tr><th>Componente</th><th>Criterio</th><th>Fórmula</th><th>Valor</th></tr>
+<tr><td>\(V_{dc}\)</td><td>sintetizar el pico de red con margen</td><td>\(\geq 2\hat v_{fase}/m_{max}\)</td><td>1150 V</td></tr>
+<tr><td>\(L\)</td><td>rizado de corriente ≤ 20 %</td><td>\(\geq V_{dc}/(4 f_s \Delta i_{L,max})\)</td><td>0.25 mH</td></tr>
+<tr><td>\(C_{dc}\)</td><td>caída de \(V_{dc}\) ante escalón</td><td>\(\geq P_{nom}\Delta t/(V_{dc}\Delta V_{dc})\)</td><td>20 mF</td></tr>
+</table>
+<p>Verificación de estabilidad frente a la carga de potencia constante (CPL):
+\(K_{p,dc}=1.885 > P_{2,max}/(2V_{dc,0}^2)=0.756\) → estable.</p>
+
+<h2>7 — Cómo reproducir</h2>
+<p>En la consola de Scilab, en la carpeta del proyecto:</p>
+<pre>exec('01_modulacion.sce', -1)     // modulación y pulsos
+exec('02_etapa_potencia.sce', -1) // rizado y THD
+exec('03_lazos.sce', -1)          // lazos de corriente y bus DC
+exec('04_diseno.sce', -1)         // diseño iterativo de componentes</pre>
+<p>Los scripts están en el <a href="https://github.com/proyectosacrv/aprendizaje-ingenieria-control/tree/main/05%20-%20B2B-Simulacion">repositorio de GitHub</a>, comentados línea a línea.</p>
+
+<h2>8 — Conclusiones</h2>
+<ul>
+<li>La simulación conmutada reproduce el <b>rizado de corriente</b> previsto por la fórmula de diseño y una
+<b>THD</b> del orden del 9 % con filtro \(L\) (motiva el paso a filtro LCL).</li>
+<li>La SVPWM / 3.er armónico da <b>~15 % más de rango lineal</b> que la SPWM pura, permitiendo un \(V_{dc}\) menor.</li>
+<li>El <b>lazo de corriente</b> por IMC da respuesta de primer orden limpia; el <b>lazo de tensión DC</b> con
+feedforward regula el bus con excursión pequeña.</li>
+<li>El diseño iterativo de \(V_{dc}, L, C_{dc}\) cumple las especificaciones y es estable frente a la CPL.</li>
+</ul>
+
+</div></body></html>
