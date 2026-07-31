@@ -15157,107 +15157,266 @@ def _btb_lazo_dc():
     _savefig(fig, "btb-lazo-dc")
 
 
-def _npc_topologia():
-    """NPC de 3 niveles: rama de fase completa con los 4 IGBTs, los 2 diodos
-    de anclaje y los 2 condensadores de bus, etiquetando P, O, N."""
-    import matplotlib.pyplot as plt
+def _npc_igbt_symbol(ax, x, y, h=0.56, on=None, label='', label_side='left'):
+    """Simbolo IGBT vertical (colector arriba, emisor abajo, puerta a la
+    izquierda) con su diodo antiparalelo a la derecha, en una caja propia
+    que no se solapa con nada externo. on=True/False colorea el trazo
+    (verde=ON, rojo claro=OFF); on=None lo deja en negro."""
     import matplotlib.patches as mpatches
+    col = '#1e8449' if on is True else ('#c0392b' if on is False else '#111111')
+    lw = 2.2 if on is not None else 1.3
+    top, bot = y+h/2, y-h/2
+    barc, bare = y+0.09, y-0.09
+    # patillas colector/emisor
+    ax.plot([x, x], [top, barc], color='#111', lw=1.2, zorder=2)
+    ax.plot([x, x], [bare, bot], color='#111', lw=1.2, zorder=2)
+    # barras de colector y emisor
+    ax.plot([x-0.10, x+0.10], [barc, barc], color=col, lw=lw, zorder=2)
+    ax.plot([x-0.10, x+0.10], [bare, bare], color=col, lw=lw, zorder=2)
+    # canal (linea vertical corta entre las barras, junto a la puerta)
+    ax.plot([x-0.10, x-0.10], [bare, barc], color=col, lw=lw, zorder=2)
+    # flecha de emisor tipo IGBT (diagonal desde la barra inferior)
+    ax.annotate('', xy=(x+0.20, bare-0.16), xytext=(x-0.10, bare),
+                arrowprops=dict(arrowstyle='-|>', color=col, lw=lw*0.85), zorder=2)
+    # puerta (electrodo aislado, sin tocar el canal)
+    ax.plot([x-0.34, x-0.16], [y, y], color='#555', lw=1.1, zorder=2)
+    ax.plot([x-0.16, x-0.16], [y-0.13, y+0.13], color='#555', lw=1.5, zorder=2)
+    # diodo antiparalelo, en su propia columna a la derecha (sin tocar el IGBT)
+    dx = 0.44
+    ax.plot([x+dx, x+dx], [top, barc+0.02], color='#7f8c8d', lw=1.0, zorder=1)
+    ax.plot([x+dx, x+dx], [bare-0.02, bot], color='#7f8c8d', lw=1.0, zorder=1)
+    ax.plot([x, x+dx], [top, top], color='#7f8c8d', lw=0.9, zorder=1)
+    ax.plot([x, x+dx], [bot, bot], color='#7f8c8d', lw=0.9, zorder=1)
+    tri_h = 0.15
+    ax.add_patch(mpatches.Polygon(
+        [(x+dx-0.10, barc+0.02), (x+dx+0.10, barc+0.02), (x+dx, barc+0.02-tri_h)],
+        closed=True, facecolor='#7f8c8d', edgecolor='#7f8c8d', zorder=1))
+    ax.plot([x+dx-0.12, x+dx+0.12], [barc+0.02-tri_h, barc+0.02-tri_h], color='#7f8c8d', lw=2.0, zorder=1)
+    if label:
+        lx = x-0.55 if label_side == 'left' else x+0.78
+        ha = 'right' if label_side == 'left' else 'left'
+        ax.text(lx, y, label, ha=ha, va='center', fontsize=10, fontweight='bold', color='#111')
 
-    fig, ax = plt.subplots(1, 1, figsize=(7, 8.5))
+
+def _npc_diode_symbol(ax, x0, y0, x1, y1, label='', col='#c0392b', lw=1.6, label_off=0.32):
+    """Diodo entre dos puntos (x0,y0)->(x1,y1); la flecha/punta apunta hacia
+    (x1,y1), es decir esa es la direccion de conduccion (animo->catodo)."""
+    import numpy as _np
+    import matplotlib.patches as mpatches
+    dx, dy = x1-x0, y1-y0
+    L = _np.hypot(dx, dy); ux, uy = dx/L, dy/L
+    px, py = -uy, ux
+    mx, my = (x0+x1)/2, (y0+y1)/2
+    tip = (mx+0.16*ux, my+0.16*uy)
+    b1 = (mx-0.16*ux+0.13*px, my-0.16*uy+0.13*py)
+    b2 = (mx-0.16*ux-0.13*px, my-0.16*uy-0.13*py)
+    ax.plot([x0, x1], [y0, y1], color=col, lw=lw, zorder=1, solid_capstyle='round')
+    ax.add_patch(mpatches.Polygon([b1, b2, tip], closed=True, facecolor=col, edgecolor=col, zorder=3))
+    barx0 = mx+0.16*ux+0.15*px; bary0 = my+0.16*uy+0.15*py
+    barx1 = mx+0.16*ux-0.15*px; bary1 = my+0.16*uy-0.15*py
+    ax.plot([barx0, barx1], [bary0, bary1], color=col, lw=2.8, zorder=3)
+    if label:
+        ax.text(mx+label_off*px, my+label_off*py, label, color=col, fontsize=10, fontweight='bold', ha='center', va='center')
+
+
+def _npc_topologia():
+    """NPC de 3 niveles: rama de fase con simbolos reales de IGBT+diodo
+    antiparalelo (T1-T4), diodos de anclaje D5/D6 y los dos condensadores
+    de bus, siguiendo la notacion academica estandar (Anandarup Das, NPTEL)."""
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(1, 1, figsize=(6.6, 8.3))
     ax.set_aspect('equal'); ax.axis('off')
-    ax.set_xlim(-2.8, 3.2); ax.set_ylim(-0.8, 6.2)
+    ax.set_xlim(-2.7, 2.9); ax.set_ylim(-1.0, 6.9)
     ax.set_title('Rama de fase del NPC de 3 niveles', fontsize=13, fontweight='bold', pad=10)
 
-    def sw(x, y, lbl):
-        ax.add_patch(mpatches.FancyBboxPatch((x-0.4, y-0.26), 0.8, 0.52, boxstyle='round,pad=0.04',
-            facecolor='#AED6F1', edgecolor='navy', lw=1.6))
-        ax.text(x, y, lbl, ha='center', va='center', fontsize=10, fontweight='bold')
-    def wire(pts, col='navy', lw=1.8):
-        ax.plot([p[0] for p in pts], [p[1] for p in pts], color=col, lw=lw)
-    def dot(x, y):
-        ax.plot([x], [y], 'o', color='navy', ms=6)
+    xs = 0.5
+    yP, yO, yN = 6.6, 3.7, 0.8
+    y1, y2, y3, y4 = 5.75, 4.45, 2.95, 1.65
+    h = 0.56
+
+    # buses P, O, N
+    ax.plot([-2.2, xs], [yP, yP], 'k', lw=2.4); ax.text(-2.4, yP, 'P', ha='right', va='center', fontsize=13, fontweight='bold')
+    ax.plot([-2.2, -0.55], [yO, yO], 'k', lw=1.3)
+    ax.plot([1.15, xs], [yO, yO], 'k', lw=1.3)
+    ax.text(-2.4, yO, 'O', ha='right', va='center', fontsize=13, fontweight='bold')
+    ax.plot([-2.2, xs], [yN, yN], 'k', lw=2.4); ax.text(-2.4, yN, 'N', ha='right', va='center', fontsize=13, fontweight='bold')
+
+    # condensadores de bus (simbolo de placas), en su propia columna a la izquierda
     def cap(x, y, lbl):
-        ax.plot([x-0.32, x+0.32], [y+0.08, y+0.08], 'navy', lw=2.6)
-        ax.plot([x-0.32, x+0.32], [y-0.08, y-0.08], 'navy', lw=2.6)
-        ax.text(x+0.48, y, lbl, fontsize=9.5, va='center')
+        ax.plot([x-0.26, x+0.26], [y+0.06, y+0.06], 'k', lw=2.2)
+        ax.plot([x-0.26, x+0.26], [y-0.06, y-0.06], 'k', lw=2.2)
+        ax.text(x+0.4, y, lbl, fontsize=9.5, va='center')
+    cx = -1.7
+    cap(cx, (yP+yO)/2, r'$C_1,\ V_{dc}/2$')
+    ax.plot([cx, cx], [yP, (yP+yO)/2+0.09], 'k', lw=1.2); ax.plot([cx, cx], [(yP+yO)/2-0.09, yO], 'k', lw=1.2)
+    cap(cx, (yO+yN)/2, r'$C_2,\ V_{dc}/2$')
+    ax.plot([cx, cx], [yO, (yO+yN)/2+0.09], 'k', lw=1.2); ax.plot([cx, cx], [(yO+yN)/2-0.09, yN], 'k', lw=1.2)
+    ax.plot([cx, -2.2], [yO, yO], 'k', lw=1.3)
 
-    # buses
-    ax.plot([-2.3, 0.9], [5.7, 5.7], 'navy', lw=2.4); ax.text(-2.5, 5.7, 'P', ha='right', va='center', fontsize=12, fontweight='bold')
-    ax.plot([-2.3, 0.9], [2.85, 2.85], 'navy', lw=1.6); ax.text(-2.5, 2.85, 'O', ha='right', va='center', fontsize=12, fontweight='bold')
-    ax.plot([-2.3, 0.9], [0.0, 0.0], 'navy', lw=2.4); ax.text(-2.5, 0.0, 'N', ha='right', va='center', fontsize=12, fontweight='bold')
+    # rama vertical con los 4 IGBT (T1..T4)
+    ax.plot([xs, xs], [yP, y1+h/2], 'k', lw=1.4)
+    _npc_igbt_symbol(ax, xs, y1, h=h, label='T1')
+    ax.plot([xs, xs], [y1-h/2, y2+h/2], 'k', lw=1.4)
+    _npc_igbt_symbol(ax, xs, y2, h=h, label='T2')
+    ax.plot([xs, xs], [y2-h/2, yO], 'k', lw=1.4)
+    ax.plot([xs, xs], [yO, y3+h/2], 'k', lw=1.4)
+    _npc_igbt_symbol(ax, xs, y3, h=h, label='T3')
+    ax.plot([xs, xs], [y3-h/2, y4+h/2], 'k', lw=1.4)
+    _npc_igbt_symbol(ax, xs, y4, h=h, label='T4')
+    ax.plot([xs, xs], [y4-h/2, yN], 'k', lw=1.4)
 
-    # condensadores de bus
-    cap(-1.7, 4.28, r'$C_1,\ V_{dc}/2$'); wire([(-1.7, 5.7), (-1.7, 4.36)]); wire([(-1.7, 4.20), (-1.7, 2.85)])
-    cap(-1.7, 1.43, r'$C_2,\ V_{dc}/2$'); wire([(-1.7, 2.85), (-1.7, 1.51)]); wire([(-1.7, 1.35), (-1.7, 0.0)])
+    # nudo de salida A (a la derecha de los diodos antiparalelo, sin cruzar nada)
+    ax.plot([xs], [yO], 'o', color='k', ms=5, zorder=5)
+    ax.annotate('', xy=(xs+1.9, yO), xytext=(xs+0.95, yO), arrowprops=dict(arrowstyle='-|>', color='k', lw=1.8))
+    ax.text(xs+2.05, yO, 'A\n(salida)', ha='left', va='center', fontsize=10, fontweight='bold')
 
-    # rama con 4 IGBTs
-    xs = 0.0
-    wire([(xs, 5.7), (xs, 5.15)]); sw(xs, 4.85, 'T1'); wire([(xs, 4.55), (xs, 4.0)])
-    sw(xs, 3.7, 'T2'); wire([(xs, 3.4), (xs, 2.85)])
-    dot(xs, 2.85)
-    ax.annotate('', xy=(xs+1.6, 2.85), xytext=(xs, 2.85), arrowprops=dict(arrowstyle='-|>', color='darkred', lw=2.2))
-    ax.text(xs+1.75, 2.85, 'salida (fase)', color='darkred', fontsize=10, va='center')
-    wire([(xs, 2.85), (xs, 2.3)]); sw(xs, 2.0, 'T3'); wire([(xs, 1.7), (xs, 1.15)])
-    sw(xs, 0.85, 'T4'); wire([(xs, 0.55), (xs, 0.0)])
+    # diodos de anclaje D5 (nudo T1-T2 -> O) y D6 (O -> nudo T3-T4), en carril
+    # propio a la izquierda del transistor, sin cruzar las etiquetas T1..T4
+    xd = -0.55
+    n_top = (xd, (y1-h/2+y2+h/2)/2)
+    n_bot = (xd, (y3-h/2+y4+h/2)/2)
+    ax.plot([xs, xd], [(y1-h/2+y2+h/2)/2, (y1-h/2+y2+h/2)/2], 'k', lw=1.1, ls=':')
+    ax.plot([xs, xd], [(y3-h/2+y4+h/2)/2, (y3-h/2+y4+h/2)/2], 'k', lw=1.1, ls=':')
+    _npc_diode_symbol(ax, n_top[0], n_top[1], xd, yO, label='D5', col='#c0392b', label_off=-0.42)
+    _npc_diode_symbol(ax, xd, yO, n_bot[0], n_bot[1], label='D6', col='#c0392b', label_off=-0.42)
+    ax.plot([xd, -0.55], [yO, yO], 'k', lw=0.001)  # no-op para mantener trazo limpio
 
-    # diodos de anclaje D1 (de O a nudo T1-T2) y D2 (de nudo T3-T4 a O)
-    ax.annotate('', xy=(xs-0.42, 4.0), xytext=(-1.1, 2.85), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.7))
-    wire([(-1.7, 2.85), (-1.1, 2.85)], col='#c0392b', lw=1.4)
-    ax.text(-1.15, 3.55, 'D1', color='#c0392b', fontsize=10, fontweight='bold')
-    ax.annotate('', xy=(-1.1, 2.85), xytext=(xs-0.42, 1.7), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.7))
-    ax.text(-1.15, 2.15, 'D2', color='#c0392b', fontsize=10, fontweight='bold')
-
-    ax.text(0.5, -0.55, 'Cada IGBT bloquea $V_{dc}/2$ · el nivel de salida depende de\nqué par (T1T2 / T2T3 / T3T4) está en ON',
-            ha='center', fontsize=9, color='gray')
+    ax.text(0.0, -0.65,
+            r'$V_{dc}=V_d$. Cada IGBT bloquea $V_d/2$.'
+            '\nD5, D6 anclan la salida A al neutro O.',
+            ha='center', fontsize=9, color='#333')
 
     plt.tight_layout()
-    _savefig(fig, 'npc-topologia', dpi=165)
+    _savefig(fig, 'npc-topologia', dpi=170)
+
+
+def _npc_mini_circuit(ax, active_pair, io_sign, title):
+    """Dibuja un mini-circuito NPC de una fase (como los paneles (a)(b)(c) de
+    la diapositiva de referencia): los 4 IGBT en su rama, resaltando en rojo
+    la trayectoria de corriente que conduce para el estado dado.
+    active_pair: 'P' (T1,T2), 'O' (T2,T3) o 'N' (T3,T4). io_sign: +1/-1/None,
+    solo relevante para el estado 'O' (decide si conduce D5 o D6)."""
+    xs = 0.5
+    yP, yO, yN = 4.55, 2.6, 0.65
+    y1, y2, y3, y4 = 3.95, 3.05, 2.15, 1.25
+    h = 0.40
+    ax.set_aspect('equal'); ax.axis('off')
+    ax.set_xlim(-1.85, 2.2); ax.set_ylim(0.1, 5.05)
+    ax.set_title(title, fontsize=9.5, fontweight='bold')
+
+    active = {'P': ('T1', 'T2'), 'O': ('T2', 'T3'), 'N': ('T3', 'T4')}[active_pair]
+
+    def on_of(name):
+        return name in active
+
+    # buses
+    ax.plot([-1.5, xs], [yP, yP], 'k', lw=1.8); ax.text(-1.65, yP, 'P', ha='right', va='center', fontsize=10, fontweight='bold')
+    ax.plot([-1.5, -0.35], [yO, yO], 'k', lw=1.0)
+    ax.plot([0.85, xs], [yO, yO], 'k', lw=1.0)
+    ax.text(-1.65, yO, 'O', ha='right', va='center', fontsize=10, fontweight='bold')
+    ax.plot([-1.5, xs], [yN, yN], 'k', lw=1.8); ax.text(-1.65, yN, 'N', ha='right', va='center', fontsize=10, fontweight='bold')
+    cx = -1.15
+    for yA, yB, lbl in [(yP, yO, r'$C_1$'), (yO, yN, r'$C_2$')]:
+        ym = (yA+yB)/2
+        ax.plot([cx-0.17, cx+0.17], [ym+0.04, ym+0.04], 'k', lw=1.6)
+        ax.plot([cx-0.17, cx+0.17], [ym-0.04, ym-0.04], 'k', lw=1.6)
+        ax.plot([cx, cx], [yA, ym+0.06], 'k', lw=0.9); ax.plot([cx, cx], [ym-0.06, yB], 'k', lw=0.9)
+        ax.text(cx+0.26, ym, lbl, fontsize=7.5, va='center')
+    ax.plot([cx, -1.5], [yO, yO], 'k', lw=1.0)
+
+    ax.plot([xs, xs], [yP, y1+h/2], 'k', lw=1.1)
+    _npc_igbt_symbol(ax, xs, y1, h=h, on=on_of('T1'), label='T1')
+    ax.plot([xs, xs], [y1-h/2, y2+h/2], 'k', lw=1.1)
+    _npc_igbt_symbol(ax, xs, y2, h=h, on=on_of('T2'), label='T2')
+    ax.plot([xs, xs], [y2-h/2, yO], 'k', lw=1.1)
+    ax.plot([xs, xs], [yO, y3+h/2], 'k', lw=1.1)
+    _npc_igbt_symbol(ax, xs, y3, h=h, on=on_of('T3'), label='T3')
+    ax.plot([xs, xs], [y3-h/2, y4+h/2], 'k', lw=1.1)
+    _npc_igbt_symbol(ax, xs, y4, h=h, on=on_of('T4'), label='T4')
+    ax.plot([xs, xs], [y4-h/2, yN], 'k', lw=1.1)
+
+    xd = -0.35
+    n_top = (xd, (y1-h/2+y2+h/2)/2)
+    n_bot = (xd, (y3-h/2+y4+h/2)/2)
+    ax.plot([xs, xd], [n_top[1], n_top[1]], 'k', lw=0.9, ls=':')
+    ax.plot([xs, xd], [n_bot[1], n_bot[1]], 'k', lw=0.9, ls=':')
+    d5_on = (active_pair == 'O' and io_sign == +1)
+    d6_on = (active_pair == 'O' and io_sign == -1)
+    _npc_diode_symbol(ax, n_top[0], n_top[1], xd, yO, label='D5',
+                      col=('#1e8449' if d5_on else '#c0392b'), label_off=-0.34)
+    _npc_diode_symbol(ax, xd, yO, n_bot[0], n_bot[1], label='D6',
+                      col=('#1e8449' if d6_on else '#c0392b'), label_off=-0.34)
+
+    ax.plot([xs], [yO], 'o', color='k', ms=4, zorder=5)
+    ax.annotate('', xy=(xs+1.3, yO), xytext=(xs+0.55, yO), arrowprops=dict(arrowstyle='-|>', color='k', lw=1.4))
+    ax.text(xs+1.35, yO, 'A', ha='left', va='center', fontsize=9.5, fontweight='bold')
+
+    # trayectoria de corriente resaltada en rojo grueso
+    if active_pair == 'P':
+        path = [(xs, yP), (xs, yO), (xs+0.55, yO)]
+    elif active_pair == 'N':
+        path = [(xs, yN), (xs, yO), (xs+0.55, yO)]
+    else:  # 'O'
+        if io_sign == +1:
+            path = [(xd, yO), (n_top[0], n_top[1]), (xs, n_top[1]), (xs, yO), (xs+0.55, yO)]
+        else:
+            path = [(xs+0.55, yO), (xs, yO), (xs, n_bot[1]), (xd, n_bot[1]), (xd, yO)]
+    ax.plot([p[0] for p in path], [p[1] for p in path], color='#e74c3c', lw=3.0, alpha=0.75, zorder=0, solid_capstyle='round')
 
 
 def _npc_conmutacion():
-    """NPC: (a) tabla visual de estados de conmutacion (heatmap de ON/OFF por
-    IGBT y nivel de salida); (b) formas de onda: portadoras PD-PWM, referencia,
-    tension de fase de 3 niveles y espectro comparado con 2 niveles."""
+    """NPC: (a) tres mini-circuitos (P, O+, O-, N) con la trayectoria de
+    corriente resaltada, estilo diapositiva academica; tabla de estados
+    debajo; (b) formas de onda PD-PWM + espectro comparado con 2 niveles."""
     import matplotlib.pyplot as plt
 
-    fig = plt.figure(figsize=(14, 8.6))
-    gs = fig.add_gridspec(2, 2, height_ratios=[1, 1.2], hspace=0.42, wspace=0.28)
-    axT = fig.add_subplot(gs[0, :])
-    axW = fig.add_subplot(gs[1, 0])
-    axS = fig.add_subplot(gs[1, 1])
+    fig = plt.figure(figsize=(15, 10.2))
+    gs = fig.add_gridspec(3, 1, height_ratios=[1.35, 0.75, 1.1], hspace=0.5)
+    gs_circ = gs[0].subgridspec(1, 4, wspace=0.15)
+    axc = [fig.add_subplot(gs_circ[0, i]) for i in range(4)]
+    axT = fig.add_subplot(gs[1])
+    gs_bot = gs[2].subgridspec(1, 2, wspace=0.28)
+    axW = fig.add_subplot(gs_bot[0, 0])
+    axS = fig.add_subplot(gs_bot[0, 1])
     fig.suptitle('NPC 3 niveles: estados de conmutación y modulación PD-PWM', fontsize=13, fontweight='bold')
 
-    # ---- (a) tabla de estados como texto formateado ----
+    _npc_mini_circuit(axc[0], 'P', None, '(a) Estado P\n$T_1,T_2$ ON')
+    _npc_mini_circuit(axc[1], 'O', +1, r'(b) Estado O, $i_o>0$' + '\n$D_5$ conduce')
+    _npc_mini_circuit(axc[2], 'O', -1, r'(c) Estado O, $i_o<0$' + '\n$D_6$ conduce')
+    _npc_mini_circuit(axc[3], 'N', None, '(d) Estado N\n$T_3,T_4$ ON')
+
+    # ---- tabla de estados ----
     axT.axis('off')
     estados = [
         ('P',  '1','1','0','0', r'$+V_{dc}/2$', 'T1,T2 ON — salida a P'),
-        ('O+', '0','1','1','0', r'$0$',          'T2,T3 ON, $i_o>0$ → D1 conduce'),
-        ('O-', '0','1','1','0', r'$0$',          'T2,T3 ON, $i_o<0$ → D2 conduce'),
+        ('O+', '0','1','1','0', r'$0$',          'T2,T3 ON, $i_o>0$ → D5 conduce'),
+        ('O-', '0','1','1','0', r'$0$',          'T2,T3 ON, $i_o<0$ → D6 conduce'),
         ('N',  '0','0','1','1', r'$-V_{dc}/2$', 'T3,T4 ON — salida a N'),
     ]
     headers = ['Estado', 'T1', 'T2', 'T3', 'T4', 'Salida', 'Comentario']
     colw = [0.09, 0.05, 0.05, 0.05, 0.05, 0.13, 0.50]
     x0 = 0.02
-    xs = [x0]
-    for w in colw: xs.append(xs[-1]+w)
-    y0 = 0.95
+    xs_ = [x0]
+    for w in colw: xs_.append(xs_[-1]+w)
+    y0 = 0.92
     for j, h in enumerate(headers):
-        axT.text(xs[j], y0, h, fontsize=10, fontweight='bold', color='#cdd9e5')
-    axT.plot([0.02, 0.97], [y0-0.08, y0-0.08], color='#555', lw=1)
-    rowh = 0.20
+        axT.text(xs_[j], y0, h, fontsize=10, fontweight='bold', color='#cdd9e5')
+    axT.plot([0.02, 0.97], [y0-0.10, y0-0.10], color='#555', lw=1)
+    rowh = 0.22
     cols_sw = {'1': '#A9DFBF', '0': '#F5B7B1'}
     for i, row in enumerate(estados):
-        y = y0 - 0.08 - rowh*(i+1) + 0.02
-        axT.text(xs[0], y, row[0], fontsize=10.5, fontweight='bold')
+        y = y0 - 0.10 - rowh*(i+1) + 0.03
+        axT.text(xs_[0], y, row[0], fontsize=10.5, fontweight='bold')
         for j in range(4):
             val = row[1+j]
-            axT.add_patch(plt.Rectangle((xs[1+j], y-0.045), 0.038, 0.09,
+            axT.add_patch(plt.Rectangle((xs_[1+j], y-0.05), 0.038, 0.10,
                           facecolor=cols_sw[val], edgecolor='#333', lw=0.6, transform=axT.transAxes))
-            axT.text(xs[1+j]+0.019, y, val, ha='center', va='center', fontsize=9.5, transform=axT.transAxes)
-        axT.text(xs[5], y, row[5], fontsize=10)
-        axT.text(xs[6], y, row[6], fontsize=8.8, color='#aaa')
+            axT.text(xs_[1+j]+0.019, y, val, ha='center', va='center', fontsize=9.5, transform=axT.transAxes)
+        axT.text(xs_[5], y, row[5], fontsize=10)
+        axT.text(xs_[6], y, row[6], fontsize=8.8, color='#aaa')
     axT.set_xlim(0, 1); axT.set_ylim(0, 1)
-    axT.set_title('(a) Tabla de estados (verde=ON, rojo=OFF) — T1,T3 y T2,T4 son complementarios',
+    axT.set_title('Tabla de estados (verde=ON, rojo=OFF) — T1,T3 y T2,T4 son complementarios',
                   fontsize=10.5, fontweight='bold', loc='left')
 
     # ---- (b) PD-PWM: dos portadoras + referencia + salida ----
@@ -15274,7 +15433,7 @@ def _npc_conmutacion():
     axW.plot(t*1000, vout*0.5, color='#c0392b', lw=1.6, drawstyle='steps-post', label='$v_{aO}/(V_{dc}/2)$ (offset visual)')
     axW.set_xlabel('t [ms]'); axW.set_ylabel('p.u.'); axW.grid(alpha=.3)
     axW.legend(fontsize=7.5, loc='lower right')
-    axW.set_title('(b) PD-PWM: dos portadoras apiladas → 3 niveles', fontsize=10.5, fontweight='bold')
+    axW.set_title('(e) PD-PWM: dos portadoras apiladas → 3 niveles', fontsize=10.5, fontweight='bold')
 
     # ---- (c) espectro comparado 2L vs NPC (armonicos de fs) ----
     fs2 = 1500.0
@@ -15286,7 +15445,7 @@ def _npc_conmutacion():
     axS.bar(n+0.15, ampNPC, width=0.3, color='#2e86c1', label='NPC 3 niveles')
     axS.set_yscale('log'); axS.set_ylim(1e-3, 1.5)
     axS.set_xlabel('orden de banda alrededor de $f_{sw}$'); axS.set_ylabel('amplitud relativa')
-    axS.set_title('(c) Contenido armónico (ilustrativo): NPC cae mucho más rápido', fontsize=10.5, fontweight='bold')
+    axS.set_title('(f) Contenido armónico (ilustrativo): NPC cae mucho más rápido', fontsize=10.5, fontweight='bold')
     axS.legend(fontsize=8.5); axS.grid(alpha=.3, axis='y')
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
@@ -15510,88 +15669,109 @@ def _mmc_submodulo_ccsc():
 
 
 def _npc_svm():
-    """NPC SVM: (a) diagrama hexagonal con los 27 estados (19 posiciones fisicas,
-    vectores largos/medios/cortos redundantes/cero) y los 6 sectores + triangulos;
-    (b) zoom de un triangulo con los 3 vectores adyacentes y el vector de referencia
-    descompuesto para el calculo de tiempos."""
+    """NPC SVM: hexagono completo de space vectors con la notacion academica
+    estandar (Sa Sb Sc), cada fase en {+,0,-}, replicando la geometria de la
+    diapositiva de referencia (reticula triangular regular de 24 triangulos,
+    ejes a/b/c, vertices etiquetados con todas sus ternas redundantes)."""
     import matplotlib.pyplot as plt
-    import matplotlib.patches as mpatches
 
-    fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 7), gridspec_kw={'width_ratios': [1.15, 1]})
-    fig.suptitle('NPC 3 niveles: modulación vectorial (SVM)', fontsize=13, fontweight='bold')
+    fig, ax = plt.subplots(1, 1, figsize=(11, 9.6))
+    ax.set_aspect('equal'); ax.axis('off')
+    R = 2.0
+    ax.set_xlim(-1.75*R, 1.75*R); ax.set_ylim(-1.65*R, 1.42*R)
+    ax.set_title('Space Vector PWM del NPC: los 27 estados $(S_a,S_b,S_c)$', fontsize=13, fontweight='bold', pad=12)
 
-    # ---- (a) hexagono completo de 19 posiciones ----
-    a1.set_aspect('equal'); a1.axis('off')
-    a1.set_xlim(-2.6, 2.6); a1.set_ylim(-2.4, 2.4)
-    a1.set_title('(a) 19 posiciones físicas (27 estados de conmutación)', fontsize=10.5, fontweight='bold')
+    sym = {1: '+', 0: '0', -1: '-'}
+    unit = R/2.0  # espaciado de la reticula triangular (2 anillos hasta el vector largo)
 
     def abc_to_xy(a, b, c):
-        # proyeccion de las tres componentes de fase (niveles -1,0,+1) sobre alfa-beta
+        # proyeccion de Clarke real: ejes a (0 grados), b (120 grados), c (240 grados)
         x = a - 0.5*b - 0.5*c
         y = (np.sqrt(3)/2)*(b - c)
-        return x, y
+        return np.array([x, y]) * unit
 
-    # generar los 27 estados (cada fase en {-1,0,1}) y agrupar por posicion fisica
     pts = {}
     for na in (-1, 0, 1):
         for nb in (-1, 0, 1):
             for nc in (-1, 0, 1):
-                x, y = abc_to_xy(na, nb, nc)
-                key = (round(x, 3), round(y, 3))
+                xy = abc_to_xy(na, nb, nc)
+                key = (round(xy[0], 3), round(xy[1], 3))
                 pts.setdefault(key, []).append((na, nb, nc))
 
-    # dibujar hexagono exterior (guia)
-    hexang = np.linspace(0, 2*np.pi, 7)
-    a1.plot(1.5*np.cos(hexang+np.pi/6), 1.5*np.sin(hexang+np.pi/6), color='#ccc', lw=1, ls='--')
-    # sectores (6 lineas desde el centro)
-    for k in range(6):
-        ang = k*np.pi/3
-        a1.plot([0, 1.7*np.cos(ang)], [0, 1.7*np.sin(ang)], color='#ddd', lw=0.8)
+    all_xy = np.array(list(pts.keys()))
+    # --- reticula: conectar cada punto con sus vecinos a distancia 'unit' (triangulos) ---
+    for (x0, y0) in all_xy:
+        d = np.hypot(all_xy[:, 0]-x0, all_xy[:, 1]-y0)
+        for (x1, y1) in all_xy[(d > unit*0.9) & (d < unit*1.1)]:
+            ax.plot([x0, x1], [y0, y1], color='#444', lw=1.1, zorder=1)
 
+    # --- etiquetar cada posicion fisica con TODAS sus ternas (Sa Sb Sc) ---
     for (x, y), states in pts.items():
-        n = len(states)
         r = np.hypot(x, y)
+        n = len(states)
         if r < 0.05:
-            col, sz = '#888', 60      # vector cero (origen), 3 estados redundantes
+            col, fs = '#7f8c8d', 8.5
         elif n >= 2:
-            col, sz = '#2e86c1', 70   # vector corto/medio redundante
-        elif r > 1.3:
-            col, sz = '#c0392b', 55   # vector largo (esquina)
+            col, fs = '#c0392b', 8.5
         else:
-            col, sz = '#e08a00', 55   # vector medio/corto no redundante
-        a1.scatter([x], [y], s=sz, color=col, edgecolor='navy', lw=0.8, zorder=5)
-        if n >= 2:
-            a1.text(x, y+0.14, f'{n}×', fontsize=7, ha='center', color='#2e86c1')
+            col, fs = '#1a1a1a', 8.5
+        ax.plot([x], [y], 'o', color=col, ms=7, zorder=5, markeredgecolor='white', markeredgewidth=0.6)
+        labels = '  '.join('(' + ''.join(sym[v] for v in s) + ')' for s in sorted(states))
+        ur = (x/r, y/r) if r > 0.05 else (0.0, 1.0)
+        off = 0.46 if r > 1.9*unit else 0.34
+        lx, ly = x+off*ur[0], y+off*ur[1] + (0.16 if r < 0.05 else 0.0)
+        va = 'bottom' if ur[1] >= -0.2 else 'top'
+        ax.text(lx, ly, labels, fontsize=fs, ha='center', va=va, color=col, zorder=6)
 
-    a1.text(-2.5, -2.3, 'gris=cero (3) · azul=redundante (2) · naranja=único · rojo=largo (esquina)',
-            fontsize=7.5, color='gray')
+    # --- ejes a, b, c (desplazados fuera del hexagono para no chocar con las etiquetas) ---
+    for ang, lbl in [(0, 'a'), (120, 'b'), (240, 'c')]:
+        rad = np.radians(ang)
+        ax.plot([0, 1.02*R*np.cos(rad)], [0, 1.02*R*np.sin(rad)], color='#999', lw=1.0, ls='--', zorder=0)
+        ax.text(1.30*R*np.cos(rad), 1.30*R*np.sin(rad), lbl, fontsize=16, fontweight='bold',
+                ha='center', va='center', color='#555')
 
-    # ---- (b) zoom de un triangulo con vector de referencia ----
-    a2.set_aspect('equal'); a2.axis('off')
-    a2.set_xlim(-0.3, 2.0); a2.set_ylim(-0.3, 1.9)
-    a2.set_title('(b) Descomposición en un triángulo: cálculo de tiempos', fontsize=10.5, fontweight='bold')
+    ax.text(0, -1.6*R, r'Notación: cada vértice muestra $(S_a S_b S_c)$ con $S_k\in\{+,0,-\}$.'
+            '\nEl vector cero (centro, 3 estados) y los vectores medios (anillo intermedio, 2 estados) son redundantes; '
+            'los vectores cortos y largos son únicos.',
+            ha='center', fontsize=9.5, color='#333')
 
-    V1 = np.array([1.0, 0.0])     # vector corto (nivel medio, ej. POO)
-    V2 = np.array([1.5, 0.866])   # vector largo (esquina, ej. PPO)
-    V0 = np.array([0.5, 0.866])   # vector medio (ej. PON), forma el triangulo con V1,V2
+    plt.tight_layout()
+    _savefig(fig, 'npc-svm', dpi=165)
 
-    for P, lbl, col in [(V1, r'$V_1$ (corto)', '#e08a00'), (V2, r'$V_2$ (largo)', '#c0392b'), (V0, r'$V_0$ (medio)', '#8e44ad')]:
-        a2.plot([0, P[0]], [0, P[1]], color=col, lw=1.2, ls=':')
-        a2.plot([P[0]], [P[1]], 'o', color=col, ms=8, zorder=5)
-        a2.text(P[0]+0.05, P[1]+0.05, lbl, fontsize=9, color=col)
-    a2.plot([V1[0], V2[0], V0[0], V1[0]], [V1[1], V2[1], V0[1], V1[1]], color='#888', lw=1.3)
+
+def _npc_svm_tiempos():
+    """NPC SVM: zoom de un triangulo generico con los 3 vectores adyacentes,
+    el vector de referencia descompuesto y el sistema para el calculo de
+    tiempos (duty cycles) por combinacion convexa."""
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(1, 1, figsize=(7.5, 4.6))
+    ax.set_aspect('equal'); ax.axis('off')
+    ax.set_xlim(-0.35, 2.1); ax.set_ylim(-0.5, 1.15)
+    ax.set_title('Cálculo de tiempos en un triángulo genérico', fontsize=13, fontweight='bold', pad=10)
+
+    V1 = np.array([1.0, 0.0])
+    V2 = np.array([1.5, 0.866])
+    V0 = np.array([0.5, 0.866])
+
+    ax.plot([0, V1[0]], [0, V1[1]], color='#888', lw=1.0, ls=':')
+    for P, lbl, col in [(V1, r'$\vec V_1$', '#e08a00'), (V2, r'$\vec V_2$', '#c0392b'), (V0, r'$\vec V_0$', '#8e44ad')]:
+        ax.plot([P[0]], [P[1]], 'o', color=col, ms=9, zorder=5)
+        ax.text(P[0]+0.08, P[1]+0.06, lbl, fontsize=12, color=col, fontweight='bold')
+    ax.plot([V1[0], V2[0], V0[0], V1[0]], [V1[1], V2[1], V0[1], V1[1]], color='#888', lw=1.4)
+    ax.plot([0], [0], 'o', color='#333', ms=6); ax.text(-0.10, -0.10, 'O', fontsize=10, ha='right')
 
     Vref = 0.45*V1 + 0.30*V2 + 0.25*V0
-    a2.annotate('', xy=tuple(Vref), xytext=(0, 0), arrowprops=dict(arrowstyle='-|>', color='navy', lw=2.4))
-    a2.text(Vref[0]+0.08, Vref[1]-0.05, r'$\vec V_{ref}$', color='navy', fontsize=11, fontweight='bold')
+    ax.annotate('', xy=tuple(Vref), xytext=(0, 0), arrowprops=dict(arrowstyle='-|>', color='navy', lw=2.6))
+    ax.text(Vref[0]+0.10, Vref[1]-0.06, r'$\vec V_{ref}$', color='navy', fontsize=13, fontweight='bold')
 
-    a2.text(1.0, -0.15,
-            r'$\vec V_{ref}=d_1\vec V_1+d_2\vec V_2+d_0\vec V_0,\quad d_1+d_2+d_0=1$',
-            ha='center', fontsize=9.5,
+    ax.text(1.0, -0.35,
+            r'$\vec V_{ref}=d_1\vec V_1+d_2\vec V_2+d_0\vec V_0,\qquad d_1+d_2+d_0=1$',
+            ha='center', fontsize=11,
             bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='steelblue'))
 
-    plt.tight_layout(rect=[0, 0, 1, 0.94])
-    _savefig(fig, 'npc-svm', dpi=160)
+    plt.tight_layout()
+    _savefig(fig, 'npc-svm-tiempos', dpi=160)
 
 
 def _mmc_estructura():
@@ -16885,6 +17065,9 @@ def main():
         n += 1
     if pref is None or "npc-neutro".startswith(pref):
         _npc_neutro()
+        n += 1
+    if pref is None or "npc-svm-tiempos".startswith(pref):
+        _npc_svm_tiempos()
         n += 1
     if pref is None or "npc-svm".startswith(pref):
         _npc_svm()

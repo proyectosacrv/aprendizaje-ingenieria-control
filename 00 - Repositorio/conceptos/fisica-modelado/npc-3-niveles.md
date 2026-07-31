@@ -29,11 +29,11 @@ los dos condensadores del bus (**balance del punto neutro**).
 ## Fundamento teórico
 El bus DC se parte en dos condensadores \(C_1\) (entre P y O) y \(C_2\) (entre O y N), cada uno a
 \(V_{dc}/2\) en régimen ideal. Cuatro interruptores en serie (\(T_1\)–\(T_4\)) y dos diodos de anclaje
-(\(D_1\), \(D_2\)) conectan la salida de fase a P, O o N según qué par de interruptores adyacentes esté
+(\(D_5\), \(D_6\)) conectan la salida de fase a P, O o N según qué par de interruptores adyacentes esté
 activo. Cada dispositivo bloquea solo \(V_{dc}/2\): se pueden usar semiconductores de la mitad de tensión
 que en un puente de 2 niveles para el mismo \(V_{dc}\), o doblar \(V_{dc}\) con la misma tecnología.
 
-<div class="cfig"><img src="figuras/npc-topologia.png" alt="rama de fase del NPC de 3 niveles con los cuatro IGBTs T1-T4, los dos diodos de anclaje D1 y D2 al punto neutro O, y los dos condensadores de bus C1 y C2"><div class="cap">Rama de fase del NPC: \(T_1\)–\(T_4\) en serie entre P y N; \(D_1\) ancla el punto medio de \(T_1\)-\(T_2\) al neutro O cuando la salida está a \(0\) con \(i_o>0\); \(D_2\) hace lo mismo para \(i_o<0\). \(C_1\), \(C_2\) parten el bus DC.</div></div>
+<div class="cfig"><img src="figuras/npc-topologia.png" alt="rama de fase del NPC de 3 niveles con los cuatro IGBT T1-T4 (simbolo con diodo antiparalelo), los dos diodos de anclaje D5 y D6 al punto neutro O, y los dos condensadores de bus C1 y C2"><div class="cap">Rama de fase del NPC, con el símbolo real de cada IGBT (transistor + diodo antiparalelo): \(T_1\)–\(T_4\) en serie entre P y N; \(D_5\) ancla el punto medio de \(T_1\)-\(T_2\) al neutro O cuando la salida está a \(0\) con \(i_o>0\); \(D_6\) hace lo mismo para \(i_o<0\). \(C_1\), \(C_2\) parten el bus DC.</div></div>
 
 ## 1 — Tabla de estados de conmutación (completa)
 
@@ -42,7 +42,7 @@ que en un puente de 2 niveles para el mismo \(V_{dc}\), o doblar \(V_{dc}\) con 
 (\(T_1\), \(T_2\)) hay 4 combinaciones binarias, pero **una es redundante** en corriente para el estado 0
 (según el signo de \(i_o\)):
 
-<div class="cfig"><img src="figuras/npc-conmutacion.png" alt="tabla de estados de conmutacion del NPC mostrando el estado de T1 T2 T3 T4 y la tension de salida para cada nivel P, O+ (io positivo), O- (io negativo) y N, junto con las formas de onda de la modulacion PD-PWM con dos portadoras y el espectro comparado con dos niveles"><div class="cap">(a) Tabla completa de estados: los cuatro niveles lógicos con el estado de cada interruptor y el diodo que conduce en el nivel 0. (b) Modulación PD-PWM: dos portadoras triangulares apiladas (una entre 0 y 1, otra entre −1 y 0) comparadas con la misma referencia generan directamente los 3 niveles. (c) El contenido armónico alrededor de \(f_{sw}\) cae mucho más rápido que en 2 niveles.</div></div>
+<div class="cfig"><img src="figuras/npc-conmutacion.png" alt="cuatro mini-circuitos del NPC mostrando la trayectoria de corriente resaltada para los estados P, O con io positivo (D5 conduce), O con io negativo (D6 conduce) y N, con los IGBT coloreados en verde si conducen y rojo si no, y debajo la tabla completa de estados junto con las formas de onda de la modulacion PD-PWM y el espectro comparado con dos niveles"><div class="cap">(a)-(d) Los cuatro circuitos equivalentes de cada estado, con la trayectoria de corriente resaltada en rojo y los IGBT en verde (ON) o rojo (OFF): P (\(T_1,T_2\)), O con \(i_o>0\) (\(D_5\) conduce), O con \(i_o<0\) (\(D_6\) conduce) y N (\(T_3,T_4\)). Debajo, la tabla completa de estados. (e) Modulación PD-PWM: dos portadoras triangulares apiladas (una entre 0 y 1, otra entre −1 y 0) comparadas con la misma referencia generan directamente los 3 niveles. (f) El contenido armónico alrededor de \(f_{sw}\) cae mucho más rápido que en 2 niveles.</div></div>
 
 **Deducción de la regla de complementariedad (por qué exactamente esos pares).** La rama tiene 4
 interruptores en serie entre P y N. Si se permitieran combinaciones distintas de las de la tabla, dos casos
@@ -62,16 +62,16 @@ desconectado de la salida (ni O ni N), un estado sin sentido para la síntesis d
 | Estado | \(T_1\) | \(T_2\) | \(T_3\) | \(T_4\) | Dispositivo que conduce | \(v_{aO}\) |
 |---|---|---|---|---|---|---|
 | **P** | 1 | 1 | 0 | 0 | \(T_1, T_2\) | \(+V_{dc}/2\) |
-| **O** (\(i_o>0\)) | 0 | 1 | 1 | 0 | \(D_1\), \(T_2\) | \(0\) |
-| **O** (\(i_o<0\)) | 0 | 1 | 1 | 0 | \(D_2\), \(T_3\) | \(0\) |
+| **O** (\(i_o>0\)) | 0 | 1 | 1 | 0 | \(D_5\), \(T_2\) | \(0\) |
+| **O** (\(i_o<0\)) | 0 | 1 | 1 | 0 | \(D_6\), \(T_3\) | \(0\) |
 | **N** | 0 | 0 | 1 | 1 | \(T_3, T_4\) | \(-V_{dc}/2\) |
 
 **Por qué el estado O tiene dos caminos.** Con \(T_2\) y \(T_3\) en ON, la salida queda "flotando" entre P y
 N a través de esos dos interruptores; el **diodo de anclaje** que realmente conduce lo decide el signo de
 la corriente de fase \(i_o\), no una elección de control:
 - Si \(i_o>0\) (la fase entrega corriente hacia la carga desde O), la corriente sale por \(T_2\) y
-  **entra** por \(D_1\) desde el nudo O — \(D_1\) ancla la salida a O tirando de energía de \(C_1\).
-- Si \(i_o<0\), la corriente circula al revés y es \(D_2\) quien conduce, tirando de \(C_2\).
+  **entra** por \(D_5\) desde el nudo O — \(D_5\) ancla la salida a O tirando de energía de \(C_1\).
+- Si \(i_o<0\), la corriente circula al revés y es \(D_6\) quien conduce, tirando de \(C_2\).
 
 **Verificación por KVL de cada estado.** Tomando O como referencia (\(v_O=0\)):
 - Estado P: \(v_{aO}=v_P-v_O\). Como \(T_1,T_2\) conducen con caída ideal nula, \(v_a=v_P\), y
@@ -137,8 +137,8 @@ para el balance de neutro.
 
 ## 3 — El balance del punto neutro (derivación completa)
 
-**Paso 1 — el origen físico.** Del apartado 1: en el estado O, según el signo de \(i_o\), conduce \(D_1\)
-(descarga \(C_1\), carga \(C_2\)) o \(D_2\) (descarga \(C_2\), carga \(C_1\)). La corriente que fluye hacia
+**Paso 1 — el origen físico.** Del apartado 1: en el estado O, según el signo de \(i_o\), conduce \(D_5\)
+(descarga \(C_1\), carga \(C_2\)) o \(D_6\) (descarga \(C_2\), carga \(C_1\)). La corriente que fluye hacia
 el nudo O durante ese estado es exactamente \(i_o\):
 
 $$ i_O(t) = i_o(t)\cdot\mathbb{1}[\text{estado} = O] $$
@@ -185,7 +185,7 @@ cumplirse y aparece una componente **media no nula** de \(i_{O,total}\). Como el
 **integrador puro** en esa componente media, \(\Delta V\) no oscila: **deriva sin límite** con pendiente
 constante hasta saturar la modulación o dañar los condensadores.
 
-<div class="cfig"><img src="figuras/npc-neutro.png" alt="esquema de los dos caminos de corriente en el estado O segun el signo de la corriente de fase, y simulacion de la deriva de las tensiones de los dos condensadores del bus sin compensacion frente a la estabilizacion con compensacion proporcional al desbalance"><div class="cap">(a) En el estado O, \(D_1\) o \(D_2\) conducen según el signo de \(i_o\), descargando un condensador y cargando el otro. (b) Ante una componente neta de corriente hacia O (carga desequilibrada), sin compensación el desbalance \(V_{C1}-V_{C2}\) crece linealmente sin límite (Paso 2: es un integrador puro); con una compensación proporcional al desbalance medido, las dos tensiones se mantienen ancladas a \(V_{dc}/2\).</div></div>
+<div class="cfig"><img src="figuras/npc-neutro.png" alt="esquema de los dos caminos de corriente en el estado O segun el signo de la corriente de fase, y simulacion de la deriva de las tensiones de los dos condensadores del bus sin compensacion frente a la estabilizacion con compensacion proporcional al desbalance"><div class="cap">(a) En el estado O, \(D_5\) o \(D_6\) conducen según el signo de \(i_o\), descargando un condensador y cargando el otro. (b) Ante una componente neta de corriente hacia O (carga desequilibrada), sin compensación el desbalance \(V_{C1}-V_{C2}\) crece linealmente sin límite (Paso 2: es un integrador puro); con una compensación proporcional al desbalance medido, las dos tensiones se mantienen ancladas a \(V_{dc}/2\).</div></div>
 
 **Paso 6 — la corrección: usar la redundancia del estado O.** El modulador **no puede** elegir directamente
 qué diodo conduce (lo decide \(i_o\)), pero sí puede desplazar **cuándo** se está en el estado O respecto a
@@ -287,9 +287,9 @@ $$ \vec V = \frac23\Big(n_a + n_b\,e^{j2\pi/3} + n_c\,e^{j4\pi/3}\Big)\cdot\frac
 Con 3 niveles por fase hay \(3^3=27\) combinaciones \((n_a,n_b,n_c)\), pero al proyectarlas sobre el
 plano αβ varias combinaciones distintas caen en el **mismo punto físico** (misma tensión de línea): el
 resultado son **19 posiciones distintas** dispuestas en un hexágono con dos anillos y el centro (figura
-siguiente, panel a).
+siguiente).
 
-<div class="cfig"><img src="figuras/npc-svm.png" alt="hexagono de space vector modulation del NPC con las 19 posiciones fisicas de los 27 estados de conmutacion, distinguiendo vectores cero redundantes triple, vectores medios redundantes doble y vectores largos unicos en las esquinas, y a la derecha el detalle de un triangulo con los tres vectores adyacentes y el vector de referencia descompuesto"><div class="cap">(a) Las 19 posiciones físicas de los 27 estados: el vector cero en el centro es redundante ×3 (PPP, OOO, NNN — no mueve el punto de trabajo), los 6 vectores medios (a media distancia, en los vértices del hexágono interior) son redundantes ×2 (cada uno alcanzable con dos combinaciones de estados, que es la palanca que se usa para el balance de neutro), y los 6 vectores largos de las esquinas son únicos (solo alcanzables con un estado, típicamente todo-P o todo-N combinados). (b) Dentro de cada uno de los 24 triángulos en que queda dividido el hexágono, el vector de referencia \(\vec V_{ref}\) se descompone en sus tres vértices adyacentes.</div></div>
+<div class="cfig"><img src="figuras/npc-svm.png" alt="hexagono de space vector modulation del NPC con las 19 posiciones fisicas de los 27 estados de conmutacion etiquetadas con la notacion (Sa Sb Sc) para cada fase en +, 0 o -, formando una reticula regular de 24 triangulos con el vector cero en el centro (redundante triple), los vectores medios en el anillo intermedio (redundantes dobles) y los vectores largos en las esquinas exteriores (unicos)"><div class="cap">Las 19 posiciones físicas de los 27 estados, etiquetadas con la notación \((S_aS_bS_c)\), \(S_k\in\{+,0,-\}\). El vector cero (centro) es redundante ×3 —los estados \((+{+}{+})\), \((000)\), \((-{-}{-})\) no mueven el punto de trabajo—; los 6 vectores medios (anillo intermedio, en rojo) son redundantes ×2, cada uno alcanzable con dos combinaciones de estados que llevan la corriente por caminos distintos hacia el neutro O — es la palanca que usa el balance de neutro; los 6 vectores largos (esquinas exteriores) y los 6 vectores cortos (anillo interior) son únicos.</div></div>
 
 **Paso 2 — clasificación de los vectores por magnitud.** Según su módulo, los 19 vectores se agrupan en
 cuatro familias (visibles por color en la figura):
@@ -323,6 +323,8 @@ referencia como combinación convexa — el mismo principio que la SVM clásica 
 tres vértices en vez de dos:
 
 $$ \vec V_{ref} = d_1\vec V_1 + d_2\vec V_2 + d_0\vec V_0, \qquad d_1+d_2+d_0=1,\quad d_i\geq0 $$
+
+<div class="cfig"><img src="figuras/npc-svm-tiempos.png" alt="triangulo generico del hexagono SVM con los tres vectores adyacentes V0, V1, V2 y el vector de referencia Vref descompuesto como combinacion convexa de los tres, con la ecuacion de los duty cycles d1, d2, d0"><div class="cap">Dentro de cualquiera de los 24 triángulos del hexágono, el vector de referencia \(\vec V_{ref}\) se descompone en sus tres vértices adyacentes; los coeficientes \(d_1,d_2,d_0\) son los duty cycles que, aplicados durante el periodo de conmutación, sintetizan en promedio la tensión deseada.</div></div>
 
 **Paso 5 — resolución del sistema.** Escribiendo cada vector por sus componentes \((V_{k,\alpha},
 V_{k,\beta})\), el sistema anterior son **dos ecuaciones** (componentes α y β de \(\vec V_{ref}\)) más la
@@ -452,8 +454,8 @@ conmutación \(f_s\):
   (apartado 7, Paso 4).
 - **Sintonizar el lazo de balance de neutro demasiado rápido:** un \(K_{bal}\) alto reduce \(\tau_{bal}\)
   pero exige un \(v_0\) grande que puede saturar la modulación de las tres fases (apartado 3, Paso 7).
-- **No verificar el nivel de corriente al elegir qué diodo debe soportar el peor caso térmico:** \(D_1\) y
-  \(D_2\) solo conducen durante el estado O y con un signo de \(i_o\) cada uno — su corriente media es menor
+- **No verificar el nivel de corriente al elegir qué diodo debe soportar el peor caso térmico:** \(D_5\) y
+  \(D_6\) solo conducen durante el estado O y con un signo de \(i_o\) cada uno — su corriente media es menor
   que la de los IGBTs pero su pico puede ser alto en cargas de bajo factor de potencia.
 
 ## Cuándo y por qué se usa
