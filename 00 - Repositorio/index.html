@@ -118,6 +118,19 @@ body.list-collapsed .listtoggle{left:0}
 .fbtn{display:none;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
   padding:7px 12px;border-radius:8px;font-size:13px;cursor:pointer}
 .filters{display:contents}
+/* ── Pantalla completa: ocultar la cabecera ──────────────────────── */
+.hidebtn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+  padding:7px 12px;border-radius:8px;font-size:13px;cursor:pointer}
+.hidebtn:hover{border-color:var(--acc)}
+body.fs header{display:none}
+body.fs .wrap{min-height:100vh}
+body.fs .list,body.fs .detail{max-height:100vh}
+body.fs #graph{height:100vh}
+.fsbtn{position:fixed;top:8px;right:10px;z-index:60;display:none;
+  background:var(--panel2);border:1px solid var(--line);color:var(--muted);
+  border-radius:20px;padding:7px 13px;font-size:13px;cursor:pointer;opacity:.9}
+.fsbtn:hover{color:var(--ink);border-color:var(--acc)}
+body.fs .fsbtn{display:inline-block}
 .backbtn:focus-visible,.fbtn:focus-visible,.st-btn:focus-visible,.card:focus-visible,
 .bar input:focus-visible,.bar select:focus-visible,.viewtoggle button:focus-visible,
 .home:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
@@ -173,8 +186,10 @@ body.list-collapsed .listtoggle{left:0}
       <span class="clear" onclick="clearAll()">limpiar</span>
     </div>
     <span class="viewtoggle"><button id="vlist" class="on">📋 Lista</button><button id="vgraph">🕸 Grafo</button><button id="vrutas">📚 Rutas</button></span>
+    <button class="hidebtn" id="fshide" title="Ocultar el menú (pantalla completa)" aria-label="Ocultar el menú">⤢ Pantalla completa</button>
   </div>
 </header>
+<button class="fsbtn" id="fsshow" title="Mostrar el menú" aria-label="Mostrar el menú">≡ menú</button>
 <div class="wrap">
   <div class="list" id="list"><div class="count" id="count"></div></div>
   <button id="listtoggle" class="listtoggle" title="Ocultar o mostrar la lista" aria-label="Ocultar o mostrar la lista">◀</button>
@@ -429,6 +444,10 @@ window.addEventListener('DOMContentLoaded',()=>{
     try{localStorage.setItem('listCollapsed',v?'1':'0')}catch(e){}};
   $('#listtoggle').onclick=()=>setListCollapsed(!document.body.classList.contains('list-collapsed'));
   setListCollapsed(localStorage.getItem('listCollapsed')==='1');
+  const setFS=v=>{document.body.classList.toggle('fs',v);try{localStorage.setItem('fs',v?'1':'0')}catch(e){}};
+  $('#fshide').onclick=()=>setFS(true);
+  $('#fsshow').onclick=()=>setFS(false);
+  setFS(localStorage.getItem('fs')==='1');
   render(); applyHash();
 });
 window.addEventListener('hashchange', applyHash);
