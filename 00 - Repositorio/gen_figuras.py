@@ -15351,6 +15351,83 @@ def _npc_neutro():
     _savefig(fig, 'npc-neutro', dpi=160)
 
 
+def _mmc_submodulo_ccsc():
+    """MMC: (a) submodulo half-bridge en los dos estados (insertado/bypass) con
+    el camino de corriente; (b) jerarquia de las 4 capas de control como
+    diagrama de bloques con sus anchos de banda."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 6.4), gridspec_kw={'width_ratios': [0.85, 1.3]})
+    fig.suptitle('MMC: submódulo half-bridge y jerarquía de control', fontsize=13, fontweight='bold')
+
+    # ---- (a) submodulo en sus dos estados ----
+    a1.axis('off'); a1.set_xlim(0, 10); a1.set_ylim(0, 9)
+    a1.set_title('(a) Submódulo half-bridge: insertado vs. bypass', fontsize=10.5, fontweight='bold')
+
+    def sm(x0, y0, txt, s1on, cur_path):
+        # caja del submodulo
+        for (px, py, lbl, on) in [(x0+0.9, y0+2.3, 'S1', s1on), (x0+0.9, y0+0.9, 'S2', not s1on)]:
+            col = '#A9DFBF' if on else '#F5B7B1'
+            a1.add_patch(mpatches.FancyBboxPatch((px-0.42, py-0.26), 0.84, 0.52, boxstyle='round,pad=0.03',
+                facecolor=col, edgecolor='navy', lw=1.4))
+            a1.text(px, py, lbl+(' ON' if on else ' OFF'), ha='center', va='center', fontsize=7.5, fontweight='bold')
+        a1.plot([x0+0.9, x0+0.9], [y0+3.0, y0+2.56], 'navy', lw=1.4)
+        a1.plot([x0+0.9, x0+0.9], [y0+2.04, y0+1.16], 'navy', lw=1.4)
+        a1.plot([x0+0.9, x0+0.9], [y0+0.64, y0+0.1], 'navy', lw=1.4)
+        a1.plot([x0-0.1], [y0+3.0], 'o', color='navy', ms=4); a1.text(x0-0.25, y0+3.0, 'a', fontsize=8, ha='right')
+        a1.plot([x0-0.1], [y0+0.1], 'o', color='navy', ms=4); a1.text(x0-0.25, y0+0.1, 'b', fontsize=8, ha='right')
+        a1.plot([x0-0.1, x0+0.9], [y0+3.0, y0+3.0], 'navy', lw=1.2)
+        a1.plot([x0-0.1, x0+0.9], [y0+0.1, y0+0.1], 'navy', lw=1.2)
+        # condensador
+        cx = x0+2.0
+        a1.plot([cx-0.3, cx+0.3], [y0+2.15, y0+2.15], 'navy', lw=2.4)
+        a1.plot([cx-0.3, cx+0.3], [y0+1.95, y0+1.95], 'navy', lw=2.4)
+        a1.plot([cx, cx], [y0+3.0, y0+2.23], 'navy', lw=1.2); a1.plot([x0+0.9, cx], [y0+3.0, y0+3.0], 'navy', lw=1.2)
+        a1.plot([cx, cx], [y0+1.87, y0+0.1], 'navy', lw=1.2); a1.plot([x0+0.9, cx], [y0+0.1, y0+0.1], 'navy', lw=1.2)
+        a1.text(cx+0.45, y0+2.05, r'$C_{SM}$', fontsize=8)
+        if cur_path:
+            a1.annotate('', xy=(x0-0.1, y0+2.6), xytext=(x0-0.1, y0+0.4),
+                        arrowprops=dict(arrowstyle='-|>', color='darkred', lw=2),
+                        )
+            a1.plot([x0-0.6, x0-0.1, x0-0.1, x0-0.6], [y0+3.0, y0+3.0, y0+0.1, y0+0.1], color='darkred', lw=1.6, ls=':')
+        a1.text(x0+0.9, y0-0.35, txt, ha='center', fontsize=9, fontweight='bold')
+
+    sm(0.8, 4.6, 'Insertado: $v_{SM}=V_C$', True, True)
+    sm(5.8, 4.6, 'Bypass: $v_{SM}=0$', False, True)
+    a1.text(5.0, 0.6, 'En "insertado" el condensador queda en serie en el brazo;\nen "bypass" queda cortocircuitado (no aporta tensión)',
+            ha='center', fontsize=8.5, color='gray')
+
+    # ---- (b) jerarquia de 4 capas como bloques ----
+    a2.axis('off'); a2.set_xlim(0, 12); a2.set_ylim(0, 9)
+    a2.set_title('(b) Jerarquía de control: 4 capas con anchos de banda separados', fontsize=10.5, fontweight='bold')
+
+    capas = [
+        ('Capa 2: P/Q/Vdc/Vac\n(BW ~50 Hz)', '#D5DBDB', 7.6),
+        ('Capa 1: corriente AC $i_d,i_q$\n(BW ~1 kHz)', '#AED6F1', 5.9),
+        ('Capa 3: CCSC a $2\\omega_0$\n(BW ~300 Hz)', '#A9DFBF', 4.2),
+        ('Capa 4: balanceo de SMs\n(cada periodo $T_s$)', '#F9E79F', 2.5),
+    ]
+    for txt, col, y in capas:
+        a2.add_patch(mpatches.FancyBboxPatch((0.6, y-0.55), 5.0, 1.1, boxstyle='round,pad=0.05',
+            facecolor=col, edgecolor='navy', lw=1.5))
+        a2.text(3.1, y, txt, ha='center', va='center', fontsize=9, fontweight='bold')
+
+    a2.add_patch(mpatches.FancyBboxPatch((7.0, 4.2-0.7), 4.2, 1.4, boxstyle='round,pad=0.05',
+        facecolor='#FADBD8', edgecolor='navy', lw=1.6))
+    a2.text(9.1, 4.2, r'$v_{upper}^*=\frac{V_{dc}}{2}+v_{AC}^*/(-2)+v_{circ}^*/2$' + '\n' +
+            r'$v_{lower}^*=\frac{V_{dc}}{2}+v_{AC}^*/(+2)+v_{circ}^*/2$',
+            ha='center', va='center', fontsize=8)
+    a2.text(9.1, 5.5, 'suma de\ncontribuciones', ha='center', fontsize=8.5, color='gray', style='italic')
+    for _, _, y in capas[:3]:
+        a2.annotate('', xy=(7.0, 4.2), xytext=(5.6, y), arrowprops=dict(arrowstyle='->', color='navy', lw=1.3, connectionstyle='arc3,rad=0.15'))
+    a2.annotate('', xy=(3.1, 6.15+1.3), xytext=(3.1, 7.05), arrowprops=dict(arrowstyle='->', color='navy', lw=1.3))
+    a2.text(3.1, 8.3, r'$i_d^*,i_q^*$', ha='center', fontsize=8.5, color='navy')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.94])
+    _savefig(fig, 'mmc-submodulo-ccsc', dpi=160)
+
+
 def _npc_svm():
     """NPC SVM: (a) diagrama hexagonal con los 27 estados (19 posiciones fisicas,
     vectores largos/medios/cortos redundantes/cero) y los 6 sectores + triangulos;
@@ -16730,6 +16807,9 @@ def main():
         n += 1
     if pref is None or "npc-svm".startswith(pref):
         _npc_svm()
+        n += 1
+    if pref is None or "mmc-submodulo-ccsc".startswith(pref):
+        _mmc_submodulo_ccsc()
         n += 1
     if pref is None or "btb-mppt".startswith(pref):
         _btb_mppt()
