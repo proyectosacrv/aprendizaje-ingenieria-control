@@ -1129,6 +1129,16 @@ $$ K_{p,dc} = \frac{C_{dc}\,\omega_{dc}}{2} = \frac{0.020\times188.5}{2} = 1.885
 
 $$ T_{i,dc} = \frac{a}{\omega_{dc}} = \frac{10}{188.5} = 53.1\,\text{ms} \qquad (a=\omega_{ci}/\omega_{dc}=10) $$
 
+*Por qué esas fórmulas* (§3.2, Pasos 5–6):
+
+- **\(K_{p,dc}=C_{dc}\omega_{dc}/2\) — fija el cruce.** Sale de imponer \(|L_{dc}(j\omega_{dc})|=1\): con la
+  forma simplificada del lazo, \(|L_{dc}|\approx 2K_{p,dc}/(C_{dc}\omega)\), que en \(\omega_{dc}\) da
+  \(K_{p,dc}=C_{dc}\omega_{dc}/2\).
+- **\(T_{i,dc}=a/\omega_{dc}\) — óptimo simétrico.** Sale del [[optimo-simetrico|óptimo simétrico]]: se
+  colocan el cero del PI (\(\omega_{dc}/10\)) y el polo del lazo de corriente (\(\omega_{ci}=10\omega_{dc}\))
+  **simétricos** respecto al cruce (media geométrica), lo que fuerza \(a=\omega_{ci}/\omega_{dc}=10\). El
+  margen resultante es \(PM=\arctan a-\arctan(1/a)\approx79°\).
+
 Verificar margen de fase del lazo DC. La FdT de lazo abierto (con el polo del lazo de corriente):
 
 $$ L_{dc}(s) = \frac{2K_{p,dc}}{C_{dc}T_{i,dc}} \cdot \frac{T_{i,dc}s+1}{s^2}\cdot\frac{\omega_{ci}}{s+\omega_{ci}} $$
@@ -1138,15 +1148,37 @@ de fase avanzante, y el polo del lazo de corriente resta \(\arctan(\omega_{dc}/\
 
 $$ \angle L_{dc}(j\omega_{dc}) = -180° + 84.3° - 5.7° = -101.4° \quad \Rightarrow \quad PM_{dc} = 78.6° \approx 79° \checkmark $$
 
-**Paso 3 — Verificación con CPL:**
+<div class="cfig"><img src="figuras/btb-lazo-tension-verif.png" alt="Verificación del lazo de tensión DC con los valores del ejemplo: Bode de la ganancia de lazo con el margen de fase de 79 grados marcado en la frecuencia de cruce, y respuesta al escalón del lazo cerrado bien amortiguada con poca sobreoscilación"><div class="cap">Verificación con los valores del ejemplo. (a) Bode de \(L_{dc}\): la fase en el cruce \(\omega_{dc}\) da \(PM\approx79°\). (b) Respuesta al escalón del lazo cerrado: bien amortiguada (\(\sim7\%\) de sobreoscilación, coherente con el PM alto). Un PM tan holgado es lo que interesa frente a la CPL (Paso 3).</div></div>
 
-La carga de potencia constante (MSC controlando potencia) añade una conductancia negativa equivalente
-\(G_{CPL} = -P_{2,max}/V_{dc,0}^2\) que tiende a inestabilizar el bus DC. La condición de estabilidad
-requiere que la ganancia proporcional del lazo DC supere a esta conductancia negativa:
+**Paso 3 — Verificación con la CPL (carga de potencia constante).**
 
-$$ K_{p,dc} > \frac{P_{2,max}}{2V_{dc,0}^2} = \frac{2\times10^6}{2\times1150^2} = 0.756\,\text{A/V}^2 $$
+*¿Qué es una CPL?* Una **carga de potencia constante** (CPL, *Constant Power Load*) es un elemento que
+intercambia una **potencia fija** con el bus, independientemente de su tensión. En el back-to-back, el
+convertidor que controla potencia/par (el MSC en MPPT, o un convertidor aguas abajo con su propio lazo
+rápido) se comporta así: aunque \(V_{dc}\) cambie, ajusta su corriente para mantener \(P\) constante.
 
-Como \(K_{p,dc} = 1.885 > 0.756\) → **estable con CPL** \(\checkmark\)
+*Por qué desestabiliza (resistencia incremental negativa).* Como \(P=V\,i\) es fija, su corriente es
+\(i=P/V\). Derivando en el punto de operación \(V_0\):
+
+$$ \frac{di}{dV}\bigg|_{V_0} = -\frac{P}{V_0^2} < 0 $$
+
+La conductancia incremental es **negativa**: si \(V_{dc}\) **baja**, la CPL **sube** su corriente (para
+mantener \(P\)), lo que descarga aún más el condensador y hace bajar \(V_{dc}\) todavía más → una
+realimentación **positiva** que tiende a inestabilizar el bus (al contrario que una resistencia normal, que
+amortigua). Es la misma resistencia incremental negativa \(r_{cpl}=-V_0^2/P\) que se analiza en
+[[dinamica-bus-dc]].
+
+*La condición de estabilidad.* El lazo de tensión debe aportar suficiente **conductancia positiva**
+(amortiguamiento) para vencer a la negativa de la CPL, y quien lo hace es su parte **proporcional**
+\(K_{p,dc}\). Como el lazo actúa sobre \(w=V_{dc}^2\) (y \(\partial w/\partial V_{dc}=2V_{dc,0}\)), la
+condición —desarrollada en [[dinamica-bus-dc]]— es que \(K_{p,dc}\) supere la mitad de la conductancia
+negativa de la CPL:
+
+$$ \boxed{\ K_{p,dc} > \frac{P_{2,max}}{2\,V_{dc,0}^2}\ } = \frac{2\times10^6}{2\times1150^2} = 0.756\,\text{A/V}^2 $$
+
+donde \(P_{2,max}\) es la potencia máxima de la CPL. Con la sintonía elegida \(K_{p,dc}=1.885 > 0.756\)
+→ **estable con CPL** \(\checkmark\), y con holgura (la ganancia es \(\sim2.5\times\) la mínima). Si el lazo
+DC fuera demasiado lento (\(K_{p,dc}\) pequeño), la CPL podría desestabilizar el bus.
 
 **Paso 4 — Sintonía del feedforward:**
 

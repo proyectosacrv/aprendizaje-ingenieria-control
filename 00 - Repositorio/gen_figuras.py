@@ -15157,6 +15157,62 @@ def _btb_lazo_dc():
     _savefig(fig, "btb-lazo-dc")
 
 
+def _btb_lazo_tension_verif():
+    """Verificacion del lazo DC con los valores del ejemplo: Bode de L_dc con el
+    margen de fase marcado y respuesta al escalon del lazo cerrado."""
+    import matplotlib.pyplot as plt
+    from scipy import signal
+
+    C = 0.02; wci = 1885.0; wdc = wci/10; a = wci/wdc
+    Kp = C*wdc/2; Ti = a/wdc
+    numC = [Kp*Ti, Kp]; denC = [Ti, 0]        # PI
+    numG = [2/C]; denG = [1, 0]               # planta 2/(Cs)
+    numCl = [wci]; denCl = [1, wci]           # polo del lazo de corriente
+    Lnum = np.convolve(np.convolve(numC, numG), numCl)
+    Lden = np.convolve(np.convolve(denC, denG), denCl)
+    L = signal.TransferFunction(Lnum, Lden)
+    w = np.logspace(0, 4.5, 4000)
+    _, mag, ph = signal.bode(L, w)
+
+    n = max(len(Lden), len(Lnum))
+    Tden = np.zeros(n); Tden[n-len(Lden):] += Lden; Tden[n-len(Lnum):] += Lnum
+    T = signal.TransferFunction(Lnum, Tden)
+    tt = np.linspace(0, 0.12, 1500)
+    tt, y = signal.step(T, T=tt)
+
+    fig = plt.figure(figsize=(13, 5.2))
+    gs = fig.add_gridspec(2, 2, width_ratios=[1, 1], hspace=0.38, wspace=0.3)
+    axm = fig.add_subplot(gs[0, 0]); axp = fig.add_subplot(gs[1, 0], sharex=axm)
+    axs = fig.add_subplot(gs[:, 1])
+    fig.suptitle('Verificación del lazo de tensión DC (valores del ejemplo)', fontsize=13, fontweight='bold')
+
+    axm.semilogx(w, mag, color='navy', lw=2.2); axm.axhline(0, color='gray', ls='--', lw=0.9)
+    axm.axvline(wdc, color='darkred', ls=':', lw=1.3)
+    axm.text(wdc, mag.max()-6, r'$\omega_{dc}$', color='darkred', fontsize=9, ha='right', rotation=90, va='top')
+    axm.set_ylabel('|L| (dB)'); axm.grid(alpha=0.3, which='both')
+    axm.set_title(r'(a) Bode de $L_{dc}$: margen de fase', fontsize=9.5, fontweight='bold')
+
+    axp.semilogx(w, ph, color='navy', lw=2.2); axp.axhline(-180, color='gray', ls='--', lw=0.9)
+    axp.axvline(wdc, color='darkred', ls=':', lw=1.3)
+    PM = 180 + np.interp(wdc, w, ph)
+    axp.plot([wdc], [-180+PM], 'o', color='darkred', ms=7)
+    axp.annotate(f'PM ≈ {PM:.0f}°\nen $\\omega_{{dc}}={wdc:.0f}$ rad/s', xy=(wdc, -180+PM),
+                 xytext=(wdc/45, -125), color='darkred', fontsize=9,
+                 arrowprops=dict(arrowstyle='->', color='darkred'))
+    axp.set_ylabel('fase (°)'); axp.set_xlabel('ω (rad/s)'); axp.grid(alpha=0.3, which='both')
+
+    axs.plot(tt*1000, y, color='navy', lw=2.4); axs.axhline(1, color='gray', ls='--', lw=0.9)
+    axs.set_xlabel('tiempo (ms)'); axs.set_ylabel(r'$w/w^*$')
+    axs.set_title('(b) Respuesta al escalón (lazo cerrado)', fontsize=9.5, fontweight='bold')
+    axs.grid(alpha=0.3)
+    over = (y.max()-1)*100
+    axs.text(0.55, 0.12, f'sobreoscilación ≈ {over:.0f}%\n(PM alto → bien amortiguado)',
+             transform=axs.transAxes, fontsize=9, color='gray', ha='center')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.94])
+    _savefig(fig, 'btb-lazo-tension-verif', dpi=160)
+
+
 def _btb_rizado_L():
     """Rizado de corriente en L: (a) tension conmutada y triangulo de corriente
     en el peor caso (referencia por cero, duty 50%); (b) amplitud del rizado a lo
@@ -16220,6 +16276,9 @@ def main():
         n += 1
     if pref is None or "btb-rizado-L".startswith(pref):
         _btb_rizado_L()
+        n += 1
+    if pref is None or "btb-lazo-tension-verif".startswith(pref):
+        _btb_lazo_tension_verif()
         n += 1
     if pref is None or "btb-mppt".startswith(pref):
         _btb_mppt()
