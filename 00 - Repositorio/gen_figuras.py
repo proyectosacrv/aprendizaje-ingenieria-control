@@ -15159,49 +15159,65 @@ def _btb_lazo_dc():
 
 def _npc_igbt_symbol(ax, x, y, h=0.80, on=None, diode_on=None, label='',
                       label_side='left', fs=13, scale=1.0):
-    """Simbolo IGBT vertical grande y nitido: colector arriba, emisor abajo,
-    puerta a la izquierda, diodo antiparalelo a la derecha en su propia
-    columna. 'on' colorea el canal del IGBT (verde=conduce, rojo=bloqueado,
-    None=neutro/gris). 'diode_on' colorea el diodo antiparalelo de forma
-    independiente (para el caso en que es el diodo, no el IGBT, quien
-    conduce la corriente). Escala controlada por 'scale' para reutilizar
-    el mismo dibujo a tamanos distintos."""
+    """Simbolo IGBT segun IEC 60617 (electrodo de puerta aislado tipo MOSFET +
+    linea recta C-E con flecha diagonal de conduccion tipo BJT, sin curvatura),
+    con su diodo antiparalelo como componente propio en paralelo (misma rama
+    C-E, dibujado a un lado, no fusionado dentro del mismo bloque). 'on'
+    colorea el canal (verde=conduce, rojo=bloqueado, None=neutro/gris,
+    'gated'=orden de puerta ON pero sin corriente real -> azul discontinuo).
+    'diode_on' colorea el diodo antiparalelo de forma independiente. Escala
+    controlada por 'scale'."""
     import matplotlib.patches as mpatches
     s = scale
-    col_t = '#1e8449' if on is True else ('#c0392b' if on is False else '#9a9a9a')
+    if on == 'gated':
+        col_t = '#2e86c1'
+    elif on is True:
+        col_t = '#1e8449'
+    elif on is False:
+        col_t = '#c0392b'
+    else:
+        col_t = '#9a9a9a'
     lw_t = 3.0*s if on is not None else 1.6*s
     col_d = '#1e8449' if diode_on is True else ('#c0392b' if diode_on is False else '#9a9a9a')
     lw_d = 2.6*s if diode_on is not None else 1.1*s
 
     top, bot = y+h/2, y-h/2
-    barc, bare = y+0.13*s, y-0.13*s
-    # patillas colector/emisor (negro, siempre)
-    ax.plot([x, x], [top, barc], color='#111', lw=1.6*s, zorder=2)
-    ax.plot([x, x], [bare, bot], color='#111', lw=1.6*s, zorder=2)
-    # barras de colector y emisor (coloreadas segun estado del IGBT)
-    ax.plot([x-0.15*s, x+0.15*s], [barc, barc], color=col_t, lw=lw_t, zorder=2, solid_capstyle='round')
-    ax.plot([x-0.15*s, x+0.15*s], [bare, bare], color=col_t, lw=lw_t, zorder=2, solid_capstyle='round')
-    # canal
-    ax.plot([x-0.15*s, x-0.15*s], [bare, barc], color=col_t, lw=lw_t, zorder=2)
-    # flecha de emisor tipo IGBT
-    ax.annotate('', xy=(x+0.30*s, bare-0.24*s), xytext=(x-0.15*s, bare),
-                arrowprops=dict(arrowstyle='-|>', color=col_t, lw=lw_t*0.8, mutation_scale=14*s), zorder=2)
-    # puerta (electrodo aislado)
-    ax.plot([x-0.52*s, x-0.24*s], [y, y], color='#555', lw=1.6*s, zorder=2)
-    ax.plot([x-0.24*s, x-0.24*s], [y-0.20*s, y+0.20*s], color='#555', lw=2.2*s, zorder=2)
-    # diodo antiparalelo, columna propia a la derecha
-    dx = 0.68*s
-    ax.plot([x+dx, x+dx], [top, barc+0.03*s], color=col_d, lw=1.4*s, zorder=1)
-    ax.plot([x+dx, x+dx], [bare-0.03*s, bot], color=col_d, lw=1.4*s, zorder=1)
-    ax.plot([x, x+dx], [top, top], color=col_d, lw=1.3*s, zorder=1)
-    ax.plot([x, x+dx], [bot, bot], color=col_d, lw=1.3*s, zorder=1)
-    tri_h = 0.24*s
+    # --- simbolo IGBT (norma habitual en manuales de electronica de potencia):
+    # patilla de colector recta desde arriba, patilla de emisor recta hacia
+    # abajo, y ENTRE ambas un unico trazo diagonal corto (la "paleta" IGBT)
+    # que las conecta en angulo -- exactamente como T1-T4 en la diapositiva
+    # NPTEL de referencia. La punta de flecha en el extremo inferior de la
+    # diagonal marca el terminal de emisor. La puerta es un electrodo corto
+    # y aislado (no toca la diagonal), a la izquierda, a la altura del centro. ---
+    barc, bare = y+0.17*s, y-0.17*s
+    ax.plot([x, x], [top, barc], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
+    ax.plot([x, x], [bare, bot], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
+    # trazo diagonal (paleta) que une la patilla de colector con la de emisor
+    ax.annotate('', xy=(x, bare), xytext=(x-0.30*s, barc),
+                arrowprops=dict(arrowstyle='-|>', color=col_t, lw=lw_t, mutation_scale=15*s), zorder=3)
+    ax.plot([x-0.30*s, x], [barc, barc], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
+    # puerta: electrodo aislado (placa corta perpendicular, sin tocar la paleta)
+    gx = x - 0.62*s
+    ax.plot([gx-0.20*s, gx], [y, y], color='#555', lw=1.6*s, zorder=3)
+    ax.plot([gx, gx], [y-0.24*s, y+0.24*s], color='#555', lw=2.2*s, zorder=3)
+
+    # --- diodo antiparalelo: componente propio en su propia rama vertical,
+    # a la derecha, unido por conductores horizontales arriba (colector) y
+    # abajo (emisor) al mismo nudo -- se ve claramente como pieza aparte ---
+    dx = 0.85*s
+    xd = x + dx
+    ax.plot([x, xd], [top, top], color='#333', lw=1.0*s, zorder=1)
+    ax.plot([x, xd], [bot, bot], color='#333', lw=1.0*s, zorder=1)
+    ax.plot([xd, xd], [top, y+0.18*s], color=col_d, lw=1.5*s, zorder=1)
+    ax.plot([xd, xd], [y-0.18*s, bot], color=col_d, lw=1.5*s, zorder=1)
+    tri_h = 0.20*s
     ax.add_patch(mpatches.Polygon(
-        [(x+dx-0.16*s, barc+0.03*s), (x+dx+0.16*s, barc+0.03*s), (x+dx, barc+0.03*s-tri_h)],
-        closed=True, facecolor=col_d, edgecolor=col_d, zorder=1))
-    ax.plot([x+dx-0.19*s, x+dx+0.19*s], [barc+0.03*s-tri_h, barc+0.03*s-tri_h], color=col_d, lw=lw_d, zorder=1)
+        [(xd-0.14*s, y+0.18*s), (xd+0.14*s, y+0.18*s), (xd, y+0.18*s-tri_h)],
+        closed=True, facecolor=col_d, edgecolor=col_d, zorder=2))
+    ax.plot([xd-0.16*s, xd+0.16*s], [y+0.18*s-tri_h, y+0.18*s-tri_h], color=col_d, lw=lw_d, zorder=2)
+
     if label:
-        lx = x-0.85*s if label_side == 'left' else x+1.15*s
+        lx = x-1.05*s if label_side == 'left' else xd+0.32*s
         ha = 'right' if label_side == 'left' else 'left'
         ax.text(lx, y, label, ha=ha, va='center', fontsize=fs, fontweight='bold', color='#111')
 
@@ -15368,8 +15384,17 @@ def _npc_mini_circuit(ax, level, io_sign, title):
         else:
             dev_state['T3'] = (True, False); dev_state['T4'] = (True, False)
         dev_state['T1'] = (False, None); dev_state['T2'] = (False, None)
-    else:  # 'O'
-        dev_state['T2'] = (True, False); dev_state['T3'] = (True, False)
+    else:  # 'O': T2 y T3 reciben orden de puerta ON a la vez, pero SOLO uno de
+        # los dos queda en serie con un diodo de anclaje polarizado en directo
+        # y por tanto solo ese lleva corriente; el otro esta "ON" por puerta
+        # pero sin corriente real (gated_noncond=True -> se dibuja en un tono
+        # neutro distinto, ni verde de conduccion ni rojo de bloqueo).
+        if io_sign > 0:
+            dev_state['T2'] = (True, False)       # conduce de verdad
+            dev_state['T3'] = ('gated', False)     # ON por puerta, sin corriente
+        else:
+            dev_state['T3'] = (True, False)
+            dev_state['T2'] = ('gated', False)
         dev_state['T1'] = (False, None); dev_state['T4'] = (False, None)
 
     def on_of(name):
@@ -15445,10 +15470,10 @@ def _npc_conmutacion():
     fig.suptitle('NPC 3 niveles: análisis completo de los 6 estados y modulación PD-PWM', fontsize=14, fontweight='bold')
 
     _npc_mini_circuit(axc[0], 'P', +1, r'(a) $V_{AO}=+V_{dc}/2$, $i_o>0$' + '\n$T_1,T_2$ conducen (canal)')
-    _npc_mini_circuit(axc[1], 'O', +1, r'(b) $V_{AO}=0$, $i_o>0$' + '\n$T_2,T_3$ ON, $D_5$ conduce')
+    _npc_mini_circuit(axc[1], 'O', +1, r'(b) $V_{AO}=0$, $i_o>0$' + '\n$T_2$ conduce, $D_5$; $T_3$ ON sin corriente')
     _npc_mini_circuit(axc[2], 'N', +1, r'(c) $V_{AO}=-V_{dc}/2$, $i_o>0$' + '\n$D_3,D_4$ conducen (antiparalelo)')
     _npc_mini_circuit(axc[3], 'P', -1, r'(d) $V_{AO}=+V_{dc}/2$, $i_o<0$' + '\n$D_1,D_2$ conducen (antiparalelo)')
-    _npc_mini_circuit(axc[4], 'O', -1, r'(e) $V_{AO}=0$, $i_o<0$' + '\n$T_2,T_3$ ON, $D_6$ conduce')
+    _npc_mini_circuit(axc[4], 'O', -1, r'(e) $V_{AO}=0$, $i_o<0$' + '\n$T_3$ conduce, $D_6$; $T_2$ ON sin corriente')
     _npc_mini_circuit(axc[5], 'N', -1, r'(f) $V_{AO}=-V_{dc}/2$, $i_o<0$' + '\n$T_3,T_4$ conducen (canal)')
 
     # ---- tabla de estados: 6 filas, columnas al estilo NPTEL (S_k conduce / D_k conduce) ----
@@ -15456,12 +15481,13 @@ def _npc_conmutacion():
     axT.set_xlim(0, 1); axT.set_ylim(0, 1)
     headers = ['Estado', '$V_{AO}$', '$i_o$', 'T1', 'D1', 'T2', 'D2', 'T3', 'D3', 'T4', 'D4', 'D5', 'D6']
     ndev = 10  # T1,D1,T2,D2,T3,D3,T4,D4,D5,D6
-    # marca 'S' = conduce el IGBT (canal), 'D' = conduce el diodo antiparalelo/de anclaje, '·' = bloqueado
+    # marca 'S' = conduce el IGBT (canal), 'D' = conduce el diodo antiparalelo/de anclaje,
+    # 'g' = ON por puerta pero SIN corriente real (el otro candidato del estado O), '·' = bloqueado
     estados = [
         ('P',  r'$+V_{dc}/2$', r'$>0$', 'S','·','S','·','·','·','·','·','·','·', 'T1,T2 conducen: la corriente sale de P hacia A'),
         ('P',  r'$+V_{dc}/2$', r'$<0$', '·','D','·','D','·','·','·','·','·','·', 'D1,D2 conducen: la corriente entra a A y sube hacia P'),
-        ('O',  r'$0$',         r'$>0$', '·','·','S','·','S','·','·','·','D','·', 'T2,T3 ON; D5 cierra el camino O→A'),
-        ('O',  r'$0$',         r'$<0$', '·','·','S','·','S','·','·','·','·','D', 'T2,T3 ON; D6 cierra el camino A→O'),
+        ('O',  r'$0$',         r'$>0$', '·','·','S','·','g','·','·','·','D','·', 'T2 conduce; T3 ON sin corriente; D5 cierra el camino O→A'),
+        ('O',  r'$0$',         r'$<0$', '·','·','g','·','S','·','·','·','·','D', 'T3 conduce; T2 ON sin corriente; D6 cierra el camino A→O'),
         ('N',  r'$-V_{dc}/2$', r'$>0$', '·','·','·','·','·','D','·','D','·','·', 'D3,D4 conducen: la corriente sube de N hacia A'),
         ('N',  r'$-V_{dc}/2$', r'$<0$', '·','·','·','·','·','S','·','S','·','·', 'T3,T4 conducen: la corriente baja de A hacia N'),
     ]
@@ -15478,7 +15504,7 @@ def _npc_conmutacion():
         axT.text(xs_[j]+0.016, y0-0.015, htxt, fontsize=10.5, fontweight='bold', color='white', ha='center', va='center', zorder=2)
     axT.text(xcoment, y0-0.015, 'Comentario físico', fontsize=10.5, fontweight='bold', color='white', ha='left', va='center', zorder=2)
 
-    col_S = '#1e8449'; col_D = '#b9770e'; col_off = '#c8ccd0'
+    col_S = '#1e8449'; col_D = '#b9770e'; col_G = '#2e86c1'; col_off = '#c8ccd0'
     for i, row in enumerate(estados):
         y = y0 - 0.10 - rowh*i
         if i % 2 == 0:
@@ -15497,12 +15523,17 @@ def _npc_conmutacion():
                 axT.add_patch(mpatches.FancyBboxPatch((xc-0.016, y-0.045), 0.032, 0.09, boxstyle='round,pad=0.006',
                               facecolor=col_D, edgecolor='#7e5109', lw=0.6, transform=axT.transAxes, zorder=2))
                 axT.text(xc, y, 'D', ha='center', va='center', fontsize=9.5, color='white', fontweight='bold', zorder=3)
+            elif val == 'g':
+                axT.add_patch(mpatches.FancyBboxPatch((xc-0.016, y-0.045), 0.032, 0.09, boxstyle='round,pad=0.006',
+                              facecolor='white', edgecolor=col_G, lw=1.3, transform=axT.transAxes, zorder=2))
+                axT.text(xc, y, 'g', ha='center', va='center', fontsize=9.5, color=col_G, fontweight='bold', zorder=3)
             else:
                 axT.text(xc, y, '·', ha='center', va='center', fontsize=13, color=col_off, fontweight='bold', zorder=2)
         axT.text(xcoment, y, row[13], fontsize=8.7, color='#444', va='center', ha='left')
     axT.plot([0, 1], [y0-0.06, y0-0.06], color='#2c3e50', lw=1.2, transform=axT.transAxes)
     axT.text(0.0, y0-0.10-rowh*6+0.02,
-             'S = conduce el canal del IGBT   ·   D = conduce el diodo (antiparalelo o de anclaje)   ·   · = bloqueado',
+             'S = conduce el canal del IGBT   ·   D = conduce el diodo (antiparalelo o de anclaje)   ·   '
+             'g = ON por puerta pero SIN corriente   ·   · = bloqueado',
              fontsize=9, color='#555', style='italic', transform=axT.transAxes)
     axT.set_title('Tabla de estados completa: los 6 casos (3 niveles × signo de $i_o$)',
                   fontsize=11.5, fontweight='bold', loc='left')

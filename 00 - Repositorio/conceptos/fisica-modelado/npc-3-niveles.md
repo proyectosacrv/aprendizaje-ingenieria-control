@@ -71,8 +71,8 @@ desconectado de la salida (ni O ni N), un estado sin sentido para la síntesis d
 |---|---|---|---|---|
 | **P** | 1,1,0,0 | \(>0\) | canal de \(T_1, T_2\) (S) | \(+V_{dc}/2\) |
 | **P** | 1,1,0,0 | \(<0\) | diodos antiparalelo \(D_1, D_2\) (D) | \(+V_{dc}/2\) |
-| **O** | 0,1,1,0 | \(>0\) | canal de \(T_2,T_3\) + diodo de anclaje \(D_5\) | \(0\) |
-| **O** | 0,1,1,0 | \(<0\) | canal de \(T_2,T_3\) + diodo de anclaje \(D_6\) | \(0\) |
+| **O** | 0,1,1,0 | \(>0\) | canal de \(T_2\) + diodo de anclaje \(D_5\) (\(T_3\) ON pero sin corriente) | \(0\) |
+| **O** | 0,1,1,0 | \(<0\) | canal de \(T_3\) + diodo de anclaje \(D_6\) (\(T_2\) ON pero sin corriente) | \(0\) |
 | **N** | 0,0,1,1 | \(>0\) | diodos antiparalelo \(D_3, D_4\) (D) | \(-V_{dc}/2\) |
 | **N** | 0,0,1,1 | \(<0\) | canal de \(T_3, T_4\) (S) | \(-V_{dc}/2\) |
 
@@ -82,12 +82,19 @@ conduce. Esto es distinto del estado O, donde la orden de puerta también es sie
 hay una **elección física** de cuál de los dos diodos de anclaje (\(D_5\) o \(D_6\)) cierra el camino,
 también gobernada por el signo de \(i_o\).
 
-**Por qué el estado O tiene dos caminos.** Con \(T_2\) y \(T_3\) en ON, la salida queda "flotando" entre P y
-N a través de esos dos interruptores; el **diodo de anclaje** que realmente conduce lo decide el signo de
-la corriente de fase \(i_o\), no una elección de control:
-- Si \(i_o>0\) (la fase entrega corriente hacia la carga desde O), la corriente sale por \(T_2\) y
-  **entra** por \(D_5\) desde el nudo O — \(D_5\) ancla la salida a O tirando de energía de \(C_1\).
-- Si \(i_o<0\), la corriente circula al revés y es \(D_6\) quien conduce, tirando de \(C_2\).
+**Por qué el estado O tiene dos caminos, y por qué T2 y T3 nunca conducen los dos a la vez.** La orden de
+puerta activa \(T_2\) y \(T_3\) simultáneamente, pero cada IGBT solo dirige corriente por su canal en un
+sentido (colector→emisor); el **camino físico real** que la corriente encuentra pasa por uno solo de los dos,
+según su signo:
+- Si \(i_o>0\) (la fase entrega corriente hacia la carga desde O): el único camino disponible es
+  O→\(D_5\)→nudo \(T_1\)-\(T_2\)→canal de \(T_2\)→A. \(T_3\) está en ON por puerta, pero la rama hacia N
+  (a través de \(D_6\), orientado al revés) está en bloqueo, así que **\(T_3\) no lleva corriente**.
+- Si \(i_o<0\) (la corriente entra en A y va hacia O): el único camino disponible es
+  A→canal de \(T_3\)→nudo \(T_3\)-\(T_4\)→\(D_6\)→O. Aquí es \(T_2\) quien está en ON sin conducir.
+
+Es decir: **nunca conducen T2 y T3 a la vez** — la orden de puerta activa a ambos como candidatos, pero el
+diodo de anclaje que sí puede polarizarse en directo (según el signo de \(i_o\)) determina cuál de los dos
+IGBT queda en serie con un camino cerrado, y ese es el único que efectivamente circula corriente.
 
 **Verificación por KVL de cada estado.** Tomando O como referencia (\(v_O=0\)):
 - Estado P: \(v_{aO}=v_P-v_O\). Como \(T_1,T_2\) conducen con caída ideal nula, \(v_a=v_P\), y
