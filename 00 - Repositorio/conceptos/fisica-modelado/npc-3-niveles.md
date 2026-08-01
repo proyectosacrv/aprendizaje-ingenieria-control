@@ -118,25 +118,38 @@ O, lo cual es seguro (a diferencia de 2 niveles, donde el deadtime deja la salid
 
 ## 2 — Modulación: PD-PWM con dos portadoras
 
-**Idea.** Se apilan dos portadoras triangulares de amplitud unidad: una entre \([0,1]\) (rige la transición
-P↔O) y otra entre \([-1,0]\) (rige la transición O↔N). La referencia \(r(\theta)=m\sin\theta\in[-1,1]\) se
-compara contra ambas:
+**Qué problema resuelve este apartado.** La tabla del apartado 1 dice qué combinación de interruptores da
+cada nivel (P, O, N), pero no dice **cuánto tiempo** hay que quedarse en cada uno para que la tensión media
+de salida seno un ciclo completo de red con la forma \(m\sin\theta\) deseada. Eso es lo que fija el
+modulador: necesitamos (a) una regla de comparación que decida en cada instante a qué nivel conmutar, y (b)
+saber qué **duty** (fracción de tiempo) le corresponde a cada nivel, porque ese duty es lo que en el
+apartado 3 determina cuánta carga se transfiere al punto neutro y en el apartado 4 determina las pérdidas de
+conducción.
+
+**Por qué dos portadoras y no una.** En 2 niveles (ver §2 de [[convertidor-back-to-back]]) basta una sola
+portadora triangular en \([-1,1]\) comparada con la referencia: por encima conmuta a P, por debajo a N. Aquí
+hay un nivel intermedio (O) que también hay que decidir cuándo usar, así que una sola comparación no basta.
+La solución estándar (PD-PWM, *phase disposition*) apila **tantas portadoras como transiciones entre niveles
+adyacentes existan**: con 3 niveles hay 2 transiciones (P↔O y O↔N), luego 2 portadoras, una en \([0,1]\) y
+otra en \([-1,0]\), ambas en fase entre sí (de ahí el nombre). En general, \(N\) niveles requieren \(N-1\)
+portadoras. La referencia \(r(\theta)=m\sin\theta\in[-1,1]\) se compara contra ambas:
 
 $$ v_{aO}^*(\theta) = \begin{cases} +\dfrac{V_{dc}}{2} & \text{si } r>\text{portadora superior} \\[4pt] -\dfrac{V_{dc}}{2} & \text{si } r<\text{portadora inferior} \\[4pt] 0 & \text{en el resto} \end{cases} $$
 
-Es la generalización directa del comparador de 2 niveles (§2 de [[convertidor-back-to-back]]): con \(N\)
-niveles hacen falta \(N-1\) portadoras apiladas (PD-PWM, *phase disposition*), todas en fase entre sí (de
-ahí el nombre). Existen variantes POD (portadoras negativas desfasadas 180°) y APOD (todas alternadas), con
-distinto reparto de armónicos entre bandas pero el mismo principio.
+Existen variantes POD (portadoras negativas desfasadas 180°) y APOD (todas alternadas), con distinto reparto
+de armónicos entre bandas laterales pero el mismo principio de comparación.
 
-**Derivación del duty efectivo (paso a paso, generalizando el §5.2 de convertidor-back-to-back).**
-Sea \(r(\theta)=m\sin\theta\) la referencia y \(x=r\) su valor instantáneo. Se distinguen dos regiones:
+**Por qué hace falta derivar el duty explícitamente.** La regla de comparación de arriba dice *qué* nivel
+sale en cada instante de conmutación, pero para calcular después el rizado de corriente (apartado 4), la
+transferencia de carga al neutro (apartado 3) o las pérdidas (apartado 4) hace falta la fracción de tiempo
+\(d(\theta)\) en cada nivel dentro de un periodo de conmutación \(T_s\) — no solo la comparación instantánea.
+Se deriva igual que el duty de 2 niveles (§5.2 de [[convertidor-back-to-back]]): la fracción de un periodo de
+rampa \([0,1]\) que queda por encima de un valor fijo \(x\) es, por semejanza de triángulos, igual a \(x\).
+Aplicando esto a cada una de las dos regiones de \(r(\theta)\):
 
-*Región superior* (\(0\le r\le1\), la salida conmuta entre P y O). La portadora superior recorre
-\([0,1]\) en cada periodo de conmutación \(T_s\); el interruptor \(T_1\) está en ON mientras \(r\) supera la
-portadora. Por la misma geometría del triángulo que en el caso de 2 niveles (donde la fracción de tiempo
-por encima de una referencia \(x\in[0,1]\) sobre una rampa \([0,1]\) es \(x\)), el duty en P dentro de este
-tramo es:
+*Región superior* (\(0\le r\le1\), la salida conmuta entre P y O). La portadora superior recorre \([0,1]\)
+en cada \(T_s\); \(T_1\) está en ON mientras \(r\) supera la portadora, luego por la semejanza de triángulos
+anterior el duty en P dentro de este tramo es directamente
 
 $$ d_P(\theta) = r(\theta) = m\sin\theta \qquad (0\le m\sin\theta\le 1) $$
 
@@ -145,18 +158,22 @@ y el resto del periodo, \(1-d_P\), la salida está en O.
 *Región inferior* (\(-1\le r\le0\)), simétrica: el duty en N es \(d_N=-r=-m\sin\theta\) y el resto,
 \(1-d_N\), en O.
 
-**Duty medio en cada nivel a lo largo de un ciclo de red.** Integrando \(d_P(\theta)\) solo donde es
-positivo (media onda) se recupera exactamente el mismo resultado que el corchete \((1+m\sin\theta)/2\)
-visto para 2 niveles, pero repartido en dos comparaciones de rango mitad: es la razón por la que el "cero"
-de referencia de cada comparación está desplazado (0.5 o −0.5 del rango \([0,1]\) o \([-1,0]\) en vez de 0
-en un rango \([-1,1]\) único), lo que reduce a la mitad la excursión de portadora que ve cada comparación y,
-con ello —según se deriva en el apartado 4— el rizado de corriente.
+**Por qué interesa el duty medio en un ciclo de red completo (y no solo instantáneo).** El resultado anterior
+da el duty en un instante \(\theta\); para comparar con 2 niveles y para el cálculo de pérdidas del apartado
+4 (que integra sobre todo el ciclo de red) hace falta su promedio. Integrando \(d_P(\theta)\) solo donde es
+positivo (media onda) se recupera exactamente el mismo resultado que el corchete \((1+m\sin\theta)/2\) visto
+para 2 niveles, pero repartido en dos comparaciones de rango mitad. Esta es la razón por la que el "cero" de
+referencia de cada comparación está desplazado (0.5 o −0.5 del rango \([0,1]\) o \([-1,0]\), en vez de 0 en
+un único rango \([-1,1]\)): al reducirse a la mitad la excursión de portadora que ve cada comparación, se
+reduce a la mitad también el salto de tensión en cada conmutación y, con ello —según se deriva en el
+apartado 4— el rizado de corriente.
 
-**Índice de modulación y zona lineal.** Igual que en 2 niveles, \(m\in[0,1]\) es la zona lineal con PD-PWM
-senoidal pura; la inyección de secuencia cero (apartado 3, Paso 4) puede además extender el rango en
-\(2/\sqrt3\approx1.15\) exactamente por el mismo mecanismo que en 2 niveles (§2.2 de
-[[convertidor-back-to-back]]), con la ventaja añadida de que aquí esa misma inyección sirve **a la vez**
-para el balance de neutro.
+**Hasta dónde se puede modular sin distorsión (índice de modulación).** Igual que en 2 niveles, \(m\in[0,1]\)
+es la zona lineal con PD-PWM senoidal pura: por encima de \(m=1\) la referencia sobrepasa el rango de la
+portadora y aparece sobremodulación (recorte, con distorsión armónica de baja frecuencia). La inyección de
+secuencia cero (apartado 3, Paso 4) permite extender ese límite hasta \(2/\sqrt3\approx1.15\) exactamente
+por el mismo mecanismo que en 2 niveles (§2.2 de [[convertidor-back-to-back]]), con la ventaja añadida de
+que aquí esa misma inyección sirve **a la vez** para el balance de neutro.
 
 ## 3 — El balance del punto neutro (derivación completa)
 
