@@ -15182,25 +15182,34 @@ def _npc_igbt_symbol(ax, x, y, h=0.80, on=None, diode_on=None, label='',
     lw_d = 2.6*s if diode_on is not None else 1.1*s
 
     top, bot = y+h/2, y-h/2
-    # --- simbolo IGBT canal N (geometria estandar de datasheet: Infineon,
-    # Mitsubishi, Wikipedia "IGBT schematic symbol"): patilla de colector
-    # recta en el eje x desde arriba, patilla de emisor recta en el MISMO eje
-    # hacia abajo; entre ambas, un unico trazo diagonal corto (~55 grados)
-    # que cruza el eje y termina en punta de flecha hacia afuera marcando el
-    # terminal de emisor (igual que un BJT NPN). La puerta es un electrodo
-    # vertical aislado (una placa corta, SEPARADA por un hueco de la diagonal
-    # -- simbolo de control por campo, no por contacto), a la izquierda. ---
-    barc, bare = y+0.19*s, y-0.19*s
-    ax.plot([x, x], [top, barc], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
-    ax.plot([x, x], [bare, bot], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
-    # trazo diagonal (paleta) que cruza el eje: de (colector, a la izquierda)
-    # a (emisor, sobre el eje), con la flecha en la propia punta de llegada
-    ax.annotate('', xy=(x, bare), xytext=(x-0.34*s, barc),
-                arrowprops=dict(arrowstyle='-|>', color=col_t, lw=lw_t, mutation_scale=16*s), zorder=3)
-    # puerta: placa vertical aislada, con hueco respecto a la diagonal (sin tocarla)
-    gx = x - 0.62*s
-    ax.plot([gx-0.20*s, gx-0.09*s], [y, y], color='#555', lw=1.6*s, zorder=3)
-    ax.plot([gx-0.09*s, gx-0.09*s], [y-0.30*s, y+0.30*s], color='#555', lw=2.4*s, zorder=3)
+    # --- simbolo IGBT canal N, geometria calcada del SVG de referencia
+    # "IGBT_symbol.svg" (Wikimedia Commons, licencia libre): un eje C-E recto
+    # y desplazado a la DERECHA (x); a la izquierda de ese eje, el "canal" en
+    # forma de L (baja recto, luego un tramo horizontal corto hacia la
+    # puerta); el eje se conecta al canal por arriba con una diagonal corta
+    # (hacia el terminal de colector) y por abajo con OTRA diagonal que
+    # termina en la flecha de emisor (apunta hacia fuera, abajo-derecha,
+    # como un BJT NPN); la puerta es una placa aislada, horizontal+vertical,
+    # que toca el codo de la L (no el eje central). ---
+    xa = x                              # eje recto C-E (terminales, alineado con el bus externo)
+    xc = x - 0.32*s                    # columna del canal (a la izquierda del eje)
+    yc_top, yc_bot = y+0.30*s, y-0.14*s    # extremos verticales del tramo recto del canal
+    # patillas rectas externas (colector arriba, emisor abajo), en el eje xa
+    ax.plot([xa, xa], [top, y+0.42*s], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
+    ax.plot([xa, xa], [y-0.40*s, bot], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
+    # canal en L: tramo vertical recto + codo horizontal corto hacia la puerta
+    ax.plot([xc, xc], [yc_top, yc_bot], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
+    ax.plot([xc, xc-0.22*s], [yc_bot, yc_bot], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
+    # diagonal superior: conecta el canal con la patilla de colector
+    ax.plot([xc, xa], [yc_top, y+0.42*s], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
+    # diagonal inferior CON flecha: conecta el canal con la patilla de emisor
+    # (la propia punta de flecha marca el terminal de emisor, hacia afuera)
+    ax.annotate('', xy=(xa, y-0.40*s), xytext=(xc, yc_bot),
+                arrowprops=dict(arrowstyle='-|>', color=col_t, lw=lw_t, mutation_scale=15*s), zorder=3)
+    # puerta: electrodo aislado que toca el codo de la L (linea corta + placa)
+    gx = xc - 0.22*s
+    ax.plot([gx-0.20*s, gx], [yc_bot, yc_bot], color='#555', lw=1.6*s, zorder=3)
+    ax.plot([gx-0.20*s, gx-0.20*s], [yc_bot-0.22*s, yc_bot+0.22*s], color='#555', lw=2.2*s, zorder=3)
 
     # --- diodo antiparalelo: componente propio en su propia rama vertical,
     # a la derecha, unido por conductores horizontales arriba (colector) y
@@ -15853,14 +15862,18 @@ def _npc_svm():
                     style='italic', zorder=6,
                     bbox=dict(boxstyle='circle,pad=0.15', facecolor='white', edgecolor=col, lw=0.8))
 
-    # --- ejes a, b, c: flechas reales desde el origen (no lineas discontinuas) ---
+    # --- ejes a, b, c: flechas reales, en color distintivo y SOLO en el tramo
+    # exterior al hexagono (dentro, coinciden exactamente con lineas de la
+    # reticula normal y se confundirian con ellas si se dibujaran encima) ---
+    col_axis = '#2e5090'
     for ang, lbl in [(0, 'a'), (120, 'b'), (240, 'c')]:
         rad = np.radians(ang)
-        xe, ye = 1.06*R*np.cos(rad), 1.06*R*np.sin(rad)
-        ax.annotate('', xy=(xe, ye), xytext=(0, 0), zorder=0,
-                    arrowprops=dict(arrowstyle='-|>', color='#666', lw=1.8, mutation_scale=20))
-        ax.text(1.34*R*np.cos(rad), 1.34*R*np.sin(rad), lbl, fontsize=18, fontweight='bold',
-                ha='center', va='center', color='#444')
+        x0, y0 = R*np.cos(rad), R*np.sin(rad)          # borde del hexagono (vertice largo)
+        xe, ye = 1.16*R*np.cos(rad), 1.16*R*np.sin(rad)  # punta de la flecha
+        ax.annotate('', xy=(xe, ye), xytext=(x0, y0), zorder=7,
+                    arrowprops=dict(arrowstyle='-|>', color=col_axis, lw=2.4, mutation_scale=22))
+        ax.text(1.38*R*np.cos(rad), 1.38*R*np.sin(rad), lbl, fontsize=18, fontweight='bold',
+                ha='center', va='center', color=col_axis)
 
     ax.text(0, -1.6*R, r'Notación: cada vértice muestra $(S_a S_b S_c)$ con $S_k\in\{+,0,-\}$; el número en círculo'
             ' es la multiplicidad (cuántas ternas distintas caen en ese mismo punto físico).'
