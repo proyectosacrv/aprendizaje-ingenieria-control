@@ -169,28 +169,73 @@ y el resto del periodo, \(1-d_P(\theta)\), la salida está en O.
 *Región inferior* (\(-1\le r\le0\)), simétrica: el duty en N es \(d_N(\theta)=-r(\theta)=-m\sin\theta\) y el
 resto, \(1-d_N(\theta)\), en O.
 
-**Del duty instantáneo al duty medio: por qué integrar y cómo.** El resultado anterior, \(d_P(\theta)\), es
-el duty dentro de *un solo* periodo de conmutación en torno al ángulo \(\theta\) — útil para el rizado
-instantáneo (apartado 4), pero no directamente comparable con la cifra única de duty que se usa en 2 niveles,
-que es un promedio sobre medio ciclo de red. Para obtenerlo hay que promediar \(d_P(\theta)\) sobre el
-semiciclo donde P está activo (\(\theta\in[0,\pi]\), donde \(\sin\theta\ge0\)):
+**De dónde sale el corchete \((1+m\sin\theta)/2\) de 2 niveles (y por qué hace falta aquí).** Antes de definir
+el duty medio del NPC hay que tener a mano el resultado de referencia con el que se va a comparar, porque las
+pérdidas del apartado 4 y el ejemplo numérico del apartado 7 necesitan un duty **directamente comparable**
+al de 2 niveles, no solo \(d_P\) y \(d_N\) por separado. En 2 niveles (§5.2 de
+[[convertidor-back-to-back]]) el interruptor superior está ON una fracción \(d(\theta)\) de **cada** periodo
+de conmutación, en **todo** el ciclo de red (no solo medio ciclo), y el interruptor inferior lleva el resto,
+\(1-d(\theta)\); la tensión media de salida en ese periodo es el promedio ponderado de los dos niveles
+posibles:
 
-$$ \bar d_P = \frac{1}{\pi}\int_0^\pi d_P(\theta)\,d\theta = \frac{1}{\pi}\int_0^\pi m\sin\theta\,d\theta $$
+$$ \bar v(\theta) = d(\theta)\Big(+\frac{V_{dc}}{2}\Big) + \big(1-d(\theta)\big)\Big(-\frac{V_{dc}}{2}\Big) = \frac{V_{dc}}{2}\big(2d(\theta)-1\big) $$
 
-Resolviendo la integral, \(\displaystyle\int_0^\pi \sin\theta\,d\theta = [-\cos\theta]_0^\pi = -(-1)-(-1) = 2\),
-así que
+Igualando esto a la referencia deseada \(\bar v(\theta)=m\,\frac{V_{dc}}{2}\sin\theta\) y despejando
+\(d(\theta)\) se obtiene el corchete:
 
-$$ \bar d_P = \frac{2m}{\pi} $$
+$$ \frac{V_{dc}}{2}\big(2d(\theta)-1\big) = m\,\frac{V_{dc}}{2}\sin\theta \quad\Longrightarrow\quad d(\theta) = \frac{1+m\sin\theta}{2} $$
 
-Este es el duty medio en el nivel P **dentro del semiciclo positivo**. Para comparar con el duty de 2 niveles
-(que se define sobre el ciclo completo con el corchete \((1+m\sin\theta)/2\)) hay que tener en cuenta que
-aquí P y N ocupan cada uno solo un semiciclo, y que el nivel O rellena todo el resto — el corchete de 2
-niveles y el par \((d_P,d_N)\) de aquí describen la misma física (la tensión media de salida), pero repartida
-en dos comparaciones de rango mitad en vez de una de rango completo. Esta es la razón por la que el "cero" de
-referencia de cada comparación está desplazado (0.5 o −0.5 del rango \([0,1]\) o \([-1,0]\), en vez de 0 en
-un único rango \([-1,1]\)): al reducirse a la mitad la excursión de portadora que ve cada comparación, se
-reduce a la mitad también el salto de tensión en cada conmutación y, con ello —según se deriva en el
-apartado 4— el rizado de corriente.
+(comprobación: en \(\theta=0\), \(d=0.5\), duty simétrico entre P y N para tensión media nula; en el pico
+positivo, \(d\to1\), todo el tiempo en P; en el valle, \(d\to0\), todo en N).
+
+**El duty efectivo del NPC, definido para ser comparable con el de 2 niveles.** El NPC no tiene un único
+interruptor que esté ON todo el ciclo — en la región superior conmuta entre P y O (con \(d_P\) del bloque
+anterior) y en la región inferior entre O y N (con \(d_N\)) — así que hace falta construir la magnitud
+equivalente. Se define el **duty efectivo** \(d_{ef}(\theta)\) exactamente con el mismo papel que \(d(\theta)\)
+en 2 niveles: la fracción "hacia P" de una descomposición binaria P/N que dé la misma tensión media. Puesto
+que en cada instante o bien P está activo (con duty \(d_P\) y O con \(1-d_P\)) o bien N lo está (con duty
+\(d_N\) y O con \(1-d_N\)), y en ambos casos O contribuye tensión media nula, la tensión media de salida del
+NPC es simplemente \(V_{dc}/2\cdot d_P(\theta)\) en la región superior y \(-V_{dc}/2\cdot d_N(\theta)\) en la
+inferior. Sustituyendo \(d_P(\theta)=m\sin\theta\) (región superior) esto da \(\bar v(\theta) = m\sin\theta\cdot V_{dc}/2\)
+— **la misma referencia** que en 2 niveles, como debía ser. Definiendo \(d_{ef}(\theta)=\big(1+m\sin\theta\big)/2\)
+igual que en 2 niveles, se recupera la relación con las variables propias del NPC:
+
+$$ d_P(\theta) = 2\,d_{ef}(\theta) - 1 \ \ (\ge0 \text{ en la región superior}), \qquad d_N(\theta) = 1-2\,d_{ef}(\theta) \ \ (\ge0 \text{ en la región inferior}) $$
+
+Es decir, \(d_{ef}\) es la misma cantidad de siempre (duty equivalente de 2 niveles), mientras que \(d_P,d_N\)
+son la forma en que el NPC la reparte físicamente entre P/O y O/N.
+
+**El duty medio en un ciclo de red completo: la integral correcta.** Aquí es donde hay que tener cuidado con
+qué se integra y sobre qué rango. El duty medio que interesa para las pérdidas del apartado 4 y el ejemplo
+del apartado 7 es el de \(d_{ef}(\theta)\) —la magnitud comparable a 2 niveles— sobre el **ciclo completo**
+\([0,2\pi]\), no solo sobre el semiciclo positivo:
+
+$$ \bar d_{ef} = \frac{1}{2\pi}\int_0^{2\pi} d_{ef}(\theta)\,d\theta = \frac{1}{2\pi}\int_0^{2\pi} \frac{1+m\sin\theta}{2}\,d\theta $$
+
+Separando la integral en sus dos términos, \(\displaystyle\int_0^{2\pi} 1\,d\theta = 2\pi\) y
+\(\displaystyle\int_0^{2\pi} \sin\theta\,d\theta = 0\) (una senoide completa se cancela en un periodo
+completo — a diferencia de \(\int_0^\pi\sin\theta\,d\theta=2\), que es solo medio ciclo y **no** se anula):
+
+$$ \bar d_{ef} = \frac{1}{2\pi}\cdot\frac{1}{2}\Big(2\pi + m\cdot 0\Big) = \frac{1}{2} $$
+
+El resultado \(\bar d_{ef}=1/2\) es exactamente lo esperado: en un ciclo de red completo y simétrico, el
+convertidor pasa en promedio tanto tiempo "hacia P" como "hacia N", independientemente del índice de
+modulación \(m\) — el valor medio de la tensión de salida en un ciclo completo es cero, como debe ser para
+una senoide sin componente DC. **Este promedio de \(1/2\) no es la cantidad útil para pérdidas** (que
+dependen del duty instantáneo ponderado por la corriente instantánea, no del duty medio sin más — ver el
+Paso 6 de [[convertidor-back-to-back]] §5.2, donde se integra \(i(\theta)\cdot d(\theta)\), no \(d(\theta)\)
+solo). Lo que sí es directamente utilizable es \(d_{ef}(\theta)\) como **función de \(\theta\)** — la
+expresión cerrada \((1+m\sin\theta)/2\) — que es la que se sustituye dentro de las integrales ponderadas por
+corriente del apartado 4.
+
+**Por qué el reparto en dos comparaciones de rango mitad reduce el rizado.** Aunque \(d_{ef}\) sea la
+cantidad comparable con 2 niveles, físicamente el NPC nunca ejecuta un salto \(\pm V_{dc}/2\) en una sola
+conmutación como el de 2 niveles: cada conmutación real es P↔O o O↔N, un salto de solo \(V_{dc}/2\) en vez
+de \(V_{dc}\). Esta es la razón por la que el "cero" de referencia de cada comparación de portadora está
+desplazado (0.5 o −0.5 del rango \([0,1]\) o \([-1,0]\), en vez de 0 en un único rango \([-1,1]\)): al
+reducirse a la mitad la excursión de portadora que ve cada comparación, se reduce a la mitad también el
+salto de tensión en cada conmutación individual y, con ello —según se deriva en el apartado 4— el rizado de
+corriente.
 
 **Hasta dónde se puede modular sin distorsión (índice de modulación).** Igual que en 2 niveles, \(m\in[0,1]\)
 es la zona lineal con PD-PWM senoidal pura: por encima de \(m=1\) la referencia sobrepasa el rango de la
