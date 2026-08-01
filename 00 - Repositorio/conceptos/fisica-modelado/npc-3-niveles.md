@@ -140,29 +140,53 @@ Existen variantes POD (portadoras negativas desfasadas 180°) y APOD (todas alte
 de armónicos entre bandas laterales pero el mismo principio de comparación.
 
 **Por qué hace falta derivar el duty explícitamente.** La regla de comparación de arriba dice *qué* nivel
-sale en cada instante de conmutación, pero para calcular después el rizado de corriente (apartado 4), la
-transferencia de carga al neutro (apartado 3) o las pérdidas (apartado 4) hace falta la fracción de tiempo
-\(d(\theta)\) en cada nivel dentro de un periodo de conmutación \(T_s\) — no solo la comparación instantánea.
-Se deriva igual que el duty de 2 niveles (§5.2 de [[convertidor-back-to-back]]): la fracción de un periodo de
-rampa \([0,1]\) que queda por encima de un valor fijo \(x\) es, por semejanza de triángulos, igual a \(x\).
-Aplicando esto a cada una de las dos regiones de \(r(\theta)\):
+sale en cada instante de conmutación, pero no dice **cuánto tiempo relativo** pasa la salida en cada uno
+dentro de un periodo de conmutación \(T_s\) — y es esa fracción de tiempo (el *duty*) la que fija la tensión
+media, la que en el apartado 3 determina cuánta carga se transfiere al punto neutro y la que en el apartado 4
+determina el rizado de corriente y las pérdidas de conducción.
 
-*Región superior* (\(0\le r\le1\), la salida conmuta entre P y O). La portadora superior recorre \([0,1]\)
-en cada \(T_s\); \(T_1\) está en ON mientras \(r\) supera la portadora, luego por la semejanza de triángulos
-anterior el duty en P dentro de este tramo es directamente
+**Cómo razonar el duty a partir de la comparación señal-portadora.** Fijemos un instante de la referencia
+\(\theta\) y miremos un único periodo de conmutación \(T_s\) alrededor de ese instante — a esa escala de
+tiempo tan corta, la referencia \(r(\theta)\) apenas varía y puede tratarse como una **constante** \(x\)
+mientras la portadora sí completa una rampa entera. Concretamente, en la región superior la portadora sube
+linealmente de 0 a 1 en \(T_s\): mientras la rampa va de 0 hasta el valor \(x\), la portadora está por debajo
+de la referencia y el comparador ordena P (\(T_1\) en ON); en cuanto la rampa supera \(x\) y hasta que se
+reinicia en 1, la portadora está por encima y el comparador ordena O. Como la rampa avanza a **velocidad
+constante**, el tiempo que tarda en ir de 0 a \(x\) es, sencillamente, la misma fracción \(x\) del periodo
+total: si la rampa completa recorre \([0,1]\) en un tiempo \(T_s\), recorrer solo \([0,x]\) le lleva
+\(x\cdot T_s\). Por tanto la fracción de \(T_s\) en el nivel P es directamente igual al valor **numérico**
+de la referencia en ese instante — no hace falta ninguna integral para este paso, solo la proporcionalidad
+de una rampa lineal (es la misma idea, aplicada aquí a un rango \([0,1]\) en vez de \([-1,1]\), que en el
+duty de 2 niveles del §5.2 de [[convertidor-back-to-back]]).
+
+*Región superior* (\(0\le r\le1\), la salida conmuta entre P y O). Aplicando el razonamiento anterior con
+\(x=r(\theta)\), el duty instantáneo en P es
 
 $$ d_P(\theta) = r(\theta) = m\sin\theta \qquad (0\le m\sin\theta\le 1) $$
 
-y el resto del periodo, \(1-d_P\), la salida está en O.
+y el resto del periodo, \(1-d_P(\theta)\), la salida está en O.
 
-*Región inferior* (\(-1\le r\le0\)), simétrica: el duty en N es \(d_N=-r=-m\sin\theta\) y el resto,
-\(1-d_N\), en O.
+*Región inferior* (\(-1\le r\le0\)), simétrica: el duty en N es \(d_N(\theta)=-r(\theta)=-m\sin\theta\) y el
+resto, \(1-d_N(\theta)\), en O.
 
-**Por qué interesa el duty medio en un ciclo de red completo (y no solo instantáneo).** El resultado anterior
-da el duty en un instante \(\theta\); para comparar con 2 niveles y para el cálculo de pérdidas del apartado
-4 (que integra sobre todo el ciclo de red) hace falta su promedio. Integrando \(d_P(\theta)\) solo donde es
-positivo (media onda) se recupera exactamente el mismo resultado que el corchete \((1+m\sin\theta)/2\) visto
-para 2 niveles, pero repartido en dos comparaciones de rango mitad. Esta es la razón por la que el "cero" de
+**Del duty instantáneo al duty medio: por qué integrar y cómo.** El resultado anterior, \(d_P(\theta)\), es
+el duty dentro de *un solo* periodo de conmutación en torno al ángulo \(\theta\) — útil para el rizado
+instantáneo (apartado 4), pero no directamente comparable con la cifra única de duty que se usa en 2 niveles,
+que es un promedio sobre medio ciclo de red. Para obtenerlo hay que promediar \(d_P(\theta)\) sobre el
+semiciclo donde P está activo (\(\theta\in[0,\pi]\), donde \(\sin\theta\ge0\)):
+
+$$ \bar d_P = \frac{1}{\pi}\int_0^\pi d_P(\theta)\,d\theta = \frac{1}{\pi}\int_0^\pi m\sin\theta\,d\theta $$
+
+Resolviendo la integral, \(\displaystyle\int_0^\pi \sin\theta\,d\theta = [-\cos\theta]_0^\pi = -(-1)-(-1) = 2\),
+así que
+
+$$ \bar d_P = \frac{2m}{\pi} $$
+
+Este es el duty medio en el nivel P **dentro del semiciclo positivo**. Para comparar con el duty de 2 niveles
+(que se define sobre el ciclo completo con el corchete \((1+m\sin\theta)/2\)) hay que tener en cuenta que
+aquí P y N ocupan cada uno solo un semiciclo, y que el nivel O rellena todo el resto — el corchete de 2
+niveles y el par \((d_P,d_N)\) de aquí describen la misma física (la tensión media de salida), pero repartida
+en dos comparaciones de rango mitad en vez de una de rango completo. Esta es la razón por la que el "cero" de
 referencia de cada comparación está desplazado (0.5 o −0.5 del rango \([0,1]\) o \([-1,0]\), en vez de 0 en
 un único rango \([-1,1]\)): al reducirse a la mitad la excursión de portadora que ve cada comparación, se
 reduce a la mitad también el salto de tensión en cada conmutación y, con ello —según se deriva en el
@@ -170,10 +194,10 @@ apartado 4— el rizado de corriente.
 
 **Hasta dónde se puede modular sin distorsión (índice de modulación).** Igual que en 2 niveles, \(m\in[0,1]\)
 es la zona lineal con PD-PWM senoidal pura: por encima de \(m=1\) la referencia sobrepasa el rango de la
-portadora y aparece sobremodulación (recorte, con distorsión armónica de baja frecuencia). La inyección de
-secuencia cero (apartado 3, Paso 4) permite extender ese límite hasta \(2/\sqrt3\approx1.15\) exactamente
-por el mismo mecanismo que en 2 niveles (§2.2 de [[convertidor-back-to-back]]), con la ventaja añadida de
-que aquí esa misma inyección sirve **a la vez** para el balance de neutro.
+portadora y aparece sobremodulación (recorte, con distorsión armónica de baja frecuencia). Como en 2 niveles
+(§2.2 de [[convertidor-back-to-back]]), ese límite se puede extender deformando la referencia sin alterar la
+tensión de línea; el apartado 3 retoma esta idea porque en el NPC la misma deformación sirve, además, para
+el balance del punto neutro.
 
 ## 3 — El balance del punto neutro (derivación completa)
 

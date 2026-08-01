@@ -15182,24 +15182,25 @@ def _npc_igbt_symbol(ax, x, y, h=0.80, on=None, diode_on=None, label='',
     lw_d = 2.6*s if diode_on is not None else 1.1*s
 
     top, bot = y+h/2, y-h/2
-    # --- simbolo IGBT (norma habitual en manuales de electronica de potencia):
-    # patilla de colector recta desde arriba, patilla de emisor recta hacia
-    # abajo, y ENTRE ambas un unico trazo diagonal corto (la "paleta" IGBT)
-    # que las conecta en angulo -- exactamente como T1-T4 en la diapositiva
-    # NPTEL de referencia. La punta de flecha en el extremo inferior de la
-    # diagonal marca el terminal de emisor. La puerta es un electrodo corto
-    # y aislado (no toca la diagonal), a la izquierda, a la altura del centro. ---
-    barc, bare = y+0.17*s, y-0.17*s
+    # --- simbolo IGBT canal N (geometria estandar de datasheet: Infineon,
+    # Mitsubishi, Wikipedia "IGBT schematic symbol"): patilla de colector
+    # recta en el eje x desde arriba, patilla de emisor recta en el MISMO eje
+    # hacia abajo; entre ambas, un unico trazo diagonal corto (~55 grados)
+    # que cruza el eje y termina en punta de flecha hacia afuera marcando el
+    # terminal de emisor (igual que un BJT NPN). La puerta es un electrodo
+    # vertical aislado (una placa corta, SEPARADA por un hueco de la diagonal
+    # -- simbolo de control por campo, no por contacto), a la izquierda. ---
+    barc, bare = y+0.19*s, y-0.19*s
     ax.plot([x, x], [top, barc], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
     ax.plot([x, x], [bare, bot], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
-    # trazo diagonal (paleta) que une la patilla de colector con la de emisor
-    ax.annotate('', xy=(x, bare), xytext=(x-0.30*s, barc),
-                arrowprops=dict(arrowstyle='-|>', color=col_t, lw=lw_t, mutation_scale=15*s), zorder=3)
-    ax.plot([x-0.30*s, x], [barc, barc], color=col_t, lw=lw_t, zorder=3, solid_capstyle='round')
-    # puerta: electrodo aislado (placa corta perpendicular, sin tocar la paleta)
+    # trazo diagonal (paleta) que cruza el eje: de (colector, a la izquierda)
+    # a (emisor, sobre el eje), con la flecha en la propia punta de llegada
+    ax.annotate('', xy=(x, bare), xytext=(x-0.34*s, barc),
+                arrowprops=dict(arrowstyle='-|>', color=col_t, lw=lw_t, mutation_scale=16*s), zorder=3)
+    # puerta: placa vertical aislada, con hueco respecto a la diagonal (sin tocarla)
     gx = x - 0.62*s
-    ax.plot([gx-0.20*s, gx], [y, y], color='#555', lw=1.6*s, zorder=3)
-    ax.plot([gx, gx], [y-0.24*s, y+0.24*s], color='#555', lw=2.2*s, zorder=3)
+    ax.plot([gx-0.20*s, gx-0.09*s], [y, y], color='#555', lw=1.6*s, zorder=3)
+    ax.plot([gx-0.09*s, gx-0.09*s], [y-0.30*s, y+0.30*s], color='#555', lw=2.4*s, zorder=3)
 
     # --- diodo antiparalelo: componente propio en su propia rama vertical,
     # a la derecha, unido por conductores horizontales arriba (colector) y
@@ -15824,34 +15825,47 @@ def _npc_svm():
         for (x1, y1) in all_xy[(d > unit*0.9) & (d < unit*1.1)]:
             ax.plot([x0, x1], [y0, y1], color='#444', lw=1.1, zorder=1)
 
-    # --- etiquetar cada posicion fisica con TODAS sus ternas (Sa Sb Sc) ---
+    # --- etiquetar cada posicion fisica con TODAS sus ternas (Sa Sb Sc) y su multiplicidad ---
     for (x, y), states in pts.items():
         r = np.hypot(x, y)
         n = len(states)
         if r < 0.05:
-            col, fs = '#7f8c8d', 8.5
+            col, fs, ms = '#7f8c8d', 9.5, 11
         elif n >= 2:
-            col, fs = '#c0392b', 8.5
+            col, fs, ms = '#c0392b', 9.5, 10
         else:
-            col, fs = '#1a1a1a', 8.5
-        ax.plot([x], [y], 'o', color=col, ms=7, zorder=5, markeredgecolor='white', markeredgewidth=0.6)
+            col, fs, ms = '#1a1a1a', 9.5, 8
+        ax.plot([x], [y], 'o', color=col, ms=ms, zorder=5, markeredgecolor='white', markeredgewidth=0.8)
         labels = '  '.join('(' + ''.join(sym[v] for v in s) + ')' for s in sorted(states))
         ur = (x/r, y/r) if r > 0.05 else (0.0, 1.0)
-        off = 0.46 if r > 1.9*unit else 0.34
+        off = 0.50 if r > 1.9*unit else 0.38
         lx, ly = x+off*ur[0], y+off*ur[1] + (0.16 if r < 0.05 else 0.0)
         va = 'bottom' if ur[1] >= -0.2 else 'top'
-        ax.text(lx, ly, labels, fontsize=fs, ha='center', va=va, color=col, zorder=6)
+        ax.text(lx, ly, labels, fontsize=fs, ha='center', va=va, color=col, zorder=6, fontweight='bold')
+        # multiplicidad explicita junto al punto: en el lado VERTICAL opuesto
+        # a donde se coloco la etiqueta de estado (que usa 'va'), para no
+        # chocar nunca con ella ni con las de los puntos vecinos
+        if n >= 2:
+            mult_off = 0.34
+            mx = x
+            my = y - mult_off if va == 'bottom' else y + mult_off
+            ax.text(mx, my, f'×{n}', fontsize=8, ha='center', va='center', color=col,
+                    style='italic', zorder=6,
+                    bbox=dict(boxstyle='circle,pad=0.15', facecolor='white', edgecolor=col, lw=0.8))
 
-    # --- ejes a, b, c (desplazados fuera del hexagono para no chocar con las etiquetas) ---
+    # --- ejes a, b, c: flechas reales desde el origen (no lineas discontinuas) ---
     for ang, lbl in [(0, 'a'), (120, 'b'), (240, 'c')]:
         rad = np.radians(ang)
-        ax.plot([0, 1.02*R*np.cos(rad)], [0, 1.02*R*np.sin(rad)], color='#999', lw=1.0, ls='--', zorder=0)
-        ax.text(1.30*R*np.cos(rad), 1.30*R*np.sin(rad), lbl, fontsize=16, fontweight='bold',
-                ha='center', va='center', color='#555')
+        xe, ye = 1.06*R*np.cos(rad), 1.06*R*np.sin(rad)
+        ax.annotate('', xy=(xe, ye), xytext=(0, 0), zorder=0,
+                    arrowprops=dict(arrowstyle='-|>', color='#666', lw=1.8, mutation_scale=20))
+        ax.text(1.34*R*np.cos(rad), 1.34*R*np.sin(rad), lbl, fontsize=18, fontweight='bold',
+                ha='center', va='center', color='#444')
 
-    ax.text(0, -1.6*R, r'Notación: cada vértice muestra $(S_a S_b S_c)$ con $S_k\in\{+,0,-\}$.'
-            '\nEl vector cero (centro, 3 estados) y los vectores medios (anillo intermedio, 2 estados) son redundantes; '
-            'los vectores cortos y largos son únicos.',
+    ax.text(0, -1.6*R, r'Notación: cada vértice muestra $(S_a S_b S_c)$ con $S_k\in\{+,0,-\}$; el número en círculo'
+            ' es la multiplicidad (cuántas ternas distintas caen en ese mismo punto físico).'
+            '\nEl vector cero (centro, ×3) y los vectores medios (anillo intermedio, ×2) son redundantes; '
+            'los vectores cortos y largos son únicos (×1).',
             ha='center', fontsize=9.5, color='#333')
 
     plt.tight_layout()
