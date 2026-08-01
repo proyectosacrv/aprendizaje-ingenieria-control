@@ -201,91 +201,127 @@ el balance del punto neutro.
 
 ## 3 — El balance del punto neutro (derivación completa)
 
-**Paso 1 — el origen físico.** Del apartado 1: en el estado O, según el signo de \(i_o\), conduce \(D_5\)
-(descarga \(C_1\), carga \(C_2\)) o \(D_6\) (descarga \(C_2\), carga \(C_1\)). La corriente que fluye hacia
-el nudo O durante ese estado es exactamente \(i_o\):
+**Qué problema resuelve este apartado.** El NPC reparte el bus DC en dos condensadores \(C_1\), \(C_2\) y
+promete que el punto medio O queda siempre a \(V_{dc}/2\) — es la base de toda la tabla de estados del
+apartado 1. Pero esa tensión de reparto **no es automática**: cada vez que el convertidor pasa por el estado
+O, hay corriente entrando o saliendo del nudo O, y esa corriente carga un condensador a costa del otro. Si
+nada lo corrige, la pareja \(V_{C1},V_{C2}\) puede desviarse permanentemente de \(V_{dc}/2\) cada una,
+rompiendo la premisa de la que parte todo el análisis anterior (cada IGBT diseñado para bloquear justo
+\(V_{dc}/2\); si un condensador sube por encima, ese margen de bloqueo desaparece). Este apartado responde a
+tres preguntas en orden: **(1)** ¿de dónde sale exactamente ese desbalance? **(2)** ¿por qué con carga normal
+no se dispara solo, pero con un desequilibrio sí? **(3)** ¿cómo se corrige activamente, y con qué límites?
+
+**Paso 1 — de dónde parte: el origen físico del desbalance.** El punto de partida es la observación del
+apartado 1 sobre el estado O: según el signo de \(i_o\), conduce \(D_5\) (descarga \(C_1\), carga \(C_2\)) o
+\(D_6\) (descarga \(C_2\), carga \(C_1\)). Formalizando esa observación, la corriente que fluye hacia el nudo
+O en cada instante es exactamente \(i_o\) cuando la fase está en estado O, y cero en cualquier otro estado
+(P o N no tocan el nudo O):
 
 $$ i_O(t) = i_o(t)\cdot\mathbb{1}[\text{estado} = O] $$
 
-**Paso 2 — la dinámica de los condensadores.** Con \(C_1=C_2=C\), el balance de carga en el nudo O da:
+Este es el "input" de todo lo que sigue: una corriente que unas veces existe y otras no, según en qué estado
+esté el modulador — no una corriente constante ni controlada directamente.
+
+**Paso 2 — qué hace esa corriente a los condensadores.** Partiendo de \(i_O(t)\) del Paso 1, y con
+\(C_1=C_2=C\), el balance de carga en el nudo O (la corriente que entra a un condensador es la que sale del
+otro, porque O es un nudo intermedio) da directamente sus dos ecuaciones diferenciales:
 
 $$ C\,\frac{dV_{C1}}{dt} = -i_O(t), \qquad C\,\frac{dV_{C2}}{dt} = +i_O(t) $$
 
-(si \(i_O>0\) se resta de \(C_1\) y se suma a \(C_2\), como en el Paso 1). Sumando ambas ecuaciones,
-\(\dfrac{d(V_{C1}+V_{C2})}{dt}=0\): la tensión **total** del bus \(V_{dc}=V_{C1}+V_{C2}\) no la afecta el
-estado O (es un balance interno, no una pérdida de energía total). El **desbalance**
-\(\Delta V = V_{C1}-V_{C2}\) evoluciona restando la segunda ecuación de la primera:
+(si \(i_O>0\) se resta de \(C_1\) y se suma a \(C_2\), como en el Paso 1). De aquí salen dos resultados
+distintos, uno tranquilizador y otro que es el problema en sí: sumando ambas ecuaciones,
+\(\dfrac{d(V_{C1}+V_{C2})}{dt}=0\) — la tensión **total** del bus \(V_{dc}=V_{C1}+V_{C2}\) no la afecta el
+estado O, es un balance interno, no una pérdida de energía total (tranquilizador: el estado O no puede volar
+el bus). Restando la segunda ecuación de la primera se obtiene la dinámica de lo que sí importa, el
+**desbalance** \(\Delta V=V_{C1}-V_{C2}\):
 
 $$ \frac{d(\Delta V)}{dt} = -\frac{2\,i_O(t)}{C} $$
 
-**Paso 3 — generalización a las tres fases.** En un NPC trifásico, el nudo O es **común** a las tres ramas,
-así que la corriente total hacia O es la suma de las contribuciones de cada fase, cada una activa solo
-cuando esa fase está en su propio estado O:
+Esta única ecuación —\(\Delta V\) es la integral de \(i_O\)— es el resultado que arrastra todo el resto del
+apartado: como es un integrador puro, cualquier componente de \(i_O\) que no promedie exactamente a cero
+hace que \(\Delta V\) crezca sin límite (Paso 5).
+
+**Paso 3 — de una fase a las tres reales.** El Paso 2 trata una sola rama; un NPC trifásico tiene el nudo O
+**compartido** por las tres fases, así que hay que sustituir la \(i_O\) de una fase por la suma de las
+contribuciones de las tres, cada una activa solo cuando esa fase concreta está en su propio estado O:
 
 $$ i_{O,total}(t) = \sum_{k\in\{a,b,c\}} i_k(t)\cdot\mathbb{1}[\text{fase }k\text{ en estado O}] $$
 
-y la ecuación del desbalance se generaliza sustituyendo \(i_O\to i_{O,total}\) en el Paso 2. Esta suma sobre
-las tres fases es la que se cancela en régimen equilibrado (Paso 4) y la que no se cancela con
-desequilibrio (Paso 5).
+y la ecuación del desbalance del Paso 2 se generaliza sustituyendo \(i_O\to i_{O,total}\). El resultado de
+este paso es una única suma que hay que analizar en dos regímenes distintos, porque su comportamiento es
+cualitativamente diferente en cada uno: régimen equilibrado (Paso 4) y régimen desequilibrado (Paso 5).
 
-**Paso 4 — por qué con carga equilibrada el desbalance no se acumula.** Con tensiones y corrientes
-trifásicas equilibradas y factor de potencia \(\cos\varphi\), cada fase pasa por el estado O una fracción de
-tiempo \(1-|d_k(\theta)|\) con \(d_k\) del apartado 2, desfasada \(120°\) de las otras. Puede demostrarse
-(sumando las tres contribuciones \(i_k\cdot\mathbb{1}[\text{fase }k\text{ en O}]\) con sus desfases) que la
-componente **media** de \(i_{O,total}\) sobre un periodo de red es exactamente cero para cualquier
+**Paso 4 — primer régimen: por qué con carga equilibrada el desbalance no se dispara.** Partiendo de la suma
+\(i_{O,total}\) del Paso 3, con tensiones y corrientes trifásicas equilibradas y factor de potencia
+\(\cos\varphi\), cada fase pasa por el estado O una fracción de tiempo \(1-|d_k(\theta)|\) (con \(d_k\) del
+apartado 2), desfasada 120° de las otras dos. Sumando las tres contribuciones con sus desfases se demuestra
+que la componente **media** de \(i_{O,total}\) sobre un periodo de red es exactamente cero para cualquier
 \(\cos\varphi\) y cualquier \(m\) — es una propiedad de la simetría de 120°, no depende de los valores
-concretos. Lo que **sí** queda es una componente oscilante a \(3\omega_0\) (el triple de la fundamental):
-integrando esa componente en el Paso 2 el desbalance oscila con una amplitud pico-pico
+concretos. El resultado práctico: con el Paso 2 siendo un integrador, una entrada de media cero no hace
+crecer \(\Delta V\) sin límite, solo lo hace **oscilar**. Integrando la componente oscilante que sí queda (a
+\(3\omega_0\text{, el triple de la fundamental}\)) se obtiene su amplitud pico-pico:
 
 $$ \Delta V_{pp,osc} \approx \frac{2\,\hat I\,m}{3\,\omega_0\,C}\cdot k(\cos\varphi) $$
 
 donde \(k(\cos\varphi)\) es un factor adimensional del orden de la unidad que depende del ángulo de fase
-(máximo cerca de \(\cos\varphi=1\)); esta oscilación es intrínseca a la topología y no se elimina, solo se
-dimensiona con \(C\) suficientemente grande (apartado 7, Paso 4).
+(máximo cerca de \(\cos\varphi=1\)). Conclusión de este paso: con carga equilibrada el desbalance **no** es
+un problema de control — es una oscilación intrínseca de la topología que no se elimina, solo se dimensiona
+con \(C\) suficientemente grande (apartado 7, Paso 4). Por eso hace falta activar un mecanismo de corrección
+solo cuando aparece el segundo régimen.
 
-**Paso 5 — el problema real: componente neta con desequilibrio.** Con carga **desequilibrada** entre fases,
-factor de potencia distinto por fase, o un transitorio asimétrico, la cancelación exacta del Paso 4 deja de
-cumplirse y aparece una componente **media no nula** de \(i_{O,total}\). Como el Paso 2 es literalmente un
-**integrador puro** en esa componente media, \(\Delta V\) no oscila: **deriva sin límite** con pendiente
-constante hasta saturar la modulación o dañar los condensadores.
+**Paso 5 — segundo régimen: el problema real, componente neta con desequilibrio.** Partiendo de la misma
+suma \(i_{O,total}\), pero ahora con carga **desequilibrada** entre fases, factor de potencia distinto por
+fase, o un transitorio asimétrico, la cancelación exacta del Paso 4 deja de cumplirse: aparece una
+componente **media no nula**. Como el Paso 2 es un integrador puro, una media no nula ya no da una
+oscilación acotada como en el Paso 4 — da una **deriva sin límite**, con pendiente constante, hasta saturar
+la modulación o dañar los condensadores. Este es el resultado que justifica todo lo que sigue: hace falta un
+mecanismo activo de corrección, porque a diferencia del Paso 4 aquí no hay ninguna simetría que lo frene por
+sí sola.
 
 <div class="cfig"><img src="figuras/npc-neutro.png" alt="esquema de los dos caminos de corriente en el estado O segun el signo de la corriente de fase, y simulacion de la deriva de las tensiones de los dos condensadores del bus sin compensacion frente a la estabilizacion con compensacion proporcional al desbalance"><div class="cap">(a) En el estado O, \(D_5\) o \(D_6\) conducen según el signo de \(i_o\), descargando un condensador y cargando el otro. (b) Ante una componente neta de corriente hacia O (carga desequilibrada), sin compensación el desbalance \(V_{C1}-V_{C2}\) crece linealmente sin límite (Paso 2: es un integrador puro); con una compensación proporcional al desbalance medido, las dos tensiones se mantienen ancladas a \(V_{dc}/2\).</div></div>
 
-**Paso 6 — la corrección: usar la redundancia del estado O.** El modulador **no puede** elegir directamente
-qué diodo conduce (lo decide \(i_o\)), pero sí puede desplazar **cuándo** se está en el estado O respecto a
-P o N, inyectando una pequeña componente de **secuencia cero** \(v_0\) (común a las tres fases, igual que el
-3.er armónico de la modulación de 2 niveles — §2.2 de [[convertidor-back-to-back]]) en la referencia:
+**Paso 6 — la corrección: qué grado de libertad queda disponible.** El resultado del Paso 5 exige actuar
+sobre \(i_{O,total}\), pero el modulador **no puede** elegir directamente qué diodo conduce en el estado O
+(eso lo decide \(i_o\), una variable física, no de control). Lo que sí puede hacer es desplazar **cuándo**
+cada fase está en el estado O respecto a P o N, inyectando una pequeña componente de **secuencia cero**
+\(v_0\) (común a las tres fases, igual que el 3.er armónico de la modulación de 2 niveles — §2.2 de
+[[convertidor-back-to-back]]) en la referencia de las tres fases:
 
 $$ r_k^*(\theta) = m\sin(\theta - \phi_k) + v_0, \qquad k\in\{a,b,c\} $$
 
-Un \(v_0\) sesgado hacia el nivel P alarga el tiempo relativo en P/O⁺ y acorta O⁻/N (o viceversa),
-cambiando el **tiempo neto** que cada fase pasa en cada tramo del estado O y, con ello, el signo neto del
-desbalance que se corrige. Un lazo de control mide \(\Delta V = V_{C1}-V_{C2}\) y ajusta \(v_0\) en
-proporción (o con un PI) para llevarlo a cero — es exactamente el mecanismo simulado en el panel (b) de la
-figura anterior.
+Un \(v_0\) sesgado hacia el nivel P alarga el tiempo relativo en P/O⁺ y acorta O⁻/N (o viceversa), cambiando
+el **tiempo neto** que cada fase pasa en cada tramo del estado O y, con ello, el signo neto de la componente
+media de \(i_{O,total}\) que hay que anular. El resultado de este paso es el mecanismo de actuación: un lazo
+de control mide \(\Delta V=V_{C1}-V_{C2}\) y ajusta \(v_0\) en proporción (o con un PI) para llevarlo a cero
+— es exactamente el mecanismo simulado en el panel (b) de la figura anterior.
 
-**Paso 7 — modelo del lazo de compensación.** Linealizando alrededor del punto de equilibrio, la corriente
-correctiva que aporta un \(v_0\) pequeño es aproximadamente proporcional a \(v_0\) y a la corriente de
-carga \(\hat I\) (más \(v_0\) desvía más tiempo relativo, y a mayor corriente esa desviación de tiempo
-mueve más carga):
+**Paso 7 — cuantificar el lazo: modelo y velocidad de respuesta.** Partiendo del mecanismo del Paso 6, hace
+falta saber **cuánto** corrige un \(v_0\) dado y **qué tan rápido** actúa el lazo cerrado, para poder
+diseñarlo. Linealizando alrededor del punto de equilibrio, la corriente correctiva que aporta un \(v_0\)
+pequeño es aproximadamente proporcional a \(v_0\) y a la corriente de carga \(\hat I\) (más \(v_0\) desvía
+más tiempo relativo, y a mayor corriente esa desviación de tiempo mueve más carga):
 
 $$ i_{O,corr} \approx k_v\,\hat I\,v_0, \qquad k_v = \text{cte. geométrica del PD-PWM (del orden de }1\text{)} $$
 
-con un controlador \(v_0 = -K_{bal}\,\Delta V\) (proporcional, o PI), la dinámica en lazo cerrado del
-desbalance (sustituyendo en el Paso 2 con signo negativo de realimentación) es de **primer orden**:
+Cerrando el lazo con un controlador \(v_0=-K_{bal}\,\Delta V\) (proporcional, o PI) y sustituyendo en la
+ecuación del Paso 2 con signo negativo de realimentación, la dinámica del desbalance en lazo cerrado resulta
+de **primer orden**, con una constante de tiempo que se puede despejar directamente:
 
 $$ \frac{d(\Delta V)}{dt} = -\frac{2}{C}\big(i_{O,total,dist} - k_v\hat I K_{bal}\Delta V\big)
    \quad\Longrightarrow\quad \tau_{bal} = \frac{C}{2\,k_v\,\hat I\,K_{bal}} $$
 
-Cuanto mayor \(K_{bal}\), más rápido el lazo (menor \(\tau_{bal}\)), pero un \(K_{bal}\) excesivo hace que
+Este resultado (\(\tau_{bal}\) en función de \(K_{bal}\)) es lo que permite diseñar la ganancia del lazo:
+cuanto mayor \(K_{bal}\), más rápido el lazo (menor \(\tau_{bal}\)), pero un \(K_{bal}\) excesivo hace que
 \(v_0\) sea grande y distorsione la modulación de las tres fases (satura antes la referencia,
-\(|r_k^*+v_0|>1\)); de ahí el compromiso del apartado 8, Paso 5.
+\(|r_k^*+v_0|>1\)) — de ahí el compromiso de diseño del apartado 8, Paso 5.
 
-**Paso 8 — límite del método y alternativas.** La inyección de secuencia cero corrige desbalances
-**lentos** (frecuencia de red y menores). Para desbalances instantáneos grandes (arranque, faltas
-asimétricas), se recurre al **NPC activo** (ANPC, con interruptores adicionales que permiten forzar el
-camino de corriente independientemente de \(i_o\)) o a un lazo de control más rápido sobre la propia
-modulación de cada fase individualmente.
+**Paso 8 — hasta dónde llega este método, y qué hacer cuando no basta.** El resultado del Paso 7 tiene un
+límite práctico: la inyección de secuencia cero corrige desbalances **lentos** (del orden de la frecuencia
+de red y menores), porque \(v_0\) actúa desplazando duty cycles ciclo a ciclo, no de forma instantánea. Para
+desbalances grandes y rápidos (arranque, faltas asimétricas, donde \(\Delta V\) puede moverse mucho en unos
+pocos periodos de conmutación) este mecanismo solo no es suficiente, y se recurre al **NPC activo** (ANPC,
+con interruptores adicionales que permiten forzar el camino de corriente independientemente de \(i_o\)) o a
+un lazo de control más rápido sobre la propia modulación de cada fase individualmente.
 
 ## 4 — \(dv/dt\) y contenido armónico (derivación cuantitativa completa)
 
@@ -390,17 +426,44 @@ $$ \vec V_{ref} = d_1\vec V_1 + d_2\vec V_2 + d_0\vec V_0, \qquad d_1+d_2+d_0=1,
 
 <div class="cfig"><img src="figuras/npc-svm-tiempos.png" alt="triangulo generico del hexagono SVM con los tres vectores adyacentes V0, V1, V2 y el vector de referencia Vref descompuesto como combinacion convexa de los tres, con la ecuacion de los duty cycles d1, d2, d0"><div class="cap">Dentro de cualquiera de los 24 triángulos del hexágono, el vector de referencia \(\vec V_{ref}\) se descompone en sus tres vértices adyacentes; los coeficientes \(d_1,d_2,d_0\) son los duty cycles que, aplicados durante el periodo de conmutación, sintetizan en promedio la tensión deseada.</div></div>
 
-**Paso 5 — resolución del sistema.** Escribiendo cada vector por sus componentes \((V_{k,\alpha},
-V_{k,\beta})\), el sistema anterior son **dos ecuaciones** (componentes α y β de \(\vec V_{ref}\)) más la
-restricción \(d_1+d_2+d_0=1\) — **tres ecuaciones, tres incógnitas** (\(d_1,d_2,d_0\)), sistema lineal
-resoluble en forma cerrada:
+**Paso 5 — planteamiento y resolución del sistema (por qué en αβ y no directamente en abc).**
+
+*Por qué no se plantea directamente en abc.* Podría parecer más natural trabajar con los tres duty cycles
+\(d_a,d_b,d_c\) de las tres fases directamente, sin pasar por αβ. El problema es que **abc tiene una
+dimensión de más** para describir algo que en realidad vive en un plano: en un sistema trifásico sin neutro
+conectado, la suma de las tres tensiones de fase respecto al punto medio del bus está fijada por
+construcción (\(v_{aO}+v_{bO}+v_{cO}\) toma solo los valores discretos que dan los estados P/O/N, y su
+componente de secuencia cero no afecta a la tensión de línea que ve la carga). Es decir, de las tres
+coordenadas \((a,b,c)\) solo **dos combinaciones independientes** determinan el punto de trabajo físico
+relevante para el control de corriente — exactamente la misma razón por la que en control dq dos fases
+independientes ya capturan toda la información de una máquina trifásica equilibrada (ver [[marco-dq]]). Si
+se intentase resolver el sistema en abc con tres incógnitas \(d_a,d_b,d_c\) sin más, sobraría un grado de
+libertad y el sistema quedaría indeterminado (infinitas soluciones que darían la misma tensión de línea pero
+distinto reparto de secuencia cero). αβ elimina ese grado de libertad sobrante de raíz, quedándose solo con
+las dos coordenadas que realmente mueven el punto de trabajo — es la razón última por la que **todas** las
+técnicas de SVM (2 niveles, NPC, MMC) se plantean en el plano αβ y no en abc.
+
+*Cómo se plantea el sistema.* Fijado el vector de referencia \(\vec V_{ref}=(V_{ref,\alpha},V_{ref,\beta})\)
+(salida, en general, del lazo de corriente en dq tras la transformación inversa dq→αβ) y ya identificado el
+triángulo que lo contiene (Paso 3) con sus tres vértices \(\vec V_1,\vec V_2,\vec V_0\), la incógnita son los
+tres duty cycles \(d_1,d_2,d_0\) que, promediados sobre un periodo de conmutación \(T_s\), sintetizan
+\(\vec V_{ref}\) como combinación convexa (Paso 4). Escribiendo cada vector por sus dos componentes
+\((V_{k,\alpha},V_{k,\beta})\), la ecuación vectorial \(\vec V_{ref}=d_1\vec V_1+d_2\vec V_2+d_0\vec V_0\) se
+descompone en **dos ecuaciones escalares** (una por componente α, otra por β); junto con la restricción de
+normalización \(d_1+d_2+d_0=1\) (los tres duty deben repartir el 100% del periodo) se cierran
+**tres ecuaciones para tres incógnitas**:
 
 $$ \begin{pmatrix}V_{1,\alpha} & V_{2,\alpha} & V_{0,\alpha}\\ V_{1,\beta} & V_{2,\beta} & V_{0,\beta}\\ 1&1&1\end{pmatrix}\begin{pmatrix}d_1\\d_2\\d_0\end{pmatrix} = \begin{pmatrix}V_{ref,\alpha}\\V_{ref,\beta}\\1\end{pmatrix} $$
 
-Con los tres vértices fijos por sector/triángulo, la matriz es constante para cada uno de los 24
-triángulos y se invierte **una vez** fuera de línea (tabla precalculada); en tiempo real solo hay que
-identificar el triángulo y multiplicar por la inversa correspondiente — es lo que hace viable ejecutar SVM
-en un DSP a la frecuencia de conmutación.
+*Cómo se resuelve en la práctica.* Con los tres vértices fijos por sector/triángulo, la matriz \(3\times3\)
+de la izquierda es **constante** para cada uno de los 24 triángulos (no depende de \(\vec V_{ref}\), solo de
+la geometría del hexágono) y se invierte **una sola vez, fuera de línea**: el resultado son 24 matrices
+\(3\times3\) precalculadas y almacenadas en una tabla. En tiempo real, en cada periodo de conmutación, el
+algoritmo solo tiene que (1) identificar en qué triángulo cae \(\vec V_{ref}\) (Paso 3) y (2) multiplicar el
+vector \((V_{ref,\alpha},V_{ref,\beta},1)\) por la inversa precalculada de ese triángulo — una multiplicación
+matriz-vector fija, sin resolver ningún sistema en línea. Es precisamente esta separación entre "cálculo caro
+una vez" (inversión de 24 matrices) y "cálculo barato en cada periodo" (una multiplicación) lo que hace
+viable ejecutar SVM completo dentro del periodo de conmutación en un DSP de control.
 
 **Paso 6 — tiempos de aplicación y secuencia.** Los duty cycles se convierten en tiempos dentro del
 periodo de conmutación \(t_i=d_i\,T_s\), y se ordenan en una secuencia simétrica (p. ej.
