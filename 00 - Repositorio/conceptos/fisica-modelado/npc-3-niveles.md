@@ -495,11 +495,19 @@ un mecanismo de corrección solo cuando aparece el segundo régimen.
 **Paso 5 — segundo régimen: el problema real, componente neta con desequilibrio.** Partiendo de la misma
 suma \(i_{O,total}\), pero ahora con carga **desequilibrada** entre fases, factor de potencia distinto por
 fase, o un transitorio asimétrico, la cancelación exacta del Paso 4 deja de cumplirse: aparece una
-componente **media no nula**. Como el Paso 2 es un integrador puro, una media no nula ya no da una
-oscilación acotada como en el Paso 4 — da una **deriva sin límite**, con pendiente constante, hasta saturar
-la modulación o dañar los condensadores. Este es el resultado que justifica todo lo que sigue: hace falta un
-mecanismo activo de corrección, porque a diferencia del Paso 4 aquí no hay ninguna simetría que lo frene por
-sí sola.
+componente **media no nula**. Se le da nombre propio a esa componente, porque va a reaparecer en todo lo que
+sigue: se llama \(i_{dist}\) (de "*disturbance*", perturbación) a la parte de \(i_{O,total}\) que **no**
+depende de \(v_0\) — la que viene impuesta desde fuera por el desequilibrio de la carga o de la red, y que el
+lazo de control no puede elegir ni anular directamente, solo compensar. Formalmente,
+
+$$ i_{dist} \equiv \overline{i_{O,total}}\Big|_{v_0=0} $$
+
+la componente media de \(i_{O,total}\) que queda cuando \(v_0=0\) (sin ninguna corrección aplicada) — es
+decir, exactamente la magnitud del desequilibrio que hay que corregir. Como el Paso 2 es un integrador puro,
+una \(i_{dist}\) no nula ya no da una oscilación acotada como en el Paso 4 — da una **deriva sin límite**,
+con pendiente constante, hasta saturar la modulación o dañar los condensadores. Este es el resultado que
+justifica todo lo que sigue: hace falta un mecanismo activo de corrección, porque a diferencia del Paso 4
+aquí no hay ninguna simetría que lo frene por sí sola.
 
 <div class="cfig"><img src="figuras/npc-neutro.png" alt="esquema de los dos caminos de corriente en el estado O segun el signo de la corriente de fase con simbolos de diodo D5 D6, tensiones de bus VC1 VC2 absolutas con y sin compensacion, y zoom al desbalance Delta V = VC1 menos VC2 mostrando la deriva sin limite sin compensar frente a la respuesta de primer orden con compensacion proporcional"><div class="cap">(a) En el estado O, \(D_5\) o \(D_6\) conducen según el signo de \(i_o\), descargando un condensador y cargando el otro. (b) Tensiones de bus absolutas: sin compensación, \(V_{C1}\) y \(V_{C2}\) divergen sin límite; con compensación proporcional se estabilizan, pero en un punto ligeramente desplazado de \(V_{dc}/2\) (error residual propio de un control proporcional puro, sin integrador). (c) El mismo resultado visto directamente en el desbalance \(\Delta V=V_{C1}-V_{C2}\) —donde en (b) el caso compensado queda casi aplastado contra la línea de referencia—: deriva lineal sin límite (Paso 2: es un integrador puro) frente a una respuesta exponencial de primer orden que se acota (Paso 7).</div></div>
 
@@ -613,7 +621,9 @@ $$ i_{O,corr} = k_v\,\hat I\,v_0, \qquad k_v = -\frac{2}{\pi} $$
 
 *Cierre del lazo: por qué \(v_0=-K_{bal}\Delta V\) es la realimentación estable, con el \(k_v\) correcto.*
 Partiendo de la ecuación del Paso 2, \(\dot{\Delta V}=-\frac{2}{C}i_{O,total}\), con
-\(i_{O,total}=i_{dist}+i_{O,corr}\) y \(v_0=-K_{bal}\Delta V\) (\(K_{bal}>0\)):
+\(i_{O,total}=i_{dist}+i_{O,corr}\) (\(i_{dist}\) es la perturbación de desequilibrio ya definida en el
+Paso 5 — la parte de la corriente hacia O que no depende de \(v_0\); \(i_{O,corr}\) es la corrección que
+aporta el lazo, recién calculada) y \(v_0=-K_{bal}\Delta V\) (\(K_{bal}>0\)):
 
 $$ i_{O,corr} = k_v\,\hat I\,v_0 = k_v\,\hat I\,(-K_{bal}\Delta V) = -k_v\,\hat I\,K_{bal}\,\Delta V $$
 
