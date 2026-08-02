@@ -311,15 +311,40 @@ Esta última ecuación —\(\Delta V\) es la integral de \(i_O\)— es el result
 apartado: como es un integrador puro, cualquier componente de \(i_O\) que no promedie exactamente a cero
 hace que \(\Delta V\) crezca sin límite (Paso 5).
 
-**Paso 3 — de una fase a las tres reales.** El Paso 2 trata una sola rama; un NPC trifásico tiene el nudo O
-**compartido** por las tres fases, así que hay que sustituir la \(i_O\) de una fase por la suma de las
-contribuciones de las tres, cada una activa solo cuando esa fase concreta está en su propio estado O:
+**Paso 3 — de una fase a las tres reales.** El Paso 2 trata una sola rama (una sola fase conectada al nudo
+O); pero en un NPC trifásico el nudo O es **físicamente uno solo**, compartido por las tres ramas — las tres
+fases descargan o cargan los mismos dos condensadores \(C_1,C_2\). Hay que ver primero por qué esto sigue
+dando la misma forma de ecuación que el Paso 2, y qué cambia.
+
+*Por qué la ecuación del Paso 2 sigue siendo válida tal cual.* El Paso 2 no usó en ningún momento que hubiera
+una única fase — solo usó que "la corriente que entra al nudo O sale de \(C_1\) hacia \(C_2\)" (Kirchhoff de
+corrientes, KCL, en el nudo O). Esa ley no cambia si ahora hay tres ramas conectadas al mismo nudo: sigue
+siendo cierto que *toda* la corriente que llega a O por cualquiera de las tres fases tiene que salir hacia
+\(C_1\) o \(C_2\). Lo único que cambia es **qué corriente es esa**: ya no es la \(i_o\) de una sola fase, sino
+la suma de las contribuciones de las tres, cada una presente solo en los instantes en que *esa* fase
+concreta está en su propio estado O (si la fase \(a\) está en P o N, no toca el nudo O en absoluto, igual que
+en el Paso 1):
 
 $$ i_{O,total}(t) = \sum_{k\in\{a,b,c\}} i_k(t)\cdot\mathbb{1}[\text{fase }k\text{ en estado O}] $$
 
-y la ecuación del desbalance del Paso 2 se generaliza sustituyendo \(i_O\to i_{O,total}\). El resultado de
-este paso es una única suma que hay que analizar en dos regímenes distintos, porque su comportamiento es
-cualitativamente diferente en cada uno: régimen equilibrado (Paso 4) y régimen desequilibrado (Paso 5).
+*La sustitución explícita.* Como el KCL del Paso 2 sigue aplicando con esta \(i_{O,total}\) en el papel que
+antes hacía \(i_O\), las dos ecuaciones de condensador y su combinación (resta) se reescriben sin más cambio
+que ese, y la ecuación final del Paso 2 queda:
+
+$$ \frac{d(\Delta V)}{dt} = -\frac{2\,i_{O,total}(t)}{C} $$
+
+**Aquí es donde "vive" el desbalance**: \(\Delta V(t)\) sigue siendo, como en el Paso 2, la integral en el
+tiempo de (menos) esta corriente:
+
+$$ \Delta V(t) = \Delta V(0) - \frac{2}{C}\int_0^t i_{O,total}(\tau)\,d\tau $$
+
+Es decir, el desbalance en cualquier instante es literalmente "cuánta carga neta ha entrado o salido del nudo
+O hasta ahora, acumulada". Esta integral es la que hay que analizar para saber si \(\Delta V\) se mantiene
+acotado o crece sin límite — y la respuesta depende por completo de **cómo se comporta la suma de las tres
+contribuciones** de \(i_{O,total}\) a lo largo de un periodo: si tienden a cancelarse entre sí (Paso 4) o si
+dejan un remanente neto (Paso 5). Eso es lo que hay que analizar en dos regímenes distintos, porque el
+comportamiento de esa suma es cualitativamente diferente en cada uno: régimen equilibrado (Paso 4) y régimen
+desequilibrado (Paso 5).
 
 **Paso 4 — primer régimen: por qué con carga equilibrada el desbalance no se dispara.** Partiendo de la suma
 \(i_{O,total}\) del Paso 3, con tensiones y corrientes trifásicas equilibradas y factor de potencia
