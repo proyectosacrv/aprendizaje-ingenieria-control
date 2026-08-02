@@ -15669,6 +15669,49 @@ def _npc_neutro():
     _savefig(fig, 'npc-neutro', dpi=160)
 
 
+def _npc_neutro_fourier():
+    """NPC: apoyo grafico a la derivacion de Fourier del Paso 4 (apartado 3).
+    (a) |sin x| frente a su aproximacion de Fourier truncada a n=1, mostrando
+    que el primer termino ya reproduce la forma general (por eso basta
+    quedarse con el para identificar las frecuencias que aparecen).
+    (b) las tres componentes de 3*omega0 de las tres fases (desfasadas 0,
+    2pi, 4pi a esa frecuencia triple) resultan ser la MISMA curva -> se
+    suman en fase en vez de cancelarse, a diferencia de la fundamental."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13, 5.0))
+    fig.suptitle('Balance de neutro, Paso 4: por qué sobrevive la componente de $3\\omega_0$', fontsize=13, fontweight='bold')
+
+    # ---- (a) |sin x| vs su aproximacion de Fourier truncada a n=1 ----
+    x = np.linspace(0, 2*np.pi, 1000)
+    exact = np.abs(np.sin(x))
+    approx1 = 2/np.pi - (4/np.pi)*(np.cos(2*x)/3)
+    a1.plot(x, exact, color='#111', lw=2.4, label=r'$|\sin x|$ (exacta)')
+    a1.plot(x, approx1, color='#2e86c1', lw=2.0, ls='--', label=r'Fourier truncada a $n{=}1$: $\frac{2}{\pi}-\frac{4}{3\pi}\cos2x$')
+    a1.axhline(2/np.pi, color='gray', lw=0.8, ls=':')
+    a1.text(6.15, 2/np.pi+0.04, r'$\frac{2}{\pi}$ (valor medio)', fontsize=8.5, color='gray', ha='right')
+    a1.set_xlabel(r'$x$ [rad]'); a1.set_ylabel('amplitud'); a1.grid(alpha=.3)
+    a1.legend(fontsize=9, loc='upper center')
+    a1.set_title('(a) El término $n{=}1$ ya reproduce\nla forma general de $|\\sin x|$', fontsize=11, fontweight='bold')
+
+    # ---- (b) las tres componentes de 3*omega0, para phi_k = 0, 2pi/3, 4pi/3 ----
+    theta = np.linspace(0, 2*np.pi/3, 500)   # un tercio de ciclo de red basta para verlas coincidir
+    phis = [0, 2*np.pi/3, 4*np.pi/3]
+    cols = ['#c0392b', '#1e8449', '#2e86c1']
+    labels = [r'fase $a$: $\sin(3\theta-3\phi_a-\varphi)$', r'fase $b$: $\sin(3\theta-3\phi_b-\varphi)$', r'fase $c$: $\sin(3\theta-3\phi_c-\varphi)$']
+    lss = ['-', '--', ':']
+    varphi = 0.0
+    for phi_k, col, lbl, ls in zip(phis, cols, labels, lss):
+        y = np.sin(3*theta - 3*phi_k - varphi)
+        a2.plot(theta, y, color=col, lw=2.2, ls=ls, label=lbl, alpha=0.85)
+    a2.set_xlabel(r'$\theta$ [rad]'); a2.set_ylabel('amplitud'); a2.grid(alpha=.3)
+    a2.legend(fontsize=8.5, loc='upper right')
+    a2.set_title('(b) Las tres componentes de $3\\omega_0$\ncoinciden exactamente: se suman, no se cancelan', fontsize=11, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'npc-neutro-fourier', dpi=160)
+
+
 def _hvdc_configuraciones():
     """HVDC: (a) monopolar con retorno por tierra, bipolar y simetrica monopolar,
     esquemas de conductores entre dos terminales; (b) topologias MTDC radial y
@@ -17241,6 +17284,9 @@ def main():
         n += 1
     if pref is None or "npc-neutro".startswith(pref):
         _npc_neutro()
+        n += 1
+    if pref is None or "npc-neutro-fourier".startswith(pref):
+        _npc_neutro_fourier()
         n += 1
     if pref is None or "npc-svm-tiempos".startswith(pref):
         _npc_svm_tiempos()

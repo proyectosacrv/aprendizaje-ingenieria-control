@@ -388,34 +388,90 @@ tanto:
 
 $$ \sum_{k} \text{parte A}_k = 0 \qquad \text{(exactamente, en todo instante, no solo en promedio)} $$
 
-*Suma de las tres partes B: no se cancela — hay que desarrollarla.* Cada parte B tiene el valor absoluto
-\(|m\sin(\theta-\phi_k)|\), que **no** es una senoide pura (un valor absoluto de seno no es senoidal), así
-que la cancelación exacta de las partes A no se repite aquí sin más trabajo. La vía estándar es la serie de
-Fourier del valor absoluto de un seno, que solo tiene componente continua y armónicos **pares** de la
-frecuencia interior:
+*Suma de las tres partes B: no se cancela sola — hay que desarrollarla con Fourier, paso a paso.* Cada parte
+B tiene el factor \(|m\sin(\theta-\phi_k)|\), que **no** es una senoide pura (un valor absoluto de seno no lo
+es), así que el argumento de simetría de 120° que canceló las partes A **no se puede aplicar directamente
+aquí**: hace falta primero reescribir \(|\sin x|\) como una suma de senoides puras (su serie de Fourier), y
+solo con esa reescritura se podrá volver a sumar por fases.
 
-$$ |\sin x| = \frac{2}{\pi} - \frac{4}{\pi}\sum_{n=1}^{\infty}\frac{\cos(2nx)}{4n^2-1} = \frac{2}{\pi} - \frac{4}{\pi}\left(\frac{\cos2x}{3}+\frac{\cos4x}{15}+\cdots\right) $$
+**(i) La serie de Fourier de \(|\sin x|\).** Al ser \(|\sin x|\) periódica y par, su serie de Fourier solo
+tiene términos de coseno (sin senos) y, por la simetría adicional de que se repite cada \(\pi\) (no cada
+\(2\pi\)), solo aparecen armónicos **pares**:
 
-Sustituyendo \(x=\theta-\phi_k\), el término dominante (después de la constante) es el de \(n=1\), con
-\(\cos\big(2(\theta-\phi_k)\big)\). Multiplicando esto por el factor senoidal \(\hat I m\sin(\theta-\phi_k-\varphi)\)
-de la parte B y usando la identidad producto-a-suma \(\sin\alpha\cos\beta=\tfrac12[\sin(\alpha+\beta)+\sin(\alpha-\beta)]\),
-cada parte B se descompone en una componente a la frecuencia fundamental \(\omega_0\) (que **desfasada
-\(-\phi_k\)** en su argumento SÍ se cancela igual que las partes A al sumar las tres fases, por el mismo
-argumento de simetría de 120°) más una componente a \(3(\theta-\phi_k)\) — el **triple** de la frecuencia de
-red. Esta componente de \(3\omega_0\) es la que **sí sobrevive** a la suma de las tres fases: al sumar
-\(\cos\big(3(\theta-\phi_k)\big)\) para \(\phi_k=0,\tfrac{2\pi}{3},\tfrac{4\pi}{3}\), el argumento total gana
-un múltiplo de \(3\times\tfrac{2\pi}{3}=2\pi\) en cada desfase, es decir las tres componentes a \(3\omega_0\)
-quedan **en fase** entre sí en vez de desfasadas 120° — se suman constructivamente en lugar de cancelarse
-(es la misma razón por la que el 3.er armónico es la componente de secuencia cero "natural" de un sistema
-trifásico, la que se usa en el apartado 6, Paso 6, para la inyección \(v_0\)).
+$$ |\sin x| = \frac{2}{\pi} - \frac{4}{\pi}\sum_{n=1}^{\infty}\frac{\cos(2nx)}{4n^2-1} = \underbrace{\frac{2}{\pi}}_{\text{constante}} - \frac{4}{\pi}\cdot\frac{\cos2x}{3} - \frac{4}{\pi}\cdot\frac{\cos4x}{15} - \cdots $$
+
+<div class="cfig"><img src="figuras/npc-neutro-fourier.png" alt="grafica de valor absoluto de seno de x superpuesta con su aproximacion de Fourier de un termino (constante mas coseno de 2x), mostrando que el termino n=1 ya reproduce la forma general de la funcion, y grafica de las tres senoides de 3omega desfasadas 0, 2pi y 4pi sumandose en fase para las tres fases del sistema trifasico"><div class="cap">(a) \(|\sin x|\) (negro) frente a su aproximación de Fourier truncada al primer término, \(\tfrac{2}{\pi}-\tfrac{4}{\pi}\tfrac{\cos2x}{3}\) (azul discontinuo): ya captura la forma general, por eso basta quedarse con \(n=1\) para el análisis. (b) Las tres componentes de \(3\omega_0\) de cada fase — \(\cos(3\theta)\), \(\cos(3\theta-2\pi)\), \(\cos(3\theta-4\pi)\) — son la MISMA curva (los múltiplos de \(2\pi\) no cambian el coseno): se suman en fase, constructivamente, en vez de cancelarse.</div></div>
+
+Cada término siguiente (\(n=2,3,\dots\)) es varias veces más pequeño que el anterior (los denominadores
+\(4n^2-1\) crecen como \(n^2\)): el término \(n=1\) por sí solo ya reproduce la forma general de \(|\sin x|\)
+(panel (a) de la figura), así que para identificar **qué frecuencias aparecen** basta quedarse con él y
+tratar el resto como una corrección pequeña. Sustituyendo \(x=\theta-\phi_k\) y quedándose con el término
+\(n=1\):
+
+$$ |\sin(\theta-\phi_k)| \approx \frac{2}{\pi} - \frac{4}{3\pi}\cos\big(2(\theta-\phi_k)\big) $$
+
+**(ii) Multiplicar por el factor senoidal de la parte B.** La parte B completa de la fase \(k\) es
+\(-\hat I m\sin(\theta-\phi_k-\varphi)\cdot|\sin(\theta-\phi_k)|\); sustituyendo la aproximación de (i), hay
+que multiplicar un seno por una suma de una constante más un coseno — dos productos distintos:
+
+$$ \sin(\theta-\phi_k-\varphi)\cdot\left[\frac{2}{\pi} - \frac{4}{3\pi}\cos\big(2(\theta-\phi_k)\big)\right] = \frac{2}{\pi}\sin(\theta-\phi_k-\varphi) \ -\ \frac{4}{3\pi}\underbrace{\sin(\theta-\phi_k-\varphi)\cos\big(2(\theta-\phi_k)\big)}_{\text{producto seno} \times \text{coseno}} $$
+
+El primer término (\(\tfrac{2}{\pi}\sin(\theta-\phi_k-\varphi)\)) es una senoide pura con el mismo desfase
+\(\phi_k\) que las partes A: al sumar las tres fases se cancela exactamente por el **mismo** argumento de
+simetría de 120° del bloque anterior — no aporta nada nuevo. El término interesante es el segundo, el
+producto seno×coseno, que hay que convertir en una suma de senos con la identidad producto-a-suma
+\(\sin\alpha\cos\beta=\tfrac12[\sin(\alpha+\beta)+\sin(\alpha-\beta)]\), con \(\alpha=\theta-\phi_k-\varphi\) y
+\(\beta=2(\theta-\phi_k)\):
+
+$$ \sin(\theta-\phi_k-\varphi)\cos\big(2(\theta-\phi_k)\big) = \frac12\sin\big(\underbrace{3\theta-3\phi_k-\varphi}_{\alpha+\beta}\big) + \frac12\sin\big(\underbrace{-\theta+\phi_k-\varphi}_{\alpha-\beta}\big) $$
+
+Este producto se parte en **dos** senoides nuevas: una con argumento \(3\theta-3\phi_k-\varphi\) (frecuencia
+**triple**, \(3\omega_0\)) y otra con argumento \(-\theta+\phi_k-\varphi\) (frecuencia fundamental, \(\omega_0\),
+con el signo del desfase invertido respecto a las partes A — pero sigue siendo un desfase múltiplo de
+\(120°\) entre fases, así que **también** se cancela al sumar las tres fases, por el mismo argumento de
+simetría). Solo queda pendiente de cancelar la pieza de \(3\theta-3\phi_k-\varphi\).
+
+**(iii) Sumar esa pieza de \(3\omega_0\) entre las tres fases — aquí es donde NO se cancela.** Hay que sumar
+\(\sin(3\theta-3\phi_k-\varphi)\) para \(k=a,b,c\), es decir para \(\phi_a=0\), \(\phi_b=\tfrac{2\pi}{3}\),
+\(\phi_c=\tfrac{4\pi}{3}\). Calculando el argumento \(3\phi_k\) en cada caso:
+
+$$ 3\phi_a = 3\cdot0 = 0, \qquad 3\phi_b = 3\cdot\frac{2\pi}{3} = 2\pi, \qquad 3\phi_c = 3\cdot\frac{4\pi}{3} = 4\pi $$
+
+El "truco" está aquí: \(2\pi\) y \(4\pi\) son múltiplos enteros de una vuelta completa, y sumar o restar un
+múltiplo de \(2\pi\) dentro de un seno **no cambia su valor** (\(\sin(\psi-2\pi)=\sin\psi\) para cualquier
+\(\psi\)). Es decir, al triplicar la frecuencia, los desfases de \(120°=2\pi/3\) que antes distinguían a cada
+fase se han convertido en desfases de \(2\pi\) y \(4\pi\) — **indistinguibles del desfase cero**. Sustituyendo:
+
+$$ \sin(3\theta-3\phi_a-\varphi) = \sin(3\theta-\varphi) $$
+$$ \sin(3\theta-3\phi_b-\varphi) = \sin(3\theta-2\pi-\varphi) = \sin(3\theta-\varphi) $$
+$$ \sin(3\theta-3\phi_c-\varphi) = \sin(3\theta-4\pi-\varphi) = \sin(3\theta-\varphi) $$
+
+Las **tres fases dan exactamente la misma función** — no hay tres senoides desfasadas que se cancelen, hay
+una sola senoide contada tres veces (panel (b) de la figura: las tres curvas se superponen perfectamente).
+Sumándolas:
+
+$$ \sum_{k} \sin(3\theta-3\phi_k-\varphi) = 3\sin(3\theta-\varphi) \ \ne\ 0 $$
+
+Esta es la componente que sobrevive: aparece porque \(3\times120°\) completa una vuelta entera, así que las
+tres fases —desfasadas entre sí a la frecuencia fundamental— quedan **en fase** exactamente a la frecuencia
+triple. Es la misma razón por la que el 3.er armónico es la componente de secuencia cero "natural" de un
+sistema trifásico, la que se usa en el apartado 6, Paso 6, para la inyección \(v_0\).
 
 *Resultado del Paso 4: la media es cero, queda una oscilación a \(3\omega_0\).* Juntando ambos resultados —
-las partes A se cancelan exactamente, las partes B se cancelan en su componente fundamental pero no en su
-componente de \(3\omega_0\) — la suma total \(i_{O,total}(\theta)\) no tiene componente **media** (constante)
-en ningún término, para cualquier \(\cos\varphi\) y cualquier \(m\): es una propiedad de la simetría de 120°,
-no depende de los valores concretos. Lo único que queda es una componente puramente oscilante a \(3\omega_0\),
-de la forma \(i_{O,total}(\theta) \approx \hat I_{3\omega_0}\cos(3\theta+\psi)\) para alguna amplitud
-\(\hat I_{3\omega_0}\propto \hat I\, m\) y fase \(\psi\) que dependen de \(\cos\varphi\).
+las partes A se cancelan exactamente, las partes B se cancelan en su componente fundamental pero no en la de
+\(3\omega_0\), que dio \(3\sin(3\theta-\varphi)\) en (iii) — la suma total \(i_{O,total}(\theta)\) no tiene
+componente **media** (constante) en ningún término, para cualquier \(\cos\varphi\) y cualquier \(m\): es una
+propiedad de la simetría de 120°, no depende de los valores concretos. Reincorporando el factor
+\(-\tfrac{4}{3\pi}\cdot\tfrac12\, m\,\hat I\) que quedó pendiente en el paso (ii) delante de esa suma, la
+componente que sobrevive tiene la forma general
+
+$$ i_{O,total}(\theta) \approx \hat I_{3\omega_0}\cos(3\theta+\psi), \qquad \hat I_{3\omega_0}=\frac{2\,\hat I\,m}{\pi}\,k(\cos\varphi) $$
+
+para una amplitud \(\hat I_{3\omega_0}\propto \hat I\,m\) y una fase \(\psi\) que dependen de \(\cos\varphi\)
+a través de \(k(\cos\varphi)\) (un factor adimensional del orden de la unidad que agrupa las constantes
+numéricas exactas de (i)-(iii) y la dependencia en \(\varphi\); su cálculo exacto exigiría continuar la serie
+de Fourier de (i) más allá de \(n=1\), pero el orden de magnitud y la dependencia en \(m\) y \(\hat I\) ya
+quedan fijados por este desarrollo).
 
 *Del resultado de corriente al resultado de tensión: integrar.* Con el Paso 2 siendo un integrador puro
 (\(d(\Delta V)/dt=-2i_{O,total}/C\)), una entrada de media cero no hace crecer \(\Delta V\) sin límite —
