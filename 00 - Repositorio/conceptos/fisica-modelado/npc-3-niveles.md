@@ -640,24 +640,62 @@ completa es
 
 $$ \boxed{\ \frac{d(\Delta V)}{dt} = -\frac{2}{C}\,i_{O,total,dist} + \frac{2\,k_v\hat I K_{bal}}{C}\,\Delta V\ } $$
 
-*De dónde sale exactamente \(\tau_{bal}\).* En régimen libre (sin perturbación, \(i_{dist}=0\), para ver solo
-la dinámica propia del lazo) esta ecuación es simplemente
+*De dónde sale exactamente \(\tau_{bal}\), sin dar nada por supuesto.* En régimen libre (sin perturbación,
+\(i_{dist}=0\), para ver solo la dinámica propia del lazo) la ecuación linealizada de arriba se reduce a
 
-$$ \frac{d(\Delta V)}{dt} = \frac{2\,k_v\hat I K_{bal}}{C}\,\Delta V $$
+$$ \frac{d(\Delta V)}{dt} = \underbrace{\frac{2\,k_v\hat I K_{bal}}{C}}_{\text{llamemos a esto } a}\,\Delta V \qquad\Longrightarrow\qquad \dot{\Delta V} = a\,\Delta V $$
 
-que tiene la forma canónica de un sistema de **primer orden**, \(\dot x = -x/\tau\), cuya solución es
-\(x(t)=x(0)\,e^{-t/\tau}\) (decae si \(\tau>0\), diverge si \(\tau<0\)). Identificando término a término el
-coeficiente de \(\Delta V\) en la ecuación de arriba con \(-1/\tau\) de la forma canónica:
+con \(a\) una simple constante (todo lo que multiplica a \(\Delta V\) es un número, una vez fijados
+\(k_v,\hat I,K_{bal},C\)). Esta es la ecuación diferencial lineal de primer orden más simple que existe:
+dice que la velocidad de cambio de \(\Delta V\) es, en todo instante, proporcional al propio valor de
+\(\Delta V\). Hay que resolverla para saber cómo evoluciona \(\Delta V(t)\) en el tiempo — sin asumir de
+antemano que la solución es una exponencial.
 
-$$ \frac{2\,k_v\hat I K_{bal}}{C} = -\frac{1}{\tau_{bal}} $$
+*Resolviendo la ecuación diferencial (separación de variables).* Partiendo de \(\dfrac{d(\Delta V)}{dt}=a\,\Delta V\),
+se separan las variables llevando todos los términos con \(\Delta V\) a un lado y los términos con \(t\) al
+otro:
 
-Despejando \(\tau_{bal}\) (invirtiendo ambos lados y cambiando de signo):
+$$ \frac{d(\Delta V)}{\Delta V} = a\,dt $$
 
-$$ \tau_{bal} = -\frac{C}{2\,k_v\,\hat I\,K_{bal}} $$
+Integrando ambos lados —la izquierda respecto a \(\Delta V\), la derecha respecto a \(t\)—, desde el instante
+inicial (\(t=0\), \(\Delta V=\Delta V(0)\)) hasta un instante genérico \(t\):
 
-Este es el origen del signo "menos" delante de la fracción: no es una elección arbitraria, es lo que exige la
-igualación con la forma canónica \(\dot x=-x/\tau\). Como \(k_v=-2/\pi\) es **negativo**, el signo menos de
-delante y el signo menos de \(k_v\) se cancelan, dejando un \(\tau_{bal}\) positivo (lo que debe ser, una
+$$ \int_{\Delta V(0)}^{\Delta V(t)} \frac{d(\Delta V)}{\Delta V} = \int_0^t a\,dt' \qquad\Longrightarrow\qquad \ln\!\left(\frac{\Delta V(t)}{\Delta V(0)}\right) = a\,t $$
+
+(la integral de \(1/x\,dx\) es \(\ln x\); evaluada entre los dos límites da el logaritmo del cociente).
+Despejando \(\Delta V(t)\), se aplica la exponencial a ambos lados para deshacer el logaritmo:
+
+$$ \boxed{\ \Delta V(t) = \Delta V(0)\cdot e^{a\,t}\ } $$
+
+**Aquí está la exponencial** — no se ha supuesto, ha salido directamente de resolver la ecuación
+diferencial. Su comportamiento depende por completo del signo de \(a\): si \(a<0\), el exponente \(at\) se
+hace cada vez más negativo con el tiempo, y \(e^{at}\to0\) — la solución **decae** hacia cero (estable); si
+\(a>0\), el exponente crece sin límite y \(e^{at}\to\infty\) — la solución **diverge** (inestable). Esta es
+la razón última por la que el signo de \(a\) (y por tanto el signo de \(k_v\)) decide si el lazo es estable
+o no, verificado ya en el bloque anterior.
+
+*Por qué se define \(\tau\) y cómo.* Para que \(a\) (que tiene unidades de 1/tiempo, ya que multiplica a
+\(\Delta V\) para dar una derivada temporal) sea más fácil de interpretar, se define la constante de tiempo
+\(\tau\) como su inverso cambiado de signo, \(\tau\equiv-1/a\) — de forma que, sustituyendo \(a=-1/\tau\) en
+la solución de arriba,
+
+$$ \Delta V(t) = \Delta V(0)\cdot e^{-t/\tau} $$
+
+Con esta definición, \(\tau\) tiene unidades de tiempo (segundos) y una lectura física directa: es el
+instante en que la solución ha caído a \(1/e\approx37\%\) de su valor inicial (sustituyendo \(t=\tau\):
+\(\Delta V(\tau)=\Delta V(0)e^{-1}\)). Cuanto **menor** es \(\tau\), más rápido decae \(\Delta V\) hacia cero
+— de ahí que "constante de tiempo pequeña" signifique "lazo rápido".
+
+*Aplicando esto a nuestra ecuación concreta.* Con \(a=\dfrac{2k_v\hat IK_{bal}}{C}\) (lo que se llamó \(a\)
+al principio) y \(\tau_{bal}\equiv-1/a\):
+
+$$ \tau_{bal} = -\frac{1}{a} = -\frac{C}{2\,k_v\,\hat I\,K_{bal}} $$
+
+Este es el origen del signo "menos" delante de la fracción: no es una elección arbitraria, sale directamente
+de la definición \(\tau\equiv-1/a\), que a su vez viene de exigir que la solución se escriba como
+\(e^{-t/\tau}\) (con signo negativo en el exponente, la forma habitual para algo que decae). Como \(k_v=-2/\pi\)
+es **negativo**, el signo menos de delante de la fracción y el signo menos ya contenido en \(k_v\) se
+cancelan, dejando un \(\tau_{bal}\) positivo (lo que debe ser, una
 constante de tiempo no puede ser negativa en un sistema estable):
 
 $$ \tau_{bal} = -\frac{C}{2\,k_v\,\hat I\,K_{bal}} = \frac{C}{2\,|k_v|\,\hat I\,K_{bal}} = \frac{C}{2\cdot\frac{2}{\pi}\cdot\hat I\,K_{bal}} = \frac{\pi\,C}{4\,\hat I\,K_{bal}} $$
