@@ -626,12 +626,34 @@ coeficiente es **negativo** — el signo correcto para estabilidad (\(\dot x=-x/
 cambio se usara el valor \(k_v>0\) que se había afirmado sin verificar antes de esta derivación, este mismo
 signo de realimentación \(v_0=-K_{bal}\Delta V\) sería **inestable**: el diseño del lazo depende
 críticamente de conocer el signo real de \(k_v\), no solo su orden de magnitud. La ecuación linealizada
-completa, y la constante de tiempo del lazo cerrado que de ella se despeja, son:
+completa es
 
-$$ \boxed{\ \frac{d(\Delta V)}{dt} = -\frac{2}{C}\Big(i_{O,total,dist} - k_v\hat I K_{bal}\Delta V\Big)\ } \qquad \tau_{bal} = \frac{C}{-2\,k_v\,\hat I\,K_{bal}} = \frac{C}{2\,|k_v|\,\hat I\,K_{bal}} = \frac{\pi\,C}{4\,\hat I\,K_{bal}} $$
+$$ \boxed{\ \frac{d(\Delta V)}{dt} = -\frac{2}{C}\,i_{O,total,dist} + \frac{2\,k_v\hat I K_{bal}}{C}\,\Delta V\ } $$
 
-(la última igualdad sustituye \(|k_v|=2/\pi\)). Con \(\tau_{bal}>0\), el desbalance decae exponencialmente
-hacia el valor que anula \(i_{dist}\), en vez de crecer sin control.
+*De dónde sale exactamente \(\tau_{bal}\).* En régimen libre (sin perturbación, \(i_{dist}=0\), para ver solo
+la dinámica propia del lazo) esta ecuación es simplemente
+
+$$ \frac{d(\Delta V)}{dt} = \frac{2\,k_v\hat I K_{bal}}{C}\,\Delta V $$
+
+que tiene la forma canónica de un sistema de **primer orden**, \(\dot x = -x/\tau\), cuya solución es
+\(x(t)=x(0)\,e^{-t/\tau}\) (decae si \(\tau>0\), diverge si \(\tau<0\)). Identificando término a término el
+coeficiente de \(\Delta V\) en la ecuación de arriba con \(-1/\tau\) de la forma canónica:
+
+$$ \frac{2\,k_v\hat I K_{bal}}{C} = -\frac{1}{\tau_{bal}} $$
+
+Despejando \(\tau_{bal}\) (invirtiendo ambos lados y cambiando de signo):
+
+$$ \tau_{bal} = -\frac{C}{2\,k_v\,\hat I\,K_{bal}} $$
+
+Este es el origen del signo "menos" delante de la fracción: no es una elección arbitraria, es lo que exige la
+igualación con la forma canónica \(\dot x=-x/\tau\). Como \(k_v=-2/\pi\) es **negativo**, el signo menos de
+delante y el signo menos de \(k_v\) se cancelan, dejando un \(\tau_{bal}\) positivo (lo que debe ser, una
+constante de tiempo no puede ser negativa en un sistema estable):
+
+$$ \tau_{bal} = -\frac{C}{2\,k_v\,\hat I\,K_{bal}} = \frac{C}{2\,|k_v|\,\hat I\,K_{bal}} = \frac{C}{2\cdot\frac{2}{\pi}\cdot\hat I\,K_{bal}} = \frac{\pi\,C}{4\,\hat I\,K_{bal}} $$
+
+Con \(\tau_{bal}>0\) confirmado, el desbalance decae exponencialmente hacia el valor que anula \(i_{dist}\),
+en vez de crecer sin control.
 
 *El error residual del control proporcional puro (panel (c)).* Con un controlador puramente proporcional,
 \(v_0=-K_{bal}\Delta V\), el régimen permanente (\(\dot{\Delta V}=0\)) de la ecuación anterior exige
