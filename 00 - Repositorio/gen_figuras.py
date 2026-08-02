@@ -15898,6 +15898,72 @@ def _npc_kv_lazo():
     _savefig(fig, 'npc-kv-lazo', dpi=160)
 
 
+def _npc_pi_sintonizacion():
+    """NPC: balance de neutro, Paso 7 - diseno de Ki. (a) respuesta temporal
+    de deltaV para P puro y tres sintonizaciones de PI (sobreamortiguado,
+    critico, subamortiguado) ante la misma perturbacion escalon i_dist;
+    (b) los mismos casos en el plano de polos s, mostrando como el par de
+    polos del PI se mueve de reales a complejos conjugados al subir Ki."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.5, 5.4), gridspec_kw={'width_ratios': [1.3, 1.0]})
+    fig.suptitle('Balance de neutro, Paso 7: diseño de $K_i$ — P vs. PI en distintos regímenes de amortiguamiento', fontsize=12.5, fontweight='bold')
+
+    kv = -2/np.pi; Ihat = 1.0; C = 6e-3; Idc_bias = 0.6
+    Kbal = 0.1
+    Ki_crit = (abs(kv)*Ihat*Kbal**2) / (2*C)   # zeta=1
+    cases = [
+        ('P puro', None, '#7f8c8d', '-'),
+        (f'PI sobreamortiguado ($\\zeta{{\\approx}}3.3$)', 0.05, '#c0392b', '-'),
+        (f'PI crítico ($\\zeta{{=}}1$)', Ki_crit, '#1e8449', '-'),
+        (f'PI subamortiguado ($\\zeta{{\\approx}}0.33$)', 5.0, '#2e86c1', '-'),
+    ]
+
+    t2 = np.linspace(0, 2.0, 40000); dt = t2[1]-t2[0]
+    def sim(Ki):
+        dv = np.zeros(len(t2)); dv[0] = 40.0
+        integ = 0.0
+        for k in range(len(t2)-1):
+            if Ki is None:
+                v0 = -Kbal*dv[k]
+            else:
+                integ += dv[k]*dt
+                v0 = -(Kbal*dv[k] + Ki*integ)
+            iOtotal = Idc_bias + kv*Ihat*v0
+            dv[k+1] = dv[k] - 2*iOtotal*dt/C
+        return dv
+
+    for lbl, Ki, col, ls in cases:
+        dv = sim(Ki)
+        a1.plot(t2, dv, color=col, lw=2.1, ls=ls, label=lbl)
+    a1.axhline(0, color='gray', lw=0.8, ls=':')
+    a1.set_xlabel('t [s]'); a1.set_ylabel(r'$\Delta V$ [V]'); a1.grid(alpha=.3)
+    a1.legend(fontsize=8.8, loc='upper right')
+    a1.set_title('(a) Respuesta ante la misma perturbación $i_{dist}$:\nsolo el P puro deja residuo', fontsize=10.5, fontweight='bold')
+
+    # ---- (b) plano de polos ----
+    a2.axhline(0, color='#ccc', lw=0.8); a2.axvline(0, color='#ccc', lw=0.8)
+    # polo del P puro: a = 2*kv*Ihat*Kbal/C  (negativo)
+    p_P = 2*kv*Ihat*Kbal/C
+    a2.plot([p_P], [0], 'x', color='#7f8c8d', ms=12, mew=2.5, label='P puro (1 polo real)')
+    for lbl, Ki, col, ls in cases[1:]:
+        wn = np.sqrt(-2*kv*Ihat*Ki/C)
+        zeta = (-2*kv*Ihat*Kbal/C)/(2*wn)
+        if zeta >= 1:
+            # dos polos reales: -zeta*wn +- wn*sqrt(zeta^2-1)
+            d = wn*np.sqrt(zeta**2-1)
+            r1, r2 = -zeta*wn+d, -zeta*wn-d
+            a2.plot([r1, r2], [0, 0], 'x', color=col, ms=12, mew=2.5)
+        else:
+            re = -zeta*wn; im = wn*np.sqrt(1-zeta**2)
+            a2.plot([re, re], [im, -im], 'x', color=col, ms=12, mew=2.5)
+    a2.set_xlabel(r'$\mathrm{Re}(s)$'); a2.set_ylabel(r'$\mathrm{Im}(s)$'); a2.grid(alpha=.3)
+    a2.set_title('(b) Polos en el plano $s$:\nreales (sobre-/crítico) → complejos (sub-)', fontsize=10.5, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.88])
+    _savefig(fig, 'npc-pi-sintonizacion', dpi=160)
+
+
 def _hvdc_configuraciones():
     """HVDC: (a) monopolar con retorno por tierra, bipolar y simetrica monopolar,
     esquemas de conductores entre dos terminales; (b) topologias MTDC radial y
@@ -17479,6 +17545,9 @@ def main():
         n += 1
     if pref is None or "npc-kv-lazo".startswith(pref):
         _npc_kv_lazo()
+        n += 1
+    if pref is None or "npc-pi-sintonizacion".startswith(pref):
+        _npc_pi_sintonizacion()
         n += 1
     if pref is None or "npc-svm-tiempos".startswith(pref):
         _npc_svm_tiempos()

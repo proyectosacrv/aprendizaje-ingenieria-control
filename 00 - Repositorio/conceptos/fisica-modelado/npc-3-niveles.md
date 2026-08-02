@@ -716,14 +716,58 @@ decreciendo) mientras \(\Delta V\ne0\), así que en régimen permanente **tiene*
 si no lo fuera, el término integral seguiría cambiando y el sistema no estaría en régimen permanente. Es el
 mismo argumento estructural que hace que un PI anule el error estacionario frente a una perturbación
 constante en cualquier lazo de control (ver [[control-cascada]]): el integrador es quien "absorbe" la
-perturbación constante \(i_{dist}\), dejando que el error vuelva exactamente a cero. Esto es lo que muestra
-el panel (c): P puro converge a un \(\Delta V_\infty\) pequeño pero distinto de cero; PI converge a
-\(\Delta V=0\).
+perturbación constante \(i_{dist}\), dejando que el error vuelva exactamente a cero.
 
-Este resultado (\(\tau_{bal}\) en función de \(K_{bal}\)) es lo que permite diseñar la ganancia del lazo:
-cuanto mayor \(K_{bal}\), más rápido el lazo (menor \(\tau_{bal}\)), pero un \(K_{bal}\) excesivo hace que
-\(v_0\) sea grande y distorsione la modulación de las tres fases (satura antes la referencia,
-\(|r_k^*+v_0|>1\)) — de ahí el compromiso de diseño del apartado 8, Paso 5.
+*Cómo se diseña \(K_i\): planteando la ecuación de segundo orden.* Con el término integral, la ecuación
+linealizada del lazo (Paso 2 con \(v_0=-K_{bal}\Delta V-K_i\!\int\Delta V\,dt\), \(i_{O,corr}=k_v\hat Iv_0\))
+es
+
+$$ \frac{d(\Delta V)}{dt} = -\frac{2}{C}i_{dist} + \frac{2k_v\hat IK_{bal}}{C}\,\Delta V + \frac{2k_v\hat IK_i}{C}\int\Delta V\,dt $$
+
+que ya no es de primer orden por culpa del término integral. Para eliminarlo se deriva **toda** la ecuación
+una vez más respecto a \(t\) (con \(i_{dist}\) constante, su derivada es cero, y la derivada de la integral
+de \(\Delta V\) es simplemente \(\Delta V\)):
+
+$$ \frac{d^2(\Delta V)}{dt^2} = \frac{2k_v\hat IK_{bal}}{C}\,\frac{d(\Delta V)}{dt} + \frac{2k_v\hat IK_i}{C}\,\Delta V $$
+
+Reordenando todo al lado izquierdo, esta es la ecuación diferencial de **segundo orden** que gobierna el
+lazo con PI:
+
+$$ \frac{d^2(\Delta V)}{dt^2} - \frac{2k_v\hat IK_{bal}}{C}\,\frac{d(\Delta V)}{dt} - \frac{2k_v\hat IK_i}{C}\,\Delta V = 0 $$
+
+*Comparación con la forma canónica de segundo orden.* Todo sistema de control de segundo orden se puede
+escribir en la forma estándar \(\ddot x + 2\zeta\omega_n\dot x + \omega_n^2 x = 0\), donde \(\omega_n\) es la
+**frecuencia natural** (qué tan rápido oscilaría el sistema sin amortiguamiento) y \(\zeta\) es el
+**coeficiente de amortiguamiento** (\(\zeta<1\): oscila antes de asentarse; \(\zeta=1\): el caso límite sin
+oscilación, el más rápido posible sin pasarse del valor final; \(\zeta>1\): se asienta sin oscilar pero más
+lento que el crítico). Identificando término a término con la ecuación de arriba (recordando que \(k_v<0\),
+así que \(-k_v\hat I>0\), y los coeficientes resultan positivos como exige la forma canónica):
+
+$$ \omega_n^2 = -\frac{2k_v\hat IK_i}{C} \qquad\Longrightarrow\qquad \omega_n = \sqrt{\frac{2|k_v|\hat IK_i}{C}} $$
+
+$$ 2\zeta\omega_n = -\frac{2k_v\hat IK_{bal}}{C} \qquad\Longrightarrow\qquad \zeta = \frac{|k_v|\hat IK_{bal}}{C\,\omega_n} $$
+
+*El criterio de diseño de \(K_i\).* La primera ecuación muestra que \(K_i\) controla directamente
+\(\omega_n\) (la "velocidad" global del lazo): a mayor \(K_i\), mayor \(\omega_n\), lazo más rápido. Pero la
+segunda ecuación muestra que \(\zeta\) depende de \(K_{bal}\) **y** de \(\omega_n\) (que a su vez depende de
+\(K_i\)) — subir \(K_i\) con \(K_{bal}\) fijo baja \(\zeta\), acercando el sistema a la oscilación. El
+procedimiento de diseño habitual es: (1) fijar \(K_{bal}\) según el criterio de primer orden del Paso 7 (la
+\(\tau_{bal}\) deseada sin PI); (2) elegir el \(\zeta\) deseado (normalmente \(\zeta\approx0.7\)–\(1\), que
+da una respuesta rápida sin apenas sobreoscilación); (3) despejar \(K_i\) de la ecuación de \(\zeta\):
+
+$$ \zeta = \frac{|k_v|\hat IK_{bal}}{C\,\omega_n} \quad\Longrightarrow\quad \omega_n = \frac{|k_v|\hat IK_{bal}}{C\,\zeta} \quad\Longrightarrow\quad K_i = \frac{C\,\omega_n^2}{2|k_v|\hat I} = \frac{|k_v|\hat IK_{bal}^2}{2C\,\zeta^2} $$
+
+El caso particular \(\zeta=1\) (amortiguamiento crítico) da el \(K_i\) más alto compatible con no oscilar:
+\(K_i^{crít}=\dfrac{|k_v|\hat IK_{bal}^2}{2C}\). Para \(K_i<K_i^{crít}\) el sistema es sobreamortiguado
+(\(\zeta>1\), lento y sin oscilación); para \(K_i>K_i^{crít}\) es subamortiguado (\(\zeta<1\), más rápido en
+llegar cerca del valor final pero con oscilación amortiguada alrededor de él).
+
+<div class="cfig"><img src="figuras/npc-pi-sintonizacion.png" alt="grafica comparando la respuesta temporal del desbalance de tension ante control P puro, PI sobreamortiguado, PI con amortiguamiento critico y PI subamortiguado, mostrando el error residual del P frente al error nulo en regimen permanente de los tres casos de PI con distinta velocidad y oscilacion, y diagrama del lugar de las raices o de los polos en el plano complejo para los distintos casos de zeta"><div class="cap">(a) Respuesta de \(\Delta V(t)\) ante la misma perturbación \(i_{dist}\) para P puro (error residual) y tres sintonizaciones de PI con \(K_{bal}\) fijo y distinto \(K_i\): sobreamortiguado (\(\zeta>1\), lento pero sin oscilación), crítico (\(\zeta=1\), el más rápido sin pasarse) y subamortiguado (\(\zeta<1\), llega antes cerca de cero pero oscila alrededor). Todos los casos de PI convergen exactamente a \(\Delta V=0\); solo el P puro deja residuo. (b) Los mismos casos en el plano de polos \(s\): P puro tiene un único polo real negativo; los PI tienen un par de polos que se mueven de reales (sobreamortiguado) a complejos conjugados (subamortiguado) según crece \(K_i\), pasando por el punto de polo doble real en \(\zeta=1\).</div></div>
+
+Este resultado (\(\tau_{bal}\), \(\omega_n\) y \(\zeta\) en función de \(K_{bal}\) y \(K_i\)) es lo que
+permite diseñar la ganancia del lazo: cuanto mayor \(K_{bal}\) o \(K_i\), más rápido el lazo, pero una
+ganancia excesiva hace que \(v_0\) sea grande y distorsione la modulación de las tres fases (satura antes la
+referencia, \(|r_k^*+v_0|>1\)) — de ahí el compromiso de diseño del apartado 8, Paso 5.
 
 **Paso 8 — hasta dónde llega este método, y qué hacer cuando no basta.** El resultado del Paso 7 tiene un
 límite práctico: la inyección de secuencia cero corrige desbalances **lentos** (del orden de la frecuencia
