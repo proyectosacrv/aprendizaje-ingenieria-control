@@ -274,15 +274,40 @@ otro, porque O es un nudo intermedio) da directamente sus dos ecuaciones diferen
 $$ C\,\frac{dV_{C1}}{dt} = -i_O(t), \qquad C\,\frac{dV_{C2}}{dt} = +i_O(t) $$
 
 (si \(i_O>0\) se resta de \(C_1\) y se suma a \(C_2\), como en el Paso 1). De aquí salen dos resultados
-distintos, uno tranquilizador y otro que es el problema en sí: sumando ambas ecuaciones,
-\(\dfrac{d(V_{C1}+V_{C2})}{dt}=0\) — la tensión **total** del bus \(V_{dc}=V_{C1}+V_{C2}\) no la afecta el
-estado O, es un balance interno, no una pérdida de energía total (tranquilizador: el estado O no puede volar
-el bus). Restando la segunda ecuación de la primera se obtiene la dinámica de lo que sí importa, el
-**desbalance** \(\Delta V=V_{C1}-V_{C2}\):
+distintos, uno tranquilizador y otro que es el problema en sí — y ambos se obtienen de la misma pareja de
+ecuaciones, combinándolas de dos formas distintas (sumándolas y restándolas).
+
+*Combinación 1 — sumar las dos ecuaciones (da la tensión total del bus).* Sumando miembro a miembro:
+
+$$ C\,\frac{dV_{C1}}{dt} + C\,\frac{dV_{C2}}{dt} = -i_O(t) + i_O(t) $$
+
+El lado derecho se cancela exactamente (\(-i_O+i_O=0\), porque es la **misma** \(i_O(t)\) en ambas
+ecuaciones, solo con signo opuesto). Sacando \(C\) factor común y usando que la derivada de una suma es la
+suma de las derivadas, \(C\dfrac{d(V_{C1}+V_{C2})}{dt}=0\), y como \(C\ne0\):
+
+$$ \frac{d(V_{C1}+V_{C2})}{dt} = 0 $$
+
+Es decir, la tensión **total** del bus \(V_{dc}=V_{C1}+V_{C2}\) no la afecta el estado O — es un balance
+interno, no una pérdida de energía total (tranquilizador: el estado O no puede volar el bus).
+
+*Combinación 2 — restar las dos ecuaciones (da la dinámica del desbalance).* Restando la segunda ecuación de
+la primera, miembro a miembro:
+
+$$ C\,\frac{dV_{C1}}{dt} - C\,\frac{dV_{C2}}{dt} = -i_O(t) - \big(+i_O(t)\big) $$
+
+El lado derecho ahora **no** se cancela — ambos términos tienen el mismo signo al restar un negativo con un
+positivo, así que se suman en valor absoluto: \(-i_O(t) - i_O(t) = -2\,i_O(t)\). El lado izquierdo, sacando
+\(C\) factor común y usando de nuevo que la derivada de una resta es la resta de las derivadas,
+\(C\dfrac{d(V_{C1}-V_{C2})}{dt}\). Igualando ambos lados:
+
+$$ C\,\frac{d(V_{C1}-V_{C2})}{dt} = -2\,i_O(t) $$
+
+Definiendo el **desbalance** \(\Delta V \equiv V_{C1}-V_{C2}\) y despejando la derivada (dividiendo ambos
+lados entre \(C\)):
 
 $$ \frac{d(\Delta V)}{dt} = -\frac{2\,i_O(t)}{C} $$
 
-Esta única ecuación —\(\Delta V\) es la integral de \(i_O\)— es el resultado que arrastra todo el resto del
+Esta última ecuación —\(\Delta V\) es la integral de \(i_O\)— es el resultado que arrastra todo el resto del
 apartado: como es un integrador puro, cualquier componente de \(i_O\) que no promedie exactamente a cero
 hace que \(\Delta V\) crezca sin límite (Paso 5).
 
