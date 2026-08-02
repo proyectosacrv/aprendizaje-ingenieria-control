@@ -346,23 +346,95 @@ dejan un remanente neto (Paso 5). Eso es lo que hay que analizar en dos regímen
 comportamiento de esa suma es cualitativamente diferente en cada uno: régimen equilibrado (Paso 4) y régimen
 desequilibrado (Paso 5).
 
-**Paso 4 — primer régimen: por qué con carga equilibrada el desbalance no se dispara.** Partiendo de la suma
-\(i_{O,total}\) del Paso 3, con tensiones y corrientes trifásicas equilibradas y factor de potencia
-\(\cos\varphi\), cada fase pasa por el estado O una fracción de tiempo \(1-|d_k(\theta)|\) (con \(d_k\) del
-apartado 2), desfasada 120° de las otras dos. Sumando las tres contribuciones con sus desfases se demuestra
-que la componente **media** de \(i_{O,total}\) sobre un periodo de red es exactamente cero para cualquier
-\(\cos\varphi\) y cualquier \(m\) — es una propiedad de la simetría de 120°, no depende de los valores
-concretos. El resultado práctico: con el Paso 2 siendo un integrador, una entrada de media cero no hace
-crecer \(\Delta V\) sin límite, solo lo hace **oscilar**. Integrando la componente oscilante que sí queda (a
-\(3\omega_0\text{, el triple de la fundamental}\)) se obtiene su amplitud pico-pico:
+**Paso 4 — primer régimen: desarrollo completo de por qué con carga equilibrada el desbalance no se dispara.**
+Partiendo de \(i_{O,total}\) del Paso 3, hay que construir explícitamente cada uno de sus tres términos y
+sumarlos — sin dar por buena de antemano ninguna cancelación.
 
-$$ \Delta V_{pp,osc} \approx \frac{2\,\hat I\,m}{3\,\omega_0\,C}\cdot k(\cos\varphi) $$
+*Construir cada término de la suma.* Con corrientes trifásicas equilibradas de amplitud \(\hat I\) y factor
+de potencia \(\cos\varphi\) (la corriente de cada fase desfasada un ángulo \(\varphi\) respecto a su propia
+tensión/referencia), la corriente de la fase \(k\) es
 
-donde \(k(\cos\varphi)\) es un factor adimensional del orden de la unidad que depende del ángulo de fase
-(máximo cerca de \(\cos\varphi=1\)). Conclusión de este paso: con carga equilibrada el desbalance **no** es
-un problema de control — es una oscilación intrínseca de la topología que no se elimina, solo se dimensiona
-con \(C\) suficientemente grande (apartado 7, Paso 4). Por eso hace falta activar un mecanismo de corrección
-solo cuando aparece el segundo régimen.
+$$ i_k(\theta) = \hat I\sin(\theta-\phi_k-\varphi), \qquad \phi_a=0,\ \ \phi_b=\frac{2\pi}{3},\ \ \phi_c=\frac{4\pi}{3} $$
+
+Falta el indicador \(\mathbb{1}[\text{fase }k\text{ en O}]\) del Paso 3. Del apartado 2, la fase \(k\) está en
+el estado O una fracción de tiempo \(1-|d_k|\) de cada periodo de conmutación, con \(d_k=m\sin(\theta-\phi_k)\)
+(la referencia de esa fase, no de su corriente — el estado O lo decide la modulación, no la corriente). Para
+sumar en forma continua (promediando sobre muchos periodos de conmutación dentro de un ángulo \(\theta\)) se
+sustituye el indicador binario por su valor medio local, esa misma fracción de tiempo:
+
+$$ \mathbb{1}[\text{fase }k\text{ en O}] \ \longrightarrow\ 1-\big|m\sin(\theta-\phi_k)\big| $$
+
+Multiplicando ambas partes, el término de la fase \(k\) en la suma de \(i_{O,total}\) es
+
+$$ i_k(\theta)\cdot\big(1-|m\sin(\theta-\phi_k)|\big) = \hat I\sin(\theta-\phi_k-\varphi)\cdot\Big(1-\big|m\sin(\theta-\phi_k)\big|\Big) $$
+
+*Separar en dos partes antes de sumar.* Distribuyendo el paréntesis, cada término se parte en dos:
+
+$$ i_k(\theta)\cdot(1-|d_k|) = \underbrace{\hat I\sin(\theta-\phi_k-\varphi)}_{\text{parte A}} \ -\ \underbrace{\hat I\sin(\theta-\phi_k-\varphi)\cdot\big|m\sin(\theta-\phi_k)\big|}_{\text{parte B}} $$
+
+La suma completa \(i_{O,total}=\sum_k(\text{parte A}_k+\text{parte B}_k)\) se puede evaluar sumando primero
+todas las partes A y luego todas las partes B, porque la suma es lineal.
+
+*Suma de las tres partes A: se cancela exactamente.* La parte A de cada fase es simplemente su corriente
+senoidal \(\hat I\sin(\theta-\phi_k-\varphi)\), sin ningún factor adicional. Sumando las tres con sus
+desfases de \(120°=2\pi/3\):
+
+$$ \sum_{k} \hat I\sin(\theta-\phi_k-\varphi) = \hat I\Big[\sin(\theta-\varphi) + \sin(\theta-\varphi-\tfrac{2\pi}{3}) + \sin(\theta-\varphi-\tfrac{4\pi}{3})\Big] $$
+
+Esta es la suma de tres senoides idénticas desfasadas exactamente \(120°\) entre sí — la misma identidad que
+dice que un sistema trifásico equilibrado no tiene componente de secuencia cero: **la suma de tres senoides
+de igual amplitud, igual frecuencia y desfasadas 120° es idénticamente cero**, para cualquier ángulo. Por
+tanto:
+
+$$ \sum_{k} \text{parte A}_k = 0 \qquad \text{(exactamente, en todo instante, no solo en promedio)} $$
+
+*Suma de las tres partes B: no se cancela — hay que desarrollarla.* Cada parte B tiene el valor absoluto
+\(|m\sin(\theta-\phi_k)|\), que **no** es una senoide pura (un valor absoluto de seno no es senoidal), así
+que la cancelación exacta de las partes A no se repite aquí sin más trabajo. La vía estándar es la serie de
+Fourier del valor absoluto de un seno, que solo tiene componente continua y armónicos **pares** de la
+frecuencia interior:
+
+$$ |\sin x| = \frac{2}{\pi} - \frac{4}{\pi}\sum_{n=1}^{\infty}\frac{\cos(2nx)}{4n^2-1} = \frac{2}{\pi} - \frac{4}{\pi}\left(\frac{\cos2x}{3}+\frac{\cos4x}{15}+\cdots\right) $$
+
+Sustituyendo \(x=\theta-\phi_k\), el término dominante (después de la constante) es el de \(n=1\), con
+\(\cos\big(2(\theta-\phi_k)\big)\). Multiplicando esto por el factor senoidal \(\hat I m\sin(\theta-\phi_k-\varphi)\)
+de la parte B y usando la identidad producto-a-suma \(\sin\alpha\cos\beta=\tfrac12[\sin(\alpha+\beta)+\sin(\alpha-\beta)]\),
+cada parte B se descompone en una componente a la frecuencia fundamental \(\omega_0\) (que **desfasada
+\(-\phi_k\)** en su argumento SÍ se cancela igual que las partes A al sumar las tres fases, por el mismo
+argumento de simetría de 120°) más una componente a \(3(\theta-\phi_k)\) — el **triple** de la frecuencia de
+red. Esta componente de \(3\omega_0\) es la que **sí sobrevive** a la suma de las tres fases: al sumar
+\(\cos\big(3(\theta-\phi_k)\big)\) para \(\phi_k=0,\tfrac{2\pi}{3},\tfrac{4\pi}{3}\), el argumento total gana
+un múltiplo de \(3\times\tfrac{2\pi}{3}=2\pi\) en cada desfase, es decir las tres componentes a \(3\omega_0\)
+quedan **en fase** entre sí en vez de desfasadas 120° — se suman constructivamente en lugar de cancelarse
+(es la misma razón por la que el 3.er armónico es la componente de secuencia cero "natural" de un sistema
+trifásico, la que se usa en el apartado 6, Paso 6, para la inyección \(v_0\)).
+
+*Resultado del Paso 4: la media es cero, queda una oscilación a \(3\omega_0\).* Juntando ambos resultados —
+las partes A se cancelan exactamente, las partes B se cancelan en su componente fundamental pero no en su
+componente de \(3\omega_0\) — la suma total \(i_{O,total}(\theta)\) no tiene componente **media** (constante)
+en ningún término, para cualquier \(\cos\varphi\) y cualquier \(m\): es una propiedad de la simetría de 120°,
+no depende de los valores concretos. Lo único que queda es una componente puramente oscilante a \(3\omega_0\),
+de la forma \(i_{O,total}(\theta) \approx \hat I_{3\omega_0}\cos(3\theta+\psi)\) para alguna amplitud
+\(\hat I_{3\omega_0}\propto \hat I\, m\) y fase \(\psi\) que dependen de \(\cos\varphi\).
+
+*Del resultado de corriente al resultado de tensión: integrar.* Con el Paso 2 siendo un integrador puro
+(\(d(\Delta V)/dt=-2i_{O,total}/C\)), una entrada de media cero no hace crecer \(\Delta V\) sin límite —
+integrar un coseno da otro coseno, acotado, no una rampa. Integrando la componente oscilante
+\(\hat I_{3\omega_0}\cos(3\omega_0 t+\psi)\):
+
+$$ \Delta V_{osc}(t) = -\frac{2}{C}\int \hat I_{3\omega_0}\cos(3\omega_0 t+\psi)\,dt = -\frac{2\,\hat I_{3\omega_0}}{3\,\omega_0\,C}\sin(3\omega_0 t+\psi) $$
+
+Esta es una oscilación senoidal pura de amplitud \(\dfrac{2\hat I_{3\omega_0}}{3\omega_0 C}\); su valor
+pico-pico (de mínimo a máximo) es el doble de esa amplitud, y agrupando \(\hat I_{3\omega_0}=\hat I\, m\,
+k(\cos\varphi)\) (con \(k(\cos\varphi)\) el factor adimensional, del orden de la unidad, que absorbe la
+dependencia con el ángulo de fase de la derivación anterior) se llega a la expresión final:
+
+$$ \boxed{\ \Delta V_{pp,osc} \approx \frac{2\,\hat I\,m}{3\,\omega_0\,C}\cdot k(\cos\varphi)\ } $$
+
+donde \(k(\cos\varphi)\) es máximo cerca de \(\cos\varphi=1\). Conclusión de este paso: con carga equilibrada
+el desbalance **no** es un problema de control — es una oscilación intrínseca de la topología que no se
+elimina, solo se dimensiona con \(C\) suficientemente grande (apartado 7, Paso 4). Por eso hace falta activar
+un mecanismo de corrección solo cuando aparece el segundo régimen.
 
 **Paso 5 — segundo régimen: el problema real, componente neta con desequilibrio.** Partiendo de la misma
 suma \(i_{O,total}\), pero ahora con carga **desequilibrada** entre fases, factor de potencia distinto por
@@ -373,7 +445,7 @@ la modulación o dañar los condensadores. Este es el resultado que justifica to
 mecanismo activo de corrección, porque a diferencia del Paso 4 aquí no hay ninguna simetría que lo frene por
 sí sola.
 
-<div class="cfig"><img src="figuras/npc-neutro.png" alt="esquema de los dos caminos de corriente en el estado O segun el signo de la corriente de fase, y simulacion de la deriva de las tensiones de los dos condensadores del bus sin compensacion frente a la estabilizacion con compensacion proporcional al desbalance"><div class="cap">(a) En el estado O, \(D_5\) o \(D_6\) conducen según el signo de \(i_o\), descargando un condensador y cargando el otro. (b) Ante una componente neta de corriente hacia O (carga desequilibrada), sin compensación el desbalance \(V_{C1}-V_{C2}\) crece linealmente sin límite (Paso 2: es un integrador puro); con una compensación proporcional al desbalance medido, las dos tensiones se mantienen ancladas a \(V_{dc}/2\).</div></div>
+<div class="cfig"><img src="figuras/npc-neutro.png" alt="esquema de los dos caminos de corriente en el estado O segun el signo de la corriente de fase con simbolos de diodo D5 D6, tensiones de bus VC1 VC2 absolutas con y sin compensacion, y zoom al desbalance Delta V = VC1 menos VC2 mostrando la deriva sin limite sin compensar frente a la respuesta de primer orden con compensacion proporcional"><div class="cap">(a) En el estado O, \(D_5\) o \(D_6\) conducen según el signo de \(i_o\), descargando un condensador y cargando el otro. (b) Tensiones de bus absolutas: sin compensación, \(V_{C1}\) y \(V_{C2}\) divergen sin límite; con compensación proporcional se estabilizan, pero en un punto ligeramente desplazado de \(V_{dc}/2\) (error residual propio de un control proporcional puro, sin integrador). (c) El mismo resultado visto directamente en el desbalance \(\Delta V=V_{C1}-V_{C2}\) —donde en (b) el caso compensado queda casi aplastado contra la línea de referencia—: deriva lineal sin límite (Paso 2: es un integrador puro) frente a una respuesta exponencial de primer orden que se acota (Paso 7).</div></div>
 
 **Paso 6 — la corrección: qué grado de libertad queda disponible.** El resultado del Paso 5 exige actuar
 sobre \(i_{O,total}\), pero el modulador **no puede** elegir directamente qué diodo conduce en el estado O

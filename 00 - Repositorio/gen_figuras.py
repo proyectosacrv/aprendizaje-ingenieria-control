@@ -15582,31 +15582,47 @@ def _npc_conmutacion():
 
 
 def _npc_neutro():
-    """NPC: balance del punto neutro. (a) caminos de corriente para el estado O
-    segun el signo de i_o (D1 vs D2 conducen, cargan C2 o C1); (b) simulacion
-    simplificada de V_C1, V_C2 con y sin compensacion (inyeccion 3er armonico)."""
+    """NPC: balance del punto neutro. (a) esquema fisico del estado O con D5/D6
+    (mismo estilo IGBT+diodo que el resto de figuras); (b) V_C1,V_C2 absolutas
+    con y sin compensacion; (c) zoom al desbalance Delta_V = V_C1-V_C2, donde
+    se ve con claridad la deriva sin limite vs. la estabilizacion de 1er orden."""
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
 
-    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13, 5.6), gridspec_kw={'width_ratios': [0.85, 1.15]})
-    fig.suptitle('NPC: balance del punto neutro O', fontsize=13, fontweight='bold')
+    fig = plt.figure(figsize=(15.5, 6.2))
+    gs = fig.add_gridspec(1, 3, width_ratios=[0.85, 1.0, 1.0], wspace=0.32)
+    a1 = fig.add_subplot(gs[0, 0])
+    a2 = fig.add_subplot(gs[0, 1])
+    a3 = fig.add_subplot(gs[0, 2])
+    fig.suptitle('NPC: balance del punto neutro O', fontsize=14, fontweight='bold')
 
-    # ---- (a) esquema de caminos de corriente ----
+    # ---- (a) esquema fisico del estado O, mismo estilo que npc-topologia ----
     a1.set_aspect('equal'); a1.axis('off')
-    a1.set_xlim(-2.2, 2.4); a1.set_ylim(-0.6, 5.6)
-    a1.set_title('(a) Estado "O": camino según signo de $i_o$', fontsize=10.5, fontweight='bold')
-    a1.plot([-1.6, 0.6], [5.2, 5.2], 'navy', lw=2)
-    a1.plot([-1.6, 0.6], [2.6, 2.6], 'navy', lw=1.3)
-    a1.plot([-1.6, 0.6], [0.0, 0.0], 'navy', lw=2)
-    a1.text(-1.85, 5.2, 'P', fontsize=10, va='center'); a1.text(-1.85, 2.6, 'O', fontsize=10, va='center'); a1.text(-1.85, 0.0, 'N', fontsize=10, va='center')
-    a1.plot([-1.2, -1.2], [5.2, 3.05], 'navy', lw=1.6); a1.plot([-1.2, -1.2], [2.15, 0.0], 'navy', lw=1.6)
-    a1.text(-1.0, 3.9, r'$C_1$', fontsize=9); a1.text(-1.0, 1.3, r'$C_2$', fontsize=9)
-    a1.annotate('', xy=(0.0, 3.9), xytext=(-0.55, 2.6), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=2))
-    a1.text(0.1, 3.9, r'$i_o>0$: D1 conduce' + '\n' + r'descarga $C_1$, carga $C_2$', fontsize=8.5, color='#c0392b')
-    a1.annotate('', xy=(-0.55, 2.6), xytext=(0.0, 1.3), arrowprops=dict(arrowstyle='-|>', color='#1e8449', lw=2))
-    a1.text(0.1, 1.0, r'$i_o<0$: D2 conduce' + '\n' + r'descarga $C_2$, carga $C_1$', fontsize=8.5, color='#1e8449')
+    a1.set_xlim(-2.3, 2.5); a1.set_ylim(-0.6, 5.6)
+    a1.set_title('(a) Estado O: camino según signo de $i_o$', fontsize=11, fontweight='bold')
+    a1.plot([-1.7, 0.5], [5.2, 5.2], 'k', lw=2.2)
+    a1.plot([-1.7, 0.5], [2.6, 2.6], 'k', lw=1.2)
+    a1.plot([-1.7, 0.5], [0.0, 0.0], 'k', lw=2.2)
+    a1.text(-1.9, 5.2, 'P', fontsize=12, va='center', fontweight='bold')
+    a1.text(-1.9, 2.6, 'O', fontsize=12, va='center', fontweight='bold')
+    a1.text(-1.9, 0.0, 'N', fontsize=12, va='center', fontweight='bold')
+    cx = -1.35
+    for yA, yB, lbl in [(5.2, 2.6, r'$C_1$'), (2.6, 0.0, r'$C_2$')]:
+        ym = (yA+yB)/2
+        a1.plot([cx-0.16, cx+0.16], [ym+0.05, ym+0.05], 'k', lw=1.8)
+        a1.plot([cx-0.16, cx+0.16], [ym-0.05, ym-0.05], 'k', lw=1.8)
+        a1.plot([cx, cx], [yA, ym+0.08], 'k', lw=1.0); a1.plot([cx, cx], [ym-0.08, yB], 'k', lw=1.0)
+        a1.text(cx-0.30, ym, lbl, fontsize=10, va='center', ha='right')
+    a1.plot([cx, -1.7], [2.6, 2.6], 'k', lw=1.2)
+    xd = 0.05
+    _npc_diode_symbol(a1, xd, 2.6, xd, 5.2, label='$D_5$', col='#c0392b', label_off=0.34, lw=2.2)
+    _npc_diode_symbol(a1, xd, 0.0, xd, 2.6, label='$D_6$', col='#c0392b', label_off=0.34, lw=2.2)
+    a1.annotate('', xy=(xd, 3.9), xytext=(xd-0.55, 2.6), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=2.2))
+    a1.text(0.55, 3.9, r'$i_o>0$: $D_5$ conduce' + '\n' + r'descarga $C_1$, carga $C_2$', fontsize=9, color='#c0392b')
+    a1.annotate('', xy=(xd-0.55, 2.6), xytext=(xd, 1.3), arrowprops=dict(arrowstyle='-|>', color='#1e8449', lw=2.2))
+    a1.text(0.55, 1.0, r'$i_o<0$: $D_6$ conduce' + '\n' + r'descarga $C_2$, carga $C_1$', fontsize=9, color='#1e8449')
 
-    # ---- (b) evolucion de VC1, VC2 con y sin compensacion ----
+    # ---- simulacion compartida por (b) y (c) ----
     # Modelo simplificado: una carga desbalanceada monofasica conectada entre O y N
     # (peor caso realista) fuerza una corriente media hacia O que descarga C1 y
     # carga C2 progresivamente si no se compensa. La compensacion inyecta una
@@ -15625,17 +15641,31 @@ def _npc_neutro():
             vc2[k+1] = vc2[k] + iO*dt/C             # ...y carga C2 (por continuidad en el nudo O)
         return vc1, vc2
     vc1n, vc2n = sim(0.0)      # sin compensacion: deriva libre (integrador puro)
-    vc1c, vc2c = sim(3.0)      # con compensacion: realimentacion proporcional que la frena (1er orden estable)
-    a2.plot(t*1000, vc1n, color='#c0392b', lw=1.8, label='$V_{C1}$ sin comp.')
-    a2.plot(t*1000, vc2n, color='#e08a00', lw=1.8, ls='--', label='$V_{C2}$ sin comp.')
-    a2.plot(t*1000, vc1c, color='navy', lw=1.8, label='$V_{C1}$ con comp.')
-    a2.plot(t*1000, vc2c, color='#2e86c1', lw=1.8, ls='--', label='$V_{C2}$ con comp.')
-    a2.axhline(V0, color='gray', lw=0.8, ls=':')
-    a2.set_xlabel('t [ms]'); a2.set_ylabel('V'); a2.grid(alpha=.3)
-    a2.legend(fontsize=8, ncol=2, loc='center right')
-    a2.set_title('(b) Ante una carga desbalanceada: deriva sin compensación\nvs. estabilización con compensación proporcional', fontsize=10, fontweight='bold')
+    kcomp = 0.006              # con compensacion: tau=C/(2*kcomp)=0.5s, visible en la ventana de 2s
+    vc1c, vc2c = sim(kcomp)
 
-    plt.tight_layout(rect=[0, 0, 1, 0.94])
+    # ---- (b) tensiones absolutas VC1, VC2 ----
+    a2.plot(t*1000, vc1n, color='#c0392b', lw=2.0, label='$V_{C1}$ sin comp.')
+    a2.plot(t*1000, vc2n, color='#e08a00', lw=2.0, ls='--', label='$V_{C2}$ sin comp.')
+    a2.plot(t*1000, vc1c, color='navy', lw=2.2, label='$V_{C1}$ con comp.')
+    a2.plot(t*1000, vc2c, color='#2e86c1', lw=2.2, ls='--', label='$V_{C2}$ con comp.')
+    a2.axhline(V0, color='gray', lw=0.9, ls=':')
+    a2.set_xlabel('t [ms]'); a2.set_ylabel('V'); a2.grid(alpha=.3)
+    a2.legend(fontsize=8.5, ncol=1, loc='center left')
+    a2.set_title('(b) Tensiones de bus absolutas', fontsize=11, fontweight='bold')
+
+    # ---- (c) desbalance Delta_V = VC1-VC2: aqui se ve con claridad la
+    # comparacion (en (b) el caso compensado queda aplastado contra V0) ----
+    dVn = vc1n - vc2n
+    dVc = vc1c - vc2c
+    a3.plot(t*1000, dVn, color='#c0392b', lw=2.2, label=r'$\Delta V$ sin comp. (deriva sin límite)')
+    a3.plot(t*1000, dVc, color='navy', lw=2.2, label=r'$\Delta V$ con comp. (1er orden, estable)')
+    a3.axhline(0, color='gray', lw=0.9, ls=':')
+    a3.set_xlabel('t [ms]'); a3.set_ylabel(r'$\Delta V=V_{C1}-V_{C2}$  [V]'); a3.grid(alpha=.3)
+    a3.legend(fontsize=8.5, loc='lower left')
+    a3.set_title('(c) Desbalance $\\Delta V$: deriva libre\nvs. estabilización proporcional', fontsize=11, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.92])
     _savefig(fig, 'npc-neutro', dpi=160)
 
 
