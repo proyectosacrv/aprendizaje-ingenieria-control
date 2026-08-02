@@ -522,20 +522,69 @@ El resultado de este paso es el mecanismo de actuación: un lazo de control mide
 ajusta \(v_0\) en proporción (o con un PI) para llevarlo a cero — es exactamente el mecanismo simulado en el
 panel (c) de la figura del Paso 5.
 
-**Paso 7 — cuantificar el lazo: modelo y velocidad de respuesta.** Partiendo del mecanismo del Paso 6, hace
-falta saber **cuánto** corrige un \(v_0\) dado y **qué tan rápido** actúa el lazo cerrado, para poder
-diseñarlo. Linealizando alrededor del punto de equilibrio, la corriente correctiva que aporta un \(v_0\)
-pequeño es aproximadamente proporcional a \(v_0\) y a la corriente de carga \(\hat I\) (más \(v_0\) desvía
-más tiempo relativo, y a mayor corriente esa desviación de tiempo mueve más carga):
+**Paso 7 — cuantificar el lazo: qué es \(k_v\), cómo calcularlo, y cómo se cierra el lazo con signo
+correcto.** Partiendo del mecanismo del Paso 6, hace falta saber **cuánto** corrige un \(v_0\) dado y **qué
+tan rápido y con qué signo** debe actuar el lazo cerrado, para poder diseñarlo.
 
-$$ i_{O,corr} \approx k_v\,\hat I\,v_0, \qquad k_v = \text{cte. geométrica del PD-PWM (del orden de }1\text{)} $$
+*Qué es \(k_v\) y por qué NO es simplemente la pendiente de \(d_P-d_N\).* Podría parecer que basta con la
+pendiente \(\overline{d_P-d_N}\) del Paso 6 (que allí se calculó y es exactamente \(v_0\)), pero esa cantidad
+mide el reparto de tiempo entre P y N — **no** mide qué le pasa a la corriente en el nudo **O**, que es lo
+único que importa para \(i_{O,total}\) (Paso 2). Hace falta calcular directamente el efecto de \(v_0\) sobre
+\(\overline{i_{O,total}}\), simulando la cadena completa: la referencia desplazada por \(v_0\) decide, junto
+con las portadoras PD, en qué instantes la fase está en el estado O; multiplicando esa ventana temporal por
+la corriente de fase real \(i_o(\theta)=\hat I\sin\theta\) (con \(\cos\varphi=1\), por simplicidad) y
+promediando sobre un ciclo completo se obtiene la corriente media real hacia el nudo O para cada \(v_0\):
 
-Cerrando el lazo con un controlador \(v_0=-K_{bal}\,\Delta V\) (proporcional, o PI) y sustituyendo en la
-ecuación del Paso 2 con signo negativo de realimentación, la dinámica del desbalance en lazo cerrado resulta
-de **primer orden**, con una constante de tiempo que se puede despejar directamente:
+<div class="cfig"><img src="figuras/npc-kv-lazo.png" alt="grafica de barrido de v0 mostrando que la corriente media hacia el nudo O es proporcional a v0 con pendiente negativa aproximadamente -2/pi, diagrama de bloques del lazo cerrado de balance de neutro con el nodo de suma menos Delta V, controlador Kbal o PI, bloque de corriente correctiva y bloque integrador de la planta con la realimentacion negativa, y grafica comparando la respuesta de un control proporcional puro con error residual frente a un PI con error nulo en regimen permanente"><div class="cap">(a) Verificación numérica: simulando la cadena completa (referencia + portadoras PD → ventana del estado O → corriente de fase → promedio), la corriente media hacia el nudo O resulta proporcional a \(v_0\) con pendiente \(k_v\approx-2/\pi\) (puntos azules vs. recta roja) — negativa, no positiva, y aproximadamente independiente de \(m\). (b) Diagrama de bloques del lazo cerrado: el error \(-\Delta V\) entra al controlador, que genera \(v_0\); \(v_0\) produce una corriente correctiva \(i_{O,corr}=k_v\hat I v_0\) (con \(k_v<0\)) que se integra en la planta (el condensador, Paso 2) para dar de vuelta \(\Delta V\), cerrando el lazo. (c) Con controlador proporcional puro queda un error residual en régimen permanente frente a una perturbación constante; con PI el error se anula porque el integrador del controlador acumula hasta cancelar exactamente la perturbación.</div></div>
 
-$$ \frac{d(\Delta V)}{dt} = -\frac{2}{C}\big(i_{O,total,dist} - k_v\hat I K_{bal}\Delta V\big)
-   \quad\Longrightarrow\quad \tau_{bal} = \frac{C}{2\,k_v\,\hat I\,K_{bal}} $$
+El resultado numérico (panel (a)) da \(k_v\approx-2/\pi\approx-0.637\), prácticamente constante para
+distintos \(m\). El signo **negativo** tiene una explicación física directa: un \(v_0>0\) alarga el tiempo en
+P y O⁺ (Paso 6) y acorta O⁻ y N — es decir, la fase pasa **más** tiempo en la mitad del ciclo de conmutación
+en que, dentro del estado O, es más probable que \(D_5\) esté conduciendo (con \(i_o>0\)) que \(D_6\); pero
+como también acorta el tiempo total disponible para que \(i_o\) sea **negativa** mientras se está en O
+(porque ese tramo ahora es más corto), el efecto neto sobre \(\overline{i_{O,total}}\) resulta de signo
+opuesto al que tendría una intuición ingenua basada solo en "más tiempo en P". Por eso hace falta la
+simulación completa del panel (a) y no basta con la pendiente \(d_P-d_N\) del Paso 6. Con este valor,
+
+$$ i_{O,corr} = k_v\,\hat I\,v_0, \qquad k_v\approx-\frac{2}{\pi} $$
+
+*Por qué el signo de realimentación tiene que ser negativo (\(v_0=-K_{bal}\Delta V\)), verificado con el
+\(k_v\) correcto.* Partiendo de la ecuación del Paso 2, \(\dot{\Delta V}=-\frac{2}{C}i_{O,total}\), con
+\(i_{O,total}=i_{dist}+i_{O,corr}\) y \(v_0=-K_{bal}\Delta V\) (\(K_{bal}>0\)):
+
+$$ i_{O,corr} = k_v\,\hat I\,v_0 = k_v\,\hat I\,(-K_{bal}\Delta V) = -k_v\,\hat I\,K_{bal}\,\Delta V $$
+
+Sustituyendo, y usando que \(k_v\) ya es negativo (así que \(-k_v>0\)):
+
+$$ \dot{\Delta V} = -\frac{2}{C}\Big(i_{dist} - k_v\hat IK_{bal}\Delta V\Big) = -\frac{2\,i_{dist}}{C} + \frac{2\,k_v\hat IK_{bal}}{C}\Delta V $$
+
+El coeficiente que multiplica a \(\Delta V\) es \(\tfrac{2k_v\hat IK_{bal}}{C}\), y como \(k_v<0\) este
+coeficiente es **negativo** — el signo correcto para estabilidad (\(\dot x=-x/\tau\) con \(\tau>0\)). Si en
+cambio \(k_v\) fuese positivo (como se afirmaba erróneamente antes de simularlo), este mismo signo de
+realimentación \(v_0=-K_{bal}\Delta V\) sería **inestable**: el diseño del lazo depende críticamente de
+conocer el signo real de \(k_v\), no solo su orden de magnitud. La ecuación linealizada correcta es
+
+$$ \boxed{\ \frac{d(\Delta V)}{dt} = -\frac{2}{C}\Big(i_{O,total,dist} - k_v\hat I K_{bal}\Delta V\Big)\ } \qquad \tau_{bal} = \frac{C}{-2\,k_v\,\hat I\,K_{bal}} = \frac{C}{2\,|k_v|\,\hat I\,K_{bal}} $$
+
+Con \(\tau_{bal}>0\) (porque \(k_v<0\) hace que \(-2k_v>0\)), el desbalance decae exponencialmente hacia el
+valor que anula \(i_{dist}\), en vez de crecer sin control.
+
+*El error residual del control proporcional puro (panel (c)).* Con un controlador puramente proporcional,
+\(v_0=-K_{bal}\Delta V\), el régimen permanente (\(\dot{\Delta V}=0\)) de la ecuación anterior exige
+\(i_{dist}=k_v\hat IK_{bal}\Delta V_\infty\), es decir un desbalance residual **no nulo**,
+\(\Delta V_\infty = i_{dist}/(k_v\hat IK_{bal})\): el proporcional corrige la mayor parte del desbalance pero
+deja un remanente proporcional a la perturbación, porque necesita ese \(\Delta V_\infty\ne0\) para generar
+el \(v_0\) constante que cancela \(i_{dist}\) en régimen permanente.
+
+*Por qué evolucionar a un PI.* Para eliminar ese residuo se añade un término integral al controlador,
+\(v_0=-K_{bal}\Delta V - K_i\displaystyle\int\Delta V\,dt\): el integrador puede seguir creciendo (o
+decreciendo) mientras \(\Delta V\ne0\), así que en régimen permanente **tiene** que ser \(\Delta V=0\) —
+si no lo fuera, el término integral seguiría cambiando y el sistema no estaría en régimen permanente. Es el
+mismo argumento estructural que hace que un PI anule el error estacionario frente a una perturbación
+constante en cualquier lazo de control (ver [[control-cascada]]): el integrador es quien "absorbe" la
+perturbación constante \(i_{dist}\), dejando que el error vuelva exactamente a cero. Esto es lo que muestra
+el panel (c): P puro converge a un \(\Delta V_\infty\) pequeño pero distinto de cero; PI converge a
+\(\Delta V=0\).
 
 Este resultado (\(\tau_{bal}\) en función de \(K_{bal}\)) es lo que permite diseñar la ganancia del lazo:
 cuanto mayor \(K_{bal}\), más rápido el lazo (menor \(\tau_{bal}\)), pero un \(K_{bal}\) excesivo hace que

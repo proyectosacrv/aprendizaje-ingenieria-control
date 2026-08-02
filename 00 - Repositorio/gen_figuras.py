@@ -15771,6 +15771,111 @@ def _npc_v0_inyeccion():
     _savefig(fig, 'npc-v0-inyeccion', dpi=160)
 
 
+def _npc_kv_lazo():
+    """NPC: balance de neutro, Paso 7 - (a) verificacion numerica de k_v: se
+    simula la cadena completa (referencia+v0 vs portadoras PD -> ventana del
+    estado O -> multiplicar por la corriente de fase real -> promediar), NO
+    basta con la pendiente de dP-dN (esa mide reparto P/N, no lo que le pasa
+    a la corriente en el nudo O); resulta k_v=-2/pi, negativo; (b) diagrama
+    de bloques del lazo cerrado con el signo de realimentacion; (c)
+    comparacion P vs PI: error residual del proporcional puro frente al
+    error nulo en regimen permanente del PI, con el kv correcto y verificado
+    estable."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig = plt.figure(figsize=(15.5, 5.6))
+    gs = fig.add_gridspec(1, 3, width_ratios=[1.0, 1.05, 1.0], wspace=0.35)
+    a1 = fig.add_subplot(gs[0, 0])
+    a2 = fig.add_subplot(gs[0, 1])
+    a3 = fig.add_subplot(gs[0, 2])
+    fig.suptitle('Balance de neutro, Paso 7: constante $k_v$ y cierre del lazo de compensación', fontsize=13, fontweight='bold', y=0.99)
+
+    # ---- (a) barrido de v0: corriente media hacia O, simulando la cadena
+    # completa PD-PWM -> ventana de estado O -> corriente de fase real ----
+    m = 0.75; f0 = 50.0; fs = 1500.0
+    t = np.linspace(0, 1/f0, 60000)
+    theta = 2*np.pi*f0*t
+    io = np.sin(theta)   # corriente de fase normalizada (Ihat=1, cosphi=1)
+    fase_tri = np.mod(t*fs, 1.0); tri = 4*np.abs(fase_tri-0.5)-1
+    port_hi = 0.5*tri + 0.5; port_lo = 0.5*tri - 0.5
+
+    def io_medio(v0):
+        ref = np.clip(m*np.sin(theta) + v0, -1, 1)
+        en_O = (ref <= port_hi) & (ref >= port_lo)
+        return (io*en_O).mean()
+
+    v0_sweep = np.linspace(-0.2, 0.2, 21)
+    io_vals = np.array([io_medio(v0) for v0 in v0_sweep])
+    kv_fit = np.polyfit(v0_sweep, io_vals, 1)[0]
+    a1.plot(v0_sweep, io_vals, 'o', color='#2e86c1', ms=5, label=r'$\overline{i_{O,total}}/\hat I$ (simulado)')
+    a1.plot(v0_sweep, kv_fit*v0_sweep, '-', color='#c0392b', lw=1.8, label=f'recta $k_v\\cdot v_0$, $k_v\\approx{kv_fit:.3f}$')
+    a1.axhline(0, color='gray', lw=0.6, ls=':')
+    a1.set_xlabel('$v_0$ [p.u.]'); a1.set_ylabel(r'$\overline{i_{O,total}}/\hat I$'); a1.grid(alpha=.3)
+    a1.legend(fontsize=8.5, loc='upper right')
+    a1.set_title('(a) $k_v\\approx-2/\\pi$: NEGATIVO,\nno basta con la pendiente $d_P{-}d_N$', fontsize=10.5, fontweight='bold')
+
+    # ---- (b) diagrama de bloques del lazo cerrado ----
+    a2.set_xlim(0, 10); a2.set_ylim(0, 6); a2.axis('off')
+    a2.set_title('(b) Lazo cerrado de balance de neutro', fontsize=10.5, fontweight='bold')
+    def box(ax, x, y, w, h, text, fs=9.5):
+        ax.add_patch(mpatches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.05',
+                     facecolor='#eaf2fa', edgecolor='navy', lw=1.4))
+        ax.text(x+w/2, y+h/2, text, ha='center', va='center', fontsize=fs)
+    # nodo suma
+    a2.add_patch(mpatches.Circle((1.0, 3.0), 0.35, facecolor='white', edgecolor='navy', lw=1.4))
+    a2.text(1.0, 3.0, '+', ha='center', va='center', fontsize=13)
+    a2.text(0.55, 3.5, '0 (ref.)', fontsize=8.5, ha='center')
+    a2.text(1.35, 2.35, r'$-\Delta V$', fontsize=9, color='#c0392b')
+    box(a2, 2.0, 2.5, 1.9, 1.0, r'$K_{bal}$' + '\n(o PI)')
+    a2.annotate('', xy=(2.0, 3.0), xytext=(1.35, 3.0), arrowprops=dict(arrowstyle='-|>', lw=1.4))
+    a2.annotate('', xy=(4.35, 3.0), xytext=(3.9, 3.0), arrowprops=dict(arrowstyle='-|>', lw=1.4))
+    a2.text(4.55, 3.3, '$v_0$', fontsize=10, fontweight='bold')
+    box(a2, 5.1, 2.5, 2.0, 1.0, r'$i_{O,corr}$' + '\n' + r'$=k_v\hat I v_0$')
+    a2.annotate('', xy=(5.1, 3.0), xytext=(4.85, 3.0), arrowprops=dict(arrowstyle='-|>', lw=1.4))
+    a2.annotate('', xy=(7.6, 3.0), xytext=(7.1, 3.0), arrowprops=dict(arrowstyle='-|>', lw=1.4))
+    box(a2, 7.6, 2.5, 2.0, 1.0, r'planta: $\frac{1}{C}\int(\cdot)$' + '\n' + r'$\to \Delta V$')
+    a2.plot([8.6, 8.6], [2.5, 0.6], color='#555', lw=1.2)
+    a2.plot([8.6, 1.0], [0.6, 0.6], color='#555', lw=1.2)
+    a2.annotate('', xy=(1.0, 2.65), xytext=(1.0, 0.6), arrowprops=dict(arrowstyle='-|>', lw=1.2, color='#555'))
+    a2.text(4.8, 0.85, 'realimentación NEGATIVA: $-\\Delta V$ entra al controlador', fontsize=8, color='#555', ha='center')
+
+    # ---- (c) P puro (error residual) vs PI (error nulo en regimen permanente) ----
+    # planta linealizada: d(dV)/dt = -2/C*(i_dist + kv*Ihat*v0), con kv=kv_fit
+    # (negativo) y v0=-Kbal*dV (P) o v0=-(Kbal*dV+Ki*integral(dV)) (PI);
+    # verificado numericamente estable con estas ganancias.
+    C = 6e-3; Idc_bias = 0.6; Ihat = 1.0
+    kv = kv_fit
+    t2 = np.linspace(0, 3.0, 30000); dt = t2[1]-t2[0]
+    def sim_P(Kbal):
+        dv = np.zeros(len(t2)); dv[0] = 40.0
+        for k in range(len(t2)-1):
+            v0 = -Kbal*dv[k]
+            iOtotal = Idc_bias + kv*Ihat*v0
+            dv[k+1] = dv[k] - 2*iOtotal*dt/C
+        return dv
+    def sim_PI(Kbal, Ki):
+        dv = np.zeros(len(t2)); dv[0] = 40.0
+        integ = 0.0
+        for k in range(len(t2)-1):
+            integ += dv[k]*dt
+            v0 = -(Kbal*dv[k] + Ki*integ)
+            iOtotal = Idc_bias + kv*Ihat*v0
+            dv[k+1] = dv[k] - 2*iOtotal*dt/C
+        return dv
+    dv_P = sim_P(0.1)
+    dv_PI = sim_PI(0.1, 0.3)
+    a3.plot(t2, dv_P, color='#c0392b', lw=2.0, label='P puro (error residual)')
+    a3.plot(t2, dv_PI, color='navy', lw=2.0, label='PI (error $\\to 0$)')
+    a3.axhline(0, color='gray', lw=0.8, ls=':')
+    a3.set_xlabel('t [s]'); a3.set_ylabel(r'$\Delta V$ [V]'); a3.grid(alpha=.3)
+    a3.legend(fontsize=8.5, loc='upper right')
+    a3.set_title('(c) Control P: error residual\nControl PI: error nulo en régimen', fontsize=10.5, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.86])
+    _savefig(fig, 'npc-kv-lazo', dpi=160)
+
+
 def _hvdc_configuraciones():
     """HVDC: (a) monopolar con retorno por tierra, bipolar y simetrica monopolar,
     esquemas de conductores entre dos terminales; (b) topologias MTDC radial y
@@ -17349,6 +17454,9 @@ def main():
         n += 1
     if pref is None or "npc-v0-inyeccion".startswith(pref):
         _npc_v0_inyeccion()
+        n += 1
+    if pref is None or "npc-kv-lazo".startswith(pref):
+        _npc_kv_lazo()
         n += 1
     if pref is None or "npc-svm-tiempos".startswith(pref):
         _npc_svm_tiempos()
