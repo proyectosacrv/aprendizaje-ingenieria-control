@@ -512,11 +512,15 @@ cada fase está en el estado O respecto a P o N, inyectando una pequeña compone
 
 $$ r_k^*(\theta) = m\sin(\theta - \phi_k) + v_0, \qquad k\in\{a,b,c\} $$
 
-Un \(v_0\) sesgado hacia el nivel P alarga el tiempo relativo en P/O⁺ y acorta O⁻/N (o viceversa), cambiando
-el **tiempo neto** que cada fase pasa en cada tramo del estado O y, con ello, el signo neto de la componente
-media de \(i_{O,total}\) que hay que anular. El resultado de este paso es el mecanismo de actuación: un lazo
-de control mide \(\Delta V=V_{C1}-V_{C2}\) y ajusta \(v_0\) en proporción (o con un PI) para llevarlo a cero
-— es exactamente el mecanismo simulado en el panel (b) de la figura anterior.
+Un \(v_0\) sesgado hacia el nivel P alarga el tiempo relativo en P y acorta el de N (o viceversa si
+\(v_0<0\)), cambiando el **tiempo neto** que cada fase pasa en cada tramo del estado O y, con ello, el signo
+neto de la componente media de \(i_{O,total}\) que hay que anular.
+
+<div class="cfig"><img src="figuras/npc-v0-inyeccion.png" alt="grafica de la referencia PD-PWM desplazada por v0 sobre las dos portadoras triangulares, mostrando como el cruce con la portadora superior ocurre antes y con la inferior mas tarde cuando v0 es positivo, y grafica de barras apiladas del duty medio en P, O y N para v0=0, v0 positivo y v0 negativo, cuantificando el alargamiento de P y acortamiento de N manteniendo el tiempo en O casi constante"><div class="cap">(a) Sumar \(v_0>0\) a la referencia la desplaza hacia arriba en las dos comparaciones de portadora: cruza antes la portadora superior (más tiempo en P) y más tarde la inferior (menos tiempo en N). (b) Duty medio en cada nivel a lo largo de un ciclo completo: con \(v_0=0\) el reparto es simétrico (\(d_P=d_N=0.24\)); con \(v_0=+0.12\), \(d_P\) sube a \(0.30\) y \(d_N\) baja a \(0.18\) —el efecto pedido—, mientras que el tiempo total en O (\(d_O\approx0.52\)) casi no cambia. Ese reparto asimétrico entre P y N es justo lo que necesita el mecanismo del Paso 6: como la fase pasa más tiempo total cerca de P (y menos cerca de N) en cada ciclo, también pasa más tiempo en los instantes de conmutación P↔O que en los O↔N, sesgando cuál de los dos diodos de anclaje (\(D_5\) o \(D_6\)) participa más a menudo, sin cambiar la tensión media de salida.</div></div>
+
+El resultado de este paso es el mecanismo de actuación: un lazo de control mide \(\Delta V=V_{C1}-V_{C2}\) y
+ajusta \(v_0\) en proporción (o con un PI) para llevarlo a cero — es exactamente el mecanismo simulado en el
+panel (c) de la figura del Paso 5.
 
 **Paso 7 — cuantificar el lazo: modelo y velocidad de respuesta.** Partiendo del mecanismo del Paso 6, hace
 falta saber **cuánto** corrige un \(v_0\) dado y **qué tan rápido** actúa el lazo cerrado, para poder

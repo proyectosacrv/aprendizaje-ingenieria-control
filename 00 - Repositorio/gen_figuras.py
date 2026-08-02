@@ -15712,6 +15712,65 @@ def _npc_neutro_fourier():
     _savefig(fig, 'npc-neutro-fourier', dpi=160)
 
 
+def _npc_v0_inyeccion():
+    """NPC: balance de neutro, Paso 6 - efecto de inyectar v0 en la referencia
+    sobre el reparto de tiempos entre niveles. (a) tres formas de onda PD-PWM
+    superpuestas (v0=0, v0>0, v0<0) mostrando como el cruce con las
+    portadoras se desplaza; (b) barras de duty medio en P, O, N para cada
+    caso, cuantificando el alargamiento/acortamiento de cada tramo."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.5, 5.2), gridspec_kw={'width_ratios': [1.3, 1.0]})
+    fig.suptitle('Balance de neutro, Paso 6: efecto de $v_0$ en el reparto de tiempos P/O/N', fontsize=13, fontweight='bold')
+
+    m = 0.75; fs = 300.0; f0 = 50.0
+    t = np.linspace(0, 1/f0, 4000)
+    theta = 2*np.pi*f0*t
+    fase = np.mod(t*fs, 1.0); tri = 4*np.abs(fase-0.5)-1
+    port_hi = 0.5*tri + 0.5; port_lo = 0.5*tri - 0.5
+
+    v0_cases = [(0.00, '#111', '-', r'$v_0=0$'), (0.12, '#c0392b', '-', r'$v_0=+0.12$'), (-0.12, '#2e86c1', '-', r'$v_0=-0.12$')]
+
+    # ---- (a) referencia desplazada por v0, sobre las portadoras ----
+    a1.plot(t*1000, port_hi, color='#bbb', lw=0.9)
+    a1.plot(t*1000, port_lo, color='#bbb', lw=0.9, label='portadoras PD')
+    for v0, col, ls, lbl in v0_cases:
+        ref = np.clip(m*np.sin(theta) + v0, -1, 1)
+        a1.plot(t*1000, ref, color=col, lw=2.0, ls=ls, label=f'referencia, {lbl}')
+    a1.axhline(0, color='gray', lw=0.6, ls=':')
+    a1.set_xlabel('t [ms]'); a1.set_ylabel('p.u.'); a1.grid(alpha=.3)
+    a1.legend(fontsize=8.5, loc='lower right', ncol=1)
+    a1.set_title('(a) Un $v_0>0$ desplaza la referencia hacia arriba:\ncruza antes la portadora superior, más tarde la inferior', fontsize=10.5, fontweight='bold')
+
+    # ---- (b) duty medio en P, O, N para cada caso (integrando sobre un ciclo) ----
+    def duty_medio(v0):
+        ref = np.clip(m*np.sin(theta) + v0, -1, 1)
+        dP = np.clip(ref, 0, 1)          # duty hacia P cuando ref>0 (region superior)
+        dN = np.clip(-ref, 0, 1)         # duty hacia N cuando ref<0 (region inferior)
+        dO = 1 - dP - dN
+        return dP.mean(), dO.mean(), dN.mean()
+
+    labels_b = [lbl for _, _, _, lbl in v0_cases]
+    duties = [duty_medio(v0) for v0, _, _, _ in v0_cases]
+    dP_vals = [d[0] for d in duties]; dO_vals = [d[1] for d in duties]; dN_vals = [d[2] for d in duties]
+    x = np.arange(len(v0_cases)); w = 0.55
+    a2.bar(x, dP_vals, w, color='#c0392b', label='tiempo medio en P')
+    a2.bar(x, dO_vals, w, bottom=dP_vals, color='#7f8c8d', label='tiempo medio en O')
+    bottom_N = [p+o for p, o in zip(dP_vals, dO_vals)]
+    a2.bar(x, dN_vals, w, bottom=bottom_N, color='#2e86c1', label='tiempo medio en N')
+    for i, (dP, dO, dN) in enumerate(duties):
+        a2.text(i, dP/2, f'{dP:.2f}', ha='center', va='center', fontsize=9, color='white', fontweight='bold')
+        a2.text(i, dP+dO/2, f'{dO:.2f}', ha='center', va='center', fontsize=9, color='white', fontweight='bold')
+        a2.text(i, dP+dO+dN/2, f'{dN:.2f}', ha='center', va='center', fontsize=9, color='white', fontweight='bold')
+    a2.set_xticks(x); a2.set_xticklabels(labels_b, fontsize=9.5)
+    a2.set_ylabel('fracción del ciclo (duty medio)'); a2.set_ylim(0, 1.05)
+    a2.legend(fontsize=8.5, loc='upper center', ncol=1, bbox_to_anchor=(1.22, 1.0))
+    a2.set_title('(b) $v_0{>}0$ alarga P y acorta N\n(el tiempo neto en O apenas cambia)', fontsize=10.5, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 0.92, 0.90])
+    _savefig(fig, 'npc-v0-inyeccion', dpi=160)
+
+
 def _hvdc_configuraciones():
     """HVDC: (a) monopolar con retorno por tierra, bipolar y simetrica monopolar,
     esquemas de conductores entre dos terminales; (b) topologias MTDC radial y
@@ -17287,6 +17346,9 @@ def main():
         n += 1
     if pref is None or "npc-neutro-fourier".startswith(pref):
         _npc_neutro_fourier()
+        n += 1
+    if pref is None or "npc-v0-inyeccion".startswith(pref):
+        _npc_v0_inyeccion()
         n += 1
     if pref is None or "npc-svm-tiempos".startswith(pref):
         _npc_svm_tiempos()
