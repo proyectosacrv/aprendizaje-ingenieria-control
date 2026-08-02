@@ -15784,8 +15784,8 @@ def _npc_kv_lazo():
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
 
-    fig = plt.figure(figsize=(15.5, 5.6))
-    gs = fig.add_gridspec(1, 3, width_ratios=[1.0, 1.05, 1.0], wspace=0.35)
+    fig = plt.figure(figsize=(17.5, 5.6))
+    gs = fig.add_gridspec(1, 3, width_ratios=[1.0, 1.55, 1.0], wspace=0.30)
     a1 = fig.add_subplot(gs[0, 0])
     a2 = fig.add_subplot(gs[0, 1])
     a3 = fig.add_subplot(gs[0, 2])
@@ -15813,32 +15813,54 @@ def _npc_kv_lazo():
     a1.axhline(0, color='gray', lw=0.6, ls=':')
     a1.set_xlabel('$v_0$ [p.u.]'); a1.set_ylabel(r'$\overline{i_{O,total}}/\hat I$'); a1.grid(alpha=.3)
     a1.legend(fontsize=8.5, loc='upper right')
-    a1.set_title('(a) $k_v\\approx-2/\\pi$: NEGATIVO,\nno basta con la pendiente $d_P{-}d_N$', fontsize=10.5, fontweight='bold')
+    a1.set_title('(a) $k_v=-2/\\pi$ exacto (derivación analítica),\nno basta con la pendiente $d_P{-}d_N$', fontsize=10.5, fontweight='bold')
 
     # ---- (b) diagrama de bloques del lazo cerrado ----
-    a2.set_xlim(0, 10); a2.set_ylim(0, 6); a2.axis('off')
+    a2.set_xlim(0, 12.6); a2.set_ylim(-0.3, 6.3); a2.axis('off')
     a2.set_title('(b) Lazo cerrado de balance de neutro', fontsize=10.5, fontweight='bold')
-    def box(ax, x, y, w, h, text, fs=9.5):
-        ax.add_patch(mpatches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.05',
-                     facecolor='#eaf2fa', edgecolor='navy', lw=1.4))
-        ax.text(x+w/2, y+h/2, text, ha='center', va='center', fontsize=fs)
+    ymid = 3.6
+    def box(ax, x, y, w, h, text, fs=10):
+        ax.add_patch(mpatches.FancyBboxPatch((x, y-h/2), w, h, boxstyle='round,pad=0.05',
+                     facecolor='#eaf2fa', edgecolor='navy', lw=1.5))
+        ax.text(x+w/2, y, text, ha='center', va='center', fontsize=fs)
+        return x, x+w   # bordes izq/der, para encadenar
+    def arrow(ax, x0, x1, y=ymid, color='#111'):
+        ax.annotate('', xy=(x1, y), xytext=(x0, y), arrowprops=dict(arrowstyle='-|>', lw=1.6, color=color))
+
     # nodo suma
-    a2.add_patch(mpatches.Circle((1.0, 3.0), 0.35, facecolor='white', edgecolor='navy', lw=1.4))
-    a2.text(1.0, 3.0, '+', ha='center', va='center', fontsize=13)
-    a2.text(0.55, 3.5, '0 (ref.)', fontsize=8.5, ha='center')
-    a2.text(1.35, 2.35, r'$-\Delta V$', fontsize=9, color='#c0392b')
-    box(a2, 2.0, 2.5, 1.9, 1.0, r'$K_{bal}$' + '\n(o PI)')
-    a2.annotate('', xy=(2.0, 3.0), xytext=(1.35, 3.0), arrowprops=dict(arrowstyle='-|>', lw=1.4))
-    a2.annotate('', xy=(4.35, 3.0), xytext=(3.9, 3.0), arrowprops=dict(arrowstyle='-|>', lw=1.4))
-    a2.text(4.55, 3.3, '$v_0$', fontsize=10, fontweight='bold')
-    box(a2, 5.1, 2.5, 2.0, 1.0, r'$i_{O,corr}$' + '\n' + r'$=k_v\hat I v_0$')
-    a2.annotate('', xy=(5.1, 3.0), xytext=(4.85, 3.0), arrowprops=dict(arrowstyle='-|>', lw=1.4))
-    a2.annotate('', xy=(7.6, 3.0), xytext=(7.1, 3.0), arrowprops=dict(arrowstyle='-|>', lw=1.4))
-    box(a2, 7.6, 2.5, 2.0, 1.0, r'planta: $\frac{1}{C}\int(\cdot)$' + '\n' + r'$\to \Delta V$')
-    a2.plot([8.6, 8.6], [2.5, 0.6], color='#555', lw=1.2)
-    a2.plot([8.6, 1.0], [0.6, 0.6], color='#555', lw=1.2)
-    a2.annotate('', xy=(1.0, 2.65), xytext=(1.0, 0.6), arrowprops=dict(arrowstyle='-|>', lw=1.2, color='#555'))
-    a2.text(4.8, 0.85, 'realimentación NEGATIVA: $-\\Delta V$ entra al controlador', fontsize=8, color='#555', ha='center')
+    sum_x = 1.1; sum_r = 0.4
+    a2.add_patch(mpatches.Circle((sum_x, ymid), sum_r, facecolor='white', edgecolor='navy', lw=1.5))
+    a2.text(sum_x, ymid, '+', ha='center', va='center', fontsize=15)
+    a2.text(sum_x, ymid+0.85, '0 (referencia)', fontsize=9, ha='center')
+    a2.text(sum_x+0.30, ymid-0.62, r'$-\Delta V$', fontsize=10, color='#c0392b', ha='left')
+    arrow(a2, 0.0, sum_x-sum_r)   # entrada "0" desde la izquierda (implicita, solo visual)
+
+    x = sum_x + sum_r
+    gap = 0.55
+    # bloque 1: controlador
+    x0, x1 = box(a2, x+gap, ymid, 2.1, 1.15, r'$K_{bal}$' + '\n(o PI)')
+    arrow(a2, x, x0)
+    x = x1
+    # etiqueta v0 y flecha hacia bloque 2
+    a2.text((x+x+gap)/2, ymid+0.55, '$v_0$', fontsize=11, fontweight='bold', ha='center')
+    x2_0, x2_1 = box(a2, x+gap, ymid, 2.3, 1.15, r'$i_{O,corr}$' + '\n' + r'$=k_v\hat I\,v_0$')
+    arrow(a2, x, x2_0)
+    x = x2_1
+    x3_0, x3_1 = box(a2, x+gap, ymid, 2.5, 1.15, r'planta: $\dfrac{1}{C}\!\int\!(\cdot)\,dt$' + '\n' + r'$\to\ \Delta V$')
+    arrow(a2, x, x3_0)
+    x = x3_1
+    # salida Delta V
+    x_out = x + gap
+    arrow(a2, x, x_out)
+    a2.text(x_out+0.10, ymid, r'$\Delta V$', fontsize=11, fontweight='bold', ha='left', va='center')
+
+    # realimentacion: baja desde la salida, vuelve por abajo hasta el nodo suma
+    y_fb = ymid - 2.3
+    a2.plot([x_out, x_out], [ymid, y_fb], color='#555', lw=1.3)
+    a2.plot([x_out, sum_x], [y_fb, y_fb], color='#555', lw=1.3)
+    a2.annotate('', xy=(sum_x, ymid-sum_r), xytext=(sum_x, y_fb), arrowprops=dict(arrowstyle='-|>', lw=1.3, color='#555'))
+    a2.text((sum_x+x_out)/2, y_fb-0.45, 'realimentación NEGATIVA: $-\\Delta V$ entra al controlador',
+            fontsize=9, color='#555', ha='center')
 
     # ---- (c) P puro (error residual) vs PI (error nulo en regimen permanente) ----
     # planta linealizada: d(dV)/dt = -2/C*(i_dist + kv*Ihat*v0), con kv=kv_fit

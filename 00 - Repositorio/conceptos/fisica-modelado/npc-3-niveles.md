@@ -526,48 +526,91 @@ panel (c) de la figura del Paso 5.
 correcto.** Partiendo del mecanismo del Paso 6, hace falta saber **cuánto** corrige un \(v_0\) dado y **qué
 tan rápido y con qué signo** debe actuar el lazo cerrado, para poder diseñarlo.
 
-*Qué es \(k_v\) y por qué NO es simplemente la pendiente de \(d_P-d_N\).* Podría parecer que basta con la
-pendiente \(\overline{d_P-d_N}\) del Paso 6 (que allí se calculó y es exactamente \(v_0\)), pero esa cantidad
-mide el reparto de tiempo entre P y N — **no** mide qué le pasa a la corriente en el nudo **O**, que es lo
-único que importa para \(i_{O,total}\) (Paso 2). Hace falta calcular directamente el efecto de \(v_0\) sobre
-\(\overline{i_{O,total}}\), simulando la cadena completa: la referencia desplazada por \(v_0\) decide, junto
-con las portadoras PD, en qué instantes la fase está en el estado O; multiplicando esa ventana temporal por
-la corriente de fase real \(i_o(\theta)=\hat I\sin\theta\) (con \(\cos\varphi=1\), por simplicidad) y
-promediando sobre un ciclo completo se obtiene la corriente media real hacia el nudo O para cada \(v_0\):
+*Qué pendiente se calculó en el Paso 6, y por qué NO es \(k_v\).* En el Paso 6 se calculó la pendiente de
+\(\overline{d_P-d_N}\) frente a \(v_0\) (la diferencia entre el tiempo medio en P y el tiempo medio en N,
+promediada en un ciclo), y el resultado allí fue \(\overline{d_P-d_N}=v_0\) exactamente — es decir, esa
+pendiente vale \(1\). "\(d_P-d_N\) negados" no es más que la resta de los dos duty cycles con su signo
+natural: \(d_P\ge0\) es el tiempo relativo en P, \(d_N\ge0\) es el tiempo relativo en N, y su diferencia
+\(d_P-d_N\) es negativa cuando la fase pasa más tiempo en N que en P (referencia predominantemente negativa)
+y positiva en el caso contrario. Esa pendiente describe el reparto de tiempo entre P y N — **no** describe
+qué le pasa a la corriente en el nudo **O**, que es la única variable que aparece en la ecuación del Paso 2
+(\(i_{O,total}\)). Son dos preguntas distintas, y hay que resolver la segunda desde cero.
 
-<div class="cfig"><img src="figuras/npc-kv-lazo.png" alt="grafica de barrido de v0 mostrando que la corriente media hacia el nudo O es proporcional a v0 con pendiente negativa aproximadamente -2/pi, diagrama de bloques del lazo cerrado de balance de neutro con el nodo de suma menos Delta V, controlador Kbal o PI, bloque de corriente correctiva y bloque integrador de la planta con la realimentacion negativa, y grafica comparando la respuesta de un control proporcional puro con error residual frente a un PI con error nulo en regimen permanente"><div class="cap">(a) Verificación numérica: simulando la cadena completa (referencia + portadoras PD → ventana del estado O → corriente de fase → promedio), la corriente media hacia el nudo O resulta proporcional a \(v_0\) con pendiente \(k_v\approx-2/\pi\) (puntos azules vs. recta roja) — negativa, no positiva, y aproximadamente independiente de \(m\). (b) Diagrama de bloques del lazo cerrado: el error \(-\Delta V\) entra al controlador, que genera \(v_0\); \(v_0\) produce una corriente correctiva \(i_{O,corr}=k_v\hat I v_0\) (con \(k_v<0\)) que se integra en la planta (el condensador, Paso 2) para dar de vuelta \(\Delta V\), cerrando el lazo. (c) Con controlador proporcional puro queda un error residual en régimen permanente frente a una perturbación constante; con PI el error se anula porque el integrador del controlador acumula hasta cancelar exactamente la perturbación.</div></div>
+*Derivación analítica completa de \(k_v\), paso a paso.* La cantidad que hace falta es
+\(k_v=\dfrac{d}{dv_0}\Big[\overline{i_{O,total}}\Big]_{v_0=0}\), la sensibilidad de la corriente **media**
+hacia el nudo O frente a una inyección pequeña de \(v_0\). El punto de partida es el mismo modelo continuo
+del Paso 4: en el límite de conmutación rápida (\(f_s\gg f_0\)), dentro de cada periodo de conmutación la
+corriente de fase \(i_o(\theta)\) varía tan poco que puede tratarse como constante, y la fracción de ese
+periodo que la fase pasa en el estado O es \(1-|r^*(\theta)|\), con \(r^*(\theta)=m\sin\theta+v_0\) la
+referencia total. La contribución de esta fase a \(i_{O,total}\) en cada instante es entonces
 
-El resultado numérico (panel (a)) da \(k_v\approx-2/\pi\approx-0.637\), prácticamente constante para
-distintos \(m\). El signo **negativo** tiene una explicación física directa: un \(v_0>0\) alarga el tiempo en
-P y O⁺ (Paso 6) y acorta O⁻ y N — es decir, la fase pasa **más** tiempo en la mitad del ciclo de conmutación
-en que, dentro del estado O, es más probable que \(D_5\) esté conduciendo (con \(i_o>0\)) que \(D_6\); pero
-como también acorta el tiempo total disponible para que \(i_o\) sea **negativa** mientras se está en O
-(porque ese tramo ahora es más corto), el efecto neto sobre \(\overline{i_{O,total}}\) resulta de signo
-opuesto al que tendría una intuición ingenua basada solo en "más tiempo en P". Por eso hace falta la
-simulación completa del panel (a) y no basta con la pendiente \(d_P-d_N\) del Paso 6. Con este valor,
+$$ i_{O,total}(\theta) \approx i_o(\theta)\cdot\big(1-|r^*(\theta)|\big) = \hat I\sin\theta\cdot\Big(1-\big|m\sin\theta+v_0\big|\Big) $$
 
-$$ i_{O,corr} = k_v\,\hat I\,v_0, \qquad k_v\approx-\frac{2}{\pi} $$
+(tomando \(\cos\varphi=1\), es decir \(i_o(\theta)=\hat I\sin\theta\) en fase con la referencia, para
+simplificar; el signo de \(k_v\) no depende de este supuesto). El promedio en un ciclo completo es
 
-*Por qué el signo de realimentación tiene que ser negativo (\(v_0=-K_{bal}\Delta V\)), verificado con el
-\(k_v\) correcto.* Partiendo de la ecuación del Paso 2, \(\dot{\Delta V}=-\frac{2}{C}i_{O,total}\), con
+$$ \overline{i_{O,total}}(v_0) = \frac{1}{2\pi}\int_0^{2\pi} \hat I\sin\theta\cdot\Big(1-\big|m\sin\theta+v_0\big|\Big)\,d\theta $$
+
+Para obtener \(k_v\) hace falta la derivada de esta integral respecto a \(v_0\), evaluada en \(v_0=0\).
+Derivando dentro de la integral (el término \(\hat I\sin\theta\) no depende de \(v_0\)):
+
+$$ \frac{\partial}{\partial v_0}\Big[1-|m\sin\theta+v_0|\Big] = -\,\mathrm{sign}\big(m\sin\theta+v_0\big) $$
+
+(la derivada del valor absoluto es el signo de su argumento; esto es válido en todo punto donde
+\(m\sin\theta+v_0\ne0\), que es casi todo el intervalo). Evaluando en \(v_0=0\) y para \(m>0\),
+\(\mathrm{sign}(m\sin\theta)=\mathrm{sign}(\sin\theta)\), así que
+
+$$ k_v = \frac{1}{2\pi}\int_0^{2\pi} \hat I\sin\theta\cdot\Big(-\mathrm{sign}(\sin\theta)\Big)\,d\theta = -\frac{\hat I}{2\pi}\int_0^{2\pi} \sin\theta\cdot\mathrm{sign}(\sin\theta)\,d\theta $$
+
+El producto \(\sin\theta\cdot\mathrm{sign}(\sin\theta)\) es, por definición, exactamente \(|\sin\theta|\)
+(el valor absoluto invierte el signo solo donde \(\sin\theta<0\), que es justo lo que hace multiplicar por
+\(\mathrm{sign}(\sin\theta)\)). Sustituyendo:
+
+$$ k_v = -\frac{\hat I}{2\pi}\int_0^{2\pi} |\sin\theta|\,d\theta $$
+
+Esta integral ya apareció (por su promedio) en el Paso 4, apartado (i) de la derivación de Fourier: el valor
+medio de \(|\sin\theta|\) sobre un periodo es \(2/\pi\) — es precisamente el término constante de la serie
+de Fourier de \(|\sin x|\) usada allí. Como \(\displaystyle\int_0^{2\pi}|\sin\theta|\,d\theta = 2\pi\cdot
+\frac{2}{\pi}=4\):
+
+$$ \boxed{\ k_v = -\frac{\hat I}{2\pi}\cdot4 = -\frac{2\hat I}{\pi}\ } \quad\Longrightarrow\quad k_v/\hat I \approx -0.6366 $$
+
+Este resultado (con \(\hat I\) normalizada a 1) coincide exactamente con el ajuste numérico del panel (a) de
+la figura siguiente, confirmando la derivación.
+
+<div class="cfig"><img src="figuras/npc-kv-lazo.png" alt="grafica de barrido de v0 mostrando que la corriente media hacia el nudo O es proporcional a v0 con pendiente negativa exactamente -2/pi, diagrama de bloques del lazo cerrado de balance de neutro con el nodo de suma menos Delta V, controlador Kbal o PI, bloque de corriente correctiva y bloque integrador de la planta con la realimentacion negativa, y grafica comparando la respuesta de un control proporcional puro con error residual frente a un PI con error nulo en regimen permanente"><div class="cap">(a) Verificación numérica de la derivación analítica: simulando la cadena completa (referencia + portadoras PD → ventana del estado O → corriente de fase → promedio) y barriendo \(v_0\), la corriente media hacia el nudo O resulta proporcional a \(v_0\) con pendiente \(k_v=-2/\pi\) (puntos azules vs. recta roja) — negativa, coincidiendo exactamente con el resultado analítico. (b) Diagrama de bloques del lazo cerrado: el error \(-\Delta V\) entra al controlador, que genera \(v_0\); \(v_0\) produce una corriente correctiva \(i_{O,corr}=k_v\hat I v_0\) (con \(k_v<0\)) que se integra en la planta (el condensador, Paso 2) para dar de vuelta \(\Delta V\), cerrando el lazo. (c) Con controlador proporcional puro queda un error residual en régimen permanente frente a una perturbación constante; con PI el error se anula porque el integrador del controlador acumula hasta cancelar exactamente la perturbación.</div></div>
+
+*Por qué el signo es negativo: interpretación física.* Un \(v_0>0\) alarga el tiempo en P y O⁺ (Paso 6) y
+acorta O⁻ y N — la fase pasa más tiempo en la mitad del ciclo en que, dentro del estado O, es más probable
+que \(D_5\) esté conduciendo (con \(i_o>0\)) que \(D_6\); pero simultáneamente acorta el tiempo total
+disponible para que \(i_o\) sea negativa mientras se está en O (ese tramo ahora es más corto). La derivación
+anterior muestra que el segundo efecto domina sobre el primero: el resultado neto sobre
+\(\overline{i_{O,total}}\) tiene signo opuesto al que sugeriría una intuición basada solo en "más tiempo en
+P". Con \(k_v\) ya conocido con su signo correcto,
+
+$$ i_{O,corr} = k_v\,\hat I\,v_0, \qquad k_v = -\frac{2}{\pi} $$
+
+*Cierre del lazo: por qué \(v_0=-K_{bal}\Delta V\) es la realimentación estable, con el \(k_v\) correcto.*
+Partiendo de la ecuación del Paso 2, \(\dot{\Delta V}=-\frac{2}{C}i_{O,total}\), con
 \(i_{O,total}=i_{dist}+i_{O,corr}\) y \(v_0=-K_{bal}\Delta V\) (\(K_{bal}>0\)):
 
 $$ i_{O,corr} = k_v\,\hat I\,v_0 = k_v\,\hat I\,(-K_{bal}\Delta V) = -k_v\,\hat I\,K_{bal}\,\Delta V $$
 
-Sustituyendo, y usando que \(k_v\) ya es negativo (así que \(-k_v>0\)):
+Sustituyendo en la ecuación del Paso 2:
 
 $$ \dot{\Delta V} = -\frac{2}{C}\Big(i_{dist} - k_v\hat IK_{bal}\Delta V\Big) = -\frac{2\,i_{dist}}{C} + \frac{2\,k_v\hat IK_{bal}}{C}\Delta V $$
 
-El coeficiente que multiplica a \(\Delta V\) es \(\tfrac{2k_v\hat IK_{bal}}{C}\), y como \(k_v<0\) este
+El coeficiente que multiplica a \(\Delta V\) es \(\tfrac{2k_v\hat IK_{bal}}{C}\); como \(k_v=-2/\pi<0\), este
 coeficiente es **negativo** — el signo correcto para estabilidad (\(\dot x=-x/\tau\) con \(\tau>0\)). Si en
-cambio \(k_v\) fuese positivo (como se afirmaba erróneamente antes de simularlo), este mismo signo de
-realimentación \(v_0=-K_{bal}\Delta V\) sería **inestable**: el diseño del lazo depende críticamente de
-conocer el signo real de \(k_v\), no solo su orden de magnitud. La ecuación linealizada correcta es
+cambio se usara el valor \(k_v>0\) que se había afirmado sin verificar antes de esta derivación, este mismo
+signo de realimentación \(v_0=-K_{bal}\Delta V\) sería **inestable**: el diseño del lazo depende
+críticamente de conocer el signo real de \(k_v\), no solo su orden de magnitud. La ecuación linealizada
+completa, y la constante de tiempo del lazo cerrado que de ella se despeja, son:
 
-$$ \boxed{\ \frac{d(\Delta V)}{dt} = -\frac{2}{C}\Big(i_{O,total,dist} - k_v\hat I K_{bal}\Delta V\Big)\ } \qquad \tau_{bal} = \frac{C}{-2\,k_v\,\hat I\,K_{bal}} = \frac{C}{2\,|k_v|\,\hat I\,K_{bal}} $$
+$$ \boxed{\ \frac{d(\Delta V)}{dt} = -\frac{2}{C}\Big(i_{O,total,dist} - k_v\hat I K_{bal}\Delta V\Big)\ } \qquad \tau_{bal} = \frac{C}{-2\,k_v\,\hat I\,K_{bal}} = \frac{C}{2\,|k_v|\,\hat I\,K_{bal}} = \frac{\pi\,C}{4\,\hat I\,K_{bal}} $$
 
-Con \(\tau_{bal}>0\) (porque \(k_v<0\) hace que \(-2k_v>0\)), el desbalance decae exponencialmente hacia el
-valor que anula \(i_{dist}\), en vez de crecer sin control.
+(la última igualdad sustituye \(|k_v|=2/\pi\)). Con \(\tau_{bal}>0\), el desbalance decae exponencialmente
+hacia el valor que anula \(i_{dist}\), en vez de crecer sin control.
 
 *El error residual del control proporcional puro (panel (c)).* Con un controlador puramente proporcional,
 \(v_0=-K_{bal}\Delta V\), el régimen permanente (\(\dot{\Delta V}=0\)) de la ecuación anterior exige
