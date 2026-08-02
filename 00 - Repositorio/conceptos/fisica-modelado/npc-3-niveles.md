@@ -522,6 +522,27 @@ El resultado de este paso es el mecanismo de actuación: un lazo de control mide
 ajusta \(v_0\) en proporción (o con un PI) para llevarlo a cero — es exactamente el mecanismo simulado en el
 panel (c) de la figura del Paso 5.
 
+*Qué es \(K_{bal}\) y por qué la ley de control es "\(v_0\) proporcional al desbalance".* \(K_{bal}\) **no**
+es una constante física del convertidor (como \(C\), \(V_{dc}\) o \(k_v\), que están fijados por el hardware
+o la modulación): es una **ganancia de control**, un número que se elige libremente al diseñar el lazo — el
+único grado de libertad de diseño que queda una vez fijada la estructura del controlador. Su papel es
+traducir la medida del desbalance en la acción correctora: en cada instante se mide \(\Delta V(t)\)
+(sensores de tensión en los dos condensadores, disponibles en cualquier control digital del convertidor) y
+se calcula
+
+$$ v_0(t) = -K_{bal}\,\Delta V(t) $$
+
+Por qué esta forma concreta, "\(v_0\) proporcional al desbalance", y no otra: es la ley de control más
+simple que cumple lo que se necesita —**realimentación negativa**, es decir que cuando aparece un
+\(\Delta V\ne0\) el controlador reaccione generando una señal correctora en la dirección que lo reduce, y
+que esa reacción sea nula exactamente cuando ya no hay error (\(\Delta V=0\Rightarrow v_0=0\), no se toca la
+modulación innecesariamente). Un controlador proporcional (P) es la implementación más directa de esa idea:
+la corrección crece linealmente con el tamaño del error, sin memoria ni filtrado adicional. \(K_{bal}\) es
+literalmente la pendiente de esa recta — cuántos voltios de \(v_0\) (en p.u. de índice de modulación) se
+generan por cada voltio de desbalance medido. Que el signo global tenga que ser negativo (y no positivo) es
+lo que se comprueba a continuación con el valor real de \(k_v\); \(K_{bal}\) en sí se define siempre positivo
+por convención, y es el signo "\(-\)" explícito en la fórmula el que fija la polaridad de la realimentación.
+
 **Paso 7 — cuantificar el lazo: qué es \(k_v\), cómo calcularlo, y cómo se cierra el lazo con signo
 correcto.** Partiendo del mecanismo del Paso 6, hace falta saber **cuánto** corrige un \(v_0\) dado y **qué
 tan rápido y con qué signo** debe actuar el lazo cerrado, para poder diseñarlo.
