@@ -16122,6 +16122,129 @@ def _mmc_submodulo_ccsc():
     _savefig(fig, 'mmc-submodulo-ccsc', dpi=160)
 
 
+def _npc_dvdt_rizado():
+    """NPC apartado 4: (a) escalon de tension aplicado sobre el filtro L en el
+    cruce por cero de la referencia, 2 niveles (salto Vdc, dv/dt maximo) vs
+    NPC (salto Vdc/2, dv/dt mitad); (b) rizado de corriente resultante sobre
+    L en ese mismo instante para ambos casos, mostrando el factor 1/4."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.5, 5.2))
+    fig.suptitle('NPC, apartado 4: $dv/dt$ y rizado de corriente en el cruce por cero (Pasos 1–3)', fontsize=12.5, fontweight='bold')
+
+    Vdc = 2.0  # normalizado
+    Ts = 1.0
+    tr = 0.06*Ts  # tiempo de subida/bajada del semiconductor (igual en ambos casos)
+
+    # ---- (a) escalon de tension: 2L (0 -> Vdc) vs NPC (0 -> Vdc/2) ----
+    t0 = 0.0
+    t = np.linspace(-0.3*Ts, 0.7*Ts, 2000)
+    v2L = np.where(t < t0, 0.0, np.where(t < t0+tr, Vdc*(t-t0)/tr, Vdc))
+    vNPC = np.where(t < t0, 0.0, np.where(t < t0+tr, (Vdc/2)*(t-t0)/tr, Vdc/2))
+    a1.plot(t, v2L, color='#c0392b', lw=2.3, label=r'2 niveles: salto $V_{dc}$')
+    a1.plot(t, vNPC, color='#1e8449', lw=2.3, label=r'NPC: salto $V_{dc}/2$ (P$\to$O ó O$\to$N)')
+    a1.text(0.38, Vdc+0.18, r'$dv/dt|_{2L}=V_{dc}/t_r$', fontsize=8.8, color='#c0392b', va='center')
+    a1.text(0.38, Vdc/2+0.18, r'$dv/dt|_{NPC}=\frac{1}{2}\,dv/dt|_{2L}$', fontsize=8.8, color='#1e8449', va='center')
+    a1.axvspan(t0, t0+tr, color='gray', alpha=0.08)
+    a1.text(t0+tr/2, -0.28, r'$t_r$ (igual en ambos:'+'\nmismo semiconductor)', fontsize=7.5, ha='center', color='gray')
+    a1.set_xlabel('t'); a1.set_ylabel(r'$v$  [$\times V_{dc}$]'); a1.grid(alpha=.3)
+    a1.legend(fontsize=8.8, loc='center left', bbox_to_anchor=(0.0, 0.62)); a1.set_ylim(-0.55, Vdc*1.28)
+    a1.set_title('(a) Mismo $t_r$, escalón a la mitad\n$\\Rightarrow dv/dt$ del NPC = mitad del de 2L', fontsize=10.5, fontweight='bold')
+
+    # ---- (b) rizado de corriente sobre L en el cruce por cero ----
+    # 2L: peor caso, duty~50%, v_L=Vdc/2 durante Ts/2 (subida) y baja simetrico
+    # NPC: conmuta O<->P/N, v_L=Vdc/2 tambien pero solo Ts/4 de intervalo relevante
+    L = 1.0; fs_ = 1.0/Ts
+    tt = np.linspace(0, 2*Ts, 2000)
+    # triangulo de corriente 2L: pendiente +-(Vdc/2)/L en medio periodo cada uno
+    i2L = np.zeros_like(tt)
+    diL_2L = (Vdc/2)/L
+    for k, tk in enumerate(tt):
+        ph = (tk % Ts)/Ts
+        i2L[k] = diL_2L*Ts*(ph if ph < 0.5 else 1-ph)
+    # triangulo de corriente NPC: mismo v_L=Vdc/2 pero el tramo relevante dura Ts/4
+    iNPC = np.zeros_like(tt)
+    diL_NPC = (Vdc/2)/L
+    for k, tk in enumerate(tt):
+        ph = (tk % (Ts/2))/(Ts/2)
+        iNPC[k] = diL_NPC*(Ts/4)*(ph if ph < 0.5 else 1-ph)
+    a2.plot(tt, i2L, color='#c0392b', lw=2.0, label=r'2 niveles: $\Delta i_{L,2L}=\dfrac{V_{dc}}{4f_sL}$')
+    a2.plot(tt, iNPC, color='#1e8449', lw=2.0, label=r'NPC: $\Delta i_{L,NPC}=\frac{1}{4}\,\Delta i_{L,2L}$')
+    a2.axhline(i2L.max(), color='#c0392b', lw=0.8, ls=':')
+    a2.axhline(iNPC.max(), color='#1e8449', lw=0.8, ls=':')
+    a2.set_xlabel('t'); a2.set_ylabel(r'$i_L$  [$\times V_{dc}/(f_sL)$]'); a2.grid(alpha=.3)
+    a2.legend(fontsize=8.8, loc='upper right')
+    a2.set_title('(b) Rizado pico-pico resultante:\ntensión a la mitad $\\times$ tiempo relevante a la mitad $=\\frac{1}{4}$', fontsize=10.5, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'npc-dvdt-rizado', dpi=160)
+
+
+def _npc_espectro_armonico():
+    """NPC apartado 4, Paso 4: (a) forma de onda vAO de 2 niveles vs NPC en un
+    periodo de red (misma fsw), mostrando visualmente que el NPC se acerca
+    mas a la senoide de referencia; (b) espectro en frecuencia (FFT) de ambas
+    formas de onda, mostrando que las bandas laterales de conmutacion del NPC
+    caen mas rapido con el orden armonico que en 2 niveles."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.5, 5.2))
+    fig.suptitle('NPC, apartado 4, Paso 4: contenido armónico frente a 2 niveles (misma $f_{sw}$)', fontsize=12.5, fontweight='bold')
+
+    f0 = 50.0; fsw = 850.0  # fsw no multiplo entero de f0 para evitar solapes espurios en la FFT
+    fs_sample = 400000.0
+    Nperiods = 40  # varios ciclos de red para resolucion espectral fina (resuelve bandas laterales)
+    t = np.arange(0, Nperiods/f0, 1/fs_sample)
+    m = 0.9
+    ref = m*np.sin(2*np.pi*f0*t)
+
+    def pdpwm(levels):
+        # levels=2 -> comparador unico [-1,1]; levels=3 -> dos portadoras [0,1] y [-1,0]
+        carr = 2*np.abs(2*(t*fsw - np.floor(t*fsw+0.5)))-1  # triangular +-1 a fsw
+        if levels == 2:
+            return np.where(ref > carr, 1.0, -1.0)
+        else:
+            carr_top = (carr+1)/2      # 0..1
+            carr_bot = (carr-1)/2      # -1..0
+            out = np.zeros_like(ref)
+            out = np.where(ref > 0, np.where(ref > carr_top, 1.0, 0.0), np.where(ref < carr_bot, -1.0, 0.0))
+            return out
+
+    v2L = pdpwm(2)
+    vNPC = pdpwm(3)
+
+    # ---- (a) recorte de forma de onda: medio periodo de red, para que se vea bien el nivel O ----
+    ncy = int(fs_sample*0.5/f0)
+    a1.plot(t[:ncy]*1e3, v2L[:ncy], color='#c0392b', lw=1.3, label='2 niveles (2 niveles: $\\pm V_{dc}/2$)', alpha=0.9)
+    a1.plot(t[:ncy]*1e3, vNPC[:ncy]+2.6, color='#1e8449', lw=1.3, label='NPC (3 niveles: $+V_{dc}/2$, $0$, $-V_{dc}/2$)', alpha=0.9)
+    a1.plot(t[:ncy]*1e3, ref[:ncy]+2.6, color='gray', lw=1.0, ls='--', alpha=0.6)
+    a1.plot(t[:ncy]*1e3, ref[:ncy], color='gray', lw=1.0, ls='--', alpha=0.6, label='referencia')
+    a1.axhline(2.6, color='#1e8449', lw=0.6, ls=':', alpha=0.5)
+    a1.text(0.05, 2.6+0.12, 'nivel $O$', fontsize=7.5, color='#1e8449', ha='left')
+    a1.set_xlabel('t [ms]'); a1.set_yticks([]); a1.grid(alpha=.25)
+    a1.legend(fontsize=8.3, loc='upper right', ncol=1)
+    a1.set_title('(a) $v_{AO}$: el NPC usa el nivel $O$ intermedio\npara acercarse más a la senoide (misma $f_{sw}$)', fontsize=10.5, fontweight='bold')
+
+    # ---- (b) espectro FFT ----
+    N = len(t)
+    win = np.hanning(N)
+    F2L = np.abs(np.fft.rfft(v2L*win))/N
+    FNPC = np.abs(np.fft.rfft(vNPC*win))/N
+    freqs = np.fft.rfftfreq(N, d=1/fs_sample)
+    fmax = 6*fsw
+    mask = freqs < fmax
+    a2.semilogy(freqs[mask]/1e3, F2L[mask]+1e-9, color='#c0392b', lw=1.1, label='2 niveles', alpha=0.85)
+    a2.semilogy(freqs[mask]/1e3, FNPC[mask]+1e-9, color='#1e8449', lw=1.1, label='NPC', alpha=0.85)
+    a2.axvline(fsw/1e3, color='gray', lw=0.8, ls=':'); a2.text(fsw/1e3, F2L[mask].max()*1.3, r'$f_{sw}$', fontsize=8, ha='center', color='gray')
+    a2.axvline(2*fsw/1e3, color='gray', lw=0.8, ls=':'); a2.text(2*fsw/1e3, F2L[mask].max()*1.3, r'$2f_{sw}$', fontsize=8, ha='center', color='gray')
+    a2.set_xlabel('f [kHz]'); a2.set_ylabel('amplitud (esc. log)'); a2.grid(alpha=.3, which='both')
+    a2.legend(fontsize=8.8, loc='upper right')
+    a2.set_title('(b) Bandas laterales de conmutación:\nlas del NPC caen más deprisa con el orden', fontsize=10.5, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'npc-espectro-armonico', dpi=160)
+
+
 def _npc_svm():
     """NPC SVM: hexagono completo de space vectors con la notacion academica
     estandar (Sa Sb Sc), cada fase en {+,0,-}, replicando la geometria de la
@@ -17548,6 +17671,12 @@ def main():
         n += 1
     if pref is None or "npc-pi-sintonizacion".startswith(pref):
         _npc_pi_sintonizacion()
+        n += 1
+    if pref is None or "npc-dvdt-rizado".startswith(pref):
+        _npc_dvdt_rizado()
+        n += 1
+    if pref is None or "npc-espectro-armonico".startswith(pref):
+        _npc_espectro_armonico()
         n += 1
     if pref is None or "npc-svm-tiempos".startswith(pref):
         _npc_svm_tiempos()

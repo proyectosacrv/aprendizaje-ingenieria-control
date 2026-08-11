@@ -779,45 +779,102 @@ un lazo de control más rápido sobre la propia modulación de cada fase individ
 
 ## 4 — \(dv/dt\) y contenido armónico (derivación cuantitativa completa)
 
-**Paso 1 — tensión de bloqueo y \(dv/dt\).** Del desarrollo general de [[topologias-multinivel]] (apartado
-1), con \(n=3\):
+Este apartado responde a una pregunta muy concreta: **¿qué gana realmente el filtro de salida (y el
+aislamiento del motor/cable) por tener 3 niveles en vez de 2, con el mismo bus \(V_{dc}\) y la misma
+frecuencia de conmutación \(f_{sw}\)?** Hay dos beneficios distintos, que conviene no confundir: uno afecta
+al **escalón de tensión** en cada conmutación (\(dv/dt\), relevante para EMI y estrés dieléctrico) y otro
+afecta al **rizado de corriente** en el filtro de salida (relevante para pérdidas y THD de corriente). Se
+derivan por separado, porque no son la misma magnitud ni comparten la misma dependencia con los parámetros.
 
-$$ V_{bloqueo} = \frac{V_{dc}}{n-1} = \frac{V_{dc}}{2}, \qquad \frac{dv}{dt}\bigg|_{NPC} = \frac12\,\frac{dv}{dt}\bigg|_{2L} $$
+**Paso 1 — por qué cada IGBT del NPC solo ve la mitad de la tensión de bloqueo.** En el puente de 2 niveles
+cada interruptor está entre el borne \(+V_{dc}/2\) y \(-V_{dc}/2\) del bus completo: cuando está abierto,
+debe bloquear el salto entero, \(V_{bloqueo,2L}=V_{dc}\). En el NPC (apartado 1), cada \(T_k\) está en serie
+entre dos nodos **adyacentes** del bus partido (P–O o O–N), separados solo \(V_{dc}/2\) gracias al diodo de
+anclaje, que fija el punto medio: por construcción, ningún \(T_k\) individual ve nunca el bus completo.
 
-**Paso 2 — el rizado de corriente, derivado desde cero (no solo el factor final).** Se parte del mismo
-razonamiento que en 2 niveles (§5.2, Paso 1-3 de [[convertidor-back-to-back]]): sobre la inductancia de
-filtro \(L\), la corriente sube con pendiente \(v_L/L\) durante el tiempo que dura cada nivel de tensión
-aplicado. El peor caso ocurre en el cruce por cero de la referencia (donde, en 2 niveles, el duty era 50%).
-En el NPC, cerca de \(r\approx0\) la conmutación ocurre **entre O y el nivel adyacente** (P o N, alternando
-según el signo instantáneo de \(r\)), con tensión aplicada sobre \(L\) de \(V_{dc}/2\) (en vez de \(V_{dc}\)
-en 2 niveles) y con el mismo argumento de "duty ≈ 50% localmente":
+$$ V_{bloqueo,NPC} = \frac{V_{dc}}{n-1} = \frac{V_{dc}}{2} \qquad (n=3 \text{ niveles, del desarrollo general de [[topologias-multinivel]], apartado 1}) $$
+
+**Consecuencia sobre el \(dv/dt\).** Cuando un IGBT conmuta, el tiempo de subida/bajada \(t_r\) (bordes de
+la corriente de puerta, capacidades parásitas del propio dispositivo) es, en primera aproximación, **el
+mismo dispositivo a dispositivo** — no depende de qué topología lo rodea, solo de la tecnología del
+semiconductor. Si el escalón de tensión que atraviesa en ese \(t_r\) es la mitad, la pendiente
+\(dv/dt=\Delta v/t_r\) también lo es:
+
+$$ \boxed{\ \frac{dv}{dt}\bigg|_{NPC} = \frac{V_{dc}/2}{t_r} = \frac12\cdot\frac{V_{dc}}{t_r} = \frac12\,\frac{dv}{dt}\bigg|_{2L}\ } $$
+
+<div class="cfig"><img src="figuras/npc-dvdt-rizado.png" alt="grafica del escalon de tension en la conmutacion, 2 niveles con salto Vdc completo frente a NPC con salto Vdc medio, mismo tiempo de subida tr, mostrando el dv/dt a la mitad; y grafica del rizado de corriente triangular resultante en la inductancia de filtro en el cruce por cero, con el NPC en un cuarto de amplitud respecto a 2 niveles"><div class="cap">(a) Escalón de tensión en una conmutación: con el mismo \(t_r\) (mismo semiconductor), el salto del NPC (\(V_{dc}/2\), P↔O u O↔N) es la mitad que en 2 niveles (\(V_{dc}\) completo), luego el \(dv/dt\) es la mitad. (b) Rizado de corriente resultante sobre la inductancia de filtro en el cruce por cero de la referencia (peor caso): el NPC alcanza solo un cuarto de la amplitud pico-pico del caso de 2 niveles, por la combinación del Paso 2.</div></div>
+
+Esto es lo que se traduce directamente en menor EMI conducida/radiada y menor estrés del aislamiento del
+motor y del cable (los picos de tensión reflejada por desadaptación de impedancia del cable, típicos en
+motores alimentados por variador, escalan con el \(dv/dt\), no con \(V_{dc}\) por sí solo).
+
+**Paso 2 — el rizado de corriente, derivado desde cero (no solo el factor final).** Distinto problema:
+ahora no importa cuánto tarda la transición (\(t_r\), del orden de cientos de ns), sino cuánto tiempo
+**permanece aplicado** cada nivel de tensión sobre la inductancia \(L\) del filtro de salida, que es del
+orden de \(T_s=1/f_{sw}\) (µs), muchísimo más lento que \(t_r\) — por eso aquí la conmutación se trata como
+instantánea y solo importa el valor \(v_L\) durante cada tramo.
+
+Se parte del mismo razonamiento que en 2 niveles (§5.2, Pasos 1-3 de [[convertidor-back-to-back]]): sobre
+\(L\), la corriente sube con pendiente \(v_L/L\) mientras dura cada nivel de tensión aplicado, y baja con
+pendiente \(-v_L/L\) en el tramo complementario — es un triángulo cuya amplitud pico-pico depende de
+\(v_L\) y de cuánto tiempo dura cada tramo. El **peor caso** (mayor rizado) ocurre en el cruce por cero de
+la referencia:
+
+- **En 2 niveles**, ahí el duty es 50%: la tensión de fase alterna simétricamente entre \(+V_{dc}/2\) y
+  \(-V_{dc}/2\) respecto a la referencia (0), con \(v_L\approx V_{dc}/2\) durante medio periodo de
+  conmutación cada tramo — es exactamente la derivación de [[convertidor-back-to-back]] §5.2, que da
+  \(\Delta i_{L,2L,max}=V_{dc}/(4f_sL)\).
+- **En el NPC**, cerca de \(r\approx0\) la conmutación **no** salta entre P y N: ocurre entre \(O\) y el
+  nivel adyacente (P o N, alternando según el signo instantáneo de \(r\), como se vio en el apartado 1). La
+  tensión aplicada sobre \(L\) en ese tramo es \(V_{dc}/2\) (la mitad que en 2 niveles) y, además, por la
+  forma del PD-PWM con dos portadoras (apartado 2), el intervalo relevante en el que se repite ese patrón de
+  conmutación **también** es la mitad de un periodo de portadora completo — cada portadora individual solo
+  cubre medio rango de amplitud de la referencia, así que el "duty ≈ 50% localmente" del NPC ocurre en un
+  \(T_s/2\) en vez de un \(T_s\).
+
+Con ambos factores de \(1/2\) (tensión aplicada y tiempo relevante), y usando la misma fórmula del rizado
+de 2 niveles con \(V_{dc}\to V_{dc}/2\):
 
 $$ \Delta i_{L,NPC,max} \approx \frac{V_{dc}/2}{4\,f_s\,L} = \frac14\cdot\frac{V_{dc}}{4\,f_s\,L} = \frac14\,\Delta i_{L,2L,max} $$
 
-Es la misma fórmula del rizado de 2 niveles (\(V_{dc}/(4f_sL)\)), pero con \(V_{dc}\to V_{dc}/2\): el
-salto de tensión efectivo se reduce a la mitad y, como el rizado es lineal en ese salto (no cuadrático —
-corrección respecto a un argumento habitual pero impreciso: el \(1/4\) sale de que **también** se reduce a
-la mitad el intervalo de tiempo relevante, no de un cuadrado), el rizado cae a un cuarto:
+$$ \boxed{\ \frac{\Delta i_{L,NPC}}{\Delta i_{L,2L}} = \underbrace{\frac12}_{\text{tensión}}\times\underbrace{\frac12}_{\text{tiempo efectivo}} = \frac14\ } $$
 
-$$ \boxed{\ \frac{\Delta i_{L,NPC}}{\Delta i_{L,2L}} = \frac12\text{(tensión)}\times\frac12\text{(tiempo efectivo)} = \frac14\ } $$
+(Nota: el factor \(1/4\) no viene de un cuadrado de la tensión — el rizado es **lineal** en \(v_L\), no
+cuadrático — sino del producto de dos reducciones a la mitad independientes: la de la tensión aplicada y la
+del intervalo de tiempo en que se aplica.)
 
 **Paso 3 — verificación por el argumento de energía.** Alternativamente, el rizado pico-pico es
 proporcional a \(v_L\cdot t_{on}\); en el peor caso de 2 niveles \(v_L=V_{dc}/2\) durante \(t_{on}=T_s/2\).
 En el NPC, al conmutar entre O y P (o N), la tensión aplicada localmente es también \(V_{dc}/2\), **pero**
 el intervalo relevante entre conmutaciones dentro de esa transición es la mitad (\(T_s/4\) en vez de
-\(T_s/2\), porque cada comparación de portadora cubre solo medio rango de amplitud, según se vio en el
-apartado 2): \(\Delta i \propto (V_{dc}/2)\cdot(T_s/4)\) frente a \(V_{dc}\cdot(T_s/4)\)... trabajando ambos
-términos con cuidado (ver la derivación completa paso a paso de 2 niveles en §5.2 de
-[[convertidor-back-to-back]] y sustituyendo \(V_{dc}\to V_{dc}/2\)) se llega consistentemente al mismo
-factor \(1/4\).
+\(T_s/2\), por la razón del Paso 2): \(\Delta i \propto (V_{dc}/2)\cdot(T_s/4)\) frente a
+\(V_{dc}\cdot(T_s/4)\)... trabajando ambos términos con cuidado (ver la derivación completa paso a paso de
+2 niveles en §5.2 de [[convertidor-back-to-back]] y sustituyendo \(V_{dc}\to V_{dc}/2\)) se llega
+consistentemente al mismo factor \(1/4\).
 
-**Paso 4 — contenido armónico.** La onda de \(v_{aO}\) de 3 niveles tiene, en las bandas laterales
-alrededor de \(f_{sw}\) y sus múltiplos, una amplitud que decae aproximadamente con el **cuadrado** del
-número de niveles adicionales, porque cada nivel extra reduce tanto la amplitud del escalón como su
-duración relativa (panel (c) de la figura del apartado 1: la caída del NPC frente a 2 niveles no es un
-simple factor constante, sino que se acentúa en los armónicos de orden más alto). Esto es lo que permite,
-para la misma \(THD\) objetivo, bajar \(f_{sw}\) (menos pérdidas de conmutación) o reducir el filtro de
-salida.
+**Paso 4 — contenido armónico: por qué las bandas laterales del NPC caen más deprisa (no solo "menos").**
+La reducción de rizado de los Pasos 2-3 es una consecuencia en el dominio del tiempo de algo que se ve más
+directamente en el dominio de la frecuencia: la onda \(v_{aO}\) de PD-PWM tiene un espectro con la
+fundamental (\(f_0\)) más un conjunto de **bandas laterales** agrupadas alrededor de \(f_{sw}\) y sus
+múltiplos (\(2f_{sw}\), \(3f_{sw}\), ...) — esto es común a 2 y 3 niveles, es la firma característica de
+cualquier PWM de portadora. Lo que cambia es **cuánta energía hay en esas bandas**, y sobre todo cómo decae
+con el orden del armónico:
+
+- Con 3 niveles, cada escalón individual de \(v_{aO}\) es \(V_{dc}/2\) en vez de \(V_{dc}\), y además el
+  patrón cerca de \(r\approx0\) usa el nivel \(O\) — la onda escalonada se parece más a la senoide de
+  referencia que la de 2 niveles con el mismo \(f_{sw}\) (panel (a) de la figura siguiente).
+- Cuanto mejor se aproxima la onda a la senoide (menos "cuadrada"), menos energía queda en las armónicas de
+  alto orden — es el mismo principio que dice que una onda cuadrada tiene armónicos que decaen como
+  \(1/k\) mientras que una onda más suave (triangular, o aquí la de 3 niveles) decae más rápido, como
+  \(1/k^2\): cada nivel extra reduce tanto la amplitud del escalón como su duración relativa, y ambos
+  efectos se combinan para que la caída con el orden armónico sea más pronunciada, no solo un desplazamiento
+  vertical constante del espectro.
+
+<div class="cfig"><img src="figuras/npc-espectro-armonico.png" alt="forma de onda vAO de 2 niveles y NPC en medio periodo de red mostrando el nivel O intermedio en el NPC; y espectro FFT en escala logaritmica comparando ambas formas de onda con lineas discretas en fsw y sus multiplos, mostrando que las lineas espectrales del NPC decaen mas rapido con el orden que las de 2 niveles"><div class="cap">(a) Forma de onda \(v_{aO}\) con la misma \(f_{sw}\): el NPC usa el nivel \(O\) intermedio para acercarse más a la senoide de referencia. (b) Espectro en frecuencia (FFT, escala log): ambas formas de onda muestran bandas laterales discretas alrededor de \(f_{sw}\), \(2f_{sw}\), ...; las líneas espectrales del NPC caen más deprisa con el orden armónico, no solo tienen menor amplitud en \(f_{sw}\).</div></div>
+
+Esto es lo que permite, para la misma \(THD\) objetivo, bajar \(f_{sw}\) (menos pérdidas de conmutación,
+ver apartado 3 de [[convertidor-back-to-back]] aplicado con \(V_{dc}\to V_{dc}/2\)) o reducir el filtro de
+salida manteniendo la misma \(f_{sw}\).
 
 **Consecuencia práctica:** esto permite **reducir \(L\) a un cuarto** manteniendo el mismo rizado, o
 mantener \(L\) y cuadruplicar la calidad de corriente — ver la comparativa numérica del apartado 5 de
