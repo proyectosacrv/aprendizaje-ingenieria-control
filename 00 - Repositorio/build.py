@@ -241,9 +241,9 @@ body.list-collapsed .listtoggle{left:0}
 .cfig{background:#fff;border:1px solid var(--line);border-radius:9px;padding:12px;margin:16px 0;text-align:center}
 .cfig img{max-width:100%;height:auto;border-radius:4px}
 .cfig .cap{color:#555;font-size:12px;margin-top:8px;line-height:1.45}
-/* ── Formulas MathJax: scroll horizontal propio en vez de desbordar en pantallas estrechas ── */
-mjx-container[display="true"]{display:block;overflow-x:auto;overflow-y:hidden;max-width:100%;padding:2px 0}
-mjx-container[display="true"]>svg{max-width:none}
+/* ── Formulas MathJax: se encogen para caber en el ancho disponible, sin scroll ni recorte ── */
+mjx-container[display="true"]{display:block;max-width:100%;padding:2px 0}
+mjx-container[display="true"]>svg{max-width:100%;width:auto;height:auto}
 .viewtoggle{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .viewtoggle button{background:var(--panel2);color:var(--muted);border:0;padding:7px 12px;cursor:pointer;font-size:13px}
 .viewtoggle button.on{background:#23456b;color:#fff}
