@@ -832,12 +832,17 @@ la referencia:
   cubre medio rango de amplitud de la referencia, así que el "duty ≈ 50% localmente" del NPC ocurre en un
   \(T_s/2\) en vez de un \(T_s\).
 
-Con ambos factores de \(1/2\) (tensión aplicada y tiempo relevante), y usando la misma fórmula del rizado
-de 2 niveles con \(V_{dc}\to V_{dc}/2\):
+La fórmula de 2 niveles \(\Delta i_{L,2L,max}=V_{dc}/(4f_sL)\) ya lleva incorporado un periodo de
+conmutación \(T_s\) completo (duty 50% sobre \(T_s\)). Sustituir solo \(V_{dc}\to V_{dc}/2\) en ella
+recoge **únicamente** el factor de tensión, y da el rizado que tendría el NPC si conmutase con el mismo
+patrón temporal que 2 niveles — la mitad, no un cuarto:
 
-$$ \Delta i_{L,NPC,max} \approx \frac{V_{dc}/2}{4\,f_s\,L} = \frac14\cdot\frac{V_{dc}}{4\,f_s\,L} = \frac14\,\Delta i_{L,2L,max} $$
+$$ \frac{V_{dc}/2}{4\,f_s\,L} = \frac12\cdot\underbrace{\frac{V_{dc}}{4\,f_s\,L}}_{\Delta i_{L,2L,max}} = \frac12\,\Delta i_{L,2L,max} \qquad \text{(solo el factor de tensión)} $$
 
-$$ \boxed{\ \frac{\Delta i_{L,NPC}}{\Delta i_{L,2L}} = \underbrace{\frac12}_{\text{tensión}}\times\underbrace{\frac12}_{\text{tiempo efectivo}} = \frac14\ } $$
+Falta multiplicar el segundo factor, el del tiempo relevante: el patrón O↔P/N del NPC se repite en un
+tramo que dura \(T_s/2\) (no \(T_s\)), así que ese mismo resultado hay que reducirlo otra vez a la mitad:
+
+$$ \boxed{\ \Delta i_{L,NPC,max} = \frac12\,\Delta i_{L,2L,max}\ \times\ \frac12 = \frac14\,\Delta i_{L,2L,max}\ } \qquad\Longrightarrow\qquad \frac{\Delta i_{L,NPC}}{\Delta i_{L,2L}} = \underbrace{\frac12}_{\text{tensión}}\times\underbrace{\frac12}_{\text{tiempo efectivo}} = \frac14 $$
 
 (Nota: el factor \(1/4\) no viene de un cuadrado de la tensión — el rizado es **lineal** en \(v_L\), no
 cuadrático — sino del producto de dos reducciones a la mitad independientes: la de la tensión aplicada y la
