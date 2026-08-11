@@ -867,7 +867,7 @@ con el orden del armónico:
 
 - Con 3 niveles, cada escalón individual de \(v_{aO}\) es \(V_{dc}/2\) en vez de \(V_{dc}\), y además el
   patrón cerca de \(r\approx0\) usa el nivel \(O\) — la onda escalonada se parece más a la senoide de
-  referencia que la de 2 niveles con el mismo \(f_{sw}\) (panel (a) de la figura siguiente).
+  referencia que la de 2 niveles con el mismo \(f_{sw}\) (figuras siguientes).
 - Cuanto mejor se aproxima la onda a la senoide (menos "cuadrada"), menos energía queda en las armónicas de
   alto orden — es el mismo principio que dice que una onda cuadrada tiene armónicos que decaen como
   \(1/k\) mientras que una onda más suave (triangular, o aquí la de 3 niveles) decae más rápido, como
@@ -875,7 +875,13 @@ con el orden del armónico:
   efectos se combinan para que la caída con el orden armónico sea más pronunciada, no solo un desplazamiento
   vertical constante del espectro.
 
-<div class="cfig"><img src="figuras/npc-espectro-armonico.png" alt="zoom de la forma de onda vAO cruda de 2 niveles y NPC mostrando los escalones y el nivel O intermedio del NPC; la misma señal pasada por un filtro paso bajo equivalente al filtro de salida, superpuesta a la referencia senoidal, mostrando que ambas topologias reconstruyen la senoide pero el NPC con mucho menos rizado residual; y espectro en lineas discretas por bandas de fsw mostrando que la envolvente del NPC decae mas rapido con el orden armonico que la de 2 niveles"><div class="cap">(a) Forma de onda \(v_{aO}\) cruda (zoom a un par de periodos de portadora): el NPC dosifica los escalones a \(V_{dc}/2\) usando también el nivel \(O\), frente al salto completo \(V_{dc}\) de 2 niveles. (b) Ambas señales tras un filtro paso-bajo equivalente al filtro de salida (mismo orden y corte), superpuestas a la referencia: las dos reconstruyen la senoide, pero la del NPC se aparta mucho menos de ella entre conmutaciones — es la manifestación en el dominio del tiempo del Paso 2/3. (c) Envolvente espectral agrupada por bandas de \(f_0\) alrededor de cada múltiplo de \(f_{sw}\): las líneas del NPC decaen más deprisa con el orden armónico, no solo tienen menor amplitud en \(f_{sw}\).</div></div>
+<div class="cfig"><img src="figuras/npc-conmutacion-2niveles.png" alt="forma de onda vAO conmutada de 2 niveles, zoom a medio periodo de red, superpuesta a la senoide de referencia, mostrando el salto completo entre +Vdc/2 y -Vdc/2 en cada conmutacion"><div class="cap">2 niveles: \(v_{aO}\) conmutada (zoom a medio periodo de red) superpuesta a la referencia. Cada conmutación salta el bus completo, \(\pm V_{dc}/2\).</div></div>
+
+<div class="cfig"><img src="figuras/npc-conmutacion-3niveles.png" alt="forma de onda vAO conmutada del NPC, mismo zoom y misma fsw que la de 2 niveles, superpuesta a la senoide de referencia, mostrando el uso del nivel O intermedio y el escalon a solo Vdc/2 por paso"><div class="cap">NPC: \(v_{aO}\) conmutada con la misma \(f_{sw}\) y el mismo zoom, superpuesta a la misma referencia. Usa el nivel \(O\) intermedio: cada paso es solo \(V_{dc}/2\), y la onda se ciñe visiblemente más a la senoide.</div></div>
+
+<div class="cfig"><img src="figuras/npc-espectro-2niveles.png" alt="espectro en lineas discretas de la vAO de 2 niveles en escala logaritmica, eje horizontal en multiplos de fsw, con marcas verticales en fsw, 2fsw, 3fsw, 4fsw y 5fsw"><div class="cap">2 niveles: espectro de \(v_{aO}\) (líneas discretas, escala log), eje horizontal expresado directamente en múltiplos de \(f_{sw}\). Las bandas laterales se agrupan alrededor de cada \(kf_{sw}\).</div></div>
+
+<div class="cfig"><img src="figuras/npc-espectro-3niveles.png" alt="espectro en lineas discretas de la vAO del NPC en escala logaritmica, mismo eje en multiplos de fsw que la version de 2 niveles, con la envolvente de 2 niveles superpuesta en tenue para comparar directamente cuanto decae cada banda lateral"><div class="cap">NPC: el mismo espectro y el mismo eje en múltiplos de \(f_{sw}\), con la envolvente de 2 niveles superpuesta en tenue como referencia. Las bandas del NPC quedan sistemáticamente por debajo, y la diferencia es mayor en \(f_{sw}\) y \(2f_{sw}\) que en los órdenes altos — es la caída "más rápida con el orden" del argumento anterior.</div></div>
 
 Esto es lo que permite, para la misma \(THD\) objetivo, bajar \(f_{sw}\) (menos pérdidas de conmutación,
 ver apartado 3 de [[convertidor-back-to-back]] aplicado con \(V_{dc}\to V_{dc}/2\)) o reducir el filtro de
