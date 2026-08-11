@@ -16181,15 +16181,22 @@ def _npc_dvdt_rizado():
 
 
 def _npc_espectro_armonico():
-    """NPC apartado 4, Paso 4: (a) forma de onda vAO de 2 niveles vs NPC en un
-    periodo de red (misma fsw), mostrando visualmente que el NPC se acerca
-    mas a la senoide de referencia; (b) espectro en frecuencia (FFT) de ambas
-    formas de onda, mostrando que las bandas laterales de conmutacion del NPC
-    caen mas rapido con el orden armonico que en 2 niveles."""
+    """NPC apartado 4, Paso 4: (a) forma de onda vAO cruda (zoom corto, para ver
+    los escalones y el nivel O); (b) la misma señal pasada por un filtro paso-bajo
+    (equivalente al filtro L de salida) superpuesta a la referencia, mostrando que
+    AMBAS topologias reconstruyen la senoide pero el NPC con muchisimo menos rizado
+    residual; (c) espectro en forma de lineas discretas (stem), mostrando la
+    envolvente de las bandas laterales de cada topologia y que la del NPC decae
+    mas rapido con el orden armonico."""
     import matplotlib.pyplot as plt
+    from scipy.signal import butter, filtfilt
 
-    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.5, 5.2))
-    fig.suptitle('NPC, apartado 4, Paso 4: contenido armónico frente a 2 niveles (misma $f_{sw}$)', fontsize=12.5, fontweight='bold')
+    fig = plt.figure(figsize=(14.5, 9.6))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 1.15], hspace=0.48, wspace=0.24)
+    a1 = fig.add_subplot(gs[0, 0])
+    a2 = fig.add_subplot(gs[0, 1])
+    a3 = fig.add_subplot(gs[1, :])
+    fig.suptitle('NPC, apartado 4, Paso 4: contenido armónico frente a 2 niveles (misma $f_{sw}$)', fontsize=13, fontweight='bold')
 
     f0 = 50.0; fsw = 850.0  # fsw no multiplo entero de f0 para evitar solapes espurios en la FFT
     fs_sample = 400000.0
@@ -16206,42 +16213,65 @@ def _npc_espectro_armonico():
         else:
             carr_top = (carr+1)/2      # 0..1
             carr_bot = (carr-1)/2      # -1..0
-            out = np.zeros_like(ref)
             out = np.where(ref > 0, np.where(ref > carr_top, 1.0, 0.0), np.where(ref < carr_bot, -1.0, 0.0))
             return out
 
     v2L = pdpwm(2)
     vNPC = pdpwm(3)
 
-    # ---- (a) recorte de forma de onda: medio periodo de red, para que se vea bien el nivel O ----
-    ncy = int(fs_sample*0.5/f0)
-    a1.plot(t[:ncy]*1e3, v2L[:ncy], color='#c0392b', lw=1.3, label='2 niveles (2 niveles: $\\pm V_{dc}/2$)', alpha=0.9)
-    a1.plot(t[:ncy]*1e3, vNPC[:ncy]+2.6, color='#1e8449', lw=1.3, label='NPC (3 niveles: $+V_{dc}/2$, $0$, $-V_{dc}/2$)', alpha=0.9)
-    a1.plot(t[:ncy]*1e3, ref[:ncy]+2.6, color='gray', lw=1.0, ls='--', alpha=0.6)
-    a1.plot(t[:ncy]*1e3, ref[:ncy], color='gray', lw=1.0, ls='--', alpha=0.6, label='referencia')
+    # ---- (a) zoom corto a la forma de onda cruda: se ven los escalones y el nivel O ----
+    ncy = int(fs_sample*0.15/f0)  # ~1.5 periodos de portadora
+    a1.plot(t[:ncy]*1e3, v2L[:ncy], color='#c0392b', lw=1.6, label='2 niveles', alpha=0.9, drawstyle='steps-post')
+    a1.plot(t[:ncy]*1e3, vNPC[:ncy]+2.6, color='#1e8449', lw=1.6, label='NPC', alpha=0.9, drawstyle='steps-post')
     a1.axhline(2.6, color='#1e8449', lw=0.6, ls=':', alpha=0.5)
-    a1.text(0.05, 2.6+0.12, 'nivel $O$', fontsize=7.5, color='#1e8449', ha='left')
+    a1.text(t[ncy-1]*1e3, 2.6+0.15, 'nivel $O$', fontsize=8, color='#1e8449', ha='right')
     a1.set_xlabel('t [ms]'); a1.set_yticks([]); a1.grid(alpha=.25)
-    a1.legend(fontsize=8.3, loc='upper right', ncol=1)
-    a1.set_title('(a) $v_{AO}$: el NPC usa el nivel $O$ intermedio\npara acercarse más a la senoide (misma $f_{sw}$)', fontsize=10.5, fontweight='bold')
+    a1.legend(fontsize=9, loc='upper right')
+    a1.set_title('(a) $v_{AO}$ cruda (zoom): el NPC da\npasos de $V_{dc}/2$ usando también el nivel $O$', fontsize=10.5, fontweight='bold')
 
-    # ---- (b) espectro FFT ----
+    # ---- (b) señal filtrada (paso bajo, equivalente al filtro L/LCL de salida) vs referencia ----
+    bb, aa = butter(4, 2*fsw/3/(fs_sample/2), btype='low')
+    v2L_f = filtfilt(bb, aa, v2L)
+    vNPC_f = filtfilt(bb, aa, vNPC)
+    i0 = int(fs_sample*2.0/f0)  # se salta los primeros ciclos (transitorio de arranque del filtro)
+    i1 = i0 + int(fs_sample*1.0/f0)
+    tt = (t[i0:i1]-t[i0])*1e3
+    a2.plot(tt, ref[i0:i1], color='#111', lw=1.8, ls='--', label='referencia', alpha=0.8)
+    a2.plot(tt, v2L_f[i0:i1], color='#c0392b', lw=1.4, label='2 niveles filtrada', alpha=0.9)
+    a2.plot(tt, vNPC_f[i0:i1], color='#1e8449', lw=1.4, label='NPC filtrada', alpha=0.9)
+    a2.set_xlabel('t [ms]'); a2.set_ylabel(r'$v$  [$\times V_{dc}$]'); a2.grid(alpha=.3)
+    a2.legend(fontsize=8.5, loc='upper right')
+    a2.set_title('(b) Tras el filtro de salida: ambas reconstruyen\nla senoide, pero el NPC con mucho menos rizado', fontsize=10.5, fontweight='bold')
+
+    # ---- (c) espectro en lineas discretas (stem), envolvente de bandas laterales ----
     N = len(t)
     win = np.hanning(N)
-    F2L = np.abs(np.fft.rfft(v2L*win))/N
-    FNPC = np.abs(np.fft.rfft(vNPC*win))/N
+    F2L = np.abs(np.fft.rfft(v2L*win))/N * 2
+    FNPC = np.abs(np.fft.rfft(vNPC*win))/N * 2
     freqs = np.fft.rfftfreq(N, d=1/fs_sample)
-    fmax = 6*fsw
-    mask = freqs < fmax
-    a2.semilogy(freqs[mask]/1e3, F2L[mask]+1e-9, color='#c0392b', lw=1.1, label='2 niveles', alpha=0.85)
-    a2.semilogy(freqs[mask]/1e3, FNPC[mask]+1e-9, color='#1e8449', lw=1.1, label='NPC', alpha=0.85)
-    a2.axvline(fsw/1e3, color='gray', lw=0.8, ls=':'); a2.text(fsw/1e3, F2L[mask].max()*1.3, r'$f_{sw}$', fontsize=8, ha='center', color='gray')
-    a2.axvline(2*fsw/1e3, color='gray', lw=0.8, ls=':'); a2.text(2*fsw/1e3, F2L[mask].max()*1.3, r'$2f_{sw}$', fontsize=8, ha='center', color='gray')
-    a2.set_xlabel('f [kHz]'); a2.set_ylabel('amplitud (esc. log)'); a2.grid(alpha=.3, which='both')
-    a2.legend(fontsize=8.8, loc='upper right')
-    a2.set_title('(b) Bandas laterales de conmutación:\nlas del NPC caen más deprisa con el orden', fontsize=10.5, fontweight='bold')
+    fmax = 5*fsw
+    df = freqs[1]-freqs[0]
+    # agrupa energia en bins de ~f0 alrededor de cada pico para una envolvente limpia (evita el "piso" de fugas espectrales)
+    bin_hz = f0
+    edges = np.arange(0, fmax+bin_hz, bin_hz)
+    F2L_env = np.array([F2L[(freqs >= e0) & (freqs < e0+bin_hz)].max() if np.any((freqs >= e0) & (freqs < e0+bin_hz)) else 0 for e0 in edges[:-1]])
+    FNPC_env = np.array([FNPC[(freqs >= e0) & (freqs < e0+bin_hz)].max() if np.any((freqs >= e0) & (freqs < e0+bin_hz)) else 0 for e0 in edges[:-1]])
+    fc = edges[:-1] + bin_hz/2
+    m2L = a3.stem(fc/1e3, F2L_env+1e-6, linefmt='#c0392b', markerfmt=' ', basefmt=' ')
+    plt.setp(m2L.stemlines, linewidth=1.3, alpha=0.75)
+    mNPC = a3.stem(fc/1e3, FNPC_env+1e-6, linefmt='#1e8449', markerfmt=' ', basefmt=' ')
+    plt.setp(mNPC.stemlines, linewidth=1.3, alpha=0.85)
+    for k in range(1, 5):
+        a3.axvline(k*fsw/1e3, color='gray', lw=0.7, ls=':')
+        a3.text(k*fsw/1e3, F2L_env.max()*1.6, f'${k}f_{{sw}}$' if k > 1 else '$f_{sw}$', fontsize=8, ha='center', color='gray')
+    a3.plot([], [], color='#c0392b', lw=2, label='2 niveles')
+    a3.plot([], [], color='#1e8449', lw=2, label='NPC')
+    a3.set_yscale('log'); a3.set_ylim(1e-4, F2L_env.max()*3)
+    a3.set_xlabel('f [kHz]'); a3.set_ylabel('amplitud (esc. log)'); a3.grid(alpha=.3, which='both')
+    a3.legend(fontsize=9.5, loc='upper right')
+    a3.set_title('(c) Envolvente espectral por bandas: la del NPC decae más deprisa alrededor de cada múltiplo de $f_{sw}$', fontsize=11, fontweight='bold')
 
-    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    plt.tight_layout(rect=[0, 0, 1, 0.94])
     _savefig(fig, 'npc-espectro-armonico', dpi=160)
 
 
