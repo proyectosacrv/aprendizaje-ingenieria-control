@@ -16475,6 +16475,89 @@ def _npc_svm_tiempos():
     _savefig(fig, 'npc-svm-tiempos', dpi=160)
 
 
+def _npc_svm_secuencia():
+    """NPC SVM apartado 5 Paso 6: ejemplo numerico completo de secuencia de
+    conmutacion de 7 segmentos. (a) triangulo interior del sector 1 (cero-medio0-medio60)
+    con el Vref del ejemplo y los duty calculados; (b) diagrama de pulsos de
+    las 3 fases mostrando la secuencia simetrica OOO-POO-PPO-PPP-PPO-POO-OOO
+    dentro de un periodo Ts, con los tiempos de cada segmento anotados,
+    verificando que cada transicion cambia el estado de una sola fase."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(14.5, 5.6), gridspec_kw={'width_ratios': [0.9, 1.5]})
+    fig.suptitle('SVM, apartado 5 Paso 6: ejemplo completo de cálculo de tiempos y secuencia', fontsize=13, fontweight='bold')
+
+    # ---- (a) triangulo con Vref ----
+    a1.set_aspect('equal'); a1.axis('off')
+    a1.set_xlim(-0.20, 0.78); a1.set_ylim(-0.34, 0.62)
+    V0 = np.array([0.0, 0.0]); V1 = np.array([0.5, 0.0]); V2 = np.array([0.25, 0.4330127])
+    a1.plot([V1[0], V2[0], V0[0], V1[0]], [V1[1], V2[1], V0[1], V1[1]], color='#888', lw=1.4)
+    labels_a1 = [
+        (V0, r'$\vec V_0$', '(OOO)/(PPP)', '#7f8c8d', (-0.09, -0.02), 'right'),
+        (V1, r'$\vec V_1$', '(POO)/(ONN)', '#c0392b', (0.09, -0.02), 'left'),
+        (V2, r'$\vec V_2$', '(PPO)/(OON)', '#c0392b', (0.0, 0.055), 'center'),
+    ]
+    for P, lbl, sub, col, (dx, dy), ha in labels_a1:
+        a1.plot([P[0]], [P[1]], 'o', color=col, ms=10, zorder=5)
+        a1.text(P[0]+dx, P[1]+dy+0.02, lbl, fontsize=11, color=col, fontweight='bold', ha=ha, va='bottom')
+        a1.text(P[0]+dx, P[1]+dy-0.025, sub, fontsize=7.5, color=col, ha=ha, va='top')
+    m = 0.42; ang = np.radians(25)
+    Vref = m*np.array([np.cos(ang), np.sin(ang)])
+    a1.annotate('', xy=tuple(Vref), xytext=(0, 0), arrowprops=dict(arrowstyle='-|>', color='navy', lw=2.6))
+    a1.text(Vref[0]+0.03, Vref[1]+0.03, r'$\vec V_{ref}$' + f'\n$m={m}$, $25°$', color='navy', fontsize=10, fontweight='bold')
+    a1.text(0.30, -0.27, r'$d_1{=}0.556$   $d_2{=}0.410$   $d_0{=}0.034$', ha='center', fontsize=10,
+            bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='steelblue'))
+    a1.set_title('(a) $\\vec V_{ref}$ en el triángulo interior\ndel sector 1 (cero + 2 medios)', fontsize=11, fontweight='bold')
+
+    # ---- (b) diagrama de pulsos: secuencia simetrica de 7 segmentos ----
+    Ts = 100.0  # us
+    d1, d2, d0 = 0.5563395757835636, 0.4099179306544445, 0.03374249356199188
+    t1, t2, t0 = d1*Ts, d2*Ts, d0*Ts
+    segs = [('OOO', t0/4, (0, 0, 0)), ('POO', t1/2, (1, 0, 0)), ('PPO', t2/2, (1, 1, 0)),
+            ('PPP', t0/2, (1, 1, 1)), ('PPO', t2/2, (1, 1, 0)), ('POO', t1/2, (1, 0, 0)),
+            ('OOO', t0/4, (0, 0, 0))]
+    edges = [0.0]
+    for _, dur, _ in segs:
+        edges.append(edges[-1]+dur)
+
+    lvl_y = {-1: 0, 0: 1, 1: 2}
+    lvl_lbl = {-1: 'N', 0: 'O', 1: 'P'}
+    colors_ph = ['#c0392b', '#1e8449', '#2e86c1']
+    row_h = 2.9  # separacion vertical entre bloques de fase (> rango de niveles, que es 0..2)
+    n_ph = 3
+    y_top = n_ph*row_h  # fase a arriba, c abajo
+    for pi, (phname, ph_col) in enumerate(zip(['a', 'b', 'c'], colors_ph)):
+        base = y_top - (pi+1)*row_h
+        for lv, name in lvl_lbl.items():
+            a2.plot([0, Ts], [base+lvl_y[lv]]*2, color='#eee', lw=0.7, zorder=0)
+            a2.text(-3, base+lvl_y[lv], name, fontsize=8, color='gray', ha='right', va='center')
+        a2.text(-15, base+1, f'fase {phname}', fontsize=10.5, fontweight='bold', color=ph_col, ha='left', va='center')
+        for i, (name, dur, states) in enumerate(segs):
+            y = base + lvl_y[states[pi]]
+            a2.plot([edges[i], edges[i+1]], [y, y], color=ph_col, lw=2.6, solid_capstyle='butt', zorder=3)
+            if i < len(segs)-1:
+                y_next = base + lvl_y[segs[i+1][2][pi]]
+                if y_next != y:
+                    a2.plot([edges[i+1], edges[i+1]], [y, y_next], color=ph_col, lw=1.6, zorder=3)
+
+    y_ann = y_top + 0.55
+    for i, (name, dur, states) in enumerate(segs):
+        xm = (edges[i]+edges[i+1])/2
+        a2.text(xm, y_ann+0.32, name, fontsize=8, ha='center', color='#333')
+        a2.annotate('', xy=(edges[i+1]-0.4, y_ann), xytext=(edges[i]+0.4, y_ann),
+                    arrowprops=dict(arrowstyle='<->', color='#999', lw=0.8))
+        a2.text(xm, y_ann-0.35, f'{dur:.2f} μs', fontsize=7, ha='center', color='#666')
+    for e in edges:
+        a2.axvline(e, color='#ddd', lw=0.6, ls=':', zorder=0)
+    a2.set_xlim(-16, Ts+2); a2.set_ylim(-0.7, y_ann+0.8)
+    a2.set_xlabel(r'$t$ dentro del periodo $T_s$ [μs]  (aquí $T_s=100\,\mu s$, $f_{sw}=10$ kHz)')
+    a2.set_yticks([]); a2.spines[['left', 'top', 'right']].set_visible(False)
+    a2.set_title('(b) Secuencia simétrica de 7 segmentos:\ncada transición cambia el estado de UNA sola fase', fontsize=11, fontweight='bold', pad=14)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'npc-svm-secuencia', dpi=160)
+
+
 def _mmc_estructura():
     """MMC: (a) estructura trifasica (6 brazos, bus DC, salida AC);
     (b) descomposicion de corrientes en una fase: brazo sup/inf, corriente de
@@ -17796,6 +17879,9 @@ def main():
         n += 1
     if pref is None or "npc-svm-tiempos".startswith(pref):
         _npc_svm_tiempos()
+        n += 1
+    if pref is None or "npc-svm-secuencia".startswith(pref):
+        _npc_svm_secuencia()
         n += 1
     if pref is None or "npc-svm".startswith(pref):
         _npc_svm()

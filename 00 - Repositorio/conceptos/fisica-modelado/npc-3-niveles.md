@@ -987,14 +987,73 @@ matriz-vector fija, sin resolver ningún sistema en línea. Es precisamente esta
 una vez" (inversión de 24 matrices) y "cálculo barato en cada periodo" (una multiplicación) lo que hace
 viable ejecutar SVM completo dentro del periodo de conmutación en un DSP de control.
 
-**Paso 6 — tiempos de aplicación y secuencia.** Los duty cycles se convierten en tiempos dentro del
-periodo de conmutación \(t_i=d_i\,T_s\), y se ordenan en una secuencia simétrica (p. ej.
-\(V_1\to V_0\to V_2\to V_0\to V_1\)) que minimiza el número de conmutaciones por periodo — análogo a la
-secuencia de 2 niveles pero con un vector intermedio adicional. Cuando el vector es de tipo **medio**
-(redundante ×2, Paso 2), el algoritmo de balance de neutro elige en cada periodo cuál de las dos
-combinaciones redundantes usar, según el signo de \(\Delta V\) medido — cerrando así, dentro del propio
-cálculo de SVM, el mismo lazo de compensación que en PD-PWM se conseguía con la inyección de secuencia
-cero \(v_0\) (apartado 3, Paso 6), pero de forma más directa y con más grados de libertad.
+**Paso 6 — tiempos de aplicación y secuencia (desarrollo completo con ejemplo numérico).**
+
+*De duty a tiempos.* Los tres duty cycles del Paso 5 (\(d_1,d_2,d_0\), fracciones de \(T_s\) que suman 1) se
+convierten directamente en tiempos de aplicación:
+
+$$ t_1 = d_1\,T_s, \qquad t_2 = d_2\,T_s, \qquad t_0 = d_0\,T_s, \qquad t_1+t_2+t_0=T_s $$
+
+Esto por sí solo no basta: falta decidir **en qué orden** aplicar los tres vectores dentro de \(T_s\). El
+criterio de diseño estándar es que la secuencia debe cumplir dos condiciones:
+
+1. **Cada transición entre vectores consecutivos cambia el estado de una sola fase** (de un nivel a un
+   nivel adyacente, P↔O u O↔N) — esto minimiza el número de conmutaciones por periodo y, por el Paso 1 del
+   apartado 4, mantiene el \(dv/dt\) en su valor mínimo (\(V_{dc}/2\), nunca un salto P↔N directo).
+2. **La secuencia es simétrica dentro del periodo** (se aplica y se deshace en espejo) — esto cancela
+   armónicos de orden par y centra el rizado de corriente, igual que la secuencia clásica de 2 niveles.
+
+*Construcción de la secuencia de 7 segmentos.* La forma estándar que cumple ambos criterios reparte el
+vector cero en dos mitades en los extremos del periodo y coloca el otro reparto del cero en el centro:
+
+$$ V_0 \to V_1 \to V_2 \to V_0' \to V_2 \to V_1 \to V_0 $$
+
+con duraciones \(t_0/4,\ t_1/2,\ t_2/2,\ t_0/2,\ t_2/2,\ t_1/2,\ t_0/4\) (el cero se reparte \(1/4+1/2+1/4\)
+entre los tres huecos que ocupa). El vector cero tiene tres ternas redundantes (\(PPP\), \(OOO\), \(NNN\)) y
+se elige **cuál** usar en cada extremo/centro precisamente para que la condición 1 se cumpla en las
+transiciones de entrada y salida del bloque central.
+
+*Ejemplo numérico completo.* Tomamos un \(\vec V_{ref}\) en el sector 1, dentro del triángulo interior
+formado por el vector cero y los dos vectores **medios** adyacentes a 0° y 60°:
+
+- \(\vec V_1\): vector medio a 0°, ternas redundantes \((P,O,O)\) / \((O,N,N)\), módulo \(V_{dc}/2\).
+- \(\vec V_2\): vector medio a 60°, ternas redundantes \((P,P,O)\) / \((O,O,N)\), módulo \(V_{dc}/2\).
+- \(\vec V_0\): vector cero, ternas \((O,O,O)\) / \((P,P,P)\) / \((N,N,N)\).
+
+Con referencia \(|\vec V_{ref}|=0.42\,(V_{dc}/2)\) a \(25°\) (dentro de este triángulo), resolviendo el
+sistema \(3\times3\) del Paso 5:
+
+$$ d_1 = 0.556, \qquad d_2 = 0.410, \qquad d_0 = 0.034 \qquad (\text{suma} = 1.000) $$
+
+<div class="cfig"><img src="figuras/npc-svm-secuencia.png" alt="triangulo interior del sector 1 con el vector Vref de ejemplo descompuesto en los duty d1 d2 d0; y diagrama de pulsos de las tres fases mostrando la secuencia simetrica de 7 segmentos OOO-POO-PPO-PPP-PPO-POO-OOO dentro de un periodo de conmutacion de 100 microsegundos, con los tiempos de cada segmento anotados"><div class="cap">(a) \(\vec V_{ref}\) del ejemplo, dentro del triángulo cero+medio(0°)+medio(60°) del sector 1, con los duty cycles resultantes. (b) Diagrama de pulsos de las tres fases para \(f_{sw}=10\) kHz (\(T_s=100\,\mu s\)): la secuencia \(OOO\to POO\to PPO\to PPP\to PPO\to POO\to OOO\) — usando siempre la terna \((P,O,O)\) para \(V_1\) y \((P,P,O)\) para \(V_2\), con \(PPP\) como cero central — hace que cada transición cambie el estado de una sola fase.</div></div>
+
+Con \(f_{sw}=10\) kHz (\(T_s=100\,\mu s\)), los tiempos son \(t_1=55.63\,\mu s\), \(t_2=40.99\,\mu s\),
+\(t_0=3.37\,\mu s\), repartidos en la secuencia de 7 segmentos:
+
+| Segmento | Terna | Duración |
+|---|---|---|
+| 1 | \(OOO\) | \(t_0/4 = 0.84\,\mu s\) |
+| 2 | \(POO\) | \(t_1/2 = 27.82\,\mu s\) |
+| 3 | \(PPO\) | \(t_2/2 = 20.50\,\mu s\) |
+| 4 | \(PPP\) | \(t_0/2 = 1.69\,\mu s\) |
+| 5 | \(PPO\) | \(t_2/2 = 20.50\,\mu s\) |
+| 6 | \(POO\) | \(t_1/2 = 27.82\,\mu s\) |
+| 7 | \(OOO\) | \(t_0/4 = 0.84\,\mu s\) |
+
+Verificando la condición 1 en cada transición: \(OOO\to POO\) cambia solo la fase \(a\) (\(O\to P\));
+\(POO\to PPO\) cambia solo la fase \(b\) (\(O\to P\)); \(PPO\to PPP\) cambia solo la fase \(c\) (\(O\to P\));
+y de vuelta en espejo. Las seis transiciones cambian exactamente **una** fase cada una — es la propiedad
+que se buscaba, visible directamente en el panel (b): en cada instante de conmutación, dos de las tres
+trazas de fase permanecen planas y solo una da un escalón.
+
+*Dónde entra el balance de neutro.* En este ejemplo se eligió arbitrariamente \((P,O,O)\) y \((P,P,O)\)
+(las ternas "que suben" desde \(O\)) y \(PPP\) como cero central. La terna alternativa —\((O,N,N)\) y
+\((O,O,N)\) con \(OOO\) o \(NNN\) como cero— sintetiza exactamente el mismo \(\vec V_{ref}\) (misma
+tensión de línea) pero mueve la corriente de fase por el **otro** camino hacia el nudo \(O\), con signo
+opuesto sobre \(\Delta V\) (Paso 2). El algoritmo de balance de neutro mide \(\Delta V\) en cada periodo y
+elige, antes de fijar la secuencia, cuál de las dos familias de ternas usar — exactamente la misma lógica
+del apartado 3, Paso 6, pero aplicada aquí como una elección discreta dentro del propio cálculo de SVM en
+vez de una inyección continua de \(v_0\).
 
 **Equivalencia con PD-PWM.** Ambos métodos son matemáticamente equivalentes en su valor medio de tensión
 de salida (mismo \(\bar v_{aO}\), misma zona lineal hasta \(m=1\) extensible a \(2/\sqrt3\)); difieren en
