@@ -16117,6 +16117,59 @@ def _hvdc_cable_falta_rlc():
     _savefig(fig, 'hvdc-cable-falta-rlc', dpi=160)
 
 
+def _mtdc_droop_derivacion():
+    """MTDC apartado 2: derivacion del droop DC desde el balance de potencia
+    del sistema completo. (a) rectas P-V de 3 terminales antes y despues de
+    una perturbacion de carga, mostrando como el punto de operacion (interseccion
+    con el balance de potencia) se desplaza y como se reparte segun kd de cada
+    terminal; (b) verificacion numerica del reparto proporcional a kd."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.5, 5.6), gridspec_kw={'width_ratios': [1.15, 1.0]})
+    fig.suptitle('MTDC, apartado 2: droop DC derivado del balance de potencia del sistema', fontsize=12.8, fontweight='bold')
+
+    Vdc0 = 640.0  # kV
+    kd = np.array([300.0, 450.0, 600.0])  # MW/kV (distintos para que las rectas no se solapen)
+    P0 = np.array([500.0, 350.0, -850.0])  # MW (balance inicial = 0: 2 generan, 1 consume/onshore)
+    cols = ['#c0392b', '#1e8449', '#2e86c1']
+    labels = [r'T1 (offshore, $k_{d1}{=}300$)', r'T2 (offshore, $k_{d2}{=}450$)', r'T3 (onshore, $k_{d3}{=}600$)']
+
+    dPcarga = 50.0  # perturbacion: sube la demanda en el terminal onshore
+    dVdc = -dPcarga/kd.sum()
+    Vdc_new = Vdc0 + dVdc
+    dPi = kd*dVdc
+
+    Vdc_range = np.linspace(Vdc0-0.35, Vdc0+0.15, 100)
+    for k in range(3):
+        P_before = P0[k] + kd[k]*(Vdc_range - Vdc0)
+        a1.plot(Vdc_range, P_before, color=cols[k], lw=2.0, label=labels[k])
+        a1.plot([Vdc0], [P0[k]], 'o', color=cols[k], ms=7, zorder=5)
+        a1.plot([Vdc_new], [P0[k]+dPi[k]], 's', color=cols[k], ms=7, zorder=5, markeredgecolor='#333', markeredgewidth=0.8)
+    a1.axvline(Vdc0, color='gray', lw=0.8, ls=':')
+    a1.axvline(Vdc_new, color='#7d3c98', lw=1.2, ls='--')
+    a1.annotate('', xy=(Vdc_new, -1080), xytext=(Vdc0, -1080), arrowprops=dict(arrowstyle='->', color='#7d3c98', lw=1.4))
+    a1.text((Vdc0+Vdc_new)/2, -1150, r'$\Delta V_{dc}=-\dfrac{\Delta P_{carga}}{\sum k_{di}}$', fontsize=9.5, color='#7d3c98', ha='center')
+    a1.plot([], [], 'o', color='gray', ms=7, label='op. inicial ($\\sum P_i{=}0$)')
+    a1.plot([], [], 's', color='gray', ms=7, markeredgecolor='#333', label='op. tras $\\Delta P_{carga}$')
+    a1.set_ylim(-1230, 620)
+    a1.set_xlabel(r'$V_{dc}$ [kV]'); a1.set_ylabel(r'$P_i$ [MW]'); a1.grid(alpha=.3)
+    a1.legend(fontsize=8.2, loc='upper left', ncol=1)
+    a1.set_title(f'(a) Rectas $P_i(V_{{dc}})$ de los 3 terminales:\nperturbación $\\Delta P_{{carga}}={dPcarga:.0f}$ MW en T3', fontsize=10.5, fontweight='bold')
+
+    # ---- (b) reparto proporcional a kd, verificacion ----
+    x = np.arange(3)
+    a2.bar(x, dPi, color=cols, alpha=0.85, edgecolor='black', width=0.55)
+    for k in range(3):
+        a2.text(k, dPi[k]-1.2, f'{dPi[k]:.1f} MW', ha='center', va='top', fontsize=9, fontweight='bold')
+    a2.axhline(0, color='gray', lw=0.8)
+    a2.set_xticks(x); a2.set_xticklabels(['T1', 'T2', 'T3'])
+    a2.set_ylabel(r'$\Delta P_i=k_{di}\,\Delta V_{dc}$ [MW]'); a2.grid(alpha=.3, axis='y')
+    a2.set_title(f'(b) Reparto de la perturbación entre terminales:\nproporcional a $k_{{di}}$, suma $={dPi.sum():.0f}$ MW $=-\\Delta P_{{carga}}$', fontsize=10.5, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'mtdc-droop-derivacion', dpi=160)
+
+
 def _hvdc_configuraciones():
     """HVDC: (a) monopolar con retorno por tierra, bipolar y simetrica monopolar,
     esquemas de conductores entre dos terminales; (b) topologias MTDC radial y
@@ -18097,6 +18150,9 @@ def main():
         n += 1
     if pref is None or "hvdc-cable-falta-rlc".startswith(pref):
         _hvdc_cable_falta_rlc()
+        n += 1
+    if pref is None or "mtdc-droop-derivacion".startswith(pref):
+        _mtdc_droop_derivacion()
         n += 1
     if pref is None or "hvdc-configuraciones".startswith(pref):
         _hvdc_configuraciones()

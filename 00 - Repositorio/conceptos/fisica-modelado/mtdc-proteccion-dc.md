@@ -49,11 +49,53 @@ $$ P_i = P_{0,i} + k_{d,i}(V_{dc} - V_{dc,0}) $$
 
 donde \( P_{0,i} \) es la consigna de potencia nominal, \( V_{dc,0} \) es la tensión de referencia (igual para todos), y \( k_{d,i} \) [MW/kV] es el coeficiente de droop. Esta ecuación es equivalente a colocar una **conductancia virtual** \( G_{d,i} = k_{d,i} \) entre el bus DC y el punto de consigna de potencia.
 
-**Reparto de la regulación.** Ante una perturbación \( \Delta P_{carga} \), la variación de tensión se reparte entre los terminales proporcional a su droop:
+**Reparto de la regulación — derivación desde el balance de potencia del sistema (no solo el resultado).**
+Conviene fijar un convenio de signos sin ambigüedad: \(P_i\) es la potencia que el terminal \(i\)
+**inyecta** al bus DC (positiva si genera, negativa si consume — un terminal de carga onshore es
+simplemente un \(P_i<0\), no una magnitud aparte). La red DC en régimen cuasi-estacionario no almacena
+potencia neta, así que en todo instante la suma de lo inyectado por los \(N\) terminales es cero
+(despreciando pérdidas del cable, pequeñas frente a los flujos de potencia):
 
-$$ \Delta V_{dc} = -\frac{\Delta P_{carga}}{\sum_i k_{d,i}}, \qquad \Delta P_i = k_{d,i} \Delta V_{dc} $$
+$$ \sum_{i=1}^{N} P_i = 0 $$
 
-El terminal con mayor \( k_d \) absorbe más variación de potencia. Si \( k_d \to \infty \) para un terminal, ese terminal actúa como el *slack* clásico (control de tensión puro, sin caída).
+Antes de la perturbación, el sistema está en un punto de equilibrio \(V_{dc}=V_{dc,0}\) con cada terminal
+en \(P_i=P_{0,i}\) y \(\sum_i P_{0,i}=0\). Ocurre ahora una perturbación de carga: el terminal de carga
+demanda \(\Delta P_{carga}\) MW **más** que antes, es decir su inyección baja en esa cantidad
+(\(P_{0,k}\to P_{0,k}-\Delta P_{carga}\) para el terminal \(k\) afectado). El nuevo balance, con cada
+terminal siguiendo su propia recta de droop \(P_i=P_{0,i}+k_{d,i}(V_{dc}-V_{dc,0})\), debe seguir sumando
+cero:
+
+$$ \sum_{i=1}^{N}\Big[P_{0,i}+k_{d,i}(V_{dc}-V_{dc,0})\Big] - \Delta P_{carga} = 0 $$
+
+Restando la condición de equilibrio inicial (\(\sum_i P_{0,i}=0\)) y usando \(\Delta V_{dc}\equiv
+V_{dc}-V_{dc,0}\):
+
+$$ \Delta V_{dc}\sum_i k_{d,i} - \Delta P_{carga} = 0 \quad\Longrightarrow\quad \boxed{\ \Delta V_{dc} = \frac{\Delta P_{carga}}{\sum_i k_{d,i}}\ } $$
+
+y como cada terminal se mueve sobre su propia recta con la misma \(\Delta V_{dc}\) (común a todo el bus):
+
+$$ \Delta P_i = k_{d,i}\,\Delta V_{dc} = \frac{k_{d,i}}{\sum_j k_{d,j}}\,\Delta P_{carga} $$
+
+Con \(\Delta P_{carga}>0\) definido como demanda **adicional**, la fórmula da \(\Delta V_{dc}>0\): esto
+parece contradecir la intuición de que "más demanda hunde la tensión", pero es solo el signo del
+convenio (\(P_i\) inyectada, \(\Delta P_{carga}\) como una potencia que hay que **restar** a la inyección
+del terminal de carga). Si en cambio se define \(\Delta P_{carga}\) directamente como el incremento neto
+que hay que **cubrir** entre los generadores (el signo con el que aparece habitualmente en la literatura),
+la relación se escribe \(\Delta V_{dc}=-\Delta P_{carga}/\sum_i k_{d,i}\) — el resultado físico es idéntico
+en ambos casos (la tensión cae cuando sube la demanda neta); lo único que cambia es qué signo se le asigna
+a \(\Delta P_{carga}\) por convenio. Lo que **no** depende del convenio es la conclusión central: cada
+terminal absorbe una fracción \(k_{d,i}/\sum_j k_{d,j}\) de la perturbación total, **exactamente
+proporcional a su propio droop**, sin que ningún terminal necesite conocer la ganancia de los demás en
+tiempo real — la proporcionalidad sale sola de que todos comparten la misma variación de tensión
+\(\Delta V_{dc}\), que es una variable común a todo el bus DC.
+
+<div class="cfig"><img src="figuras/mtdc-droop-derivacion.png" alt="rectas de potencia frente a tension de tres terminales MTDC con distinto coeficiente de droop, mostrando el punto de operacion inicial y el punto tras una perturbacion de carga con el desplazamiento de tension marcado; y grafico de barras del reparto de la perturbacion entre los tres terminales, proporcional al coeficiente de droop de cada uno"><div class="cap">(a) Rectas \(P_i(V_{dc})\) de tres terminales con distinto \(k_{d,i}\): el punto de operación inicial (círculos, \(\sum P_i=0\)) se desplaza tras una perturbación de carga \(\Delta P_{carga}=50\) MW en el terminal onshore hasta un nuevo punto (cuadrados) en \(V_{dc,0}+\Delta V_{dc}\), el mismo para los tres terminales. (b) El reparto de la perturbación entre terminales es exactamente proporcional a \(k_{d,i}\): el terminal con droop doble (T3, onshore) absorbe el doble de variación de potencia que T1.</div></div>
+
+El terminal con mayor \( k_d \) absorbe más variación de potencia — es, en términos eléctricos, una
+conductancia virtual mayor conectada al mismo nudo de tensión común, así que por la misma lógica de un
+divisor de corriente, se lleva una fracción mayor del total. Si \( k_d \to \infty \) para un terminal, la
+fracción \(k_{d,i}/\sum_j k_{d,j}\to1\) para ese terminal y \(\Delta V_{dc}\to0\): actúa como el *slack*
+clásico (control de tensión puro, sin caída, absorbiendo toda la perturbación).
 
 **Comunicación requerida.** El droop primario no necesita comunicación: cada terminal mide localmente \( V_{dc} \) y ajusta su potencia según la característica. El control secundario (restauración de \( V_{dc} \) al valor nominal tras la perturbación) sí puede requerir comunicación entre terminales para calcular la corrección global.
 
