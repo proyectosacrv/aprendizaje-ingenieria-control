@@ -244,6 +244,57 @@ portadora y aparece sobremodulación (recorte, con distorsión armónica de baja
 tensión de línea; el apartado 3 retoma esta idea porque en el NPC la misma deformación sirve, además, para
 el balance del punto neutro.
 
+**Inyección de 3er armónico: por qué funciona, y hasta dónde llega (\(m=2/\sqrt3\)).** La deformación
+concreta que extiende el límite lineal consiste en sumar a la referencia senoidal pura una componente a
+**triple frecuencia** de amplitud proporcional a \(m\):
+
+$$ r(\theta) = m\sin\theta + \frac{m}{6}\sin(3\theta) $$
+
+*Por qué esto no distorsiona la tensión de salida.* La clave es que \(\sin(3\theta)\) es, para las tres
+fases de un sistema trifásico, exactamente la **misma señal desfasada solo en múltiplos de \(2\pi\)** — es
+el mismo argumento que ya apareció en el apartado 3, Paso 4, ecuación (iii): \(\sin\big(3(\theta-\phi_b)\big)=
+\sin(3\theta-2\pi)=\sin(3\theta)\), y lo mismo para la fase \(c\) con \(4\pi\). Es decir, el término
+\(\tfrac{m}{6}\sin3\theta\) que se añade a \(r_a,r_b,r_c\) es **idéntico** en las tres fases: es una
+componente de **secuencia cero** pura. Al calcular la tensión de línea (la que realmente ve la carga en un
+sistema trifásico sin neutro conectado), esa componente común se resta y desaparece exactamente:
+
+$$ v_{ab} = r_a(\theta) - r_b(\theta) = \Big[m\sin\theta+\tfrac{m}{6}\sin3\theta\Big] - \Big[m\sin(\theta-\tfrac{2\pi}{3})+\tfrac{m}{6}\sin\big(3\theta-2\pi\big)\Big] $$
+
+el paréntesis de \(\sin3\theta\) es literalmente el mismo número en ambos corchetes (mismo argumento módulo
+\(2\pi\)), así que se cancela sin aproximaciones, dejando \(v_{ab}=\sqrt3\,m\sin(\theta+\pi/6)\) — una
+senoide **pura**, sin rastro del 3er armónico, de amplitud \(\sqrt3\) veces mayor que la de fase.
+
+*El límite exacto.* El pico de la referencia deformada \(r(\theta)\) ya no está en \(\theta=90°\) (donde
+\(\sin3\theta=\sin270°=-1\) resta) sino desplazado, y su valor máximo depende de \(m\). Igualando ese pico a
+\(1\) (el límite físico de la portadora) se obtiene el índice de modulación máximo alcanzable sin recortar:
+
+$$ \max_\theta\Big[m\sin\theta+\tfrac{m}{6}\sin3\theta\Big] = 1 \quad\Longrightarrow\quad m_{max} = \frac{2}{\sqrt3} \approx 1.1547 $$
+
+es decir, un **15.47 %** más de índice de modulación (y por tanto de tensión de línea disponible) que el
+límite \(m=1\) de la senoide pura, sin ninguna distorsión en la tensión que ve la carga.
+
+<div class="cfig"><img src="figuras/npc-inyeccion-3armonico.png" alt="grafica de la referencia de fase pura senm theta que recorta en m=2 raiz de 3 frente a la referencia deformada con el termino de tercer armonico sumado que roza el limite +-1 sin recortar, con el pico marcado en ambos casos; y grafica de la tension de linea resultante en ambos casos, mostrando que coinciden exactamente porque el tercer armonico se cancela al restar dos fases, alcanzando el valor pico teorico Vdc"><div class="cap">(a) Referencia de fase para \(m=2/\sqrt3=1.1547\): la senoide pura (roja) supera \(\pm1\) y recortaría contra la portadora; la deformada con 3er armónico (verde) alcanza un pico de exactamente \(1.000\), aprovechando todo el rango disponible sin sobremodulación. (b) Tensión de línea \(v_{ab}=v_{aO}-v_{bO}\) en ambos casos: son la MISMA senoide pura (las curvas se solapan exactamente) porque el término de \(3\theta\), al ser idéntico en las tres fases, se cancela al restar — el pico alcanza \(\sqrt3\,m=2\) (\(=V_{dc}\)), el máximo teórico posible.</div></div>
+
+*Qué pasa con \(m=1.15\) en concreto.* Es un valor **ligeramente por debajo** de \(m_{max}=1.1547\)
+(la diferencia es de solo un \(0.4\,\%\)), así que con la inyección de 3er armónico la referencia deformada
+sigue dentro de la zona lineal: su pico queda en \(0.996\) (comprobado numéricamente), a menos de medio
+punto porcentual del límite \(\pm1\), sin recortar. En la práctica esto significa que \(m=1.15\) es un punto
+de operación válido y casi al límite absoluto del rango lineal del NPC con esta técnica — cualquier margen
+adicional de tensión de bus, caída de \(V_{dc}\) por carga, o un pequeño rizado de \(\Delta V\) del propio
+balance de neutro (apartado 3) puede hacer que el pico toque \(\pm1\) y aparezca sobremodulación leve. Por
+eso en el diseño real (apartado 7) se suele dejar un margen y trabajar con \(m\) algo por debajo de
+\(m_{max}\), no exactamente en el límite.
+
+*Relación con el balance de neutro.* Es importante no confundir esta inyección de 3er armónico —una
+componente de secuencia cero **fija**, calculada una vez a partir de \(m\), cuyo único objetivo es extender
+el rango lineal— con la inyección de \(v_0\) del apartado 3, Paso 6-7, que es una componente de secuencia
+cero **variable**, generada en tiempo real por el lazo de control a partir de \(\Delta V\) medido, con el
+objetivo de corregir el desbalance del punto neutro. Ambas son señales de secuencia cero y **se suman**
+sin interferir entre sí (\(r_{final}=m\sin\theta+\tfrac{m}{6}\sin3\theta+v_0\)): la primera es feedforward
+y constante en el tiempo para un \(m\) dado, la segunda es feedback y varía ciclo a ciclo — es la misma
+razón por la que el apartado 3 podía usar libremente esa palanca sin afectar a la tensión de línea, aunque
+allí la inyección tuviera forma de realimentación en vez de un término fijo de \(3\theta\).
+
 ## 3 — El balance del punto neutro (derivación completa)
 
 **Qué problema resuelve este apartado.** El NPC reparte el bus DC en dos condensadores \(C_1\), \(C_2\) y

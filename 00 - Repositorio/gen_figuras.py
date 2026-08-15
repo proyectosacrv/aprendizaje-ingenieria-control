@@ -16558,6 +16558,53 @@ def _npc_svm_secuencia():
     _savefig(fig, 'npc-svm-secuencia', dpi=160)
 
 
+def _npc_inyeccion_3armonico():
+    """NPC apartado 2: inyeccion de 3er armonico para extender el rango lineal.
+    (a) referencia de fase pura (recorta en m=2/sqrt3) vs deformada (m*sin + (m/6)*sin3,
+    pico exactamente en 1.0) para m=2/sqrt(3)=1.1547; (b) tension de linea (va-vb)
+    resultante en ambos casos, mostrando que el 3er armonico se cancela exactamente
+    y la de linea es sqrt(3)*m mas grande que la de fase, alcanzando Vdc pico."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.5, 5.4))
+    fig.suptitle('NPC, apartado 2: inyección de 3er armónico para extender el rango lineal', fontsize=13, fontweight='bold')
+
+    m = 2/np.sqrt(3)
+    theta = np.linspace(0, 2*np.pi, 2000)
+    pure = m*np.sin(theta)
+    defm = m*np.sin(theta) + (m/6)*np.sin(3*theta)
+
+    a1.plot(np.degrees(theta), pure, color='#c0392b', lw=1.8, label=f'pura: $m\\sin\\theta$  (pico ${pure.max():.3f}$, recorta)')
+    a1.plot(np.degrees(theta), defm, color='#1e8449', lw=2.0, label=f'deformada: $m\\sin\\theta+\\frac{{m}}{{6}}\\sin3\\theta$  (pico ${defm.max():.3f}$)')
+    a1.axhline(1.0, color='gray', lw=1.0, ls='--', alpha=0.7)
+    a1.text(365, 1.0, '$\\pm1$ (límite\nde portadora)', fontsize=8, color='gray', va='center')
+    a1.axhline(-1.0, color='gray', lw=1.0, ls='--', alpha=0.7)
+    a1.set_xlim(0, 360); a1.set_xticks([0, 90, 180, 270, 360])
+    a1.set_xlabel(r'$\theta$ [grados]'); a1.set_ylabel(r'$r(\theta)$  [$\times V_{dc}/2$]'); a1.grid(alpha=.3)
+    a1.legend(fontsize=8.8, loc='lower center')
+    a1.set_title(f'(a) Referencia de fase, $m=2/\\sqrt{{3}}={m:.4f}$:\nla deformada roza $\\pm1$ sin recortar', fontsize=10.8, fontweight='bold')
+
+    # ---- tension de linea: va - vb, con phi_b = 120 grados ----
+    def ref(th, phi, deform):
+        base = m*np.sin(th-phi)
+        return base + (m/6)*np.sin(3*(th-phi)) if deform else base
+    va_p = ref(theta, 0, False); vb_p = ref(theta, 2*np.pi/3, False)
+    va_d = ref(theta, 0, True); vb_d = ref(theta, 2*np.pi/3, True)
+    vab_p = va_p - vb_p
+    vab_d = va_d - vb_d
+    a2.plot(np.degrees(theta), vab_p, color='#c0392b', lw=1.6, ls='--', label='de la referencia pura (recortada)', alpha=0.8)
+    a2.plot(np.degrees(theta), vab_d, color='#1e8449', lw=2.0, label='de la referencia deformada')
+    a2.axhline(np.sqrt(3)*m, color='gray', lw=0.8, ls=':')
+    a2.text(365, np.sqrt(3)*m, f'$\\sqrt{{3}}\\,m={np.sqrt(3)*m:.3f}$\n$=2$ ($=V_{{dc}}$ pico)', fontsize=8, color='gray', va='center')
+    a2.set_xlim(0, 360); a2.set_xticks([0, 90, 180, 270, 360])
+    a2.set_xlabel(r'$\theta$ [grados]'); a2.set_ylabel(r'$v_{ab}$  [$\times V_{dc}/2$]'); a2.grid(alpha=.3)
+    a2.legend(fontsize=8.8, loc='lower center')
+    a2.set_title('(b) Tensión de línea $v_{ab}=v_{aO}-v_{bO}$:\nel 3er armónico se cancela, queda senoide pura', fontsize=10.8, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'npc-inyeccion-3armonico', dpi=160)
+
+
 def _mmc_estructura():
     """MMC: (a) estructura trifasica (6 brazos, bus DC, salida AC);
     (b) descomposicion de corrientes en una fase: brazo sup/inf, corriente de
@@ -17882,6 +17929,9 @@ def main():
         n += 1
     if pref is None or "npc-svm-secuencia".startswith(pref):
         _npc_svm_secuencia()
+        n += 1
+    if pref is None or "npc-inyeccion-3armonico".startswith(pref):
+        _npc_inyeccion_3armonico()
         n += 1
     if pref is None or "npc-svm".startswith(pref):
         _npc_svm()
