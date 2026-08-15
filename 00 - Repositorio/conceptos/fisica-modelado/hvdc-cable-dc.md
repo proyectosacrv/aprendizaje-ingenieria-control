@@ -106,19 +106,70 @@ causado disparos en sistemas HVDC reales ([[fenomenos-oscilatorios-red]]).
 
 ## 4 — Falta DC y protección
 
-Una falta bipolar en el cable DC (cortocircuito entre los dos polos) descarga bruscamente los
-condensadores del MMC y del cable. La corriente de falta crece inicialmente como:
+**Planteamiento: el cable en falta es un RLC serie en descarga.** Una falta bipolar (cortocircuito
+entre los dos polos) pone en cortocircuito el extremo del cable. En el instante \(t=0^+\) de la falta,
+el condensador \(C_{cable}\) tiene su tensión previa \(v_C(0)=V_{dc}\) (el bus estaba cargado a la
+tensión nominal) y la corriente por la inductancia del cable era la de régimen permanente, que a efectos
+de la dinámica rápida de falta se aproxima a \(i(0)\approx0\) (mucho menor que la corriente de falta que
+va a aparecer). El circuito que queda —condensador cargado, descargándose a través de \(R_{total}\) y
+\(L_{total}\) hacia el cortocircuito— es exactamente un **RLC serie en descarga libre**, gobernado por:
 
-$$i_{fault}(t) \approx \frac{V_{dc}}{Z_c}\sin\left(\frac{t}{\sqrt{L_{total}C_{cable}}}\right) \cdot e^{-\frac{R}{2L}t}$$
+$$ L\frac{di}{dt} + Ri + \frac{1}{C}\int i\,dt = 0 $$
 
-donde \( Z_c = \sqrt{L_{total}/C_{cable}} \) es la impedancia característica. Para los valores típicos
-del ejemplo (\( V_{dc}=640\,\text{kV} \), \( Z_c=44.7\,\Omega \)):
+<div class="cfig"><img src="figuras/hvdc-cable-falta-rlc.png" alt="esquema del circuito RLC serie equivalente en el instante de la falta bipolar, con el condensador cargado a Vdc y la bobina con corriente inicial nula, y grafica comparando la solucion exacta de la corriente de falta con amortiguamiento frente a la aproximacion de amortiguamiento nulo Vdc entre Zc, mostrando que esta ultima es una cota superior y no el pico real"><div class="cap">(a) Circuito equivalente en el instante de la falta: el condensador del cable, cargado a \(V_{dc}\), se descarga a través de \(R\) y \(L\) hacia el cortocircuito bipolar — un RLC serie con condiciones iniciales \(v_C(0)=V_{dc}\), \(i(0)=0\). (b) La solución exacta (roja) incluye el decaimiento exponencial desde el primer instante; la aproximación habitual \(V_{dc}/Z_c\) (azul, línea de puntos) es una cota superior que solo se alcanzaría con amortiguamiento nulo — el pico real es un \(5\,\%\) menor y ocurre ligeramente antes.</div></div>
 
-$$I_{fault,pico} \approx \frac{640\,\text{kV}}{44.7\,\Omega} \approx 14.3\,\text{kA}$$
+**Derivación paso a paso (sin asumir la forma de la solución).** Derivando una vez la ecuación
+íntegro-diferencial de arriba (para eliminar la integral) se obtiene la ODE lineal de 2º orden estándar:
+
+$$ L\frac{d^2i}{dt^2} + R\frac{di}{dt} + \frac{i}{C} = 0 $$
+
+Su ecuación característica es \(Ls^2+Rs+1/C=0\), con raíces
+
+$$ s_{1,2} = -\frac{R}{2L} \pm \sqrt{\left(\frac{R}{2L}\right)^2 - \frac{1}{LC}} \equiv -\sigma \pm j\omega_d $$
+
+donde \(\sigma\equiv R/(2L)\) es el coeficiente de amortiguamiento y, para el caso de interés aquí
+(cable con \(R\) pequeña, **subamortiguado**: \((R/2L)^2 < 1/(LC)\)), la parte imaginaria es real y define
+la frecuencia de oscilación amortiguada \(\omega_d=\sqrt{1/(LC)-\sigma^2}=\sqrt{\omega_n^2-\sigma^2}\),
+con \(\omega_n=1/\sqrt{LC}\) la frecuencia natural (sin pérdidas) ya vista en el apartado 3. La solución
+general en el caso subamortiguado es \(i(t)=e^{-\sigma t}(A\cos\omega_d t+B\sin\omega_d t)\).
+
+**Aplicar las condiciones iniciales.** De \(i(0)=0\) sale directamente \(A=0\). Queda
+\(i(t)=Be^{-\sigma t}\sin\omega_d t\); derivando y evaluando en \(t=0\): \(\tfrac{di}{dt}(0)=B\omega_d\).
+Por otro lado, la ecuación de la bobina en \(t=0^+\) da \(L\,\tfrac{di}{dt}(0)=v_C(0)-R\,i(0)=V_{dc}\)
+(toda la tensión inicial cae sobre la bobina, porque no hay caída aún en \(R\) con \(i=0\)). Igualando
+ambas expresiones de \(\tfrac{di}{dt}(0)\) se despeja \(B\):
+
+$$ B\,\omega_d = \frac{V_{dc}}{L} \quad\Longrightarrow\quad B=\frac{V_{dc}}{L\,\omega_d} $$
+
+$$ \boxed{\ i_{fault}(t) = \frac{V_{dc}}{L\,\omega_d}\,e^{-\sigma t}\sin(\omega_d t)\ } \qquad \sigma=\frac{R}{2L},\quad \omega_d=\sqrt{\frac{1}{LC}-\sigma^2} $$
+
+Esta es la solución exacta, no una fórmula dada por supuesta — cada constante sale de una condición
+inicial física real del circuito.
+
+**La aproximación habitual \(V_{dc}/Z_c\), y por qué es una cota, no el pico real.** Cuando el
+amortiguamiento es muy pequeño (\(\sigma\ll\omega_n\), el caso típico de un cable HVDC: resistencia
+pequeña frente a la reactancia), se puede aproximar \(\omega_d\approx\omega_n\) y despreciar el
+decaimiento exponencial durante el primer cuarto de ciclo, dando
+
+$$ i_{fault}(t) \approx \frac{V_{dc}}{L\,\omega_n}\sin(\omega_n t) = \frac{V_{dc}}{Z_c}\sin(\omega_n t), \qquad Z_c\equiv\sqrt{\frac{L}{C}} $$
+
+usando \(L\omega_n=L/\sqrt{LC}=\sqrt{L/C}=Z_c\). El pico de esta aproximación es exactamente
+\(V_{dc}/Z_c\) en \(\omega_n t=\pi/2\). Pero es una **cota superior**, no el pico real: la solución
+exacta sí decae desde \(t=0\), así que su máximo verdadero es menor y ocurre un poco antes del cuarto
+de ciclo — se ve claramente en el panel (b) de la figura, donde la curva exacta se separa de la
+aproximación según avanza el tiempo. Para los valores del ejemplo (\(R_{total}=3.22\,\Omega\),
+\(L_{total}=120\,\text{mH}\), \(C_{total}=60\,\mu\text{F}\), \(\zeta=\sigma/\omega_n\approx0.036\)):
+
+$$ Z_c=\sqrt{\frac{120\times10^{-3}}{60\times10^{-6}}}=44.7\,\Omega \qquad\Rightarrow\qquad \frac{V_{dc}}{Z_c}=\frac{640\,\text{kV}}{44.7\,\Omega}\approx14.31\,\text{kA}\ \text{(cota)} $$
+
+frente al pico real de la solución exacta, \(I_{fault,pico}\approx13.54\,\text{kA}\) (verificado
+numéricamente) — una diferencia de \(\sim5\,\%\), pequeña porque \(\zeta\) es pequeño, pero no nula. Para
+un diseño de protección conservador, usar la cota \(V_{dc}/Z_c\) es aceptable (sobreestima ligeramente
+el peor caso); para un cálculo preciso del instante y valor del pico, hay que usar la solución exacta.
 
 La corriente nominal del enlace de 500 MW es \( I_{nom} = 500/(640) \approx 781\,\text{A} \), por lo
-que la corriente de falta pico es \( \sim 18\,\text{pu} \) — un orden de magnitud por encima de la
-nominal.
+que la corriente de falta pico es \( \sim 17\text{–}18\,\text{pu} \) — un orden de magnitud por encima de
+la nominal, tanto si se usa la cota como el valor exacto.
 
 **Limitaciones de los MMC-HB.** Los IGBTs de los submódulos half-bridge no pueden bloquear una falta
 DC: aunque se apaguen las compuertas, los diodos de antiparalelo conducen la corriente de falta desde
@@ -330,10 +381,16 @@ $$ f_{res} = \frac{1}{2\pi\sqrt{L_{total}\,C_{total}}} = \frac{1}{2\pi\sqrt{0.12
 
 Modos SSO resultantes: 50 ± 59 Hz → 9 Hz (subsíncrono) y 109 Hz (supersíncrono).
 
-**Paso 6 — Corriente de falta DC pico** (cortocircuito bipolar en el punto medio):
+**Paso 6 — Corriente de falta DC pico** (cortocircuito bipolar, usando la derivación completa del
+apartado 4: RLC serie en descarga con \(v_C(0)=V_{dc}\), \(i(0)=0\)):
 
-$$ Z_c = \sqrt{L_{total}/C_{total}} = \sqrt{120\times10^{-3}/60\times10^{-6}} = 44.7\,\Omega $$
-$$ I_{fault,pico} \approx \frac{V_{dc}}{Z_c} = \frac{640\,\text{kV}}{44.7\,\Omega} = 14.3\,\text{kA} \approx 18\,I_{nom} $$
+$$ Z_c = \sqrt{L_{total}/C_{total}} = \sqrt{120\times10^{-3}/60\times10^{-6}} = 44.7\,\Omega \quad\Rightarrow\quad \frac{V_{dc}}{Z_c}\approx14.3\,\text{kA}\ \ \text{(cota superior, }\zeta\to0\text{)} $$
+
+Con el amortiguamiento real del cable (\(\sigma=R_{total}/2L_{total}\), \(\zeta\approx0.036\)), la
+solución exacta \(i_{fault}(t)=\tfrac{V_{dc}}{L\omega_d}e^{-\sigma t}\sin(\omega_d t)\) da un pico algo
+menor:
+
+$$ I_{fault,pico} \approx 13.5\,\text{kA} \approx 17\,I_{nom}\qquad(\text{cota: }14.3\,\text{kA}\approx18\,I_{nom}) $$
 
 **Paso 7 — Energía almacenada en el cable.**
 
@@ -350,7 +407,7 @@ cambios de despacho o faltas AC parciales.
 | \( C_{total} \) | 60 µF |
 | Pérdidas Joule | 1.96 MW (0.39 %) |
 | \( f_{res,LC} \) | 59 Hz |
-| \( I_{fault,pico} \) | 14.3 kA (18 pu) |
+| \( I_{fault,pico} \) | 13.5 kA (17 pu), cota 14.3 kA (18 pu) |
 | \( W_{cable} \) | 12.3 MJ |
 
 <div class="cfig"><img src="figuras/hvdc-cable-dc-analisis.png" alt="Cable DC HVDC: modelo π, resonancia LC y corriente de falta"><div class="cap">Parámetros del cable de 300 km, respuesta de \( V_{dc} \) ante escalón de carga, impedancia del cable (resonancia LC a ~59 Hz), y corriente de falta bipolar DC (hasta ~18 pu en pocos ms).</div></div>

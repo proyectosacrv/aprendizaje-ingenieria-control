@@ -16051,6 +16051,72 @@ def _npc_pi_sintonizacion():
     _savefig(fig, 'npc-pi-sintonizacion', dpi=160)
 
 
+def _hvdc_cable_falta_rlc():
+    """HVDC cable DC: derivacion completa de la corriente de falta bipolar como
+    circuito RLC serie en descarga. (a) esquema del circuito equivalente en el
+    instante de la falta (Vdc inicial en C, i=0 en L, R del cable); (b) solucion
+    exacta i(t)=(Vdc/(L*wd))*exp(-sigma*t)*sin(wd*t) comparada con la aproximacion
+    de amortiguamiento nulo Vdc/Zc*sin(wn*t), mostrando que el pico real es menor
+    que V/Zc por el decaimiento exponencial hasta el instante del pico."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.5, 5.4), gridspec_kw={'width_ratios': [0.8, 1.3]})
+    fig.suptitle('Cable DC, falta bipolar: derivación de $i_{fault}(t)$ como RLC serie en descarga', fontsize=12.8, fontweight='bold')
+
+    # ---- (a) esquema del circuito RLC serie ----
+    a1.axis('off'); a1.set_xlim(0, 10); a1.set_ylim(0, 8)
+    a1.set_title('(a) Circuito equivalente en $t{=}0^+$\n(condensador cargado a $V_{dc}$, bobina con $i(0){=}0$)', fontsize=10.5, fontweight='bold')
+    # condensador (izquierda, vertical)
+    a1.plot([1.2, 1.2], [2, 3.3], color='navy', lw=1.6)
+    a1.plot([0.7, 1.7], [4.6, 4.6], color='navy', lw=2.6); a1.plot([0.7, 1.7], [4.9, 4.9], color='navy', lw=2.6)
+    a1.plot([1.2, 1.2], [4.9, 6.4], color='navy', lw=1.6)
+    a1.text(0.35, 4.75, r'$C$' + '\n' + r'$v_C(0){=}V_{dc}$', fontsize=9, ha='right', va='center', color='navy')
+    # rama superior: R y L en serie hacia el punto de falta
+    a1.plot([1.2, 6.4], [6.4, 6.4], color='navy', lw=1.6)
+    a1.add_patch(plt.Rectangle((3.0, 6.15), 1.2, 0.5, facecolor='#F5B7B1', edgecolor='navy', lw=1.4))
+    a1.text(3.6, 6.4, r'$R$', fontsize=10, ha='center', va='center')
+    for k in range(5):
+        xk = 5.0 + k*0.28
+        a1.plot([xk, xk+0.14, xk+0.28], [6.4, 6.7, 6.4], color='navy', lw=1.4)
+    a1.text(5.55, 7.05, r'$L$, $i(0){=}0$', fontsize=9, ha='center')
+    # cortocircuito de falta (derecha)
+    a1.plot([6.4, 6.4], [6.4, 2.0], color='navy', lw=1.6)
+    a1.plot([1.2, 6.4], [2.0, 2.0], color='navy', lw=1.6)
+    a1.plot([6.0, 6.8], [2.0, 2.0], color='#c0392b', lw=3.2)
+    a1.text(6.9, 2.0, 'falta\nbipolar', fontsize=8.5, color='#c0392b', va='center')
+    a1.annotate('', xy=(4.2, 6.0), xytext=(4.2, 6.9), arrowprops=dict(arrowstyle='<-', color='#1e8449', lw=1.3))
+    a1.text(4.2, 5.65, r'$i_{fault}(t)$', fontsize=9.5, color='#1e8449', ha='center')
+    a1.text(5.0, 0.9, r'$L\dfrac{di}{dt}+Ri+\dfrac{1}{C}\!\int i\,dt=0$', fontsize=11, ha='center',
+            bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='steelblue'))
+
+    # ---- (b) solucion exacta vs aproximacion V/Zc ----
+    Vdc = 640e3; L = 120e-3; C = 60e-6; R = 3.22
+    sigma = R/(2*L)
+    wn = 1/np.sqrt(L*C)
+    wd = np.sqrt(max(wn**2-sigma**2, 0))
+    Zc = np.sqrt(L/C)
+    t = np.linspace(0, 6e-3, 3000)
+    i_exact = (Vdc/(L*wd))*np.exp(-sigma*t)*np.sin(wd*t)
+    i_approx = (Vdc/Zc)*np.sin(wn*t)  # aproximacion zeta->0 (sin decaimiento)
+
+    a2.plot(t*1e3, i_exact/1e3, color='#c0392b', lw=2.2, label=r'exacta: $\dfrac{V_{dc}}{L\omega_d}e^{-\sigma t}\sin(\omega_d t)$')
+    a2.plot(t*1e3, i_approx/1e3, color='#2e86c1', lw=1.6, ls='--', label=r'aproximación $\zeta\to0$: $\dfrac{V_{dc}}{Z_c}\sin(\omega_n t)$')
+    ipk = i_exact.max(); tpk = t[np.argmax(i_exact)]
+    a2.plot([tpk*1e3], [ipk/1e3], 'o', color='#c0392b', ms=8, zorder=5)
+    a2.annotate(f'pico real: {ipk/1e3:.2f} kA\n(en $t$={tpk*1e3:.2f} ms)', xy=(tpk*1e3, ipk/1e3),
+                xytext=(tpk*1e3+0.55, ipk/1e3-3.2), fontsize=8.5, color='#c0392b',
+                arrowprops=dict(arrowstyle='->', color='#c0392b', lw=0.9))
+    a2.axhline(Vdc/Zc/1e3, color='#2e86c1', lw=0.8, ls=':')
+    a2.text(0.15, Vdc/Zc/1e3+0.35, f'$V_{{dc}}/Z_c$={Vdc/Zc/1e3:.2f} kA (cota superior, no el pico real)', fontsize=8, color='#2e86c1', ha='left')
+    a2.set_xlabel('t [ms]'); a2.set_ylabel(r'$i_{fault}$ [kA]'); a2.grid(alpha=.3)
+    a2.set_ylim(0, Vdc/Zc/1e3+2.2)
+    a2.legend(fontsize=9, loc='lower right')
+    a2.set_title(f'(b) Solución exacta vs. aproximación de\namortiguamiento nulo ($\\zeta={sigma/wn:.3f}$, caso poco amortiguado)', fontsize=10.5, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'hvdc-cable-falta-rlc', dpi=160)
+
+
 def _hvdc_configuraciones():
     """HVDC: (a) monopolar con retorno por tierra, bipolar y simetrica monopolar,
     esquemas de conductores entre dos terminales; (b) topologias MTDC radial y
@@ -18028,6 +18094,9 @@ def main():
         n += 1
     if pref is None or "mmc-submodulo-ccsc".startswith(pref):
         _mmc_submodulo_ccsc()
+        n += 1
+    if pref is None or "hvdc-cable-falta-rlc".startswith(pref):
+        _hvdc_cable_falta_rlc()
         n += 1
     if pref is None or "hvdc-configuraciones".startswith(pref):
         _hvdc_configuraciones()
