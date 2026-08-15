@@ -64,25 +64,52 @@ $$\boxed{L_d\frac{di_d}{dt} = v_d - R_s i_d + \omega_r L_q i_q}$$
 
 $$\boxed{L_q\frac{di_q}{dt} = v_q - R_s i_q - \omega_r L_d i_d - \omega_r\psi_m}$$
 
-Los términos \( \omega_r L_q i_q \) y \( \omega_r L_d i_d + \omega_r\psi_m \) son los **acoplamientos cruzados** que el control debe compensar (desacoplamiento feed-forward).
+Los términos \( \omega_r L_q i_q \) y \( \omega_r L_d i_d + \omega_r\psi_m \) son los **acoplamientos cruzados**: aparecen porque el marco dq gira con la máquina, y cada eje "ve" una fem inducida por el flujo del otro eje moviéndose junto con él. El control debe compensarlos explícitamente (desacoplamiento feed-forward, ver más abajo) o el lazo de corriente queda con dos entradas que se interfieren entre sí.
 
-**Par electromagnético.** Partiendo de la energía del campo magnético y del gradiente de coenergía:
+**Par electromagnético — derivación desde el balance de potencia (no solo el resultado).** En vez de partir de la coenergía magnética (que exige cuidado extra con el factor \(3/2\) de la transformación de Park, que no conserva la potencia instantánea), es más directo partir de la potencia eléctrica total en el marco dq y separar qué parte se convierte en trabajo mecánico. La potencia eléctrica instantánea entregada por la fuente a la máquina es:
 
-$$T_{em} = \frac{3}{2}p\left[\psi_m i_q + (L_d - L_q)i_d i_q\right]$$
+$$ p_{elec}(t) = \frac{3}{2}\big(v_d i_d + v_q i_q\big) $$
 
-El primer término \( \psi_m i_q \) es el **par de excitación** (fundamental); el segundo \( (L_d-L_q)i_d i_q \) es el **par de reluctancia** (solo presente en máquinas salientes, \( L_d \neq L_q \)).
+Sustituyendo \(v_d\), \(v_q\) por las ecuaciones de tensión de arriba:
 
-Para PMSG de superficie no saliente (\( L_d = L_q \)), el par de reluctancia es nulo y:
+$$ p_{elec} = \frac{3}{2}\Big[\big(R_s i_d + L_d\tfrac{di_d}{dt} - \omega_r L_q i_q\big)i_d + \big(R_s i_q + L_q\tfrac{di_q}{dt} + \omega_r L_d i_d + \omega_r\psi_m\big)i_q\Big] $$
 
-$$T_{em} = \frac{3}{2}p\,\psi_m\,i_q$$
+Agrupando por tipo de término:
 
-Este resultado tiene una consecuencia de control fundamental: **el par es proporcional a \( i_q \) y completamente independiente de \( i_d \)**. Por tanto:
+$$ p_{elec} = \underbrace{\frac{3}{2}R_s(i_d^2+i_q^2)}_{\text{pérdidas resistivas}} \ +\ \underbrace{\frac{3}{2}\Big(L_d i_d\tfrac{di_d}{dt}+L_q i_q\tfrac{di_q}{dt}\Big)}_{\text{variación de energía magnética almacenada}} \ +\ \underbrace{\frac{3}{2}\omega_r\big[\psi_m i_q + (L_d-L_q)i_d i_q\big]}_{\text{potencia convertida a mecánica, }p_{mec}} $$
 
-- \( i_d = 0 \) maximiza el par por unidad de corriente (control MTPA, Maximum Torque Per Ampere)
+Los dos primeros términos no producen par (uno se disipa en calor, el otro se acumula/libera en los campos magnéticos sin cruzar el entrehierro); el tercero es exactamente la potencia que atraviesa el entrehierro y se convierte en trabajo mecánico. Como \(p_{mec}=T_{em}\,\Omega_m\) y \(\Omega_m=\omega_r/p\):
+
+$$ T_{em}\,\frac{\omega_r}{p} = \frac{3}{2}\omega_r\big[\psi_m i_q + (L_d-L_q)i_d i_q\big] \quad\Longrightarrow\quad \boxed{\ T_{em} = \frac{3}{2}p\big[\psi_m i_q + (L_d-L_q)i_d i_q\big]\ } $$
+
+el factor \(\omega_r\) se cancela en ambos lados — el par no depende de la velocidad, solo de las corrientes, como debe ser en una máquina eléctrica ideal. El primer término \( \psi_m i_q \) es el **par de excitación** (por interacción del flujo de los imanes con \(i_q\)); el segundo \( (L_d-L_q)i_d i_q \) es el **par de reluctancia** (por la diferencia de reluctancia magnética entre ejes, solo existe si \(L_d\neq L_q\)).
+
+**MTPA (Maximum Torque Per Ampere): dónde está el óptimo, y por qué \(i_d=0\) no siempre lo es.** El objetivo de MTPA es, para un módulo de corriente disponible \(|I_s|=\sqrt{i_d^2+i_q^2}\) fijado por el límite térmico del convertidor, encontrar el reparto \((i_d,i_q)\) que maximiza \(T_{em}\).
+
+*Caso no saliente (\(L_d=L_q\), típico de imanes en superficie).* El término de reluctancia se anula idénticamente:
+
+$$ T_{em} = \frac{3}{2}p\,\psi_m\,i_q $$
+
+El par ya no depende de \(i_d\) en absoluto — solo "gasta" módulo de corriente sin aportar par. El óptimo es entonces trivial: **\(i_d=0\)**, todo el módulo disponible se destina a \(i_q\). De aquí:
+
 - La referencia de corriente de cuadratura viene del MPPT: \( i_q^* = T_{ref}/(1.5\,p\,\psi_m) \)
 - La referencia de par del MPPT: \( T_{ref} = k_{opt}\,\omega_r^2 \)
 
-**Control del MSC (Machine Side Converter).** Lazo interno PI de corriente en dq con compensación de acoplamientos cruzados. Lazo externo de velocidad (o par directo sin lazo de velocidad en configuraciones de MPPT directo). Ancho de banda típico del lazo de corriente: 500–1500 rad/s; lazo de velocidad: 20–50 rad/s.
+*Caso saliente (\(L_d\neq L_q\), típico de PMSG de imanes interiores, IPM).* Ahora el término de reluctancia sí depende de \(i_d\), y **puede sumar par adicional** si tiene el signo correcto. Con \(i_q=\sqrt{I_s^2-i_d^2}\) (módulo fijo) y \(L_q>L_d\) (el caso IPM habitual, porque el hueco de aire equivalente es mayor en el eje d por los imanes), el par crece al hacer \(i_d<0\): el término \((L_d-L_q)i_d i_q\) se vuelve positivo (producto de dos negativos por \(L_d-L_q<0\)), sumándose al par de excitación. El máximo real ya no está en \(i_d=0\) sino desplazado hacia \(i_d<0\) — ver panel (a) de la figura: para el ejemplo con \(L_q/L_d=1.3\), el par máximo alcanzable es más del doble que en \(i_d=0\) con el mismo módulo de corriente.
+
+<div class="cfig"><img src="figuras/pmsg-mtpa.png" alt="grafica del par electromagnetico en funcion de id a modulo de corriente constante, comparando maquina no saliente con maximo en id=0 frente a maquina saliente IPM con maximo en id negativo por el par de reluctancia adicional; y diagrama de bloques del lazo de corriente del MSC mostrando los dos PI de eje d y q con la suma/resta del termino de desacoplo feedforward antes de la referencia de tension"><div class="cap">(a) \(T_{em}(i_d)\) a módulo de corriente \(|I_s|\) constante: en la máquina no saliente (\(L_d=L_q\), azul) el máximo está exactamente en \(i_d=0\); en la máquina saliente IPM (\(L_q>L_d\), roja) el par de reluctancia adicional desplaza el óptimo a \(i_d<0\), con un par máximo notablemente mayor para el mismo módulo de corriente. (b) Lazo de corriente del MSC: cada eje tiene su PI, y antes de la referencia de tensión final se suma/resta el término de desacoplo feedforward correspondiente, calculado en tiempo real a partir de \(\omega_r\), \(i_d\), \(i_q\) medidos.</div></div>
+
+Por eso la ficha, al asumir \(L_d=L_q\) para el ejemplo numérico de 6 MW, usa correctamente \(i_d^*=0\) — pero conviene tener presente que esa simplificación es válida solo para PMSG de imanes en superficie, no en general.
+
+**Por qué hace falta el desacoplo feedforward, y cómo se implementa.** Sin compensar, cada lazo PI de corriente (eje d, eje q) ve la salida del otro eje como una perturbación no modelada: mover \(i_q\) cambia instantáneamente el término \(\omega_r L_q i_q\) que aparece en la ecuación de \(i_d\) (y viceversa), lo que el PI de \(i_d\) percibe como una perturbación externa y corrige con retraso — degradando la respuesta dinámica del lazo, especialmente a alta velocidad (\(\omega_r\) grande amplifica el acoplamiento). La solución estándar es calcular explícitamente esos términos con los valores medidos de \(i_d\), \(i_q\), \(\omega_r\) y sumarlos/restarlos a la salida del PI antes de aplicar la tensión:
+
+$$ v_q^* = \underbrace{K_{p,q}(i_q^*-i_q)+K_{i,q}\!\int(i_q^*-i_q)\,dt}_{\text{salida del PI de eje q}} \ +\ \underbrace{\omega_r(L_d i_d+\psi_m)}_{\text{desacoplo feedforward}} $$
+
+$$ v_d^* = \underbrace{K_{p,d}(i_d^*-i_d)+K_{i,d}\!\int(i_d^*-i_d)\,dt}_{\text{salida del PI de eje d}} \ -\ \underbrace{\omega_r L_q i_q}_{\text{desacoplo feedforward}} $$
+
+Con esta compensación, cada PI ve una planta de primer orden desacoplada y pura (\(L\,di/dt=v_{PI}\)), sin el término cruzado — el diseño del PI se hace exactamente igual que para dos ejes independientes, y el acoplamiento físico real queda cancelado en tiempo real por el término feedforward, como se ve en el panel (b) de la figura.
+
+**Control del MSC (Machine Side Converter).** Lazo interno PI de corriente en dq con compensación de acoplamientos cruzados (arriba). Lazo externo de velocidad (o par directo sin lazo de velocidad en configuraciones de MPPT directo). Ancho de banda típico del lazo de corriente: 500–1500 rad/s; lazo de velocidad: 20–50 rad/s.
 
 **Control del GSC (Grid Side Converter).** Lazo de control de tensión del bus DC (referencia fija, por ejemplo 1150 V para un convertidor de 690 V) y lazo de potencia reactiva. En modo GFL, el GSC usa PLL para sincronizarse con la red. En modo GFM (grid-forming), el GSC usa droop de tensión/frecuencia o PSC (Power Synchronization Control) — posible solo con el Tipo 4, ya que el bus DC proporciona el desacoplamiento necesario.
 

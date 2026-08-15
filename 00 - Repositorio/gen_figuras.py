@@ -14345,6 +14345,93 @@ def _amortiguamiento_pasivo_vs_activo_analisis():
     plt.tight_layout(); _savefig(fig, "amortiguamiento-pasivo-vs-activo-analisis")
 
 
+def _pmsg_mtpa():
+    """PMSG apartado 2: (a) par electromagnetico Tem(id) a modulo de corriente
+    |Is| constante, comparando maquina NO saliente (Ld=Lq, maximo en id=0) vs
+    maquina saliente IPM (Lq>Ld, maximo en id<0 por el par de reluctancia
+    adicional) -- muestra por que id=0 es MTPA solo en el caso no saliente;
+    (b) diagrama de bloques del lazo de corriente del MSC con el desacoplo
+    feedforward de los terminos wr*Lq*iq y wr*(Ld*id+psi_m)."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.5, 5.4), gridspec_kw={'width_ratios': [1.0, 1.35]})
+    fig.suptitle('PMSG, apartado 2: par electromagnético y MTPA', fontsize=13, fontweight='bold')
+
+    p = 250; psim = 1.5
+    Is = 8480.0  # modulo de corriente del ejemplo de la ficha (6 MW)
+
+    # ---- (a) Tem(id) a |Is| constante, no saliente vs saliente ----
+    id_ = np.linspace(-Is, Is*0.15, 400)
+    iq_pos = np.sqrt(np.maximum(Is**2 - id_**2, 0))
+
+    Ld = Lq_ns = 2e-3  # no saliente: Ld = Lq
+    Tem_ns = 1.5*p*(psim*iq_pos + (Ld-Lq_ns)*id_*iq_pos)
+
+    Lq_sal = 2.6e-3  # saliente tipo IPM: Lq > Ld
+    Tem_sal = 1.5*p*(psim*iq_pos + (Ld-Lq_sal)*id_*iq_pos)
+
+    a1.plot(id_/1e3, Tem_ns/1e6, color='#2e86c1', lw=2.2, label=r'no saliente ($L_d{=}L_q$): máx. en $i_d{=}0$')
+    a1.plot(id_/1e3, Tem_sal/1e6, color='#c0392b', lw=2.2, label=r'saliente IPM ($L_q{>}L_d$): máx. en $i_d{<}0$')
+    i_opt_ns = id_[np.argmax(Tem_ns)]
+    i_opt_sal = id_[np.argmax(Tem_sal)]
+    a1.plot([i_opt_ns/1e3], [Tem_ns.max()/1e6], 'o', color='#2e86c1', ms=9, zorder=5)
+    a1.plot([i_opt_sal/1e3], [Tem_sal.max()/1e6], 'o', color='#c0392b', ms=9, zorder=5)
+    a1.annotate(f'MTPA\n$i_d{{=}}0$', xy=(i_opt_ns/1e3, Tem_ns.max()/1e6), xytext=(1.0, Tem_ns.max()/1e6-1.0),
+                fontsize=8.5, color='#2e86c1', ha='left', arrowprops=dict(arrowstyle='->', color='#2e86c1', lw=1.0))
+    a1.annotate(f'MTPA\n$i_d{{<}}0$\n(par de reluctancia\nadicional)', xy=(i_opt_sal/1e3, Tem_sal.max()/1e6),
+                xytext=(-8.2, Tem_sal.max()/1e6-0.5), fontsize=8.5, color='#c0392b', ha='left',
+                arrowprops=dict(arrowstyle='->', color='#c0392b', lw=1.0))
+    a1.axvline(0, color='gray', lw=0.8, ls=':')
+    a1.set_xlabel(r'$i_d$ [kA]  (a $|I_s|=\sqrt{i_d^2+i_q^2}$ constante)')
+    a1.set_ylabel(r'$T_{em}$ [MN·m]'); a1.grid(alpha=.3)
+    a1.legend(fontsize=8.5, loc='lower center')
+    a1.set_title('(a) $T_{em}(i_d)$ a módulo de corriente fijo:\n$i_d{=}0$ solo es óptimo si $L_d{=}L_q$', fontsize=10.8, fontweight='bold')
+
+    # ---- (b) diagrama de bloques del lazo de corriente MSC con desacoplo feedforward ----
+    a2.axis('off'); a2.set_xlim(0, 13); a2.set_ylim(0, 7.2)
+    a2.set_title('(b) Lazo de corriente del MSC:\ndesacoplo feedforward de los términos cruzados', fontsize=10.8, fontweight='bold')
+
+    def box(x, y, w, h, txt, fc='#EBF5FB', ec='steelblue', fs=8.8):
+        import matplotlib.patches as mpatches
+        a2.add_patch(mpatches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.04', facecolor=fc, edgecolor=ec, lw=1.4))
+        a2.text(x+w/2, y+h/2, txt, ha='center', va='center', fontsize=fs, fontweight='bold')
+        return x, x+w, y, y+h
+
+    def arrow(xy0, xy1, col='#333'):
+        a2.annotate('', xy=xy1, xytext=xy0, arrowprops=dict(arrowstyle='->', color=col, lw=1.4))
+
+    # eje q (arriba)
+    _, _, _, ytq = box(0.3, 5.6, 1.3, 1.0, r'$i_q^*$')
+    l0, r0, y0b, y0t = box(2.0, 5.6, 2.0, 1.0, r'PI$_q$')
+    arrow((1.6, 6.1), (2.0, 6.1))
+    sum_l, sum_r, sum_b, sum_t = box(4.4, 5.6, 0.8, 1.0, r'$+$', fc='#FCF3CF', ec='#b7950b')
+    arrow((4.0, 6.1), (4.4, 6.1))
+    l2, r2, _, _ = box(5.6, 5.6, 3.0, 1.0, r'$v_q^*$', fc='#FADBD8', ec='#c0392b')
+    arrow((5.2, 6.1), (5.6, 6.1))
+    # feedforward q: wr*(Ld*id+psim)
+    ffq_l, ffq_r, ffq_b, ffq_t = box(2.0, 3.9, 3.6, 0.9, r'$\omega_r(L_d i_d+\psi_m)$', fc='#E8DAEF', ec='#7d3c98', fs=8.3)
+    arrow((3.8, 4.8), (4.8, 5.6))
+
+    # eje d (abajo)
+    box(0.3, 1.0, 1.3, 1.0, r'$i_d^*$')
+    box(2.0, 1.0, 2.0, 1.0, r'PI$_d$')
+    arrow((1.6, 1.5), (2.0, 1.5))
+    sumd_l, sumd_r, sumd_b, sumd_t = box(4.4, 1.0, 0.8, 1.0, r'$-$', fc='#FCF3CF', ec='#b7950b')
+    arrow((4.0, 1.5), (4.4, 1.5))
+    box(5.6, 1.0, 3.0, 1.0, r'$v_d^*$', fc='#FADBD8', ec='#c0392b')
+    arrow((5.2, 1.5), (5.6, 1.5))
+    # feedforward d: wr*Lq*iq
+    ffd_l, ffd_r, ffd_b, ffd_t = box(2.0, 2.7, 3.6, 0.9, r'$\omega_r L_q i_q$', fc='#E8DAEF', ec='#7d3c98', fs=8.8)
+    arrow((3.8, 3.15), (4.8, 2.0))
+
+    a2.text(2.85, 5.15, 'PMSG', fontsize=8, color='#7d3c98', ha='center', style='italic')
+    a2.text(9.3, 4.9, r'$v_q^*=v_{q,PI}+\omega_r(L_di_d+\psi_m)$' + '\n' + r'$v_d^*=v_{d,PI}-\omega_rL_qi_q$',
+            fontsize=9.5, ha='left', va='center', bbox=dict(boxstyle='round', facecolor='#F4ECF7', edgecolor='#7d3c98'))
+
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'pmsg-mtpa', dpi=160)
+
+
 def _aerogenerador_pmsg_dfig_analisis():
     import numpy as np
     import matplotlib.pyplot as plt
@@ -17836,6 +17923,9 @@ def main():
         n += 1
     if pref is None or "mmc-modelo-control-analisis".startswith(pref):
         _mmc_modelo_control_analisis()
+        n += 1
+    if pref is None or "pmsg-mtpa".startswith(pref):
+        _pmsg_mtpa()
         n += 1
     if pref is None or "aerogenerador-pmsg-dfig-analisis".startswith(pref):
         _aerogenerador_pmsg_dfig_analisis()
