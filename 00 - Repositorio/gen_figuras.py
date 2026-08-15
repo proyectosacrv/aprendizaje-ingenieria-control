@@ -16316,16 +16316,19 @@ def _npc_espectro_3niveles():
 
 def _npc_svm():
     """NPC SVM: hexagono completo de space vectors con la notacion academica
-    estandar (Sa Sb Sc), cada fase en {+,0,-}, replicando la geometria de la
-    diapositiva de referencia (reticula triangular regular de 24 triangulos,
-    ejes a/b/c, vertices etiquetados con todas sus ternas redundantes)."""
+    estandar (Sa Sb Sc), cada fase en {+,0,-}. En vez de escribir las ternas
+    como texto pegado a cada vertice (que se solapaba con la reticula), cada
+    posicion fisica lleva solo un NUMERO, y una lista lateral (fuera del
+    hexagono) mapea numero -> ternas (Sa Sb Sc) + multiplicidad, agrupada por
+    anillo (cero / corto / medio / largo)."""
     import matplotlib.pyplot as plt
 
-    fig, ax = plt.subplots(1, 1, figsize=(11, 9.6))
+    fig, (ax, axl) = plt.subplots(1, 2, figsize=(15.5, 9.6), gridspec_kw={'width_ratios': [1.55, 1.0]})
     ax.set_aspect('equal'); ax.axis('off')
+    axl.axis('off')
     R = 2.0
-    ax.set_xlim(-1.85*R, 1.85*R); ax.set_ylim(-2.3*R, 1.65*R)
-    ax.set_title('Space Vector PWM del NPC: los 27 estados $(S_a,S_b,S_c)$', fontsize=13, fontweight='bold', pad=12)
+    ax.set_xlim(-1.55*R, 1.55*R); ax.set_ylim(-1.55*R, 1.55*R)
+    fig.suptitle('Space Vector PWM del NPC: los 27 estados $(S_a,S_b,S_c)$', fontsize=14, fontweight='bold')
 
     sym = {1: '+', 0: '0', -1: '-'}
     unit = R/2.0  # espaciado de la reticula triangular (2 anillos hasta el vector largo)
@@ -16351,55 +16354,89 @@ def _npc_svm():
         for (x1, y1) in all_xy[(d > unit*0.9) & (d < unit*1.1)]:
             ax.plot([x0, x1], [y0, y1], color='#444', lw=1.1, zorder=1)
 
-    # --- etiquetar cada posicion fisica con TODAS sus ternas (Sa Sb Sc) y su multiplicidad ---
+    # --- orden de numeracion: por anillo (0=centro, 1=corto, 2=medio, 3=largo)
+    # y dentro de cada anillo por angulo, para que la lista lateral quede agrupada
+    # y sea facil de recorrer visualmente (como leer las horas de un reloj) ---
+    def ring_of(r):
+        # umbrales por valor real de r (no por redondeo a la unidad de reticula,
+        # que confunde el anillo r=sqrt(3)*unit con el de r=2*unit). El anillo
+        # r=unit es el que tiene multiplicidad x2 -> es el "medio" de la teoria
+        # SVM estandar (la palanca del balance de neutro); r=1.73*unit es unico
+        # (x1) y mas exterior que el medio pero mas interior que el largo -> "corto".
+        if r < 0.05: return 0
+        if r < 1.3*unit: return 1   # medio: r = unit (redundante x2)
+        if r < 1.9*unit: return 2   # corto: r = sqrt(3)*unit = 1.73*unit (unico x1)
+        return 3                     # largo: r = 2*unit (unico x1)
+    keys_sorted = sorted(pts.keys(), key=lambda k: (ring_of(np.hypot(*k)), -np.arctan2(k[1], k[0]) % (2*np.pi)))
+
+    ring_name = {0: 'cero', 1: 'medio', 2: 'corto', 3: 'largo'}
+    ring_col = {0: '#7f8c8d', 1: '#c0392b', 2: '#1a1a1a', 3: '#1a1a1a'}
+
+    numero = {}
+    for i, key in enumerate(keys_sorted, start=1):
+        numero[key] = i
+
+    # --- cada punto lleva SOLO su numero (circulo con el indice), sin texto de ternas ---
     for (x, y), states in pts.items():
         r = np.hypot(x, y)
+        ring = ring_of(r)
         n = len(states)
-        if r < 0.05:
-            col, fs, ms = '#7f8c8d', 9.5, 11
-        elif n >= 2:
-            col, fs, ms = '#c0392b', 9.5, 10
-        else:
-            col, fs, ms = '#1a1a1a', 9.5, 8
-        ax.plot([x], [y], 'o', color=col, ms=ms, zorder=5, markeredgecolor='white', markeredgewidth=0.8)
-        labels = '\n'.join('(' + ''.join(sym[v] for v in s) + ')' for s in sorted(states))
-        ur = (x/r, y/r) if r > 0.05 else (0.0, 1.0)
-        off = 0.62 if r > 1.9*unit else 0.50
-        lx, ly = x+off*ur[0], y+off*ur[1] + (0.16 if r < 0.05 else 0.0)
-        va = 'bottom' if ur[1] >= -0.2 else 'top'
-        ax.text(lx, ly, labels, fontsize=fs, ha='center', va=va, color=col, zorder=8, fontweight='bold',
-                linespacing=1.35, bbox=dict(boxstyle='round,pad=0.12', facecolor='white', edgecolor='none', alpha=0.88))
-        # multiplicidad explicita junto al punto: en el lado VERTICAL opuesto
-        # a donde se coloco la etiqueta de estado (que usa 'va'), para no
-        # chocar nunca con ella ni con las de los puntos vecinos
+        col = ring_col[ring]
+        ms = 20 if ring != 0 else 22
+        ax.plot([x], [y], 'o', color=col, ms=ms, zorder=5, markeredgecolor='white', markeredgewidth=1.0)
+        ax.text(x, y, str(numero[(x, y)]), fontsize=9.5, ha='center', va='center',
+                color='white', zorder=6, fontweight='bold')
         if n >= 2:
-            mult_off = 0.34
-            mx = x
-            my = y - mult_off if va == 'bottom' else y + mult_off
+            # multiplicidad como pequeño superindice junto al punto, fuera del radio del circulo
+            ur = (x/r, y/r) if r > 0.05 else (0.0, 1.0)
+            mx, my = x + 0.20*ur[0], y + 0.20*ur[1] + (0.20 if r < 0.05 else 0.0)
             ax.text(mx, my, f'×{n}', fontsize=8, ha='center', va='center', color=col,
-                    style='italic', zorder=6,
-                    bbox=dict(boxstyle='circle,pad=0.15', facecolor='white', edgecolor=col, lw=0.8))
+                    style='italic', zorder=7,
+                    bbox=dict(boxstyle='circle,pad=0.12', facecolor='white', edgecolor=col, lw=0.8))
 
-    # --- ejes a, b, c: flechas reales, en color distintivo y SOLO en el tramo
-    # exterior al hexagono (dentro, coinciden exactamente con lineas de la
-    # reticula normal y se confundirian con ellas si se dibujaran encima) ---
+    # --- ejes a, b, c: flechas reales, en color distintivo, en el tramo exterior al hexagono ---
     col_axis = '#2e5090'
     for ang, lbl in [(0, 'a'), (120, 'b'), (240, 'c')]:
         rad = np.radians(ang)
-        x0, y0 = 1.42*R*np.cos(rad), 1.42*R*np.sin(rad)  # arranca ya despues de la etiqueta del vertice largo
-        xe, ye = 1.62*R*np.cos(rad), 1.62*R*np.sin(rad)  # punta de la flecha
+        x0, y0 = 1.12*R*np.cos(rad), 1.12*R*np.sin(rad)
+        xe, ye = 1.32*R*np.cos(rad), 1.32*R*np.sin(rad)
         ax.annotate('', xy=(xe, ye), xytext=(x0, y0), zorder=7,
                     arrowprops=dict(arrowstyle='-|>', color=col_axis, lw=2.4, mutation_scale=22))
-        ax.text(1.82*R*np.cos(rad), 1.82*R*np.sin(rad), lbl, fontsize=18, fontweight='bold',
+        ax.text(1.46*R*np.cos(rad), 1.46*R*np.sin(rad), lbl, fontsize=18, fontweight='bold',
                 ha='center', va='center', color=col_axis)
 
-    ax.text(0, -2.15*R, r'Notación: cada vértice muestra $(S_a S_b S_c)$ con $S_k\in\{+,0,-\}$; el número en círculo'
-            ' es la multiplicidad (cuántas ternas distintas caen en ese mismo punto físico).'
-            '\nEl vector cero (centro, ×3) y los vectores medios (anillo intermedio, ×2) son redundantes; '
-            'los vectores cortos y largos son únicos (×1).',
-            ha='center', fontsize=9.5, color='#333')
+    # ================= lista lateral: numero -> ternas, agrupada por anillo =================
+    axl.set_xlim(0, 1); axl.set_ylim(0, 1)
+    axl.text(0.0, 0.985, 'Lista de estados por posición física', fontsize=13, fontweight='bold', transform=axl.transAxes)
+    axl.text(0.0, 0.955, r'notación $(S_aS_bS_c)$ con $S_k\in\{+,0,-\}$', fontsize=9.5, color='#555', transform=axl.transAxes)
 
-    plt.tight_layout()
+    groups = {0: [], 1: [], 2: [], 3: []}
+    for key in keys_sorted:
+        ring = ring_of(np.hypot(*key))
+        groups[ring].append(key)
+
+    group_titles = {
+        3: 'Vectores largos (únicos, ×1) — esquinas exteriores',
+        2: 'Vectores cortos (únicos, ×1) — anillo intermedio',
+        1: 'Vectores medios (redundantes ×2) — anillo interior',
+        0: 'Vector cero (redundante ×3) — centro',
+    }
+
+    y = 0.90
+    row_h = 0.0345
+    for ring in (3, 2, 1, 0):
+        axl.text(0.0, y, group_titles[ring], fontsize=10.5, fontweight='bold', color=ring_col[ring], transform=axl.transAxes)
+        y -= row_h
+        for key in groups[ring]:
+            states = pts[key]
+            terns = ', '.join('(' + ''.join(sym[v] for v in s) + ')' for s in sorted(states))
+            n = len(states)
+            txt = f'{numero[key]:>2d}.  {terns}' + (f'  (×{n})' if n >= 2 else '')
+            axl.text(0.03, y, txt, fontsize=9.8, family='monospace', color='#222', transform=axl.transAxes)
+            y -= row_h
+        y -= row_h*0.6
+
+    plt.tight_layout(rect=[0, 0, 1, 0.94])
     _savefig(fig, 'npc-svm', dpi=165)
 
 

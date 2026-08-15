@@ -911,7 +911,7 @@ plano αβ varias combinaciones distintas caen en el **mismo punto físico** (mi
 resultado son **19 posiciones distintas** dispuestas en un hexágono con dos anillos y el centro (figura
 siguiente).
 
-<div class="cfig"><img src="figuras/npc-svm.png" alt="hexagono de space vector modulation del NPC con las 19 posiciones fisicas de los 27 estados de conmutacion etiquetadas con la notacion (Sa Sb Sc) para cada fase en +, 0 o -, formando una reticula regular de 24 triangulos con el vector cero en el centro (redundante triple), los vectores medios en el anillo intermedio (redundantes dobles) y los vectores largos en las esquinas exteriores (unicos)"><div class="cap">Las 19 posiciones físicas de los 27 estados, etiquetadas con la notación \((S_aS_bS_c)\), \(S_k\in\{+,0,-\}\). El vector cero (centro) es redundante ×3 —los estados \((+{+}{+})\), \((000)\), \((-{-}{-})\) no mueven el punto de trabajo—; los 6 vectores medios (anillo intermedio, en rojo) son redundantes ×2, cada uno alcanzable con dos combinaciones de estados que llevan la corriente por caminos distintos hacia el neutro O — es la palanca que usa el balance de neutro; los 6 vectores largos (esquinas exteriores) y los 6 vectores cortos (anillo interior) son únicos.</div></div>
+<div class="cfig"><img src="figuras/npc-svm.png" alt="hexagono de space vector modulation del NPC con las 19 posiciones fisicas de los 27 estados de conmutacion numeradas del 1 al 19, con una lista lateral que mapea cada numero a sus ternas (Sa Sb Sc) para cada fase en +, 0 o -, agrupada por anillo: vector cero en el centro (redundante triple), vectores medios en el anillo interior (redundantes dobles), vectores cortos en el anillo intermedio y vectores largos en las esquinas exteriores (ambos unicos)"><div class="cap">Las 19 posiciones físicas de los 27 estados. Para evitar solapar el texto con la retícula, cada posición lleva solo su número; la lista lateral mapea número → ternas \((S_aS_bS_c)\), \(S_k\in\{+,0,-\}\), agrupada por anillo. El vector cero (centro, punto 1) es redundante ×3 —los estados \((+{+}{+})\), \((000)\), \((-{-}{-})\) no mueven el punto de trabajo—; los 6 vectores medios (anillo interior, en rojo, puntos 2–7) son redundantes ×2, cada uno alcanzable con dos combinaciones de estados que llevan la corriente por caminos distintos hacia el neutro O — es la palanca que usa el balance de neutro; los 6 vectores cortos (anillo intermedio, puntos 8–13) y los 6 vectores largos (esquinas exteriores, puntos 14–19) son únicos.</div></div>
 
 **Paso 2 — clasificación de los vectores por magnitud.** Según su módulo, los 19 vectores se agrupan en
 cuatro familias (visibles por color en la figura):
@@ -920,16 +920,16 @@ cuatro familias (visibles por color en la figura):
   tensión de salida (cero en las tres fases), pero llevan corrientes distintas hacia P, O o N,
   respectivamente. Esta redundancia es una **palanca extra** para el balance de neutro (aparte de la del
   estado O individual del apartado 1): elegir PPP en vez de OOO evita tocar el punto neutro en absoluto.
-- **Vectores cortos** (módulo pequeño, esquinas del hexágono interior más cercano): alcanzables con
-  combinaciones tipo (P,O,O) o (O,N,N) — un único estado por posición en el hexágono de 3 niveles (a
-  diferencia del vector medio, no son redundantes en el NPC de 3 niveles porque solo hay una forma de
-  llegar a cada uno con niveles \(\{P,O,N\}\) sin repetir la misma posición dos veces).
-- **Vectores medios** (módulo intermedio, vértices del hexágono interior mayor, marcados "2×" en la
-  figura): redundantes ×2 — p. ej. (P,O,N) y su pareja con roles rotados dan la misma proyección αβ pero
-  mueven la corriente de fase por caminos distintos hacia el neutro O, cambiando el signo con que afectan a
+- **Vectores medios** (módulo pequeño, el anillo más cercano al centro, marcados "×2" en la figura):
+  redundantes ×2 — p. ej. (P,O,N) y su pareja con roles rotados dan la misma proyección αβ pero mueven la
+  corriente de fase por caminos distintos hacia el neutro O, cambiando el signo con que afectan a
   \(\Delta V\). **Esta es la redundancia clave que explota el algoritmo de balance de neutro**: en tiempo
   real, para cada vector medio se elige la combinación que corrige el desbalance medido, sin cambiar en
   absoluto la tensión de salida sintetizada.
+- **Vectores cortos** (módulo intermedio, el segundo anillo): alcanzables con combinaciones tipo (P,O,O)
+  o (O,N,N) — un único estado por posición en el hexágono de 3 niveles (a diferencia del vector medio, no
+  son redundantes en el NPC de 3 niveles porque solo hay una forma de llegar a cada uno con niveles
+  \(\{P,O,N\}\) sin repetir la misma posición dos veces).
 - **Vectores largos** (esquinas exteriores, p. ej. PPO, PON...): únicos, un solo estado por posición, no
   aportan grados de libertad para el balance de neutro.
 
