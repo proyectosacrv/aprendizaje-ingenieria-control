@@ -16248,12 +16248,12 @@ def _hvdc_terminal(ax, x, y, lbl='', flip=False, scale=1.0, col='#2e5090'):
     ax.plot([x+d*0.05*s, x+d*0.05*s], [y-0.15*s, y+0.15*s], color='#333', lw=1.6)
     ax.plot([x+d*0.05*s, x+d*0.45*s], [y, y], color='#333', lw=1.4)
 
-    # ---- transformador: dos circulos EN SERIE a lo largo del cable (simbolo IEC) ----
-    r_xf = 0.14*s
+    # ---- transformador: dos circulos entrelazados (simbolo IEC 60617) ----
+    r_xf = 0.15*s
     c1x = x + d*0.60*s
-    c2x = x + d*0.60*s + d*0.19*s
-    ax.add_patch(plt.Circle((c1x, y), r_xf, facecolor='white', edgecolor=col, lw=1.4, zorder=4))
-    ax.add_patch(plt.Circle((c2x, y), r_xf, facecolor='white', edgecolor=col, lw=1.4, zorder=5))
+    c2x = c1x + d*0.17*s  # solape ~57% del radio: circulos claramente entrelazados
+    ax.add_patch(plt.Circle((c1x, y), r_xf, facecolor='white', edgecolor=col, lw=1.5, zorder=4))
+    ax.add_patch(plt.Circle((c2x, y), r_xf, facecolor='white', edgecolor=col, lw=1.5, zorder=5, alpha=0.92))
     ax.plot([x+d*0.45*s, c1x-r_xf], [y, y], color='#333', lw=1.4)
 
     # ---- convertidor: circulo con simbolo IEC de convertidor AC/DC (~ | —) ----
