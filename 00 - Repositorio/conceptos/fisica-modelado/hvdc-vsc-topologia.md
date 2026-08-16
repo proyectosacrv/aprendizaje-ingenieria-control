@@ -172,6 +172,60 @@ La tecnología HVDC clásica (LCC, Line Commutated Converter) usa tiristores que
 naturalmente por la tensión de red. El VSC-HVDC usa IGBTs con conmutación forzada. Las diferencias
 son fundamentales para el diseño de sistemas:
 
+**Por qué el tiristor necesita conmutación natural (y el IGBT no).** Un tiristor, una vez encendido por
+la puerta, conduce mientras la corriente sea positiva — la puerta no tiene ningún control sobre el
+apagado. Para apagarlo hace falta que la propia corriente del circuito caiga a cero y se invierta durante
+un tiempo mínimo (tiempo de recuperación inversa). En un puente LCC, ese apagado ocurre porque el
+**siguiente** tiristor de la secuencia se enciende y, gracias a la tensión de línea instantáneamente más
+positiva en esa fase, fuerza a la corriente del tiristor saliente a decaer hasta cero — es la red, no el
+dispositivo, quien "decide" cuándo puede ocurrir la conmutación. El IGBT, en cambio, tiene control de
+puerta también en el apagado: puede cortar la corriente en el instante que el control decida, sin depender
+de que la tensión externa se lo permita — de ahí "conmutación forzada".
+
+**El ángulo de solape \(\mu\): la conmutación no es instantánea.** Mientras el tiristor entrante se
+enciende y el saliente aún no se ha apagado, ambos conducen simultáneamente durante un intervalo angular
+\(\mu\) (el "solape" o *commutation overlap*): la corriente no puede saltar de golpe de una rama a otra
+porque tiene que atravesar la inductancia de conmutación \(X_c\) (esencialmente la reactancia de
+cortocircuito del transformador convertidor) — ver panel (a) de la figura. Durante ese intervalo, la
+tensión de línea se reparte entre ambas ramas en vez de aplicarse íntegra al puente, lo que reduce la
+tensión media de salida por debajo del valor ideal \(\cos\alpha\) puro:
+
+$$ \cos\alpha - \cos(\alpha+\mu) = \frac{2\,I_{dc}\,X_c}{\sqrt6\,V_{LL}} $$
+
+Esta relación (derivada de igualar el área de tensión perdida durante el solape a la caída inductiva que
+sufre la corriente) muestra que \(\mu\) **crece con la corriente de continua** \(I_{dc}\): a más potencia
+transmitida, más ángulo de solape.
+
+**El ángulo de extinción \(\gamma\), y el límite de red débil.** Para que el tiristor saliente recupere su
+capacidad de bloqueo antes de que la tensión vuelva a hacerse positiva sobre él, tiene que disponer de un
+margen angular mínimo tras el fin de la conducción:
+
+$$ \gamma = 180° - \alpha - \mu \qquad \text{debe cumplir} \qquad \gamma > \gamma_{min}\approx15\text{–}18° $$
+
+Si \(\gamma\) cae por debajo de \(\gamma_{min}\) (tiempo insuficiente de recuperación), el tiristor
+saliente vuelve a conducir cuando no debía — un **fallo de conmutación** (*commutation failure*), que
+colapsa la tensión DC durante varios ciclos. Esto es precisamente lo que ocurre con una **red débil**: si
+el sistema AC tiene poca potencia de cortocircuito (SCR bajo), cualquier perturbación (una falta cercana,
+un escalón de potencia) provoca una caída de tensión \(V_{LL}\) más pronunciada, lo que —por la relación de
+arriba— aumenta \(\mu\) para la misma corriente y reduce \(\gamma\) por debajo del margen de seguridad. De
+ahí el requisito práctico \(SCR\gtrsim2\text{–}3\) para operación fiable del LCC: no es un límite arbitrario,
+sino la condición para que \(\gamma\) no colapse ante las perturbaciones normales de una red débil.
+
+**Por qué el LCC no puede desacoplar \(P\) y \(Q\).** El propio ángulo de disparo \(\alpha\) que fija la
+tensión DC (y por tanto \(P\)) determina también, junto con \(\mu\), el factor de potencia del lado AC —
+aproximadamente \(\cos\varphi\approx(\cos\alpha+\cos(\alpha+\mu))/2\), la misma expresión que da la caída
+de tensión por conmutación. El puente **siempre** consume reactiva del lado AC (nunca la genera, por la
+propia naturaleza de la conmutación natural), y esa reactiva no es una variable de control independiente:
+queda fijada por el punto de operación de \(P\). El panel (b) de la figura lo cuantifica: a ángulo de
+disparo fijo, al subir \(I_{dc}\) (y por tanto \(P_{dc}\)), el ángulo \(\mu\) crece, el factor de potencia
+empeora, y \(Q\) crece **más que proporcionalmente** con \(P\) — la razón \(Q/P\) pasa de \(\sim0.30\) a
+\(\sim0.41\) en el rango simulado. El VSC, en cambio, con conmutación forzada no tiene este acoplamiento:
+la tensión de salida se sintetiza libremente en módulo y fase respecto a la corriente, así que \(P\) y
+\(Q\) se controlan mediante dos variables independientes (ver el modelo dq del MMC en
+[[mmc-modelo-control]]).
+
+<div class="cfig"><img src="figuras/lcc-conmutacion-natural.png" alt="forma de onda de la conmutacion entre dos tiristores de un puente LCC mostrando el angulo de disparo alpha y el angulo de solape mu durante el cual ambos tiristores conducen simultaneamente, con el angulo de extincion gamma marcado; y grafica de la potencia reactiva consumida frente a la potencia activa a angulo de disparo fijo, mostrando que Q crece mas que proporcionalmente a P"><div class="cap">(a) Conmutación entre dos tiristores de un puente LCC: la corriente tarda un ángulo \(\mu\) (solape) en transferirse del saliente al entrante, porque debe atravesar la reactancia de conmutación. El ángulo de extinción \(\gamma=180°-\alpha-\mu\) debe mantenerse por encima de un mínimo para evitar el fallo de conmutación — la condición que impone el límite de SCR. (b) A ángulo de disparo \(\alpha\) fijo, la potencia reactiva consumida crece más que proporcionalmente con la potencia activa: el LCC no puede pedir \(P\) sin pedir \(Q\), a diferencia del VSC.</div></div>
+
 | Característica | LCC-HVDC | VSC-HVDC (MMC) |
 |---|---|---|
 | Dispositivo | Tiristor (sin disparo de apagado) | IGBT (disparo de encendido y apagado) |

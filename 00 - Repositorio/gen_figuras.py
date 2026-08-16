@@ -16170,6 +16170,68 @@ def _mtdc_droop_derivacion():
     _savefig(fig, 'mtdc-droop-derivacion', dpi=160)
 
 
+def _lcc_conmutacion_natural():
+    """HVDC-LCC: por que el tiristor fuerza consumo de Q acoplado a P. (a) forma
+    de onda de conmutacion entre dos tiristores de un puente LCC, mostrando el
+    angulo de disparo alpha, el angulo de solape/conmutacion mu (durante el cual
+    ambos tiristores conducen y la tension de linea colapsa la corriente del
+    saliente) y el angulo de extincion gamma=180-alpha-mu que debe mantenerse
+    por encima de un minimo para no fallar la conmutacion; (b) Q vs P del puente
+    a angulo de disparo fijo, mostrando el acoplamiento (Q crece mas que
+    proporcional a P porque mu tambien crece con la corriente)."""
+    import matplotlib.pyplot as plt
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.5, 5.4), gridspec_kw={'width_ratios': [1.1, 1.0]})
+    fig.suptitle('LCC-HVDC: por qué la conmutación natural acopla $P$ y $Q$', fontsize=12.8, fontweight='bold')
+
+    # ---- (a) forma de onda de conmutacion: corriente saliente/entrante y angulos ----
+    alpha_deg = 15; mu_deg = 8
+    theta = np.linspace(0, 60, 1000)
+    Idc = 1.0
+    i_out = np.where(theta < alpha_deg, Idc, np.where(theta < alpha_deg+mu_deg,
+             Idc*(1 - (theta-alpha_deg)/mu_deg), 0.0))
+    i_in = Idc - i_out
+    a1.plot(theta, i_out, color='#c0392b', lw=2.2, label='$i_{saliente}$ (tiristor que se apaga)')
+    a1.plot(theta, i_in, color='#1e8449', lw=2.2, label='$i_{entrante}$ (tiristor que se enciende)')
+    a1.axvspan(alpha_deg, alpha_deg+mu_deg, color='#f9e79f', alpha=0.5)
+    a1.axvline(alpha_deg, color='gray', lw=0.9, ls=':')
+    a1.axvline(alpha_deg+mu_deg, color='gray', lw=0.9, ls=':')
+    a1.annotate('', xy=(alpha_deg, 1.12), xytext=(0, 1.12), arrowprops=dict(arrowstyle='<->', color='#333', lw=1.0))
+    a1.text(alpha_deg/2, 1.16, r'$\alpha$ (disparo)', fontsize=8.5, ha='center')
+    a1.annotate('', xy=(alpha_deg+mu_deg, 1.0), xytext=(alpha_deg, 1.0), arrowprops=dict(arrowstyle='<->', color='#b7950b', lw=1.2))
+    a1.text(alpha_deg+mu_deg/2, 1.03, r'$\mu$ (solape)', fontsize=8.5, ha='center', color='#b7950b')
+    a1.set_xlabel(r'$\theta$ [grados, tras el cruce por cero]'); a1.set_ylabel(r'$i$ [$\times I_{dc}$]')
+    a1.set_ylim(-0.05, 1.25); a1.grid(alpha=.3)
+    a1.legend(fontsize=8.5, loc='upper right')
+    a1.text(46, 0.42, r'$\gamma=180°{-}\alpha{-}\mu$'+'\n'+r'(ángulo de extinción,'+'\n'+r'debe ser $>\gamma_{min}{\approx}15$–$18°$)',
+            fontsize=8.3, ha='center', bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='steelblue'))
+    a1.set_title('(a) Conmutación entre dos tiristores:\nla corriente no puede saltar, tarda $\\mu$ en transferirse', fontsize=10.5, fontweight='bold')
+
+    # ---- (b) Q vs P a alpha fijo, con mu creciendo con la corriente ----
+    VLL = 400e3; Xc = 20.0; alpha = np.radians(15)
+    Idc_range = np.linspace(50, 2000, 200)
+    mu = np.arccos(np.cos(alpha) - 2*Idc_range*Xc/(np.sqrt(6)*VLL)) - alpha
+    Vdc0 = (3*np.sqrt(2)/np.pi)*VLL
+    Vdc = Vdc0*(np.cos(alpha)+np.cos(alpha+mu))/2
+    Pdc = Vdc*Idc_range/1e6
+    cosphi = Vdc/Vdc0
+    Q = Pdc*np.tan(np.arccos(np.clip(cosphi, -1, 1)))
+
+    a2.plot(Pdc, Q, color='#c0392b', lw=2.2)
+    a2.fill_between(Pdc, 0, Q, color='#c0392b', alpha=0.08)
+    for frac in [0.2, 0.5, 0.8, 1.0]:
+        idx = int(frac*(len(Pdc)-1))
+        a2.plot([Pdc[idx]], [Q[idx]], 'o', color='#c0392b', ms=6, zorder=5)
+        a2.annotate(f'$Q/P$={Q[idx]/Pdc[idx]:.2f}', xy=(Pdc[idx], Q[idx]), xytext=(Pdc[idx]-70, Q[idx]+22),
+                    fontsize=7.5, color='#7f2d1e')
+    a2.set_xlabel(r'$P_{dc}$ [MW] (a $\alpha=15°$ fijo)'); a2.set_ylabel(r'$Q$ consumida [MVAr]')
+    a2.grid(alpha=.3)
+    a2.set_title(r'(b) $Q$ crece más que proporcional a $P$:'+'\n'+r'el LCC no puede pedir $P$ sin pedir $Q$', fontsize=10.5, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'lcc-conmutacion-natural', dpi=160)
+
+
 def _hvdc_configuraciones():
     """HVDC: (a) monopolar con retorno por tierra, bipolar y simetrica monopolar,
     esquemas de conductores entre dos terminales; (b) topologias MTDC radial y
@@ -18153,6 +18215,9 @@ def main():
         n += 1
     if pref is None or "mtdc-droop-derivacion".startswith(pref):
         _mtdc_droop_derivacion()
+        n += 1
+    if pref is None or "lcc-conmutacion-natural".startswith(pref):
+        _lcc_conmutacion_natural()
         n += 1
     if pref is None or "hvdc-configuraciones".startswith(pref):
         _hvdc_configuraciones()
