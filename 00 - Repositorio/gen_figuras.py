@@ -16233,33 +16233,47 @@ def _lcc_conmutacion_natural():
 
 
 def _hvdc_terminal(ax, x, y, lbl='', flip=False, scale=1.0, col='#2e5090'):
-    """Dibuja un terminal VSC-HVDC estilizado: red AC (barras trifasicas) ->
-    transformador (dos circulos solapados) -> convertidor (rectangulo con
-    simbolo de onda). flip=True lo dibuja en espejo (terminal de la derecha,
-    apuntando hacia la izquierda)."""
-    import matplotlib.patches as mpatches
+    """Dibuja un terminal VSC-HVDC con simbologia unifilar estandar: barras
+    trifasicas (3 rayas) -> transformador (dos circulos EN LA DIRECCION DEL
+    CABLE, uno tras otro, no apilados) -> convertidor (rombo/circulo partido
+    con simbolo IEC: ~ en el lado AC, — en el lado DC). flip=True lo dibuja
+    en espejo (terminal de la derecha, apuntando hacia la izquierda)."""
     s = scale
     d = -1 if flip else 1
-    # barras AC (3 lineas cortas entrando)
-    for dy in (-0.22, 0, 0.22):
-        ax.plot([x, x+d*0.35*s], [y+dy*s, y+dy*s], color='#555', lw=1.1)
-    # transformador: dos circulos solapados
-    cx = x + d*0.62*s
-    ax.add_patch(plt.Circle((cx, y+0.13*s), 0.16*s, facecolor='none', edgecolor=col, lw=1.3))
-    ax.add_patch(plt.Circle((cx, y-0.13*s), 0.16*s, facecolor='none', edgecolor=col, lw=1.3))
-    ax.plot([x+d*0.35*s, cx-d*0.05*s], [y, y], color='#555', lw=1.1)
-    # convertidor: rectangulo con onda cuadrada estilizada dentro
-    rx0 = x + d*0.95*s
-    rw = d*0.62*s
-    ax.add_patch(mpatches.FancyBboxPatch((min(rx0, rx0+rw), y-0.34*s), abs(rw), 0.68*s,
-        boxstyle='round,pad=0.02', facecolor='#D6E4F0', edgecolor=col, lw=1.5, zorder=4))
-    ax.plot([rx0+rw*0.15, rx0+rw*0.15, rx0+rw*0.42, rx0+rw*0.42, rx0+rw*0.68, rx0+rw*0.68, rx0+rw*0.85],
-            [y-0.12*s, y+0.12*s, y+0.12*s, y-0.12*s, y-0.12*s, y+0.12*s, y+0.12*s],
-            color=col, lw=1.3, zorder=5)
-    ax.plot([cx+d*0.16*s, rx0+min(0, rw)], [y, y], color='#555', lw=1.1)
+
+    # ---- barras AC trifasicas: 3 rayas cortas perpendiculares al cable ----
+    xac = x
+    for dy in (-0.15, 0, 0.15):
+        ax.plot([x, x+d*0.05*s], [y+dy*s, y+dy*s], color='#333', lw=1.6)
+    ax.plot([x+d*0.05*s, x+d*0.05*s], [y-0.15*s, y+0.15*s], color='#333', lw=1.6)
+    ax.plot([x+d*0.05*s, x+d*0.45*s], [y, y], color='#333', lw=1.4)
+
+    # ---- transformador: dos circulos EN SERIE a lo largo del cable (simbolo IEC) ----
+    r_xf = 0.14*s
+    c1x = x + d*0.60*s
+    c2x = x + d*0.60*s + d*0.19*s
+    ax.add_patch(plt.Circle((c1x, y), r_xf, facecolor='white', edgecolor=col, lw=1.4, zorder=4))
+    ax.add_patch(plt.Circle((c2x, y), r_xf, facecolor='white', edgecolor=col, lw=1.4, zorder=5))
+    ax.plot([x+d*0.45*s, c1x-r_xf], [y, y], color='#333', lw=1.4)
+
+    # ---- convertidor: circulo con simbolo IEC de convertidor AC/DC (~ | —) ----
+    r_c = 0.30*s
+    cvx = x + d*(0.60+0.19+0.14+0.34)*s
+    ax.plot([c2x+r_xf, cvx-r_c], [y, y], color='#333', lw=1.4)
+    ax.add_patch(plt.Circle((cvx, y), r_c, facecolor='#D6E4F0', edgecolor=col, lw=1.6, zorder=6))
+    # simbolo IEC estandar del convertidor: una sola senoide horizontal (~)
+    # cruzando el circulo, con una raya recta (—) debajo indicando el lado DC
+    ax_side = -d  # lado AC (donde arranca la onda, hacia la red)
+    tt = np.linspace(-1, 1, 80)
+    wx_c = cvx - ax_side*0.02*r_c
+    wxx = wx_c + tt*0.55*r_c
+    wyy = y + 0.22*r_c*np.sin(tt*np.pi*1.5)*ax_side*(-1)
+    ax.plot(wxx, wyy + 0.14*r_c, color=col, lw=1.5, zorder=7, solid_capstyle='round')
+    ax.plot([wx_c-0.5*r_c, wx_c+0.5*r_c], [y-0.16*r_c, y-0.16*r_c], color=col, lw=1.5, zorder=7)
+
     if lbl:
-        ax.text(x+d*0.1*s, y-0.62*s, lbl, fontsize=7.5, color='#555', ha='center' if not flip else 'center')
-    return rx0+rw  # borde DC del terminal
+        ax.text(x+d*0.35*s, y-0.62*s, lbl, fontsize=7.5, color='#555', ha='center')
+    return cvx + d*r_c  # borde DC del terminal (donde empieza el conductor de linea)
 
 
 def _hvdc_ground_symbol(ax, x, y, scale=1.0):
