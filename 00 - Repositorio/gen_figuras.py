@@ -16117,6 +16117,146 @@ def _hvdc_cable_falta_rlc():
     _savefig(fig, 'hvdc-cable-falta-rlc', dpi=160)
 
 
+def _hvdc_modelado_enlace():
+    """HVDC apartado 4 (modelado): (a) esquema del sistema de 2 terminales con
+    el balance de potencia AC->bus DC->cable->bus DC->AC, mostrando las
+    variables P1, P2, Vdc1, Vdc2, Iline; (b) respuesta temporal de Vdc del
+    terminal maestro ante un escalon de carga en el terminal esclavo, usando
+    el PI disenado sobre la variable de energia W=1/2*C*Vdc^2 (planta lineal
+    exacta) en vez de sobre Vdc directamente (planta no lineal)."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.5, 5.6), gridspec_kw={'width_ratios': [1.1, 1.0]})
+    fig.suptitle('HVDC, apartado 4: balance de potencia del enlace y dinámica de $V_{dc}$', fontsize=12.8, fontweight='bold')
+
+    # ---- (a) esquema de balance de potencia ----
+    a1.axis('off'); a1.set_xlim(0, 12); a1.set_ylim(0, 7)
+    a1.set_title('(a) Balance de potencia: AC ↔ bus DC ↔ cable ↔ bus DC ↔ AC', fontsize=10.8, fontweight='bold')
+
+    def box(x, y, w, h, txt, fc='#D6E4F0', ec='#2e5090', fs=9):
+        a1.add_patch(mpatches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.03', facecolor=fc, edgecolor=ec, lw=1.5, zorder=4))
+        a1.text(x+w/2, y+h/2, txt, ha='center', va='center', fontsize=fs, fontweight='bold', zorder=5)
+
+    box(0.3, 2.6, 1.7, 1.8, 'Red AC\n1', fc='#EBF5FB', ec='#555', fs=9)
+    box(2.6, 2.6, 1.7, 1.8, 'VSC 1\n$P_1$')
+    a1.add_patch(plt.Circle((5.3, 3.5), 0.55, facecolor='#FADBD8', edgecolor='#c0392b', lw=1.6, zorder=4))
+    a1.text(5.3, 3.5, r'$C_1$' + '\n' + r'$V_{dc1}$', ha='center', va='center', fontsize=8.5, fontweight='bold', zorder=5)
+    a1.annotate('', xy=(7.2, 3.5), xytext=(5.85, 3.5), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=2.0))
+    a1.text(6.5, 3.85, r'$I_{line}$', fontsize=9, color='#c0392b', ha='center')
+    a1.text(6.5, 3.15, 'cable DC\n($R,L,C$)', fontsize=7.5, color='#555', ha='center')
+    a1.add_patch(plt.Circle((7.7, 3.5), 0.55, facecolor='#D5F5E3', edgecolor='#1e8449', lw=1.6, zorder=4))
+    a1.text(7.7, 3.5, r'$C_2$' + '\n' + r'$V_{dc2}$', ha='center', va='center', fontsize=8.5, fontweight='bold', zorder=5)
+    box(8.7, 2.6, 1.7, 1.8, 'VSC 2\n$P_2$')
+    box(11.0-1.0, 2.6, 1.7, 1.8, 'Red AC\n2', fc='#EBF5FB', ec='#555', fs=9)
+
+    for xa, xb in [(2.0, 2.6), (4.3, 4.75), (8.25, 8.7), (10.4, 10.0)]:
+        a1.annotate('', xy=(xb, 3.5), xytext=(xa, 3.5), arrowprops=dict(arrowstyle='-|>', color='#333', lw=1.3))
+    a1.text(1.15, 4.65, r'$P_{AC1}$', fontsize=8.5, ha='center', color='#333')
+    a1.text(10.85, 4.65, r'$P_{AC2}$', fontsize=8.5, ha='center', color='#333')
+    a1.text(6.5, 1.4, r'$C\dfrac{dV_{dc}}{dt}\,V_{dc}=P_{AC}-P_{line}\quad\Longrightarrow\quad \dfrac{d}{dt}\left(\frac{1}{2}CV_{dc}^2\right)=P_{AC}-P_{line}$',
+            fontsize=10, ha='center', bbox=dict(boxstyle='round', facecolor='#FCF3CF', edgecolor='#b7950b'))
+
+    # ---- (b) respuesta de Vdc: PI sobre W=1/2 C Vdc^2, escalon de carga en terminal 2 ----
+    Vdc0 = 640e3; C = 60e-6
+    dt = 2e-6; T = 0.05
+    t = np.arange(0, T, dt)
+    Vdc = np.zeros(len(t)); Vdc[0] = Vdc0
+    wn = 100.0; Kp_W = 2*wn; Ki_W = wn**2
+    integ = 0.0
+    P2_set = -400e6
+    P2 = np.where(t < 0.008, 0.0, P2_set)
+    Wref = 0.5*C*Vdc0**2
+    for k in range(len(t)-1):
+        W = 0.5*C*Vdc[k]**2
+        err = Wref - W
+        integ += err*dt
+        P1 = Kp_W*err + Ki_W*integ
+        dW = (P1+P2[k])*dt
+        Vdc[k+1] = np.sqrt(max(2*(W+dW)/C, 1))
+
+    a2.plot(t*1e3, Vdc/1e3, color='#2e5090', lw=2.0)
+    a2.axhline(Vdc0/1e3, color='gray', lw=0.8, ls=':')
+    a2.axvline(8, color='#c0392b', lw=1.0, ls='--')
+    a2.text(9.5, 617, r'escalón $P_2$:'+'\n'+r'$0\to-400$ MW', fontsize=8, color='#c0392b', va='center')
+    a2.set_xlabel('t [ms]'); a2.set_ylabel(r'$V_{dc1}$ [kV]'); a2.grid(alpha=.3)
+    a2.set_title('(b) $V_{dc}$ del terminal maestro ante escalón de\ncarga: PI diseñado sobre $W{=}\\frac{1}{2}CV_{dc}^2$ (planta lineal)', fontsize=10.5, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'hvdc-modelado-enlace', dpi=160)
+
+
+def _hvdc_control_jerarquia():
+    """HVDC apartado 5 (control): diagrama de bloques del control jerarquico
+    de un terminal VSC-HVDC: lazo interno de corriente dq (con desacoplo,
+    igual estructura que el MSC del PMSG) generando v_d*, v_q*, y lazo externo
+    que segun el modo (maestro de Vdc o esclavo de P) genera la referencia
+    id*, mas el lazo de Q/AC-voltage que genera iq*."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    fig, ax = plt.subplots(1, 1, figsize=(13.5, 6.6))
+    ax.axis('off'); ax.set_xlim(0, 15); ax.set_ylim(0, 8.5)
+    ax.set_title('Control jerárquico de un terminal VSC-HVDC: lazo externo (modo) + lazo interno (corriente dq)', fontsize=12.5, fontweight='bold', pad=10)
+
+    def box(x, y, w, h, txt, fc='#D6E4F0', ec='#2e5090', fs=9):
+        ax.add_patch(mpatches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.03', facecolor=fc, edgecolor=ec, lw=1.5, zorder=4))
+        ax.text(x+w/2, y+h/2, txt, ha='center', va='center', fontsize=fs, fontweight='bold', zorder=5)
+
+    def arrow(xy0, xy1, col='#333', lw=1.4, rad=0.0):
+        ax.annotate('', xy=xy1, xytext=xy0, arrowprops=dict(arrowstyle='-|>', color=col, lw=lw, connectionstyle=f'arc3,rad={rad}'))
+
+    # ---- fila superior: modo maestro Vdc (eje d) ----
+    box(0.3, 6.6, 1.6, 1.0, r'$V_{dc}^*$', fc='#FADBD8', ec='#c0392b')
+    box(2.4, 6.6, 2.2, 1.0, r'PI$_{Vdc}$' + '\n(sobre $W{=}\\frac{1}{2}CV_{dc}^2$)', fc='#FADBD8', ec='#c0392b', fs=8)
+    arrow((1.9, 7.1), (2.4, 7.1))
+    box(5.1, 6.6, 1.6, 1.0, r'$i_d^*$', fc='#FADBD8', ec='#c0392b')
+    arrow((4.6, 7.1), (5.1, 7.1))
+    ax.text(3.5, 7.85, 'modo maestro ($V_{dc}$)', fontsize=8.5, color='#c0392b', ha='center', style='italic')
+
+    # ---- fila Q / AC voltage (eje q) ----
+    box(0.3, 5.1, 1.6, 1.0, r'$Q^*$ / $V_{ac}^*$', fc='#D5F5E3', ec='#1e8449', fs=8)
+    box(2.4, 5.1, 2.2, 1.0, r'PI$_{Q}$', fc='#D5F5E3', ec='#1e8449')
+    arrow((1.9, 5.6), (2.4, 5.6))
+    box(5.1, 5.1, 1.6, 1.0, r'$i_q^*$', fc='#D5F5E3', ec='#1e8449')
+    arrow((4.6, 5.6), (5.1, 5.6))
+
+    # ---- lazo interno de corriente dq (con desacoplo, igual estructura que MSC) ----
+    box(7.1, 6.1, 1.9, 1.0, r'PI$_d$', fc='#EBF5FB', ec='#2e5090')
+    arrow((6.7, 7.1), (7.1, 6.6))
+    box(7.1, 4.6, 1.9, 1.0, r'PI$_q$', fc='#EBF5FB', ec='#2e5090')
+    arrow((6.7, 5.6), (7.1, 5.1))
+    box(9.4, 5.35, 2.7, 0.9, r'$\omega L\,i_q,\ \omega L\,i_d$' + '\n(desacoplo feedforward)', fc='#F4ECF7', ec='#7d3c98', fs=7.5)
+    arrow((9.4, 6.35), (9.75, 6.6), col='#7d3c98', rad=0.15)
+    arrow((9.4, 5.35), (9.75, 5.1), col='#7d3c98', rad=-0.15)
+
+    box(9.7, 6.1, 1.7, 1.0, r'$v_d^*$', fc='#EBF5FB', ec='#2e5090')
+    arrow((9.0, 6.6), (9.7, 6.6))
+    box(9.7, 4.6, 1.7, 1.0, r'$v_q^*$', fc='#EBF5FB', ec='#2e5090')
+    arrow((9.0, 5.1), (9.7, 5.1))
+
+    box(12.2, 5.35, 2.3, 1.0, 'PWM /\nmodulador MMC', fc='#FCF3CF', ec='#b7950b', fs=8.5)
+    arrow((11.4, 6.6), (12.2, 5.9), rad=-0.15)
+    arrow((11.4, 5.1), (12.2, 5.6), rad=0.15)
+    ax.text(13.35, 4.9, r'$\to$ brazos MMC', fontsize=8, color='#555', ha='center')
+
+    ax.text(3.5, 4.35, 'lazo externo (elige el modo del terminal)', fontsize=9, color='#333', ha='center', fontweight='bold')
+    ax.text(9.05, 4.05, 'lazo interno de corriente\n(estructura idéntica en todos los modos)', fontsize=9, color='#333', ha='center', fontweight='bold')
+
+    # ---- caja inferior: modo esclavo de P ----
+    box(0.3, 2.3, 1.6, 1.0, r'$P^*$', fc='#FDEBD0', ec='#d68910')
+    box(2.4, 2.3, 2.2, 1.0, 'consigna\ndirecta', fc='#FDEBD0', ec='#d68910', fs=8)
+    arrow((1.9, 2.8), (2.4, 2.8))
+    box(5.1, 2.3, 1.6, 1.0, r'$i_d^*=\dfrac{2P^*}{3v_d}$', fc='#FDEBD0', ec='#d68910', fs=7.5)
+    arrow((4.6, 2.8), (5.1, 2.8))
+    ax.text(3.5, 3.5, 'modo esclavo ($P$)', fontsize=8.5, color='#d68910', ha='center', style='italic')
+    ax.text(3.5, 1.6, r'un terminal en modo maestro fija $V_{dc}$; los demás en modo esclavo fijan $P$'+'\n'+r'(o droop, apartado 6) — nunca dos terminales en modo maestro puro a la vez',
+            fontsize=9, ha='center', color='#555', bbox=dict(boxstyle='round', facecolor='#F8F9F9', edgecolor='#999'))
+
+    plt.tight_layout()
+    _savefig(fig, 'hvdc-control-jerarquia', dpi=160)
+
+
 def _mtdc_droop_derivacion():
     """MTDC apartado 2: derivacion del droop DC desde el balance de potencia
     del sistema completo. (a) rectas P-V de 3 terminales antes y despues de
@@ -18359,6 +18499,12 @@ def main():
         n += 1
     if pref is None or "hvdc-cable-falta-rlc".startswith(pref):
         _hvdc_cable_falta_rlc()
+        n += 1
+    if pref is None or "hvdc-modelado-enlace".startswith(pref):
+        _hvdc_modelado_enlace()
+        n += 1
+    if pref is None or "hvdc-control-jerarquia".startswith(pref):
+        _hvdc_control_jerarquia()
         n += 1
     if pref is None or "mtdc-droop-derivacion".startswith(pref):
         _mtdc_droop_derivacion()

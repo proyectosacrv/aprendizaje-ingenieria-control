@@ -1,12 +1,12 @@
 ---
-titulo: "HVDC-VSC: topología, cable DC, MTDC y protección"
+titulo: "HVDC-VSC: topología, modelado, control, cable DC, MTDC y protección"
 slug: hvdc-vsc-topologia
 categoria: fisica-modelado
 tipo: concepto
 nivel: avanzado
 proyectos: []
-objetivos: [comprender la arquitectura del HVDC-VSC y el MMC, modelar el cable DC y su falta, distinguir configuraciones punto a punto vs MTDC, entender el droop DC y la protección DC]
-tags: [hvdc, vsc, mmc, lcc, monopolar, bipolar, punto-a-punto, multi-terminal, offshore, cable-dc, falta-dc, dccb, droop-dc, mtdc]
+objetivos: [comprender la arquitectura del HVDC-VSC y el MMC, modelar el balance de potencia y la dinamica de Vdc del enlace, disenar el control jerarquico de un terminal VSC-HVDC, modelar el cable DC y su falta, distinguir configuraciones punto a punto vs MTDC, entender el droop DC y la proteccion DC, comparar con LCC]
+tags: [hvdc, vsc, mmc, lcc, monopolar, bipolar, punto-a-punto, multi-terminal, offshore, cable-dc, falta-dc, dccb, droop-dc, mtdc, modelado-vdc, control-jerarquico, lazo-dq]
 fecha_creacion: 2026-07-05
 fecha_actualizacion: 2026-08-16
 relacionados: [convertidor-back-to-back, topologias-multinivel, filtro-lcl, fenomenos-oscilatorios-red, mmc-modelo-control]
@@ -21,7 +21,7 @@ referencias:
 
 HVDC-VSC (High Voltage Direct Current con Voltage Source Converter) transmite potencia eléctrica en
 corriente continua usando convertidores de fuente de tensión en ambos extremos. A diferencia del HVDC
-clásico con tiristores (LCC-HVDC, apartado 5), el VSC-HVDC:
+clásico con tiristores (LCC-HVDC, apartado 12), el VSC-HVDC:
 
 - Controla \( P \) y \( Q \) de forma independiente en cada extremo
 - Puede conectarse a redes débiles o isladas (no necesita conmutación natural)
@@ -70,7 +70,7 @@ falla (por una avería en su convertidor o una falta en su conductor), el polo p
 transmitiendo el 50 % de la potencia nominal usando temporalmente tierra como camino de retorno (el modo
 "monopolar de emergencia"), sin necesidad de intervención manual inmediata — la mitad de la capacidad se
 recupera automáticamente mientras se repara el polo averiado. Esta es la razón por la que casi todos los
-enlaces HVDC-VSC de nueva construcción de cierta envergadura (DolWin, BorWin, NordLink — apartado 10) usan
+enlaces HVDC-VSC de nueva construcción de cierta envergadura (DolWin, BorWin, NordLink — apartado 11) usan
 esta configuración.
 
 **Simétrica monopolar.** Dos conductores a \(\pm V_{dc}/2\) que salen del mismo convertidor (el punto
@@ -92,7 +92,7 @@ convertidor y su aislamiento (que crece con la tensión). Tensiones típicas act
 \(\pm320\,\text{kV}\) en cables submarinos, \(\pm500\,\text{kV}\) en líneas aéreas; potencias de
 200 MW a 2 GW por enlace punto a punto.
 
-**Topologías de red MTDC.** Cuando hay tres o más terminales en la misma red DC (apartado 4), la
+**Topologías de red MTDC.** Cuando hay tres o más terminales en la misma red DC (apartado 6), la
 disposición geométrica de los cables entre ellos define otra decisión de topología independiente de la
 configuración de polos anterior:
 
@@ -102,9 +102,9 @@ La **radial** conecta cada terminal por un único camino a un nodo central (o a 
 cadena): es simple y económica para 3–4 terminales, pero el nodo central (o cualquier tramo intermedio)
 es un punto único de fallo — perderlo aísla toda esa rama de la red. La **mallada** añade conexiones
 redundantes entre terminales de modo que existe más de un camino entre cualquier par de nodos: mayor
-coste de cable y de disyuntores DC (uno en cada extremo de cada línea, apartado 8), pero sin punto único
+coste de cable y de disyuntores DC (uno en cada extremo de cada línea, apartado 9), pero sin punto único
 de fallo — es la topología objetivo de las futuras superredes DC offshore (North Sea Wind Power Hub,
-apartado 10).
+apartado 11).
 
 ## 3 — El convertidor: el MMC (resumen — desarrollo completo en [[mmc-modelo-control]])
 
@@ -122,9 +122,145 @@ control (CCSC), la modulación (NLM con sorting de condensadores), la jerarquía
 control, el dimensionado (energía almacenada, \(V_{C,nom}\), \(C_{SM}\)) y las pérdidas por submódulo.
 Lo relevante para este capítulo (arquitectura y sistema HVDC) es que el MMC es lo que hace posible operar
 sin filtro AC de potencia y con pérdidas de conmutación mínimas — las dos propiedades que distinguen al
-VSC-HVDC moderno del VSC de dos niveles de la primera generación (BorWin1, apartado 9).
+VSC-HVDC moderno del VSC de dos niveles de la primera generación (BorWin1, apartado 11).
 
-## 4 — Topología punto a punto vs MTDC, y el droop de tensión DC
+## 4 — Modelado del enlace: balance de potencia y dinámica de \(V_{dc}\)
+
+**Qué problema resuelve este apartado.** Los apartados anteriores describen la topología (cómo está
+construido el enlace); este describe su **comportamiento dinámico**: qué ecuación gobierna la tensión del
+bus DC de cada terminal, por qué esa ecuación no es lineal en \(V_{dc}\), y qué variable conviene usar
+para poder diseñar un controlador con las herramientas lineales habituales.
+
+**El sistema de dos terminales como cadena de bloques.** Un enlace punto a punto es, eléctricamente, una
+cadena: red AC 1 → convertidor 1 → bus DC 1 (condensador \(C_1\)) → cable DC → bus DC 2 (condensador
+\(C_2\)) → convertidor 2 → red AC 2. Cada convertidor VSC actúa como una interfaz de potencia entre su
+lado AC y su lado DC: intercambia con la red AC la potencia \(P_{ACi}\) que su control decide, y esa misma
+potencia (menos las pérdidas de conmutación y conducción, que se desprecian en el modelo de primer orden)
+es la que carga o descarga el condensador del bus DC de su lado.
+
+<div class="cfig"><img src="figuras/hvdc-modelado-enlace.png" alt="esquema del sistema de dos terminales HVDC-VSC mostrando el balance de potencia desde la red AC 1 a traves del convertidor VSC 1, el condensador del bus DC 1, el cable DC con su corriente Iline, el condensador del bus DC 2, el convertidor VSC 2 hasta la red AC 2, con la ecuacion del balance de potencia del condensador; y grafica de la respuesta temporal de Vdc del terminal maestro ante un escalon de carga en el terminal esclavo, usando un PI disenado sobre la variable de energia W en vez de sobre Vdc directamente"><div class="cap">(a) Cadena de bloques del enlace punto a punto: cada convertidor intercambia \(P_{ACi}\) con su red AC, y esa potencia (menos la que fluye por el cable) carga o descarga el condensador de su bus DC — de ahí sale la ecuación de balance de potencia del apartado. (b) Respuesta de \(V_{dc}\) del terminal maestro (el que fija la tensión) ante un escalón de potencia demandada por el terminal esclavo: el PI está diseñado sobre la variable de energía \(W=\tfrac12CV_{dc}^2\), cuya dinámica es exactamente lineal, no sobre \(V_{dc}\) directamente.</div></div>
+
+**Derivación de la ecuación de balance del bus DC.** La energía almacenada en el condensador del bus DC
+de un terminal es \(W=\tfrac12CV_{dc}^2\) (la fórmula estándar de energía de un condensador). Por
+conservación de energía, la potencia que fluye hacia el condensador es exactamente la diferencia entre la
+potencia que entra desde el lado AC (\(P_{AC}\), la que el convertidor decide intercambiar con la red) y
+la que sale hacia el cable DC (\(P_{line}=V_{dc}\,I_{line}\), la que abandona el bus hacia el otro
+terminal):
+
+$$ \frac{dW}{dt} = P_{AC} - P_{line} $$
+
+Sustituyendo \(W=\tfrac12CV_{dc}^2\) y derivando (regla de la cadena, \(\tfrac{d}{dt}(\tfrac12CV_{dc}^2)=
+CV_{dc}\tfrac{dV_{dc}}{dt}\)):
+
+$$ CV_{dc}\,\frac{dV_{dc}}{dt} = P_{AC} - P_{line} \quad\Longrightarrow\quad \boxed{\ \frac{dV_{dc}}{dt} = \frac{P_{AC}-P_{line}}{C\,V_{dc}}\ } $$
+
+Esta es la ecuación de estado exacta de la tensión del bus DC. **No es lineal**: el lado derecho tiene
+\(V_{dc}\) en el denominador, así que la respuesta ante una misma perturbación de potencia depende del
+punto de operación (la misma \(\Delta P\) mueve más rápido \(V_{dc}\) cuando \(V_{dc}\) es pequeño que
+cuando es grande) — un efecto real, no un artefacto del modelo: a menor tensión, la misma potencia exige
+mayor corriente, y es la corriente (vía \(I=C\,dV_{dc}/dt\)) la que realmente carga o descarga el
+condensador linealmente.
+
+**Por qué conviene usar \(W\) (o \(V_{dc}^2\)) como variable de estado en vez de \(V_{dc}\).** Volviendo a
+la ecuación antes de sustituir \(W\):
+
+$$ \frac{dW}{dt} = P_{AC} - P_{line} $$
+
+Esta ecuación **es exactamente lineal** en \(W\): la derivada de la energía es simplemente la diferencia
+de potencias, sin ningún término que dependa de \(W\) mismo. Es la misma diferencia que hay entre describir
+la carga de un condensador por su tensión (nolineal en corriente constante solo si se mira \(v\) vs. \(i\)
+de forma acoplada de cierta manera) y describirla por su energía (siempre lineal en potencia). Esto tiene
+una consecuencia práctica directa: si el lazo de control de \(V_{dc}\) se diseña tomando como salida
+controlada \(W\) (equivalentemente, \(V_{dc}^2\)) en vez de \(V_{dc}\) directamente, la planta que ve el
+controlador es un **integrador puro lineal** (\(\dot W = P_{AC}-P_{line}\)), y se puede aplicar
+directamente toda la teoría de diseño de PI para plantas de primer orden sin necesidad de linealizar
+alrededor de un punto de operación ni de que las ganancias cambien con \(V_{dc}\). Es la razón por la que
+en control real de HVDC es habitual que la variable regulada del lazo externo sea \(V_{dc}^2\) (o \(W\)) y
+no \(V_{dc}\) en crudo, aunque la referencia y la medida sigan presentándose al operador en kV.
+
+**Ejemplo verificado: respuesta ante un escalón de carga.** El panel (b) de la figura simula el sistema de
+dos terminales completo: el terminal 1 (maestro de \(V_{dc}\)) tiene un PI diseñado sobre \(W\) con
+\(\omega_n=100\,\text{rad/s}\) (\(K_{p,W}=2\omega_n\), \(K_{i,W}=\omega_n^2\), el criterio estándar de
+segundo orden con amortiguamiento crítico para una planta integradora), y el terminal 2 (esclavo de \(P\))
+pasa de \(P_2=0\) a \(P_2=-400\,\text{MW}\) (empieza a absorber potencia) en \(t=8\,\text{ms}\). La tensión
+del terminal maestro cae transitoriamente (hasta \(\sim600\,\text{kV}\), un \(6\,\%\) por debajo de la
+nominal \(640\,\text{kV}\)) mientras el condensador se descarga entregando la potencia que aún no ha
+compensado el lazo, y se recupera en unas pocas decenas de milisegundos — el comportamiento esperado de un
+sistema de segundo orden bien amortiguado.
+
+## 5 — Control de un terminal VSC-HVDC: jerarquía de dos lazos
+
+**Qué problema resuelve este apartado.** El apartado 4 estableció la ecuación de la planta
+(\(\dot W=P_{AC}-P_{line}\)); este apartado desarrolla el controlador que decide, en cada instante, qué
+\(P_{AC}\) pedirle al convertidor. La estructura es exactamente la misma que la del control vectorial de
+cualquier VSC conectado a red (idéntica en su forma al lazo de corriente del MSC del PMSG, ver
+[[aerogenerador-pmsg-dfig]]): un **lazo interno de corriente** rápido en el marco dq, y un **lazo externo**
+más lento que decide las referencias de corriente según el modo de operación del terminal.
+
+<div class="cfig"><img src="figuras/hvdc-control-jerarquia.png" alt="diagrama de bloques del control jerarquico de un terminal VSC-HVDC mostrando el lazo externo en modo maestro de tension Vdc (con el PI sobre la variable de energia) o modo esclavo de potencia P, junto al lazo de potencia reactiva Q, ambos generando las referencias de corriente id* e iq*, que entran al lazo interno de corriente dq compartido con desacoplo feedforward, generando las referencias de tension vd* y vq* que van al modulador PWM del MMC"><div class="cap">Control jerárquico de un terminal VSC-HVDC. El lazo externo decide el modo del terminal (maestro de \(V_{dc}\) o esclavo de \(P\), más el lazo independiente de \(Q\)/tensión AC) y genera las referencias \(i_d^*\), \(i_q^*\); el lazo interno de corriente, con estructura idéntica en todos los modos, las convierte en \(v_d^*\), \(v_q^*\) con desacoplo feedforward, que alimentan el modulador del MMC.</div></div>
+
+**El lazo interno de corriente dq, y por qué desacopla \(P\) y \(Q\).** Con el eje d del marco dq
+orientado al vector de tensión de la red en el punto de conexión (\(v_q=0\), el convenio estándar de
+control orientado a tensión), la potencia activa y reactiva que el convertidor intercambia con la red se
+escriben:
+
+$$ P = \frac{3}{2}\big(v_d i_d + v_q i_q\big) = \frac{3}{2}v_d i_d, \qquad Q = \frac{3}{2}\big(v_q i_d - v_d i_q\big) = -\frac{3}{2}v_d i_q $$
+
+(sustituyendo \(v_q=0\) en la expresión general de potencia instantánea en dq). El resultado —verificado
+directamente arriba, no asumido— es que con esta orientación **\(P\) depende únicamente de \(i_d\), y
+\(Q\) únicamente de \(i_q\)**: son dos variables de control completamente independientes. Esta es la
+propiedad central que distingue al VSC del LCC (apartado 12): el VSC puede fijar \(P\) sin que eso le
+imponga ningún valor de \(Q\), simplemente ajustando \(i_d\) e \(i_q\) por separado.
+
+El lazo de corriente en sí (dos PI, uno por eje, con el mismo desacoplo feedforward de los términos
+cruzados \(\omega L\,i_q\) y \(\omega L\,i_d\) que ya se derivó para el MSC del PMSG) genera las
+referencias de tensión \(v_d^*\), \(v_q^*\) que el modulador del MMC sintetiza en los brazos. Es el lazo
+más rápido de la jerarquía (ancho de banda típico 500–1500 rad/s, igual que en cualquier VSC de conexión
+a red), y su estructura **no cambia** según el modo del terminal — lo único que cambia entre modos es de
+dónde vienen las referencias \(i_d^*\), \(i_q^*\) que ese lazo recibe.
+
+**El lazo externo, y los dos modos del eje d.** La referencia \(i_d^*\) (que fija \(P\)) puede generarse
+de dos formas distintas, según el papel que ese terminal desempeñe en el enlace:
+
+- **Modo maestro de \(V_{dc}\).** Un PI compara \(V_{dc}^*\) con la medida (diseñado, según el apartado 4,
+  sobre la variable \(W=\tfrac12CV_{dc}^2\) para tener una planta lineal) y su salida es directamente
+  \(i_d^*\). Este terminal no fija su propia potencia: la deja flotar a lo que haga falta para mantener
+  \(V_{dc}\) en su consigna, absorbiendo o cediendo automáticamente cualquier diferencia entre lo que el
+  resto del sistema pide y lo que hay disponible — es el papel del "regulador de balance" de todo el
+  enlace o red DC.
+- **Modo esclavo de \(P\).** El terminal recibe una consigna de potencia activa \(P^*\) fija (por ejemplo,
+  la potencia que un parque eólico offshore quiere evacuar) y la convierte directamente en referencia de
+  corriente despejando de la fórmula de potencia activa:
+
+$$ P^* = \frac{3}{2}v_d\,i_d^* \quad\Longrightarrow\quad i_d^* = \frac{2P^*}{3v_d} $$
+
+  Este terminal no participa en absoluto en la regulación de \(V_{dc}\): inyecta o absorbe exactamente la
+  potencia que se le pide, pase lo que pase con la tensión del bus.
+
+**Por qué tiene que haber exactamente un maestro de \(V_{dc}\) (o un droop, apartado 6).** En un enlace
+punto a punto, el balance de potencia del apartado 4 (\(\dot W_{total}=P_{AC1}+P_{AC2}-\text{pérdidas}\))
+exige que, si un terminal fija \(P\) de forma rígida, el **otro** tiene que absorber cualquier diferencia
+para que la energía total del sistema no derive sin control — ese es exactamente el papel del modo
+maestro. Si **ambos** terminales intentasen operar en modo esclavo de \(P\) simultáneamente con consignas
+que no casen exactamente (lo habitual, porque las pérdidas nunca son cero y las consignas se fijan por
+separado), no habría ningún elemento absorbiendo el desajuste: la energía del bus DC (y por tanto
+\(V_{dc}\)) derivaría sin límite hasta disparar las protecciones de sobretensión o colapsar por
+infratensión. Por la misma razón, tampoco puede haber dos maestros de \(V_{dc}\) simultáneos con la misma
+referencia: ambos PI competirían por fijar la misma variable con ganancias independientes, lo que en
+general es inestable o, en el mejor caso, indeterminado (ninguno de los dos "sabe" cuánta corriente le
+corresponde aportar). En redes con más de dos terminales (MTDC), esta rigidez del maestro único se
+sustituye por el droop de tensión DC del apartado 6, que reparte la función de "sostener \(V_{dc}\)" entre
+varios terminales a la vez sin que ninguno la asuma en solitario.
+
+**El lazo de \(Q\) / tensión AC.** En paralelo y de forma independiente al lazo de \(V_{dc}\)/\(P\), cada
+terminal tiene un lazo sobre el eje q que genera \(i_q^*\) a partir de una consigna de potencia reactiva
+\(Q^*\) o de tensión AC \(V_{ac}^*\) en el punto de conexión (control de tensión, útil cuando el terminal
+alimenta una red débil o aislada — parques offshore sin generación síncrona propia, apartado 1). Como
+\(Q\) depende solo de \(i_q\) (verificado arriba), este lazo es completamente independiente del lazo de
+\(P\)/\(V_{dc}\): se pueden sintonizar y operar sin interferencia mutua, la ventaja de control que el LCC
+no tiene (apartado 12).
+
+## 6 — Topología punto a punto vs MTDC, y el droop de tensión DC
 
 **Punto a punto.** Dos terminales VSC conectados por un cable DC. Es la topología más sencilla: un
 terminal controla \( V_{dc} \) (el regulador del balance de energía del cable) y el otro controla \( P \)
@@ -132,7 +268,7 @@ terminal controla \( V_{dc} \) (el regulador del balance de energía del cable) 
 
 **MTDC (Multi-Terminal DC).** Tres o más terminales VSC conectados en la misma red DC. Los proyectos
 actuales más relevantes son las redes offshore para integrar múltiples parques eólicos y entregarlos a
-múltiples puntos de la red onshore (apartado 9, North Sea Wind Power Hub). Ventajas respecto a múltiples
+múltiples puntos de la red onshore (apartado 11, North Sea Wind Power Hub). Ventajas respecto a múltiples
 enlaces punto a punto: redundancia (si un enlace falla, la potencia se redistribuye), menor coste
 marginal por terminal (el cable ya existe), posibilidad de optimización del flujo de potencia en la red
 DC.
@@ -141,7 +277,7 @@ DC.
 barata, pero sin redundancia — un fallo de cable aísla la rama completa. **Mallada:** múltiples caminos
 entre cualquier par de nodos; mayor redundancia y flexibilidad de despacho, a costa de mayor complejidad
 de protección (la corriente de falta puede circular por varios caminos) y de necesitar un DCCB en cada
-extremo de cada línea (apartado 8).
+extremo de cada línea (apartado 9).
 
 **El problema del control centralizado de \(V_{dc}\).** Si un único terminal controla \(V_{dc}\) (modo
 *slack*), actúa como referencia absoluta para toda la red. Si ese terminal falla, el bus DC pierde su
@@ -208,7 +344,317 @@ tensión (variación pequeña de \(V_{dc}\) ante perturbaciones) pero puede prov
 potencia. Un droop pequeño limita la variación de potencia pero deja \(V_{dc}\) oscilar más. El diseño
 equilibra ambos requisitos según la rigidez requerida del bus DC.
 
-## 5 — Comparativa LCC-HVDC vs VSC-HVDC
+## 7 — El cable DC: características y modelo π
+
+**Diferencias con el cable AC.** En corriente continua la inductancia no tiene efecto reactivo
+(\(\omega=0\)), por lo que la impedancia en régimen permanente es puramente resistiva. Esto elimina la
+limitación de Ferranti y el problema de la potencia reactiva de carga que condena a los cables AC a
+longitudes máximas de ~80–100 km. La capacidad del cable, en cambio, es incluso más importante en DC que
+en AC: almacena energía \(W=\tfrac12 C_{cable}V_{dc}^2\) que actúa como reserva de energía y determina la
+dinámica de la tensión DC durante los transitorios de control y las faltas (apartado 8).
+
+| Parámetro | Cable AC 132 kV | Cable DC ±320 kV HVDC |
+|---|---|---|
+| Resistencia \( R \) | 0.05 Ω/km | 0.012 Ω/km (conductor mayor) |
+| Inductancia \( L \) | 0.4 mH/km | 0.4 mH/km (irrelevante en DC) |
+| Capacidad \( C \) | 0.2 µF/km | 0.15–0.25 µF/km |
+| Longitud máxima operativa | ~80 km | ilimitada (prácticamente) |
+| Pérdidas/100 km | > 1 % (reactiva) | ~0.3 % (solo Joule) |
+
+La inductancia \(L\) sí importa en el análisis dinámico de transitorios y faltas DC — forma con la
+capacidad el circuito resonante que determina la velocidad de crecimiento de la corriente de falta
+(apartado 8).
+
+**Modelo π concentrado.** Para el diseño de controladores (frecuencias < 100 Hz) y el análisis de
+estabilidad de lazo, el modelo π con parámetros totales concentrados es suficiente: la resistencia e
+inductancia en la rama serie central, y la capacidad total repartida en dos shunts de \(C/2\) en los
+extremos:
+
+$$\frac{dI_{dc}}{dt} = \frac{V_{dc1} - V_{dc2} - R\cdot I_{dc}}{L_{cable}}, \qquad \frac{dV_{dc1}}{dt} = \frac{I_{VSC1} - I_{dc}}{C/2}, \qquad \frac{dV_{dc2}}{dt} = \frac{I_{dc} - I_{VSC2}}{C/2}$$
+
+La constante de tiempo del cable en bucle abierto es \(\tau_{dc}=R_{total}C_{total}=R_{km}C_{km}\ell^2\):
+la dependencia **cuadrática** con la longitud \(\ell\) es la razón por la que cables muy largos tienen
+dinámicas lentas. Para \(R_{km}=0.012\,\Omega\text{/km}\), \(C_{km}=0.2\,\mu\text{F/km}\),
+\(\ell=300\,\text{km}\): \(\tau_{dc}=0.012\times0.2\times10^{-3}\times300^2=216\,\text{ms}\) — este valor
+limita el ancho de banda del lazo de control de \(V_{dc}\): no se puede hacer el controlador más rápido
+que \(\sim1/\tau_{dc}\) sin excitar la resonancia LC.
+
+El sistema de tres variables de estado \(\mathbf{x}=[V_{dc1},\,I_{dc},\,V_{dc2}]^T\):
+
+$$\dot{\mathbf{x}} = \begin{pmatrix} 0 & -\tfrac{2}{C} & 0 \\ \tfrac{1}{L} & -\tfrac{R}{L} & -\tfrac{1}{L} \\ 0 & \tfrac{2}{C} & 0 \end{pmatrix}\mathbf{x} + \begin{pmatrix} \tfrac{2}{C} & 0 \\ 0 & 0 \\ 0 & -\tfrac{2}{C} \end{pmatrix}\begin{pmatrix}I_{VSC1}\\I_{VSC2}\end{pmatrix}$$
+
+Los eigenvalores de la matriz de estado determinan la dinámica natural del cable: un modo lento real (la
+constante \(\tau_{RC}\)) y un par de modos complejos conjugados (la resonancia LC, apartado siguiente).
+
+**Resonancia LC del sistema HVDC.** La inductancia efectiva incluye la del cable y las de brazo de los
+dos MMC (en serie desde el punto de vista del bus DC): \(L_{total}=L_{cable}+\tfrac43 L_{arm}\). La
+frecuencia de resonancia del circuito LC formado por \(L_{total}\) y \(C_{cable}\):
+\(f_{res}=1/(2\pi\sqrt{L_{total}C_{cable}})\). Para \(L_{total}=120\,\text{mH}\),
+\(C_{cable}=60\,\mu\text{F}\): \(f_{res}\approx59\,\text{Hz}\). Esta frecuencia cae dentro del ancho de
+banda del lazo de corriente del MMC (~1 kHz) y cerca del de \(V_{dc}\) (~10–50 Hz): si el control excita
+la resonancia (escalón brusco de referencia, ganancia excesiva), el sistema oscila a \(f_{res}\). En el
+dominio AC, esa resonancia DC aparece como modos a \(f_{red}\pm f_{res}\): para \(f_{red}=50\,\text{Hz}\)
+y \(f_{res}=59\,\text{Hz}\), \(f_{sub}=9\,\text{Hz}\) (subsíncrono) y \(f_{super}=109\,\text{Hz}\)
+(supersíncrono) — los **SSO** (Sub-Synchronous Oscillations) que han causado disparos en sistemas HVDC
+reales (ver [[fenomenos-oscilatorios-red]]).
+
+**Validez del modelo π y modelo de línea distribuida.** El modelo π concentrado es válido cuando la
+longitud eléctrica del cable es mucho menor que la longitud de onda a la frecuencia de análisis; en DC
+puro (0 Hz) siempre es válido, y para transitorios de control (< 100 Hz) la longitud de onda es
+\(\lambda\approx1600\,\text{km}\) — para un cable de 300 km, \(\ell/\lambda\approx0.19\), error < 5 %. Para
+transitorios de falta (< 1 ms, > 1 kHz) hace falta el modelo de línea distribuida (ecuaciones del
+telegrafista, \(\partial V/\partial x=-R'I-L'\partial I/\partial t\), \(\partial I/\partial x=-G'V-C'
+\partial V/\partial t\)), cuya velocidad de propagación es \(v_{prop}=1/\sqrt{L'C'}\approx1.5\text{–}
+1.7\times10^8\,\text{m/s}\) (aprox. mitad de la luz, por la permitividad del XLPE \(\varepsilon_r
+\approx2.3\)) y cuya impedancia característica es \(Z_c\approx\sqrt{L'/C'}\), la misma \(Z_c\) que aparece
+en la corriente de falta del apartado 8. En la práctica se discretiza el cable en \(n\) secciones π en
+cascada (\(n\approx10\) para 300 km da error < 5 % hasta 5 kHz; \(n\geq50\) para coordinación de
+protecciones a < 1 ms).
+
+**XLPE vs papel impregnado.** El aislamiento del cable ha evolucionado del papel impregnado en aceite
+(MIND) al XLPE (polietileno entrecruzado). El **XLPE** opera a mayor temperatura (90 °C vs 55–60 °C), sin
+aceite ni riesgo de fugas, más ligero — pero en DC sufre acumulación de cargas espaciales (la
+conductividad del polímero sube con la temperatura, distorsionando el reparto de campo eléctrico), lo que
+históricamente limitó su tensión a ±200–250 kV; los compuestos "DC-grade" modernos han elevado el límite a
+±320 kV (DolWin, BorWin) y ya ±525 kV (NordLink, 2021). El **MIND** no tiene ese problema de cargas
+espaciales y llega a mayor tensión (±500–600 kV) pero es más pesado, rígido y limitado a menor
+temperatura — más difícil de instalar offshore.
+
+## 8 — Falta DC: dinámica, detección y protección
+
+**Planteamiento: el cable en falta es un RLC serie en descarga.** Una falta bipolar (cortocircuito entre
+los dos polos) pone en cortocircuito el extremo del cable. En el instante \(t=0^+\), el condensador
+\(C_{cable}\) tiene su tensión previa \(v_C(0)=V_{dc}\) y la corriente por la inductancia se aproxima a
+\(i(0)\approx0\) (mucho menor que la corriente de falta que va a aparecer). El circuito que queda —
+condensador cargado, descargándose a través de \(R_{total}\) y \(L_{total}\) hacia el cortocircuito— es
+exactamente un **RLC serie en descarga libre**:
+
+$$ L\frac{di}{dt} + Ri + \frac{1}{C}\int i\,dt = 0 $$
+
+<div class="cfig"><img src="figuras/hvdc-cable-falta-rlc.png" alt="esquema del circuito RLC serie equivalente en el instante de la falta bipolar, con el condensador cargado a Vdc y la bobina con corriente inicial nula, y grafica comparando la solucion exacta de la corriente de falta con amortiguamiento frente a la aproximacion de amortiguamiento nulo Vdc entre Zc, mostrando que esta ultima es una cota superior y no el pico real"><div class="cap">(a) Circuito equivalente en el instante de la falta: el condensador del cable, cargado a \(V_{dc}\), se descarga a través de \(R\) y \(L\) hacia el cortocircuito bipolar — un RLC serie con condiciones iniciales \(v_C(0)=V_{dc}\), \(i(0)=0\). (b) La solución exacta (roja) incluye el decaimiento exponencial desde el primer instante; la aproximación habitual \(V_{dc}/Z_c\) (azul, línea de puntos) es una cota superior que solo se alcanzaría con amortiguamiento nulo — el pico real es un \(5\,\%\) menor y ocurre ligeramente antes.</div></div>
+
+**Derivación paso a paso.** Derivando una vez para eliminar la integral: \(L\,d^2i/dt^2+R\,di/dt+i/C=0\).
+Ecuación característica \(Ls^2+Rs+1/C=0\), con raíces
+
+$$ s_{1,2} = -\frac{R}{2L} \pm \sqrt{\left(\frac{R}{2L}\right)^2 - \frac{1}{LC}} \equiv -\sigma \pm j\omega_d $$
+
+Para un cable HVDC (\(R\) pequeña, caso **subamortiguado**), \(\sigma\equiv R/(2L)\) y
+\(\omega_d=\sqrt{1/(LC)-\sigma^2}=\sqrt{\omega_n^2-\sigma^2}\) con \(\omega_n=1/\sqrt{LC}\) la frecuencia
+natural (la misma \(f_{res}\) del apartado 7). La solución general es
+\(i(t)=e^{-\sigma t}(A\cos\omega_d t+B\sin\omega_d t)\). De \(i(0)=0\) sale \(A=0\); derivando y usando
+\(L\,di/dt(0)=v_C(0)-Ri(0)=V_{dc}\) (toda la tensión inicial cae en la bobina, sin caída aún en \(R\)) se
+despeja \(B=V_{dc}/(L\omega_d)\):
+
+$$ \boxed{\ i_{fault}(t) = \frac{V_{dc}}{L\,\omega_d}\,e^{-\sigma t}\sin(\omega_d t)\ } \qquad \sigma=\frac{R}{2L},\quad \omega_d=\sqrt{\frac{1}{LC}-\sigma^2} $$
+
+Esta es la solución exacta — cada constante sale de una condición inicial física real del circuito, no de
+una fórmula supuesta.
+
+**La aproximación habitual \(V_{dc}/Z_c\) es una cota, no el pico real.** Con amortiguamiento pequeño
+(\(\sigma\ll\omega_n\), el caso típico de un cable HVDC), aproximando \(\omega_d\approx\omega_n\) y
+despreciando el decaimiento durante el primer cuarto de ciclo: \(i_{fault}(t)\approx(V_{dc}/L\omega_n)
+\sin(\omega_n t)=(V_{dc}/Z_c)\sin(\omega_n t)\), con \(Z_c\equiv\sqrt{L/C}\) (usando
+\(L\omega_n=\sqrt{L/C}\)). El pico de esta aproximación es exactamente \(V_{dc}/Z_c\) en
+\(\omega_n t=\pi/2\) — pero es una **cota superior**: la solución exacta decae desde \(t=0\), así que su
+máximo real es menor y ocurre un poco antes del cuarto de ciclo. Para el ejemplo (\(R_{total}=3.22\,
+\Omega\), \(L_{total}=120\,\text{mH}\), \(C_{total}=60\,\mu\text{F}\), \(\zeta=\sigma/\omega_n\approx
+0.036\)): \(Z_c=44.7\,\Omega\Rightarrow V_{dc}/Z_c\approx14.31\,\text{kA}\) (cota), frente al pico real
+\(I_{fault,pico}\approx13.54\,\text{kA}\) (verificado numéricamente) — una diferencia de \(\sim5\,\%\),
+pequeña porque \(\zeta\) es pequeño, pero no nula. Para diseño conservador la cota es aceptable
+(sobreestima el peor caso); para el instante y valor exacto del pico hay que usar la solución exacta.
+
+**Fases del transitorio de falta.** (1) *Descarga de condensadores*: los condensadores del MMC y del
+cable se descargan hacia el punto de falta, con la dinámica RLC de arriba; la corriente crece a razón
+inicial \(di/dt|_{t=0}=V_{dc}/L_{total}\) — para \(V_{dc}=640\,\text{kV}\), \(L_{total}=120\,\text{mH}\),
+\(di/dt\approx5.3\,\text{MA/s}\), superando 5 kA en 1 ms. (2) *Alimentación desde la red AC*: una vez
+descargados los condensadores, la corriente sigue siendo alimentada desde la red AC a través de los
+diodos de rueda libre del MMC-HB — esta componente **no** se puede bloquear sin submódulos full-bridge.
+(3) *Pico*: la corriente puede alcanzar 10–20 pu en menos de 10 ms; los IGBTs toleran sobreintensidades de
+2–3 pu durante máximo 10 µs antes de fallar por sobretemperatura o *latch-up*.
+
+**Limitaciones de los MMC-HB.** Los IGBTs de los submódulos half-bridge no pueden bloquear una falta DC:
+aunque se apaguen las compuertas, los diodos de antiparalelo conducen la corriente desde la red AC hacia
+el punto de falta — el sistema funciona como un rectificador no controlado hasta que se abre el disyuntor
+AC del terminal.
+
+**Por qué la protección AC no basta.** Los disyuntores AC convencionales interrumpen en el cruce por
+cero (cada 10 ms a 50 Hz). Para aislar una falta DC, el disyuntor AC debe esperar el cruce por cero — hasta
+10 ms adicionales, demasiado para los IGBTs — y mientras tanto la corriente de falta sigue fluyendo desde
+la red AC.
+
+**Detección de la falta.** Los relés de distancia DC detectan la falta en 1–2 ms midiendo la derivada de
+\(V_{dc}\) e \(I_{dc}\) (protección basada en ondas viajeras, apartado 7). El criterio de disparo
+compara la velocidad de crecimiento de la corriente con un umbral:
+
+$$ \text{Falta detectada si:}\quad \frac{di_{DC}}{dt} > \text{umbral} \approx 0.5\,\text{kA/ms} $$
+
+Este umbral puede ser superado por transitorios de control normales — la discriminación debe completarse
+en < 2 ms para que la protección actúe antes de que la corriente destruya los IGBTs. El tiempo total de
+eliminación (detección + apertura) debe ser < 5 ms.
+
+**DCCB (DC Circuit Breaker).** En AC la corriente cruza por cero dos veces por periodo, facilitando la
+interrupción; en DC no hay cruce por cero, así que el interruptor debe crear activamente las condiciones
+para extinguir la corriente.
+
+| Tecnología | Tiempo apertura | Pérdidas nominales | Coste relativo |
+|---|---|---|---|
+| Mecánico (vacío) | 30–100 ms | Mínimas | Bajo |
+| Híbrido (semiconductor + mecánico) | 2–5 ms | Muy bajas | Alto |
+| Totalmente semiconductor | < 1 ms | Altas (~0.1–0.2 % de la potencia) | Muy alto |
+
+**DCCB híbrido (solución estándar actual, ABB 2012).** Camino de conducción nominal mecánico (pérdidas
+mínimas). Al detectar la falta: (1) abre el interruptor mecánico, la corriente se transfiere al camino de
+IGBT en < 2 ms; (2) el IGBT abre, la energía inductiva del cable
+\(E_{MOV}=\tfrac12 L_{cable}I_{fault}^2\) es absorbida por el **varistor de óxido metálico (MOV)**, que
+clampa la tensión mientras la corriente decae; (3) la corriente cae a cero en < 5 ms desde el inicio de la
+apertura. Para \(L_{cable}=200\,\text{mH}\) e \(I_{fault}=20\,\text{kA}\):
+\(E_{MOV}=\tfrac12\times0.2\times20000^2=40\,\text{MJ}\) — este valor determina el dimensionado del MOV,
+el componente más costoso del DCCB híbrido.
+
+**Protección diferencial del cable.** Es el método de protección principal en MTDC, por su selectividad
+intrínseca: solo actúa si hay diferencia entre las corrientes en los dos extremos del cable. En
+funcionamiento normal, \(I_1-I_2=I_C=C_{cable}\,dV_{dc}/dt\) (pequeño y predecible); ante una falta en el
+cable, \(I_1-I_2=I_{falta}\gg I_C\). La función diferencial compara ambas corrientes con compensación de
+la capacitiva:
+
+$$ I_{diff} = I_1 - I_2 - C_{cable}\,\frac{dV_{dc}}{dt} > I_{diff,umbral} \quad\Rightarrow\quad \text{FALTA DC} $$
+
+La latencia de comunicación entre extremos (fibra óptica integrada en el cable) es
+\(\tau_{comm}\approx\ell/v_{fibra}\approx300\,\text{km}/2\times10^5\,\text{km/s}=1.5\,\text{ms}\), que
+limita la velocidad de actuación. El umbral \(I_{diff,umbral}\) debe ser mayor que el error de medición
+más la corriente capacitiva máxima en transitorios normales, y menor que la corriente de falta mínima
+detectable — típicamente \(5\text{–}10\,\%\) de la corriente nominal.
+
+## 9 — Estrategias de protección sin DCCB, y coordinación en redes malladas
+
+El alto coste de los DCCB ha impulsado alternativas que evitan o reducen su necesidad:
+
+**MMC de puente completo (FB-MMC).** Cada submódulo tiene 4 IGBTs (en vez de 2), lo que permite generar
+tensión negativa: al detectar la falta, los brazos invierten su tensión y bloquean activamente la
+corriente de falta en < 2 ms sin necesidad de DCCB, sin energía inductiva que disipar externamente.
+Desventaja: el doble de IGBTs, ~2× las pérdidas nominales y mayor coste de submódulo. El **MMC híbrido**
+(BorWin3) combina HB y FB en proporción, aprovechando la ventaja de bloqueo de los FB con menos coste que
+un FB puro.
+
+**Método de apretón de manos (*handshaking*).** Secuencia: (1) detectar la falta y abrir los disyuntores
+AC de **todos** los terminales; (2) esperar la extinción natural de la corriente DC (la inductancia la
+reduce a cero en 50–200 ms); (3) aislar el segmento defectuoso con seccionadores DC (de seccionamiento,
+no de interrupción de falta); (4) reconectar los terminales sanos. Tiempo total 200–500 ms — aceptable
+solo en sistemas punto a punto sin requisito de continuidad estricta; **inaceptable en MTDC**.
+
+**Bus splitting.** La red DC se divide en zonas separadas por interruptores de seccionamiento; ante una
+falta se aísla la zona afectada y el resto continúa operando. Los seccionadores no interrumpen corriente
+de falta (para eso hace falta DCCB o FB-MMC), pero limitan el impacto a la zona defectuosa.
+
+**Protección por sobrecorriente del convertidor.** El MMC limita la corriente de brazo por saturación del
+regulador; si supera el umbral (1.5–2 pu), bloquea los IGBTs. Protege al convertidor pero no aísla el
+cable — la corriente de falta puede seguir fluyendo desde otros terminales por los diodos.
+
+**Combinaciones prácticas.** Los proyectos reales combinan FB-MMC en terminales críticos (máxima rapidez)
+con DCCB híbridos en los cables más propensos a faltas y *handshaking* como respaldo para faltas en buses.
+
+**Coordinación de protecciones en redes malladas.** La selectividad (interrumpir solo el tramo en falta
+sin desconectar toda la red) requiere DCCB en cada extremo de cada línea y el algoritmo de detección de
+ondas viajeras del apartado 8, coordinado entre todos los extremos para que solo actúe el DCCB más
+cercano a la falta.
+
+## 10 — Parámetros típicos, dimensionado y ejemplo numérico completo
+
+**MMC (remite a [[mmc-modelo-control]] para la derivación de estas fórmulas).** Energía almacenada
+\(W_{stored}\approx35\,\text{kJ/MVA}\times S_{nom}\); tensión de condensador \(V_{C,nom}=V_{dc}/N\);
+capacidad de SM \(C_{SM}=W_{stored}N/(3V_{dc}^2)\).
+
+| Parámetro MMC | Valor típico |
+|---|---|
+| Tensión DC | \( \pm 320\,\text{kV} \) (cables), \( \pm 500\,\text{kV} \) (aéreo) |
+| Potencia nominal | 500 MW–2 GW |
+| Inductancia de brazo \( L_{arm} \) | 0.15 pu |
+| Energía almacenada | 30–40 kJ/MVA |
+| Número de SMs por brazo \( N \) | 200–400 |
+| Frecuencia de conmutación SM | 150–300 Hz |
+| Pérdidas totales por terminal | 0.8–1.2 % |
+
+**Ejemplo numérico completo: cable de 300 km, ±320 kV, 500 MW.**
+
+*Paso 1 — corriente nominal.* \(I_{nom}=P_{nom}/V_{dc}=500\,\text{MW}/640\,\text{kV}=781\,\text{A}\).
+
+*Paso 2 — sección del conductor.* Con densidad de corriente admisible ~500 A/mm² para XLPE submarino
+refrigerado por agua de mar, se elige una sección normalizada de 1600 mm² (cobre):
+\(R_{km}=\rho_{Cu}/A_{cond}=17.2\,\text{nΩ·m}/1600\times10^{-6}\,\text{m}^2=0.01075\,\Omega/\text{km}\).
+
+*Paso 3 — parámetros totales.* \(R_{total}=R_{km}\ell=3.22\,\Omega\); \(L_{total}=L_{km}\ell=120\,
+\text{mH}\); \(C_{total}=C_{km}\ell=60\,\mu\text{F}\).
+
+*Paso 4 — pérdidas Joule.* \(P_{cable}=I_{nom}^2 R_{total}=781^2\times3.22=1.96\,\text{MW}\ (0.39\,\%)\).
+
+*Paso 5 — resonancia LC.* \(f_{res}=1/(2\pi\sqrt{L_{total}C_{total}})\approx59\,\text{Hz}\); modos SSO:
+\(50\pm59\to9\,\text{Hz}\) (subsíncrono) y \(109\,\text{Hz}\) (supersíncrono).
+
+*Paso 6 — corriente de falta DC pico* (apartado 8): \(Z_c=\sqrt{L_{total}/C_{total}}=44.7\,\Omega
+\Rightarrow V_{dc}/Z_c\approx14.3\,\text{kA}\) (cota); con el amortiguamiento real
+(\(\zeta\approx0.036\)), la solución exacta da \(I_{fault,pico}\approx13.5\,\text{kA}\approx17\,I_{nom}\)
+(cota: \(\approx18\,I_{nom}\)).
+
+*Paso 7 — energía almacenada en el cable.* \(W_{cable}=\tfrac12 C_{total}V_{dc}^2=12.3\,\text{MJ}\) —
+comparable a la del propio MMC (~17.5 MJ para 500 MVA a 35 kJ/MVA), constituyendo la reserva de energía
+del sistema que amortigua transitorios de potencia.
+
+| Resultado | Valor |
+|---|---|
+| \( I_{nom} \) | 781 A |
+| \( R_{total} \) | 3.22 Ω |
+| \( C_{total} \) | 60 µF |
+| Pérdidas Joule | 1.96 MW (0.39 %) |
+| \( f_{res,LC} \) | 59 Hz |
+| \( I_{fault,pico} \) | 13.5 kA (17 pu), cota 14.3 kA (18 pu) |
+| \( W_{cable} \) | 12.3 MJ |
+
+## 11 — Proyectos reales: DolWin, BorWin, NordLink, North Sea Wind Power Hub
+
+Los proyectos offshore en el Mar del Norte son la referencia técnica mundial del HVDC-VSC.
+
+**BorWin1 (2009, ABB, ±150 kV, 400 MW, 200 km).** Primer enlace HVDC-VSC offshore para un parque eólico.
+Terminal offshore con VSC de dos niveles (aún no MMC). Demostró la viabilidad del concepto pero tuvo
+problemas de resonancias con el filtro AC — la razón por la que el MMC (sin filtro AC de potencia) se
+convirtió en el estándar.
+
+**DolWin1 (2015, ABB, ±320 kV, 800 MW, 165 km).** Primer HVDC con MMC de ABB (HVDC Light quinta
+generación). \(N\approx400\) SMs por brazo, \(V_{C,nom}\approx1.6\,\text{kV}\),
+\(f_{sw,IGBT}\approx150\,\text{Hz}\).
+
+**BorWin3 (2019, Siemens, ±320 kV, 900 MW, 160 km).** Primer HVDC con MMC híbrido (HB+FB en proporción)
+que puede bloquear faltas DC sin DCCB (apartado 9).
+
+**NordLink (2021, ABB+Siemens, ±525 kV, 1400 MW, 623 km).** Interconexión Noruega–Alemania. Primer HVDC
+a ±525 kV — el nivel de tensión más alto para cables HVDC (apartado 7), demostrando la viabilidad del
+XLPE DC-grade a tensiones antes reservadas al papel impregnado.
+
+| Proyecto | Año | Tensión DC | Potencia | Longitud | Tecnología |
+|---|---|---|---|---|---|
+| BorWin1 | 2009 | ±150 kV | 400 MW | 200 km | VSC 2 niveles |
+| DolWin1 | 2015 | ±320 kV | 800 MW | 165 km | MMC-HB |
+| BorWin3 | 2019 | ±320 kV | 900 MW | 160 km | MMC híbrido |
+| NordLink | 2021 | ±525 kV | 1400 MW | 623 km | MMC-HB cable XLPE |
+| Dogger Bank | 2024+ | ±320 kV | 1200 MW×3 | ~130 km | MMC |
+
+**North Sea Wind Power Hub (NSWPH).** El proyecto de mayor escala de MTDC planificado: una plataforma o
+isla artificial que agrega 10–15 GW de eólica offshore de múltiples parques y la distribuye a cuatro
+países europeos (Alemania, Dinamarca, Países Bajos, Bélgica). Arquitectura: 4–6 terminales VSC-HVDC,
+cables de 500–1000 km a ±525 kV, topología **mallada** con redundancia (apartado 6). Solución de
+protección prevista: DCCB híbridos en todos los puntos de derivación, MMC-FB en terminales offshore
+críticos, relés de ondas viajeras con detección < 2 ms (apartado 8). En fase de planificación avanzada
+(2026), desarrollando estándares técnicos (IEC 62975, ENTSO-E HVDC Grid Guidelines). Su éxito técnico —
+en particular la solución de protección DC — determinará si el MTDC puede escalar al nivel de gigavatios
+necesario para la transición energética europea.
+
+## 12 — Comparativa LCC-HVDC vs VSC-HVDC
+
+Todo lo anterior (apartados 1–11) trata exclusivamente HVDC-VSC, la tecnología dominante en las
+instalaciones nuevas de hoy. Este último apartado la sitúa frente a su predecesora histórica, el HVDC
+clásico con tiristores (LCC), que **no ha desaparecido**: sigue siendo la opción más barata y eficiente en
+el extremo superior de potencia y tensión (Itaipu, Three Gorges, más abajo), aunque para todo lo demás
+—y en particular para todo lo que motivó este capítulo: parques eólicos offshore, MTDC, redes débiles— el
+VSC la ha desplazado casi por completo desde mediados de la década de 2010.
 
 La tecnología HVDC clásica (LCC, Line Commutated Converter) usa tiristores que se conmutan
 naturalmente por la tensión de red. El VSC-HVDC usa IGBTs con conmutación forzada. Las diferencias
@@ -261,10 +707,9 @@ propia naturaleza de la conmutación natural), y esa reactiva no es una variable
 queda fijada por el punto de operación de \(P\). El panel (b) de la figura lo cuantifica: a ángulo de
 disparo fijo, al subir \(I_{dc}\) (y por tanto \(P_{dc}\)), el ángulo \(\mu\) crece, el factor de potencia
 empeora, y \(Q\) crece **más que proporcionalmente** con \(P\) — la razón \(Q/P\) pasa de \(\sim0.30\) a
-\(\sim0.41\) en el rango simulado. El VSC, en cambio, con conmutación forzada no tiene este acoplamiento:
-la tensión de salida se sintetiza libremente en módulo y fase respecto a la corriente, así que \(P\) y
-\(Q\) se controlan mediante dos variables independientes (ver el modelo dq del MMC en
-[[mmc-modelo-control]]).
+\(\sim0.41\) en el rango simulado. El VSC, en cambio, con conmutación forzada no tiene este acoplamiento
+(apartado 5): la tensión de salida se sintetiza libremente en módulo y fase respecto a la corriente, así
+que \(P\) y \(Q\) se controlan mediante dos variables independientes.
 
 <div class="cfig"><img src="figuras/lcc-conmutacion-natural.png" alt="forma de onda de la conmutacion entre dos tiristores de un puente LCC mostrando el angulo de disparo alpha y el angulo de solape mu durante el cual ambos tiristores conducen simultaneamente, con el angulo de extincion gamma marcado; y grafica de la potencia reactiva consumida frente a la potencia activa a angulo de disparo fijo, mostrando que Q crece mas que proporcionalmente a P"><div class="cap">(a) Conmutación entre dos tiristores de un puente LCC: la corriente tarda un ángulo \(\mu\) (solape) en transferirse del saliente al entrante, porque debe atravesar la reactancia de conmutación. El ángulo de extinción \(\gamma=180°-\alpha-\mu\) debe mantenerse por encima de un mínimo para evitar el fallo de conmutación — la condición que impone el límite de SCR. (b) A ángulo de disparo \(\alpha\) fijo, la potencia reactiva consumida crece más que proporcionalmente con la potencia activa: el LCC no puede pedir \(P\) sin pedir \(Q\), a diferencia del VSC.</div></div>
 
@@ -291,328 +736,30 @@ invertir la tensión DC (el rectificador pasa a comportarse como inversor y vice
 que la red HVDC LCC no sea adecuada para sistemas MTDC con múltiples terminales que necesitan
 cambiar de dirección el flujo de potencia frecuentemente.
 
-## 6 — El cable DC: características y modelo π
-
-**Diferencias con el cable AC.** En corriente continua la inductancia no tiene efecto reactivo
-(\(\omega=0\)), por lo que la impedancia en régimen permanente es puramente resistiva. Esto elimina la
-limitación de Ferranti y el problema de la potencia reactiva de carga que condena a los cables AC a
-longitudes máximas de ~80–100 km. La capacidad del cable, en cambio, es incluso más importante en DC que
-en AC: almacena energía \(W=\tfrac12 C_{cable}V_{dc}^2\) que actúa como reserva de energía y determina la
-dinámica de la tensión DC durante los transitorios de control y las faltas (apartado 7).
-
-| Parámetro | Cable AC 132 kV | Cable DC ±320 kV HVDC |
-|---|---|---|
-| Resistencia \( R \) | 0.05 Ω/km | 0.012 Ω/km (conductor mayor) |
-| Inductancia \( L \) | 0.4 mH/km | 0.4 mH/km (irrelevante en DC) |
-| Capacidad \( C \) | 0.2 µF/km | 0.15–0.25 µF/km |
-| Longitud máxima operativa | ~80 km | ilimitada (prácticamente) |
-| Pérdidas/100 km | > 1 % (reactiva) | ~0.3 % (solo Joule) |
-
-La inductancia \(L\) sí importa en el análisis dinámico de transitorios y faltas DC — forma con la
-capacidad el circuito resonante que determina la velocidad de crecimiento de la corriente de falta
-(apartado 7).
-
-**Modelo π concentrado.** Para el diseño de controladores (frecuencias < 100 Hz) y el análisis de
-estabilidad de lazo, el modelo π con parámetros totales concentrados es suficiente: la resistencia e
-inductancia en la rama serie central, y la capacidad total repartida en dos shunts de \(C/2\) en los
-extremos:
-
-$$\frac{dI_{dc}}{dt} = \frac{V_{dc1} - V_{dc2} - R\cdot I_{dc}}{L_{cable}}, \qquad \frac{dV_{dc1}}{dt} = \frac{I_{VSC1} - I_{dc}}{C/2}, \qquad \frac{dV_{dc2}}{dt} = \frac{I_{dc} - I_{VSC2}}{C/2}$$
-
-La constante de tiempo del cable en bucle abierto es \(\tau_{dc}=R_{total}C_{total}=R_{km}C_{km}\ell^2\):
-la dependencia **cuadrática** con la longitud \(\ell\) es la razón por la que cables muy largos tienen
-dinámicas lentas. Para \(R_{km}=0.012\,\Omega\text{/km}\), \(C_{km}=0.2\,\mu\text{F/km}\),
-\(\ell=300\,\text{km}\): \(\tau_{dc}=0.012\times0.2\times10^{-3}\times300^2=216\,\text{ms}\) — este valor
-limita el ancho de banda del lazo de control de \(V_{dc}\): no se puede hacer el controlador más rápido
-que \(\sim1/\tau_{dc}\) sin excitar la resonancia LC.
-
-El sistema de tres variables de estado \(\mathbf{x}=[V_{dc1},\,I_{dc},\,V_{dc2}]^T\):
-
-$$\dot{\mathbf{x}} = \begin{pmatrix} 0 & -\tfrac{2}{C} & 0 \\ \tfrac{1}{L} & -\tfrac{R}{L} & -\tfrac{1}{L} \\ 0 & \tfrac{2}{C} & 0 \end{pmatrix}\mathbf{x} + \begin{pmatrix} \tfrac{2}{C} & 0 \\ 0 & 0 \\ 0 & -\tfrac{2}{C} \end{pmatrix}\begin{pmatrix}I_{VSC1}\\I_{VSC2}\end{pmatrix}$$
-
-Los eigenvalores de la matriz de estado determinan la dinámica natural del cable: un modo lento real (la
-constante \(\tau_{RC}\)) y un par de modos complejos conjugados (la resonancia LC, apartado siguiente).
-
-**Resonancia LC del sistema HVDC.** La inductancia efectiva incluye la del cable y las de brazo de los
-dos MMC (en serie desde el punto de vista del bus DC): \(L_{total}=L_{cable}+\tfrac43 L_{arm}\). La
-frecuencia de resonancia del circuito LC formado por \(L_{total}\) y \(C_{cable}\):
-\(f_{res}=1/(2\pi\sqrt{L_{total}C_{cable}})\). Para \(L_{total}=120\,\text{mH}\),
-\(C_{cable}=60\,\mu\text{F}\): \(f_{res}\approx59\,\text{Hz}\). Esta frecuencia cae dentro del ancho de
-banda del lazo de corriente del MMC (~1 kHz) y cerca del de \(V_{dc}\) (~10–50 Hz): si el control excita
-la resonancia (escalón brusco de referencia, ganancia excesiva), el sistema oscila a \(f_{res}\). En el
-dominio AC, esa resonancia DC aparece como modos a \(f_{red}\pm f_{res}\): para \(f_{red}=50\,\text{Hz}\)
-y \(f_{res}=59\,\text{Hz}\), \(f_{sub}=9\,\text{Hz}\) (subsíncrono) y \(f_{super}=109\,\text{Hz}\)
-(supersíncrono) — los **SSO** (Sub-Synchronous Oscillations) que han causado disparos en sistemas HVDC
-reales (ver [[fenomenos-oscilatorios-red]]).
-
-**Validez del modelo π y modelo de línea distribuida.** El modelo π concentrado es válido cuando la
-longitud eléctrica del cable es mucho menor que la longitud de onda a la frecuencia de análisis; en DC
-puro (0 Hz) siempre es válido, y para transitorios de control (< 100 Hz) la longitud de onda es
-\(\lambda\approx1600\,\text{km}\) — para un cable de 300 km, \(\ell/\lambda\approx0.19\), error < 5 %. Para
-transitorios de falta (< 1 ms, > 1 kHz) hace falta el modelo de línea distribuida (ecuaciones del
-telegrafista, \(\partial V/\partial x=-R'I-L'\partial I/\partial t\), \(\partial I/\partial x=-G'V-C'
-\partial V/\partial t\)), cuya velocidad de propagación es \(v_{prop}=1/\sqrt{L'C'}\approx1.5\text{–}
-1.7\times10^8\,\text{m/s}\) (aprox. mitad de la luz, por la permitividad del XLPE \(\varepsilon_r
-\approx2.3\)) y cuya impedancia característica es \(Z_c\approx\sqrt{L'/C'}\), la misma \(Z_c\) que aparece
-en la corriente de falta del apartado 7. En la práctica se discretiza el cable en \(n\) secciones π en
-cascada (\(n\approx10\) para 300 km da error < 5 % hasta 5 kHz; \(n\geq50\) para coordinación de
-protecciones a < 1 ms).
-
-**XLPE vs papel impregnado.** El aislamiento del cable ha evolucionado del papel impregnado en aceite
-(MIND) al XLPE (polietileno entrecruzado). El **XLPE** opera a mayor temperatura (90 °C vs 55–60 °C), sin
-aceite ni riesgo de fugas, más ligero — pero en DC sufre acumulación de cargas espaciales (la
-conductividad del polímero sube con la temperatura, distorsionando el reparto de campo eléctrico), lo que
-históricamente limitó su tensión a ±200–250 kV; los compuestos "DC-grade" modernos han elevado el límite a
-±320 kV (DolWin, BorWin) y ya ±525 kV (NordLink, 2021). El **MIND** no tiene ese problema de cargas
-espaciales y llega a mayor tensión (±500–600 kV) pero es más pesado, rígido y limitado a menor
-temperatura — más difícil de instalar offshore.
-
-## 7 — Falta DC: dinámica, detección y protección
-
-**Planteamiento: el cable en falta es un RLC serie en descarga.** Una falta bipolar (cortocircuito entre
-los dos polos) pone en cortocircuito el extremo del cable. En el instante \(t=0^+\), el condensador
-\(C_{cable}\) tiene su tensión previa \(v_C(0)=V_{dc}\) y la corriente por la inductancia se aproxima a
-\(i(0)\approx0\) (mucho menor que la corriente de falta que va a aparecer). El circuito que queda —
-condensador cargado, descargándose a través de \(R_{total}\) y \(L_{total}\) hacia el cortocircuito— es
-exactamente un **RLC serie en descarga libre**:
-
-$$ L\frac{di}{dt} + Ri + \frac{1}{C}\int i\,dt = 0 $$
-
-<div class="cfig"><img src="figuras/hvdc-cable-falta-rlc.png" alt="esquema del circuito RLC serie equivalente en el instante de la falta bipolar, con el condensador cargado a Vdc y la bobina con corriente inicial nula, y grafica comparando la solucion exacta de la corriente de falta con amortiguamiento frente a la aproximacion de amortiguamiento nulo Vdc entre Zc, mostrando que esta ultima es una cota superior y no el pico real"><div class="cap">(a) Circuito equivalente en el instante de la falta: el condensador del cable, cargado a \(V_{dc}\), se descarga a través de \(R\) y \(L\) hacia el cortocircuito bipolar — un RLC serie con condiciones iniciales \(v_C(0)=V_{dc}\), \(i(0)=0\). (b) La solución exacta (roja) incluye el decaimiento exponencial desde el primer instante; la aproximación habitual \(V_{dc}/Z_c\) (azul, línea de puntos) es una cota superior que solo se alcanzaría con amortiguamiento nulo — el pico real es un \(5\,\%\) menor y ocurre ligeramente antes.</div></div>
-
-**Derivación paso a paso.** Derivando una vez para eliminar la integral: \(L\,d^2i/dt^2+R\,di/dt+i/C=0\).
-Ecuación característica \(Ls^2+Rs+1/C=0\), con raíces
-
-$$ s_{1,2} = -\frac{R}{2L} \pm \sqrt{\left(\frac{R}{2L}\right)^2 - \frac{1}{LC}} \equiv -\sigma \pm j\omega_d $$
-
-Para un cable HVDC (\(R\) pequeña, caso **subamortiguado**), \(\sigma\equiv R/(2L)\) y
-\(\omega_d=\sqrt{1/(LC)-\sigma^2}=\sqrt{\omega_n^2-\sigma^2}\) con \(\omega_n=1/\sqrt{LC}\) la frecuencia
-natural (la misma \(f_{res}\) del apartado 6). La solución general es
-\(i(t)=e^{-\sigma t}(A\cos\omega_d t+B\sin\omega_d t)\). De \(i(0)=0\) sale \(A=0\); derivando y usando
-\(L\,di/dt(0)=v_C(0)-Ri(0)=V_{dc}\) (toda la tensión inicial cae en la bobina, sin caída aún en \(R\)) se
-despeja \(B=V_{dc}/(L\omega_d)\):
-
-$$ \boxed{\ i_{fault}(t) = \frac{V_{dc}}{L\,\omega_d}\,e^{-\sigma t}\sin(\omega_d t)\ } \qquad \sigma=\frac{R}{2L},\quad \omega_d=\sqrt{\frac{1}{LC}-\sigma^2} $$
-
-Esta es la solución exacta — cada constante sale de una condición inicial física real del circuito, no de
-una fórmula supuesta.
-
-**La aproximación habitual \(V_{dc}/Z_c\) es una cota, no el pico real.** Con amortiguamiento pequeño
-(\(\sigma\ll\omega_n\), el caso típico de un cable HVDC), aproximando \(\omega_d\approx\omega_n\) y
-despreciando el decaimiento durante el primer cuarto de ciclo: \(i_{fault}(t)\approx(V_{dc}/L\omega_n)
-\sin(\omega_n t)=(V_{dc}/Z_c)\sin(\omega_n t)\), con \(Z_c\equiv\sqrt{L/C}\) (usando
-\(L\omega_n=\sqrt{L/C}\)). El pico de esta aproximación es exactamente \(V_{dc}/Z_c\) en
-\(\omega_n t=\pi/2\) — pero es una **cota superior**: la solución exacta decae desde \(t=0\), así que su
-máximo real es menor y ocurre un poco antes del cuarto de ciclo. Para el ejemplo (\(R_{total}=3.22\,
-\Omega\), \(L_{total}=120\,\text{mH}\), \(C_{total}=60\,\mu\text{F}\), \(\zeta=\sigma/\omega_n\approx
-0.036\)): \(Z_c=44.7\,\Omega\Rightarrow V_{dc}/Z_c\approx14.31\,\text{kA}\) (cota), frente al pico real
-\(I_{fault,pico}\approx13.54\,\text{kA}\) (verificado numéricamente) — una diferencia de \(\sim5\,\%\),
-pequeña porque \(\zeta\) es pequeño, pero no nula. Para diseño conservador la cota es aceptable
-(sobreestima el peor caso); para el instante y valor exacto del pico hay que usar la solución exacta.
-
-**Fases del transitorio de falta.** (1) *Descarga de condensadores*: los condensadores del MMC y del
-cable se descargan hacia el punto de falta, con la dinámica RLC de arriba; la corriente crece a razón
-inicial \(di/dt|_{t=0}=V_{dc}/L_{total}\) — para \(V_{dc}=640\,\text{kV}\), \(L_{total}=120\,\text{mH}\),
-\(di/dt\approx5.3\,\text{MA/s}\), superando 5 kA en 1 ms. (2) *Alimentación desde la red AC*: una vez
-descargados los condensadores, la corriente sigue siendo alimentada desde la red AC a través de los
-diodos de rueda libre del MMC-HB — esta componente **no** se puede bloquear sin submódulos full-bridge.
-(3) *Pico*: la corriente puede alcanzar 10–20 pu en menos de 10 ms; los IGBTs toleran sobreintensidades de
-2–3 pu durante máximo 10 µs antes de fallar por sobretemperatura o *latch-up*.
-
-**Limitaciones de los MMC-HB.** Los IGBTs de los submódulos half-bridge no pueden bloquear una falta DC:
-aunque se apaguen las compuertas, los diodos de antiparalelo conducen la corriente desde la red AC hacia
-el punto de falta — el sistema funciona como un rectificador no controlado hasta que se abre el disyuntor
-AC del terminal.
-
-**Por qué la protección AC no basta.** Los disyuntores AC convencionales interrumpen en el cruce por
-cero (cada 10 ms a 50 Hz). Para aislar una falta DC, el disyuntor AC debe esperar el cruce por cero — hasta
-10 ms adicionales, demasiado para los IGBTs — y mientras tanto la corriente de falta sigue fluyendo desde
-la red AC.
-
-**Detección de la falta.** Los relés de distancia DC detectan la falta en 1–2 ms midiendo la derivada de
-\(V_{dc}\) e \(I_{dc}\) (protección basada en ondas viajeras, apartado 6). El criterio de disparo
-compara la velocidad de crecimiento de la corriente con un umbral:
-
-$$ \text{Falta detectada si:}\quad \frac{di_{DC}}{dt} > \text{umbral} \approx 0.5\,\text{kA/ms} $$
-
-Este umbral puede ser superado por transitorios de control normales — la discriminación debe completarse
-en < 2 ms para que la protección actúe antes de que la corriente destruya los IGBTs. El tiempo total de
-eliminación (detección + apertura) debe ser < 5 ms.
-
-**DCCB (DC Circuit Breaker).** En AC la corriente cruza por cero dos veces por periodo, facilitando la
-interrupción; en DC no hay cruce por cero, así que el interruptor debe crear activamente las condiciones
-para extinguir la corriente.
-
-| Tecnología | Tiempo apertura | Pérdidas nominales | Coste relativo |
-|---|---|---|---|
-| Mecánico (vacío) | 30–100 ms | Mínimas | Bajo |
-| Híbrido (semiconductor + mecánico) | 2–5 ms | Muy bajas | Alto |
-| Totalmente semiconductor | < 1 ms | Altas (~0.1–0.2 % de la potencia) | Muy alto |
-
-**DCCB híbrido (solución estándar actual, ABB 2012).** Camino de conducción nominal mecánico (pérdidas
-mínimas). Al detectar la falta: (1) abre el interruptor mecánico, la corriente se transfiere al camino de
-IGBT en < 2 ms; (2) el IGBT abre, la energía inductiva del cable
-\(E_{MOV}=\tfrac12 L_{cable}I_{fault}^2\) es absorbida por el **varistor de óxido metálico (MOV)**, que
-clampa la tensión mientras la corriente decae; (3) la corriente cae a cero en < 5 ms desde el inicio de la
-apertura. Para \(L_{cable}=200\,\text{mH}\) e \(I_{fault}=20\,\text{kA}\):
-\(E_{MOV}=\tfrac12\times0.2\times20000^2=40\,\text{MJ}\) — este valor determina el dimensionado del MOV,
-el componente más costoso del DCCB híbrido.
-
-**Protección diferencial del cable.** Es el método de protección principal en MTDC, por su selectividad
-intrínseca: solo actúa si hay diferencia entre las corrientes en los dos extremos del cable. En
-funcionamiento normal, \(I_1-I_2=I_C=C_{cable}\,dV_{dc}/dt\) (pequeño y predecible); ante una falta en el
-cable, \(I_1-I_2=I_{falta}\gg I_C\). La función diferencial compara ambas corrientes con compensación de
-la capacitiva:
-
-$$ I_{diff} = I_1 - I_2 - C_{cable}\,\frac{dV_{dc}}{dt} > I_{diff,umbral} \quad\Rightarrow\quad \text{FALTA DC} $$
-
-La latencia de comunicación entre extremos (fibra óptica integrada en el cable) es
-\(\tau_{comm}\approx\ell/v_{fibra}\approx300\,\text{km}/2\times10^5\,\text{km/s}=1.5\,\text{ms}\), que
-limita la velocidad de actuación. El umbral \(I_{diff,umbral}\) debe ser mayor que el error de medición
-más la corriente capacitiva máxima en transitorios normales, y menor que la corriente de falta mínima
-detectable — típicamente \(5\text{–}10\,\%\) de la corriente nominal.
-
-## 8 — Estrategias de protección sin DCCB, y coordinación en redes malladas
-
-El alto coste de los DCCB ha impulsado alternativas que evitan o reducen su necesidad:
-
-**MMC de puente completo (FB-MMC).** Cada submódulo tiene 4 IGBTs (en vez de 2), lo que permite generar
-tensión negativa: al detectar la falta, los brazos invierten su tensión y bloquean activamente la
-corriente de falta en < 2 ms sin necesidad de DCCB, sin energía inductiva que disipar externamente.
-Desventaja: el doble de IGBTs, ~2× las pérdidas nominales y mayor coste de submódulo. El **MMC híbrido**
-(BorWin3) combina HB y FB en proporción, aprovechando la ventaja de bloqueo de los FB con menos coste que
-un FB puro.
-
-**Método de apretón de manos (*handshaking*).** Secuencia: (1) detectar la falta y abrir los disyuntores
-AC de **todos** los terminales; (2) esperar la extinción natural de la corriente DC (la inductancia la
-reduce a cero en 50–200 ms); (3) aislar el segmento defectuoso con seccionadores DC (de seccionamiento,
-no de interrupción de falta); (4) reconectar los terminales sanos. Tiempo total 200–500 ms — aceptable
-solo en sistemas punto a punto sin requisito de continuidad estricta; **inaceptable en MTDC**.
-
-**Bus splitting.** La red DC se divide en zonas separadas por interruptores de seccionamiento; ante una
-falta se aísla la zona afectada y el resto continúa operando. Los seccionadores no interrumpen corriente
-de falta (para eso hace falta DCCB o FB-MMC), pero limitan el impacto a la zona defectuosa.
-
-**Protección por sobrecorriente del convertidor.** El MMC limita la corriente de brazo por saturación del
-regulador; si supera el umbral (1.5–2 pu), bloquea los IGBTs. Protege al convertidor pero no aísla el
-cable — la corriente de falta puede seguir fluyendo desde otros terminales por los diodos.
-
-**Combinaciones prácticas.** Los proyectos reales combinan FB-MMC en terminales críticos (máxima rapidez)
-con DCCB híbridos en los cables más propensos a faltas y *handshaking* como respaldo para faltas en buses.
-
-**Coordinación de protecciones en redes malladas.** La selectividad (interrumpir solo el tramo en falta
-sin desconectar toda la red) requiere DCCB en cada extremo de cada línea y el algoritmo de detección de
-ondas viajeras del apartado 7, coordinado entre todos los extremos para que solo actúe el DCCB más
-cercano a la falta.
-
-## 9 — Parámetros típicos, dimensionado y ejemplo numérico completo
-
-**MMC (remite a [[mmc-modelo-control]] para la derivación de estas fórmulas).** Energía almacenada
-\(W_{stored}\approx35\,\text{kJ/MVA}\times S_{nom}\); tensión de condensador \(V_{C,nom}=V_{dc}/N\);
-capacidad de SM \(C_{SM}=W_{stored}N/(3V_{dc}^2)\).
-
-| Parámetro MMC | Valor típico |
-|---|---|
-| Tensión DC | \( \pm 320\,\text{kV} \) (cables), \( \pm 500\,\text{kV} \) (aéreo) |
-| Potencia nominal | 500 MW–2 GW |
-| Inductancia de brazo \( L_{arm} \) | 0.15 pu |
-| Energía almacenada | 30–40 kJ/MVA |
-| Número de SMs por brazo \( N \) | 200–400 |
-| Frecuencia de conmutación SM | 150–300 Hz |
-| Pérdidas totales por terminal | 0.8–1.2 % |
-
-**Ejemplo numérico completo: cable de 300 km, ±320 kV, 500 MW.**
-
-*Paso 1 — corriente nominal.* \(I_{nom}=P_{nom}/V_{dc}=500\,\text{MW}/640\,\text{kV}=781\,\text{A}\).
-
-*Paso 2 — sección del conductor.* Con densidad de corriente admisible ~500 A/mm² para XLPE submarino
-refrigerado por agua de mar, se elige una sección normalizada de 1600 mm² (cobre):
-\(R_{km}=\rho_{Cu}/A_{cond}=17.2\,\text{nΩ·m}/1600\times10^{-6}\,\text{m}^2=0.01075\,\Omega/\text{km}\).
-
-*Paso 3 — parámetros totales.* \(R_{total}=R_{km}\ell=3.22\,\Omega\); \(L_{total}=L_{km}\ell=120\,
-\text{mH}\); \(C_{total}=C_{km}\ell=60\,\mu\text{F}\).
-
-*Paso 4 — pérdidas Joule.* \(P_{cable}=I_{nom}^2 R_{total}=781^2\times3.22=1.96\,\text{MW}\ (0.39\,\%)\).
-
-*Paso 5 — resonancia LC.* \(f_{res}=1/(2\pi\sqrt{L_{total}C_{total}})\approx59\,\text{Hz}\); modos SSO:
-\(50\pm59\to9\,\text{Hz}\) (subsíncrono) y \(109\,\text{Hz}\) (supersíncrono).
-
-*Paso 6 — corriente de falta DC pico* (apartado 7): \(Z_c=\sqrt{L_{total}/C_{total}}=44.7\,\Omega
-\Rightarrow V_{dc}/Z_c\approx14.3\,\text{kA}\) (cota); con el amortiguamiento real
-(\(\zeta\approx0.036\)), la solución exacta da \(I_{fault,pico}\approx13.5\,\text{kA}\approx17\,I_{nom}\)
-(cota: \(\approx18\,I_{nom}\)).
-
-*Paso 7 — energía almacenada en el cable.* \(W_{cable}=\tfrac12 C_{total}V_{dc}^2=12.3\,\text{MJ}\) —
-comparable a la del propio MMC (~17.5 MJ para 500 MVA a 35 kJ/MVA), constituyendo la reserva de energía
-del sistema que amortigua transitorios de potencia.
-
-| Resultado | Valor |
-|---|---|
-| \( I_{nom} \) | 781 A |
-| \( R_{total} \) | 3.22 Ω |
-| \( C_{total} \) | 60 µF |
-| Pérdidas Joule | 1.96 MW (0.39 %) |
-| \( f_{res,LC} \) | 59 Hz |
-| \( I_{fault,pico} \) | 13.5 kA (17 pu), cota 14.3 kA (18 pu) |
-| \( W_{cable} \) | 12.3 MJ |
-
-## 10 — Proyectos reales: DolWin, BorWin, NordLink, North Sea Wind Power Hub
-
-Los proyectos offshore en el Mar del Norte son la referencia técnica mundial del HVDC-VSC.
-
-**BorWin1 (2009, ABB, ±150 kV, 400 MW, 200 km).** Primer enlace HVDC-VSC offshore para un parque eólico.
-Terminal offshore con VSC de dos niveles (aún no MMC). Demostró la viabilidad del concepto pero tuvo
-problemas de resonancias con el filtro AC — la razón por la que el MMC (sin filtro AC de potencia) se
-convirtió en el estándar.
-
-**DolWin1 (2015, ABB, ±320 kV, 800 MW, 165 km).** Primer HVDC con MMC de ABB (HVDC Light quinta
-generación). \(N\approx400\) SMs por brazo, \(V_{C,nom}\approx1.6\,\text{kV}\),
-\(f_{sw,IGBT}\approx150\,\text{Hz}\).
-
-**BorWin3 (2019, Siemens, ±320 kV, 900 MW, 160 km).** Primer HVDC con MMC híbrido (HB+FB en proporción)
-que puede bloquear faltas DC sin DCCB (apartado 8).
-
-**NordLink (2021, ABB+Siemens, ±525 kV, 1400 MW, 623 km).** Interconexión Noruega–Alemania. Primer HVDC
-a ±525 kV — el nivel de tensión más alto para cables HVDC (apartado 6), demostrando la viabilidad del
-XLPE DC-grade a tensiones antes reservadas al papel impregnado.
-
-| Proyecto | Año | Tensión DC | Potencia | Longitud | Tecnología |
-|---|---|---|---|---|---|
-| BorWin1 | 2009 | ±150 kV | 400 MW | 200 km | VSC 2 niveles |
-| DolWin1 | 2015 | ±320 kV | 800 MW | 165 km | MMC-HB |
-| BorWin3 | 2019 | ±320 kV | 900 MW | 160 km | MMC híbrido |
-| NordLink | 2021 | ±525 kV | 1400 MW | 623 km | MMC-HB cable XLPE |
-| Dogger Bank | 2024+ | ±320 kV | 1200 MW×3 | ~130 km | MMC |
-
-**North Sea Wind Power Hub (NSWPH).** El proyecto de mayor escala de MTDC planificado: una plataforma o
-isla artificial que agrega 10–15 GW de eólica offshore de múltiples parques y la distribuye a cuatro
-países europeos (Alemania, Dinamarca, Países Bajos, Bélgica). Arquitectura: 4–6 terminales VSC-HVDC,
-cables de 500–1000 km a ±525 kV, topología **mallada** con redundancia (apartado 4). Solución de
-protección prevista: DCCB híbridos en todos los puntos de derivación, MMC-FB en terminales offshore
-críticos, relés de ondas viajeras con detección < 2 ms (apartado 7). En fase de planificación avanzada
-(2026), desarrollando estándares técnicos (IEC 62975, ENTSO-E HVDC Grid Guidelines). Su éxito técnico —
-en particular la solución de protección DC — determinará si el MTDC puede escalar al nivel de gigavatios
-necesario para la transición energética europea.
-
 ## Cuándo y por qué se usa
 
 - Cables submarinos > 80 km, donde el cable AC queda limitado por la capacidad reactiva (efecto Ferranti).
 - Interconexión de redes asíncronas o islas sin necesidad de sincronizar frecuencias.
 - Conexión de parques eólicos offshore, especialmente en redes MTDC que integran múltiples parques.
 - Cuando se necesita control independiente de \(P\) y \(Q\), *black start*, u operación con SCR bajo — el
-  VSC lo permite, el LCC no (apartado 5).
+  VSC lo permite, el LCC no (apartado 12).
 
 ## Errores comunes
 
 - Asumir que el droop DC por sí solo mantiene \(V_{dc}\) en su valor nominal: sin control secundario, la
   tensión queda desviada permanentemente (\(\Delta V_{dc}\neq0\)) tras cada perturbación.
+- Diseñar el PI de \(V_{dc}\) sobre \(V_{dc}\) directamente en vez de sobre \(W=\tfrac12CV_{dc}^2\): la
+  planta en \(V_{dc}\) no es lineal, así que las ganancias que funcionan bien cerca de un punto de
+  operación pueden no valer en otro (apartado 4).
+- Poner dos terminales en modo maestro de \(V_{dc}\) simultáneo, o ninguno: en el primer caso los PI
+  compiten por la misma variable: en el segundo, nada absorbe el desbalance de potencia (apartado 5).
 - Usar \(V_{dc}/Z_c\) como si fuera el pico exacto de la corriente de falta: es una cota superior
-  (amortiguamiento nulo), no el valor real, que es unos puntos porcentuales menor (apartado 7).
+  (amortiguamiento nulo), no el valor real, que es unos puntos porcentuales menor (apartado 8).
 - Subestimar la energía que debe absorber el MOV del DCCB: para cables largos son decenas de MJ, no kJ.
 - Confundir seccionadores DC (para apertura sin carga) con DCCB (para interrupción de corriente de
   falta): los primeros no pueden abrir corriente de falta.
 - Atribuir el límite \(SCR\gtrsim2\text{–}3\) del LCC a una regla empírica sin fundamento: es consecuencia
-  directa de que el ángulo de extinción \(\gamma\) no puede caer por debajo de su mínimo (apartado 5).
+  directa de que el ángulo de extinción \(\gamma\) no puede caer por debajo de su mínimo (apartado 12).
 
 ## Conceptos relacionados
 
