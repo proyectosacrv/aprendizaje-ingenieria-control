@@ -39,26 +39,72 @@ redes DC offshore.
 
 ## 2 — Configuraciones: monopolar, bipolar y simétrica
 
-La arquitectura de la red DC define el número de conductores y el comportamiento ante faltas.
+La arquitectura de la red DC define el número de conductores y el comportamiento ante faltas. Las tres
+opciones comparten el mismo bloque básico en cada extremo — red AC, transformador de acoplamiento y
+convertidor VSC — y se diferencian solo en cuántos conductores DC hay entre los dos extremos y cómo (o
+si) se conectan a tierra.
 
-**Monopolar con retorno por tierra.** Un solo conductor a \( +V_{dc} \); el retorno es por tierra o
-lecho marino. Es la configuración más barata, pero genera corrientes vagabundas que corroen tuberías y
-estructuras metálicas. En desuso para instalaciones modernas.
+**Monopolar con retorno por tierra.** Un único conductor transporta la corriente de ida a \(+V_{dc}\); el
+circuito se cierra por tierra o por el lecho marino a través de un electrodo de tierra en cada estación,
+sin ningún conductor de retorno metálico dedicado.
 
-**Bipolar.** Dos conductores a \( \pm V_{dc} \) respecto a tierra. Es el estándar moderno. Ventaja
-clave: si un polo falla, el otro puede seguir operando al 50 % de potencia con retorno por tierra.
-La potencia nominal se recupera parcialmente sin intervención manual.
+<div class="cfig"><img src="figuras/hvdc-config-monopolar.png" alt="esquema de HVDC monopolar con retorno por tierra: dos estaciones VSC con transformador de acoplamiento a red AC unidas por un unico conductor DC a tension positiva, con electrodo de tierra real en cada extremo cerrando el circuito por tierra o mar"><div class="cap">Configuración monopolar: un único conductor a \(+V_{dc}\) entre las dos estaciones; el retorno de la corriente se produce por tierra/mar, con un electrodo de tierra dedicado en cada extremo (símbolo de tierra clásico).</div></div>
 
-**Simétrica monopolar.** Dos conductores a \( \pm V_{dc} \) sin punto de conexión a tierra —
-más económica que la bipolar al eliminar los transformadores de puesta a tierra, pero sin redundancia
-ante falta de polo. Usada en algunos proyectos offshore donde el peso del transformador es crítico.
+Es la configuración más barata (la mitad del cobre/aluminio que cualquier alternativa de dos
+conductores), pero la corriente de retorno circulando por tierra genera **corrientes vagabundas**
+(*stray currents*) que se difunden por el terreno o el fondo marino y aceleran la corrosión electrolítica
+de tuberías, estructuras metálicas enterradas y armaduras de otros cables cercanos — es el mismo
+mecanismo de la protección catódica pero en sentido indeseado. Por esta razón está en desuso en
+instalaciones modernas salvo en aplicaciones muy específicas de bajo coste y corta duración.
 
-La tensión nominal del enlace es una decisión económica entre coste del cable (crece con la sección) y
-coste del convertidor (crece con la tensión). Tensiones típicas actuales: \( \pm 320\,\text{kV} \)
-(cables submarinos), \( \pm 500\,\text{kV} \) (líneas aéreas); potencias: 200 MW–2 GW por enlace
-punto a punto.
+**Bipolar.** Dos conductores independientes, uno a \(+V_{dc}\) y otro a \(-V_{dc}\) respecto a tierra,
+cada uno con su propia pareja de convertidores (dos "polos" que en la práctica son dos enlaces monopolares
+en paralelo, compartiendo trazado de cable pero eléctricamente independientes). Existe además un conductor
+metálico de retorno/neutro de baja sección, que en operación normal apenas lleva corriente (solo el
+pequeño desequilibrio entre polos) pero que permite seguir cerrando el circuito sin depender de tierra.
 
-<div class="cfig"><img src="figuras/hvdc-configuraciones.png" alt="Configuraciones de enlace HVDC: monopolar con retorno por tierra, bipolar con dos polos independientes y simetrica monopolar sin conexion a tierra, y topologias MTDC radial con un nodo central y mallada con disyuntores DC en cada extremo de linea"><div class="cap">(a)-(c) Las tres configuraciones de enlace punto a punto. (e)-(f) Las dos topologías de red MTDC: la radial concentra el riesgo en el nodo central; la mallada añade redundancia a costa de un DCCB en cada extremo de cada línea (apartado 8).</div></div>
+<div class="cfig"><img src="figuras/hvdc-config-bipolar.png" alt="esquema de HVDC bipolar: dos pares de estaciones VSC independientes, uno para el polo positivo y otro para el polo negativo, unidos por un conductor metalico de retorno de baja corriente con electrodo de tierra en ambos extremos"><div class="cap">Configuración bipolar: dos polos eléctricamente independientes (\(+V_{dc}\) en rojo, \(-V_{dc}\) en azul), cada uno con su propio convertidor en cada estación, más un conductor metálico de retorno/neutro (línea punteada) que en operación normal lleva muy poca corriente.</div></div>
+
+Es el **estándar moderno** por su combinación de coste razonable y redundancia real: si el polo negativo
+falla (por una avería en su convertidor o una falta en su conductor), el polo positivo puede seguir
+transmitiendo el 50 % de la potencia nominal usando temporalmente tierra como camino de retorno (el modo
+"monopolar de emergencia"), sin necesidad de intervención manual inmediata — la mitad de la capacidad se
+recupera automáticamente mientras se repara el polo averiado. Esta es la razón por la que casi todos los
+enlaces HVDC-VSC de nueva construcción de cierta envergadura (DolWin, BorWin, NordLink — apartado 10) usan
+esta configuración.
+
+**Simétrica monopolar.** Dos conductores a \(\pm V_{dc}/2\) que salen del mismo convertidor (el punto
+medio del bus DC interno, no dos convertidores separados como en bipolar), sin ningún punto de conexión a
+tierra en todo el enlace: ambos polos quedan simétricamente flotantes respecto a tierra.
+
+<div class="cfig"><img src="figuras/hvdc-config-simetrica.png" alt="esquema de HVDC simetrica monopolar: dos estaciones VSC unidas por dos conductores a mas menos Vdc medio, sin ningun electrodo ni conexion a tierra en ninguno de los extremos, marcado explicitamente con una cruz"><div class="cap">Configuración simétrica monopolar: dos conductores a \(\pm V_{dc}/2\) desde el mismo convertidor, sin conexión a tierra en ningún extremo (marcado con ✕) — el punto medio del enlace flota eléctricamente.</div></div>
+
+Al no necesitar transformadores ni electrodos de puesta a tierra dedicados, es **más económica** que la
+bipolar y más ligera — una ventaja relevante en plataformas offshore donde el peso de cada equipo se
+traduce directamente en coste de la estructura. El precio es la ausencia de la redundancia de la bipolar:
+al ser un único convertidor por extremo, una falta en cualquiera de los dos conductores obliga a parar el
+enlace completo, no solo la mitad de la potencia.
+
+**La tensión nominal como decisión económica.** En cualquiera de las tres configuraciones, la tensión
+nominal del enlace resulta de equilibrar el coste del cable (que crece con la sección de cobre necesaria
+para una corriente dada, pero baja si se sube la tensión para la misma potencia) frente al coste del
+convertidor y su aislamiento (que crece con la tensión). Tensiones típicas actuales:
+\(\pm320\,\text{kV}\) en cables submarinos, \(\pm500\,\text{kV}\) en líneas aéreas; potencias de
+200 MW a 2 GW por enlace punto a punto.
+
+**Topologías de red MTDC.** Cuando hay tres o más terminales en la misma red DC (apartado 4), la
+disposición geométrica de los cables entre ellos define otra decisión de topología independiente de la
+configuración de polos anterior:
+
+<div class="cfig"><img src="figuras/hvdc-mtdc-topologias.png" alt="comparacion de topologias de red MTDC: radial con un nodo central conectado a cinco terminales VSC en estrella, y mallada con cuatro terminales VSC conectados por multiples caminos redundantes con un DCCB marcado en cada extremo de cada linea"><div class="cap">(a) Topología radial: cada terminal conectado por un único camino a un nodo central — barata pero sin redundancia, un fallo de cable aísla toda esa rama. (b) Topología mallada: múltiples caminos redundantes entre terminales, con un DCCB (cuadrado rojo) en cada extremo de cada línea para poder aislar solo el tramo en falta sin perder el resto de la red.</div></div>
+
+La **radial** conecta cada terminal por un único camino a un nodo central (o a los demás terminales en
+cadena): es simple y económica para 3–4 terminales, pero el nodo central (o cualquier tramo intermedio)
+es un punto único de fallo — perderlo aísla toda esa rama de la red. La **mallada** añade conexiones
+redundantes entre terminales de modo que existe más de un camino entre cualquier par de nodos: mayor
+coste de cable y de disyuntores DC (uno en cada extremo de cada línea, apartado 8), pero sin punto único
+de fallo — es la topología objetivo de las futuras superredes DC offshore (North Sea Wind Power Hub,
+apartado 10).
 
 ## 3 — El convertidor: el MMC (resumen — desarrollo completo en [[mmc-modelo-control]])
 
