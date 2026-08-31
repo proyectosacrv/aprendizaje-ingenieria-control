@@ -256,6 +256,19 @@ $$ K_p=\omega_{ci}L_{eq}=307.2\,\text{V/A}, \qquad T_i=\frac{L_{eq}}{R_{eq}}=0.0
 con margen de fase teórico \(90°\) (planta cancelada exactamente), \(60\)–\(75°\) en la práctica por el
 retraso de muestreo y modulación — igual que en [[convertidor-back-to-back]] §2.7.
 
+**Lazo cerrado exacto y respuesta al escalón.** Con la cancelación de polo, el lazo abierto se simplifica
+algebraicamente a \(L(s)=\text{PI}(s)\,G_i(s)=\omega_{ci}/s\) — un integrador puro — y el lazo cerrado a
+
+$$ T(s)=\frac{L(s)}{1+L(s)}=\frac{\omega_{ci}}{s+\omega_{ci}} $$
+
+un primer orden puro con constante de tiempo \(\tau_{ci}=1/\omega_{ci}=0.159\,\text{ms}\): el escalón de
+\(i_d^*\) se sigue al 63 % en \(0.16\,\text{ms}\) y al 99 % en \(\approx0.8\,\text{ms}\) (\(5\tau_{ci}\)) —
+casi dos órdenes de magnitud más rápido que la constante de tiempo del cable (\(\tau_{dc}=216\,\text{ms}\),
+apartado 7), la separación temporal que justifica tratar este lazo como "instantáneo" al diseñar el lazo
+maestro más abajo.
+
+<div class="cfig"><img src="figuras/hvdc-planta-lazo-corriente.png" alt="circuito equivalente reducido de la planta del lazo de corriente del MMC con Leq y Req, diagrama de bloques del lazo cerrado con PI y desacoplo feedforward, y respuesta al escalon del lazo cerrado mostrando el primer orden puro con tau igual a un partido de omega ci"><div class="cap">(a) Planta reducida del lazo de corriente, resultado directo del KVL de brazo. (b) Lazo cerrado (PI + desacoplo feedforward de \(v_a\) + planta + realimentación) — estructura idéntica en todos los modos del terminal. (c) Respuesta al escalón con los valores numéricos diseñados: cancelación de polo exacta \(\Rightarrow\) primer orden puro, \(\tau_{ci}=1/\omega_{ci}\).</div></div>
+
 **El lazo externo, y los dos modos del eje d.** La referencia \(i_d^*\) (que fija \(P\)) puede generarse
 de dos formas distintas, según el papel que ese terminal desempeñe en el enlace:
 
@@ -351,46 +364,53 @@ apartado 4 y la planta exacta de tres estados de este apartado **coinciden** en 
 corriente en cualquiera de los dos extremos termina repartiéndose por igual entre ambos condensadores, tal
 como exige la conservación de carga del modo común.
 
-**Criterio de separación de ancho de banda, específico de HVDC (dos terminales, no uno).** En un
-convertidor back-to-back genérico el único criterio es la separación ×10 entre lazo de corriente y lazo de
-\(V_{dc}\) ([[convertidor-back-to-back]] §3). Aquí hay un **segundo** criterio, propio del enlace HVDC de
-dos terminales: el ancho de banda del maestro \(\omega_{master}\) también tiene que quedar bien por debajo
-de \(\omega_{n,exact}\), no de la estimación aproximada, y con margen adicional porque el amortiguamiento es
-casi nulo (\(\zeta\approx0.018\)) — un margen de \(\times3\) es razonable dado ese \(Q\) tan alto:
+**El lazo maestro no solo debe evitar la resonancia — puede amortiguarla activamente.** La primera
+intuición (por analogía con la separación ×10 genérica de [[convertidor-back-to-back]] §3) sería exigir
+\(\omega_{master}\ll\omega_{n,exact}\) sin más. Pero eso trata la resonancia como algo que solo hay que
+"esquivar", y el análisis riguroso de pequeña señal dice algo más interesante: **el propio lazo maestro,
+bien ajustado, amortigua activamente el modo resonante del cable**, en vez de limitarse a no excitarlo.
+Linealizando el PI del maestro alrededor del punto de operación (\(\Delta W\approx C V_{dc,0}\Delta V_{dc1}\),
+así que \(\Delta I_{VSC1}(s)=-C(K_{p,W}+K_{i,W}/s)\,\Delta V_{dc1}(s)\), con \(V_{dc,0}\) cancelándose
+exactamente) y cerrando el lazo sobre \(G_{master}(s)\), la ecuación característica es
 
-$$ \omega_{master} < \min\left(\frac{\omega_{ci}}{10},\ \frac{\omega_{n,exact}}{3}\right) $$
+$$ 1 + C\left(K_{p,W}+\frac{K_{i,W}}{s}\right)G_{master}(s) = 0 \quad\Longrightarrow\quad
+   CLs^4+(CR+4\omega_nCL)s^3+(4+4\omega_nCR+2\omega_n^2CL)s^2+(8\omega_n+2\omega_n^2CR)s+4\omega_n^2=0 $$
 
-Con los números de este apartado (\(\omega_{ci}=6283\,\text{rad/s}\), \(\omega_{n,exact}\approx745\,
-\text{rad/s}\)): el primer límite da \(628\,\text{rad/s}\), el segundo da \(248\,\text{rad/s}\) — **la
-resonancia del cable, no la separación con el lazo de corriente, es la restricción activa** en este
-ejemplo, un resultado que no es obvio a priori (podría haber sido al revés con un cable más corto o más
-amortiguado) y que solo aparece al modelar el cable explícitamente en vez de tratarlo como un bus
-genérico. El valor \(\omega_{master}=100\,\text{rad/s}\) ya usado, sin justificar, en la figura del
-apartado 4 queda ahora confirmado con margen amplio frente a ambos límites (factor \(\times2.5\) frente al
-más estricto). La figura siguiente resume la jerarquía completa de anchos de banda del ejemplo, y el mapa
-de polos exacto del cable frente al polo (mucho más rápido) del lazo de corriente cerrado.
+(con \(K_{p,W}=2\omega_n\), \(K_{i,W}=\omega_n^2\); polinomio verificado simbólicamente). De sus cuatro
+raíces, un par complejo conjugado es la continuación, **en lazo cerrado**, del modo resonante del cable.
+Barriendo \(\omega_n\) y siguiendo ese par: el amortiguamiento \(\zeta\) que el lazo le da a la resonancia
+**no es monótono en \(\omega_n\)** — sube desde el valor en lazo abierto (\(\zeta_{ol}\approx0.018\)), pasa
+por un máximo, y vuelve a bajar para \(\omega_n\) muy grande (el lazo, si es demasiado rápido, deja de
+"ver" el modo resonante como algo que pueda corregir y el par de polos regresa hacia su posición de lazo
+abierto). Para los números de este cable, el máximo está en \(\omega_n\approx261\,\text{rad/s}\) con
+\(\zeta_{max}\approx0.30\) — **diecisiete veces más amortiguado que en lazo abierto**. Con
+\(\omega_{master}=100\,\text{rad/s}\) (el valor ya usado, sin justificar, en la figura del apartado 4) el
+par resonante en lazo cerrado tiene \(\zeta\approx0.15\): lejos del óptimo pero, aun así, muchísimo mejor
+que el cable desnudo. El único límite que sigue siendo un límite estricto es el de validez del propio
+modelo: por encima de \(\omega_{ci}/10\approx628\,\text{rad/s}\) deja de ser razonable tratar el lazo de
+corriente (interno) como instantáneo frente al lazo maestro, la hipótesis usada para linealizar arriba.
 
-<div class="cfig"><img src="figuras/hvdc-diseno-ancho-banda.png" alt="grafica de separacion de anchos de banda en escala logaritmica mostrando el ancho de banda del lazo maestro de 100 rad/s, el margen recomendado frente a la resonancia del cable, el limite de separacion por diez del lazo de corriente, la resonancia exacta del cable en 745 rad por segundo comparada con la estimacion aproximada de 373 rad por segundo, y el ancho de banda del lazo de corriente en 1 kilohercio; y mapa de polos en el plano s de los autovalores exactos del cable mostrando el polo integrador en el origen y el par de polos complejos muy poco amortiguados de la resonancia, comparado con el polo mucho mas rapido del lazo de corriente en bucle cerrado"><div class="cap">(a) Separación de anchos de banda del ejemplo numérico: el ancho de banda del maestro (\(100\,\text{rad/s}\)) queda cómodamente por debajo tanto de \(\omega_{ci}/10\) como del margen recomendado frente a la resonancia exacta del cable (\(\omega_{n,exact}/3\)) — siendo esta última la restricción más estricta, no la separación con el lazo de corriente. (b) Mapa de polos exacto del cable (autovalores de la matriz \(A\) del apartado 7): el polo integrador en el origen y el par resonante, muy poco amortiguado (\(\zeta\approx0.018\)), muy por debajo en frecuencia del polo del lazo de corriente cerrado.</div></div>
+<div class="cfig"><img src="figuras/hvdc-diseno-ancho-banda.png" alt="grafica del amortiguamiento zeta del modo resonante en lazo cerrado frente al ancho de banda omega n del PI maestro, mostrando un maximo no monotono en 261 rad por segundo con zeta 0.30 frente al zeta 0.018 en lazo abierto, con el valor omega n igual a 100 usado marcado en zeta 0.15; y lugar de las raices del par de polos resonante en el plano s al barrer omega n, mostrando la trayectoria desde el polo en lazo abierto hasta el limite cuando omega n tiende a infinito, pasando por el punto de amortiguamiento maximo"><div class="cap">(a) Amortiguamiento \(\zeta\) del modo resonante del cable, en lazo cerrado, frente al ancho de banda \(\omega_n\) del PI maestro: no es monótono, tiene un máximo (\(\omega_n\approx261\,\text{rad/s}\), \(\zeta_{max}\approx0.30\)) muy por encima del \(\zeta_{ol}\approx0.018\) en lazo abierto. El valor ya usado en la figura del apartado 4 (\(\omega_n{=}100\)) da \(\zeta\approx0.15\). (b) Lugar de las raíces del par de polos resonante al barrer \(\omega_n\): desde el polo en lazo abierto (\(\omega_n\to0\)) hasta el límite \(\omega_n\to\infty\), pasando por el punto de máximo amortiguamiento.</div></div>
 
 **Ejemplo coordinado: ambos terminales a la vez, con los números anteriores.** Retomando la simulación ya
-presentada en el apartado 4 (terminal 1 maestro, terminal 2 esclavo), pero ahora con el diseño completo de
-este apartado: el terminal 2 (esclavo) recibe \(P_2^*=-400\,\text{MW}\) en \(t=8\,\text{ms}\) y su lazo de
-corriente (\(K_p=307.2\), \(T_i=0.0955\,\text{s}\), sobre \(L_{eq}=48.9\,\text{mH}\), \(R_{eq}=0.512\,
-\Omega\)) sigue esa referencia de \(i_d^*=2P_2^*/(3v_d)\) en menos de \(5\,\text{ms}\) (\(\approx5/\omega_{ci}\)
-para asentamiento al 99 %) — mucho más rápido que cualquier dinámica del cable, así que desde el punto de
-vista del terminal 1 el escalón de \(P_2\) es, en la práctica, instantáneo, la misma hipótesis que usó la
-simulación del apartado 4. El terminal 1 (maestro), con el mismo lazo de corriente interno y el PI externo
-sobre \(W=\tfrac12CV_{dc}^2\) (\(\omega_{master}=100\,\text{rad/s}\), confirmado seguro frente a la
-resonancia del cable por el criterio anterior), absorbe la diferencia de potencia y su \(V_{dc1}\) cae
-transitoriamente los \(\sim6\,\%\) ya mostrados en la figura del apartado 4, con un asentamiento de segundo
-orden crítico en unas pocas decenas de milisegundos — sin excitar la resonancia de \(745\,\text{rad/s}\)
-del cable porque el ancho de banda del maestro está casi dos décadas por debajo de ella. Si en cambio se
-hubiese elegido, por ejemplo, \(\omega_{master}=400\,\text{rad/s}\) (todavía por debajo de \(\omega_{ci}/10\),
-un error fácil de cometer si solo se aplica el criterio del back-to-back genérico), el lazo maestro
-quedaría por **encima** del margen de \(248\,\text{rad/s}\) frente a una resonancia con \(Q\approx28\): el
-transitorio de \(V_{dc1}\) mostraría un rizado sobreimpuesto a \(\approx118.6\,\text{Hz}\) mal amortiguado
-en vez de la respuesta limpia de segundo orden de la figura — el error de diseño que el criterio de este
-apartado existe para evitar.
+presentada en el apartado 4 (terminal 1 maestro, terminal 2 esclavo), pero ahora con el modelo **exacto**
+de tres estados en vez del integrador simplificado: el terminal 2 (esclavo) recibe \(P_2^*=-400\,
+\text{MW}\) en \(t=8\,\text{ms}\); su lazo de corriente (\(K_p=307.2\), \(T_i=0.0955\,\text{s}\)) sigue la
+referencia \(i_d^*=2P_2^*/(3v_d)\) en \(\approx0.8\,\text{ms}\) — mucho más rápido que cualquier dinámica
+del cable, así que desde el punto de vista del terminal 1 el escalón de \(P_2\) es, en la práctica,
+instantáneo. El terminal 1 (maestro), con el PI externo sobre \(W=\tfrac12CV_{dc}^2\) y
+\(\omega_{master}=100\,\text{rad/s}\), absorbe la diferencia de potencia: \(V_{dc1}\) muestra un
+sobreimpulso inicial y **una oscilación visible a \(\approx745\,\text{rad/s}\)** — el modo resonante del
+cable, inevitablemente excitado por un escalón de potencia tan brusco — pero esa oscilación decae en
+\(\sim15\)–\(20\,\text{ms}\), coherente con el \(\zeta\approx0.15\) de lazo cerrado calculado arriba, no con
+el \(\zeta\approx0.018\) de un cable sin control (que apenas decaería en ese tiempo). \(V_{dc2}\) muestra la
+misma oscilación, desfasada, y \(I_{dc}\) (que es, físicamente, la variable que más directamente "ve" la
+resonancia LC) la muestra con la mayor amplitud relativa de las tres. Esta es la lectura correcta y
+completa del diseño: el ancho de banda del maestro no hace desaparecer la física del cable —eso no está en
+su mano, la excita cualquier escalón suficientemente brusco— pero si se elige en la región de amortiguamiento
+activo (arriba), el propio lazo la atenúa con bastante más eficacia que dejar el cable sin regular.
+
+<div class="cfig"><img src="figuras/hvdc-planta-lazo-maestro.png" alt="circuito del modelo pi de dos terminales con las capacidades shunt C medio en cada extremo y las fuentes de corriente IVSC1 e IVSC2, diagrama de bloques del sistema de control coordinado con el terminal maestro en lazo cerrado sobre la planta del cable de tres estados y el terminal esclavo en lazo abierto, y respuesta temporal simulada con el modelo exacto mostrando Vdc1, Vdc2 e Idc ante el escalon de potencia con el modo resonante visible pero amortiguado"><div class="cap">(a) Planta real del lazo maestro: el modelo π de dos terminales del apartado 7, con las dos fuentes de corriente \(I_{VSC1}\), \(I_{VSC2}\) — el planteamiento físico del que salen \(G_{master}(s)\) y \(G_{dist}(s)\). (b) Sistema de control coordinado de los dos terminales: el maestro cierra el lazo sobre \(V_{dc1}\) a través de la planta compartida; el esclavo inyecta \(I_{VSC2}\) en lazo abierto, sin realimentar \(V_{dc2}\). (c) Respuesta simulada con el modelo exacto de tres estados ante el mismo escalón de \(P_2\) de la figura del apartado 4: el modo resonante del cable es visible en \(V_{dc1}\), \(V_{dc2}\) e \(I_{dc}\), pero amortiguado por el lazo maestro (\(\zeta\approx0.15\)) en vez de persistir como en lazo abierto.</div></div>
 
 **El lazo de \(Q\) / tensión AC.** En paralelo y de forma independiente al lazo de \(V_{dc}\)/\(P\), cada
 terminal tiene un lazo sobre el eje q que genera \(i_q^*\) a partir de una consigna de potencia reactiva

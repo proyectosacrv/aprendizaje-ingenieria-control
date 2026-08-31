@@ -16258,88 +16258,340 @@ def _hvdc_control_jerarquia():
 
 
 def _hvdc_diseno_ancho_banda():
-    """HVDC apartado 5 (diseno): (a) separacion de anchos de banda en el eje de
-    frecuencia -- lazo de corriente, limite de separacion x10, resonancia EXACTA
-    del cable (autovalores del modelo de 3 estados del apartado 7) frente a la
-    estimacion aproximada de una unica LC, y el ancho de banda del lazo maestro
-    de Vdc usado en la figura del apartado 4 -- mostrando que en este ejemplo la
-    resonancia del cable, no la separacion x10 del lazo de corriente, es la
-    restriccion mas estricta; (b) mapa de polos exacto del cable (autovalores de
-    la matriz de estados) comparado con el polo del lazo de corriente cerrado."""
+    """HVDC apartado 5 (diseno): analisis riguroso de pequena senal del lazo
+    maestro cerrado (PI sobre W realimentando la planta EXACTA de 3 estados del
+    cable, apartado 7), no una regla heuristica de separacion de frecuencias.
+    Polinomio caracteristico 1+C(Kp_W+Ki_W/s)G_master(s)=0 verificado con sympy;
+    se barre omega_n del PI y se sigue el par de polos resonantes. Resultado: el
+    propio lazo maestro amortigua activamente la resonancia del cable (de
+    zeta=0.018 en lazo abierto hasta zeta~0.30 en el optimo, omega_n~260 rad/s),
+    en vez de simplemente tener que evitarla. (a) zeta del modo resonante en
+    lazo cerrado frente a omega_n del PI maestro; (b) lugar de las raices del
+    par de polos resonantes al barrer omega_n."""
     import matplotlib.pyplot as plt
 
     # ---- datos numericos: ejemplo de apartado 10 (cable 300 km) ----
     L, R, C = 0.12, 3.22, 60e-6
-    wn_simple = 1.0/np.sqrt(L*C)          # formula aproximada de una sola LC (apartado 7)
-    wn_exact = 2.0/np.sqrt(L*C)           # autovalor exacto (derivado en apartado 5)
-    sigma = R/(2.0*L)                      # parte real de los polos complejos
-    wd = np.sqrt(wn_exact**2 - sigma**2)   # frecuencia amortiguada (~ wn_exact, zeta muy bajo)
-    zeta = sigma/wn_exact
-    wci = 2*np.pi*1000.0                   # ancho de banda del lazo de corriente (1 kHz)
-    w_master = 100.0                       # el usado en la figura del apartado 4
-    w_margin = wn_exact/3.0                # margen recomendado frente a la resonancia
+    wn_exact = 2.0/np.sqrt(L*C)            # resonancia exacta en lazo abierto (autovalor de A, apartado 5)
+    sigma_ol = R/(2.0*L)
+    zeta_ol = sigma_ol/wn_exact             # 0.018, amortiguamiento en lazo abierto
+    wci = 2*np.pi*1000.0                    # ancho de banda del lazo de corriente (1 kHz)
+    w_used = 100.0                          # el ya usado en la figura del apartado 4
 
-    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.2, 5.3), gridspec_kw={'width_ratios': [1.35, 1.0]})
-    fig.suptitle('HVDC apartado 5: diseño del ancho de banda del lazo maestro frente a la resonancia exacta del cable',
-                 fontsize=12.0, fontweight='bold')
+    def closed_loop_poles(wn):
+        # polinomio caracteristico 1 + C*(Kp_W+Ki_W/s)*G_master(s) = 0, verificado con sympy:
+        # C*L*s^4 + (C*R+4*wn*C*L)*s^3 + (4+4*wn*C*R+2*wn**2*C*L)*s^2 + (8*wn+2*wn**2*C*R)*s + 4*wn**2 = 0
+        a4 = C*L
+        a3 = C*R + 4*wn*C*L
+        a2 = 4 + 4*wn*C*R + 2*wn**2*C*L
+        a1 = 8*wn + 2*wn**2*C*R
+        a0 = 4*wn**2
+        return np.roots([a4, a3, a2, a1, a0])
 
-    # ================= panel (a): eje de frecuencias ================= #
-    a1.set_xscale('log'); a1.set_xlim(20, 20000); a1.set_ylim(0, 1.35)
-    a1.set_yticks([]); a1.set_xlabel(r'$\omega$ [rad/s]  (escala log)')
-    a1.set_title('(a) Separación de anchos de banda (ejemplo: cable 300 km, apartado 10)', fontsize=10.3, fontweight='bold')
+    def resonant_pole(wn):
+        r = closed_loop_poles(wn)
+        cplx = [x for x in r if abs(x.imag) > 1.0]
+        return cplx[0] if cplx else None
 
-    # curva de referencia: |G| de un 2do orden ligeramente amortiguado centrado en wn_exact
-    f = np.logspace(np.log10(20), np.log10(20000), 900)
-    mag = 1.0/np.sqrt((1-(f/wn_exact)**2)**2 + (2*zeta*f/wn_exact)**2)
-    mag_n = 0.05 + 0.55*mag/mag.max()
-    a1.fill_between(f, 0, mag_n, color=BAD, alpha=0.10, zorder=1)
-    a1.plot(f, mag_n, color=BAD, lw=1.1, alpha=0.55, zorder=2)
+    wn_sweep = np.logspace(np.log10(20), np.log10(3000), 500)
+    poles_sweep = np.array([resonant_pole(w) for w in wn_sweep])
+    zetas_sweep = -poles_sweep.real/np.abs(poles_sweep)
 
-    def vline(w, color, y0, y1, ls='-', lw=2.2, zorder=4):
-        a1.plot([w, w], [y0, y1], color=color, ls=ls, lw=lw, zorder=zorder)
+    idx_opt = np.argmax(zetas_sweep)
+    wn_opt, zeta_opt = wn_sweep[idx_opt], zetas_sweep[idx_opt]
+    p_opt = poles_sweep[idx_opt]
+    p_used = resonant_pole(w_used); zeta_used = -p_used.real/abs(p_used)
 
-    def lab(w, y, text, color, fs=8.4, ha='center', fw='bold'):
-        a1.text(w, y, text, color=color, fontsize=fs, ha=ha, va='bottom', fontweight=fw, zorder=6)
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.2, 5.5), gridspec_kw={'width_ratios': [1.05, 1.0]})
+    fig.suptitle('HVDC apartado 5: el lazo maestro AMORTIGUA activamente la resonancia del cable — análisis de pequeña señal',
+                 fontsize=11.6, fontweight='bold')
 
-    vline(wn_simple, '#888', 0, 1.0, ls=':', lw=1.6)
-    lab(wn_simple, 1.03, r'$\omega_{n,simple}\approx373$' + '\n(estim. aprox. §7,\nmitad de la real)', '#777', fs=7.6)
+    # ================= panel (a): zeta del modo resonante vs wn del PI maestro ================= #
+    a1.set_xscale('log')
+    a1.plot(wn_sweep, zetas_sweep, color='#2e5090', lw=2.3, zorder=4)
+    a1.axhline(zeta_ol, color=BAD, lw=1.4, ls=':', zorder=3)
+    a1.text(22, zeta_ol+0.008, r'$\zeta_{ol}\approx0.018$ (cable en lazo abierto, sin control)', fontsize=8.0, color=BAD)
+    a1.plot([wn_opt], [zeta_opt], 'o', color=OK, ms=9, zorder=6)
+    a1.annotate(f'óptimo: $\\omega_n\\approx{wn_opt:.0f}$ rad/s\n$\\zeta_{{max}}\\approx{zeta_opt:.2f}$', xy=(wn_opt, zeta_opt),
+                xytext=(wn_opt*1.55, zeta_opt-0.02), fontsize=8.6, color=OK, fontweight='bold',
+                arrowprops=dict(arrowstyle='->', color=OK))
+    a1.plot([w_used], [zeta_used], 's', color=ACC, ms=8, zorder=6)
+    a1.annotate(f'usado en fig. §4:\n$\\omega_n{{=}}100$, $\\zeta\\approx{zeta_used:.2f}$', xy=(w_used, zeta_used),
+                xytext=(35, zeta_used-0.10), fontsize=8.6, color=ACC, fontweight='bold',
+                arrowprops=dict(arrowstyle='->', color=ACC))
+    a1.axvline(wci/10, color='#999', ls='--', lw=1.2)
+    a1.text(wci/10*1.05, 0.02, r'$\omega_{ci}/10\approx628$'+'\n(límite de validez:\nlazo de corriente\nya no es "instantáneo")', fontsize=7.4, color='#777')
+    a1.set_xlim(20, 3000); a1.set_ylim(0, 0.36)
+    a1.set_xlabel(r'$\omega_n$ del PI maestro [rad/s]  (escala log)'); a1.set_ylabel(r'$\zeta$ del modo resonante en lazo cerrado')
+    a1.grid(alpha=0.3, which='both')
+    a1.set_title('(a) Amortiguamiento activo: no monótono, con un óptimo', fontsize=10.2, fontweight='bold')
 
-    vline(wn_exact, BAD, 0, 1.15, ls='-', lw=2.4)
-    lab(wn_exact, 1.19, r'resonancia EXACTA' + '\n' + r'$\omega_{n,exact}\approx745$ rad/s', BAD, fs=8.2)
-
-    vline(w_margin, OK, 0, 0.72, ls='--', lw=2.0)
-    lab(w_margin, 0.75, r'margen recom.' + '\n' + r'$\omega_{n,exact}/3\approx248$', OK, fs=7.8)
-
-    vline(wci/10, ACC, 0, 0.50, ls='--', lw=2.0)
-    lab(wci/10, 0.53, r'$\omega_{ci}/10\approx628$' + '\n(separación×10\ndel lazo de corriente)', ACC, fs=7.6)
-
-    vline(w_master, OK, 0, 0.30, ls='-', lw=3.0)
-    lab(w_master, 0.33, r'$\omega_{master}=100$' + '\n(usado en fig. §4)', OK, fs=8.4)
-
-    vline(wci, ACC, 0, 0.95, ls='-', lw=3.0)
-    lab(wci, 0.98, r'$\omega_{ci}=2\pi\cdot1$ kHz' + '\n(lazo de corriente)', ACC, fs=8.2)
-
-    a1.text(30, 1.30, 'restricción activa (más estricta): la resonancia del cable, no la separación×10 del lazo de corriente',
-            fontsize=8.3, color='#333', ha='left', style='italic')
-
-    # ================= panel (b): mapa de polos del cable ================= #
-    a2.set_title('(b) Polos exactos del cable\n(autovalores de la matriz $A$, §7)', fontsize=10.3, fontweight='bold')
-    a2.axhline(0, color='#bbb', lw=0.7); a2.axvline(0, color='k', lw=1.1)
-    a2.scatter([0], [0], marker='x', s=110, color=OK, lw=2.6, zorder=5, label=r'polo en $s=0$ (integrador, modo común)')
-    a2.scatter([-sigma, -sigma], [wd, -wd], marker='x', s=110, color=BAD, lw=2.6, zorder=5,
-               label=r'par resonante $-\sigma\pm j\omega_d$')
-    a2.plot([0, -sigma], [0, wd], color='#999', ls='--', lw=1.0)
-    a2.annotate(r'$\zeta\approx0.018$ (muy poco amortiguado)', xy=(-sigma, wd), xytext=(-11.5, 690),
-                fontsize=8.2, color=BAD, ha='left', arrowprops=dict(arrowstyle='-', color=BAD, lw=0.8))
-    a2.set_xlim(-24, 5); a2.set_ylim(-900, 900)
-    a2.set_xlabel(r'Re($s$) [1/s]'); a2.set_ylabel(r'Im($s$) [rad/s]')
+    # ================= panel (b): lugar de las raices del par resonante ================= #
+    a2.plot(poles_sweep.real, poles_sweep.imag, color='#2e5090', lw=2.0, zorder=3)
+    a2.plot(poles_sweep.real, -poles_sweep.imag, color='#2e5090', lw=2.0, zorder=3)
+    a2.plot([-sigma_ol], [wn_exact*np.sqrt(1-zeta_ol**2)], 'x', color=BAD, ms=11, mew=2.4, zorder=5)
+    a2.text(-sigma_ol-1.5, wn_exact*np.sqrt(1-zeta_ol**2)+18, r'$\omega_n\to0$:'+'\npolo en lazo abierto', fontsize=7.6, color=BAD, ha='right')
+    a2.plot([p_opt.real], [p_opt.imag], 'o', color=OK, ms=9, zorder=6)
+    a2.annotate(f'óptimo ($\\omega_n\\approx{wn_opt:.0f}$)', xy=(p_opt.real, p_opt.imag), xytext=(p_opt.real-55, p_opt.imag+70),
+                fontsize=8.4, color=OK, fontweight='bold', arrowprops=dict(arrowstyle='->', color=OK))
+    a2.plot([p_used.real], [p_used.imag], 's', color=ACC, ms=8, zorder=6)
+    a2.annotate(r'$\omega_n{=}100$ (usado)', xy=(p_used.real, p_used.imag), xytext=(p_used.real-30, p_used.imag-110),
+                fontsize=8.2, color=ACC, fontweight='bold', arrowprops=dict(arrowstyle='->', color=ACC))
+    p_end = poles_sweep[-1]
+    a2.annotate('', xy=(poles_sweep[-1].real, poles_sweep[-1].imag), xytext=(poles_sweep[-30].real, poles_sweep[-30].imag),
+                arrowprops=dict(arrowstyle='-|>', color='#999', lw=1.6))
+    a2.text(p_end.real+3, p_end.imag-10, r'$\omega_n\to\infty$', fontsize=7.6, color='#777')
+    a2.axhline(0, color='#ccc', lw=0.7); a2.axvline(0, color='k', lw=1.0)
+    a2.set_xlim(-220, 10); a2.set_ylim(0, 780)
+    a2.set_xlabel(r'Re($s$) [1/s]'); a2.set_ylabel(r'Im($s$) [rad/s]  (solo semiplano superior, par conjugado)')
     a2.grid(alpha=0.25)
-    a2.legend(fontsize=7.6, loc='lower right')
-    a2.text(-23, 200, r'polo del lazo de corriente cerrado:'+'\n'+r'$s=-\omega_{ci}=-6283$ rad/s'+'\n(fuera de escala, ~8× más rápido)',
-            fontsize=7.6, color=ACC, ha='left', va='center', bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor=ACC, alpha=0.9))
+    a2.set_title('(b) Lugar de las raíces del par resonante\nal barrer $\\omega_n$ del PI maestro', fontsize=10.2, fontweight='bold')
 
-    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.tight_layout(rect=[0, 0, 1, 0.91])
     _savefig(fig, 'hvdc-diseno-ancho-banda', dpi=160)
+
+
+def _hvdc_planta_lazo_corriente():
+    """HVDC apartado 5 (corriente): (a) circuito equivalente reducido de la planta
+    del lazo de corriente del MMC (L_eq=L_arm/2, R_eq=R_arm/2), resultado directo
+    del KVL de brazo; (b) diagrama de bloques del lazo cerrado (PI + desacoplo
+    feedforward de v_a + planta + realimentacion); (c) respuesta al escalon del
+    lazo cerrado con los valores numericos disenados -- cancelacion de polo exacta,
+    primer orden puro con tau=1/wci."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    Leq, Req = 48.9e-3, 0.512
+    wci = 2*np.pi*1000.0
+    tau = 1.0/wci
+    Inom = 781.0
+
+    fig = plt.figure(figsize=(13.6, 9.3))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.15, 1.0], width_ratios=[1, 1], hspace=0.38, wspace=0.22)
+    a1 = fig.add_subplot(gs[0, 0]); a2 = fig.add_subplot(gs[0, 1]); a3 = fig.add_subplot(gs[1, :])
+    fig.suptitle('HVDC apartado 5: planta, lazo cerrado y respuesta del lazo de corriente del MMC', fontsize=12.8, fontweight='bold')
+
+    def box(ax, x, y, w, h, txt, fc='#D6E4F0', ec='#2e5090', fs=9):
+        ax.add_patch(mpatches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.03', facecolor=fc, edgecolor=ec, lw=1.5, zorder=4))
+        ax.text(x+w/2, y+h/2, txt, ha='center', va='center', fontsize=fs, fontweight='bold', zorder=5)
+
+    def sumjunc(ax, x, y, r=0.22, signs=('+', '-'), pos=('left', 'bottom')):
+        ax.add_patch(plt.Circle((x, y), r, facecolor='white', edgecolor='#333', lw=1.5, zorder=5))
+        ax.plot([x-r*0.55, x+r*0.55], [y, y], color='#333', lw=1.1, zorder=6)
+        ax.plot([x, x], [y-r*0.55, y+r*0.55], color='#333', lw=1.1, zorder=6)
+        dxy = {'left': (-r-0.18, 0), 'right': (r+0.18, 0), 'top': (0, r+0.18), 'bottom': (0, -r-0.18)}
+        for s, p in zip(signs, pos):
+            dx, dy = dxy[p]
+            ax.text(x+dx, y+dy, s, fontsize=10, ha='center', va='center', color='#333', fontweight='bold', zorder=6)
+
+    def arrow(ax, xy0, xy1, col='#333', lw=1.5):
+        ax.annotate('', xy=xy1, xytext=xy0, arrowprops=dict(arrowstyle='-|>', color=col, lw=lw))
+
+    # ================= (a) planta: circuito reducido ================= #
+    a1.axis('off'); a1.set_xlim(0, 10); a1.set_ylim(0, 7)
+    a1.set_title('(a) Planta del lazo de corriente\n(circuito reducido, resultado del KVL de brazo)', fontsize=10.3, fontweight='bold')
+    a1.add_patch(plt.Circle((1.3, 4.0), 0.55, facecolor='#FCF3CF', edgecolor='#7d6608', lw=1.6, zorder=4))
+    a1.text(1.3, 4.0, r'$v_{conv}$', ha='center', va='center', fontsize=9.5, zorder=5)
+    a1.plot([1.85, 3.0], [4.0, 4.0], color='navy', lw=1.6)
+    a1.add_patch(plt.Rectangle((3.0, 3.75), 1.1, 0.5, facecolor='#F5B7B1', edgecolor='navy', lw=1.4, zorder=4))
+    a1.text(3.55, 4.0, r'$R_{eq}$', ha='center', va='center', fontsize=9.5, zorder=5)
+    a1.plot([4.1, 4.6], [4.0, 4.0], color='navy', lw=1.6)
+    for k in range(5):
+        xk = 4.6 + k*0.28
+        a1.plot([xk, xk+0.14, xk+0.28], [4.0, 4.3, 4.0], color='navy', lw=1.4)
+    a1.text(5.3, 4.65, r'$L_{eq}$', ha='center', fontsize=9.5)
+    a1.plot([6.0, 7.0], [4.0, 4.0], color='navy', lw=1.6)
+    a1.add_patch(plt.Circle((7.55, 4.0), 0.55, facecolor='#D6EAF8', edgecolor='#1a5276', lw=1.6, zorder=4))
+    a1.text(7.55, 4.0, r'$v_{a}$', ha='center', va='center', fontsize=9.5, zorder=5)
+    a1.annotate('', xy=(6.0, 4.9), xytext=(4.3, 4.9), arrowprops=dict(arrowstyle='-|>', color='#1e8449', lw=1.8))
+    a1.text(5.15, 5.15, r'$i_{out}$', color='#1e8449', fontsize=10, ha='center')
+    a1.text(5.0, 2.15, r'$\dfrac{L_{arm}}{2}\dfrac{di_{out}}{dt}=v_{conv}-v_a-\dfrac{R_{arm}}{2}i_{out}$', fontsize=10.3, ha='center',
+            bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor='steelblue'))
+    a1.text(5.0, 1.05, r'$L_{eq}=L_{arm}/2\approx48.9$ mH,   $R_{eq}=R_{arm}/2\approx0.512\,\Omega$', fontsize=8.6, ha='center', color='#444')
+    a1.text(5.0, 0.35, 'misma forma que un VSC de 2 niveles: $G_i(s)=1/(L_{eq}s+R_{eq})$', fontsize=8.0, ha='center', color='#777', style='italic')
+
+    # ================= (b) lazo cerrado ================= #
+    a2.axis('off'); a2.set_xlim(0, 10.5); a2.set_ylim(0, 7)
+    a2.set_title('(b) Lazo cerrado de corriente (por eje $d$ o $q$)', fontsize=10.3, fontweight='bold')
+    sumjunc(a2, 1.3, 4.3, signs=('+', '−'), pos=('left', 'bottom'))
+    arrow(a2, (0.1, 4.3), (1.08, 4.3)); a2.text(0.05, 4.55, r'$i_d^*$', fontsize=10, ha='left')
+    box(a2, 1.9, 3.8, 1.7, 1.0, r'PI$(s)$' + '\n' + r'$K_p{+}K_i/s$')
+    arrow(a2, (1.52, 4.3), (1.9, 4.3))
+    sumjunc(a2, 4.35, 4.3, signs=('+', '+'), pos=('left', 'bottom'))
+    arrow(a2, (3.6, 4.3), (4.13, 4.3))
+    box(a2, 5.1, 3.8, 3.0, 1.0, r'$G_i(s)=\dfrac{1}{L_{eq}s+R_{eq}}$', fs=9.5)
+    arrow(a2, (4.57, 4.3), (5.1, 4.3))
+    arrow(a2, (8.1, 4.3), (9.3, 4.3)); a2.text(9.4, 4.3, r'$i_{out}$', fontsize=10.5, va='center', fontweight='bold')
+    # feedforward de v_a
+    box(a2, 3.55, 1.4, 1.9, 0.9, r'$\hat v_a$' + '\n(medida/estim.)', fc='#FDEBD0', ec='#d68910', fs=8)
+    arrow(a2, (4.5, 2.3), (4.35, 4.08))
+    a2.text(4.85, 2.75, 'desacoplo\nfeedforward', fontsize=7.6, color='#d68910', ha='left')
+    # realimentacion
+    a2.plot([8.9, 8.9], [4.3, 0.55], color='#333', lw=1.3)
+    a2.plot([8.9, 1.3], [0.55, 0.55], color='#333', lw=1.3)
+    arrow(a2, (1.3, 0.55), (1.3, 4.08))
+    a2.text(5.1, 0.75, r'realimentación $i_{out}$', fontsize=8.2, color='#333', ha='center')
+    a2.text(5.1, 6.55, r'estructura idéntica en todos los modos del apartado (solo cambia el origen de $i_d^*$, $i_q^*$)', fontsize=8.2, ha='center', color='#555', style='italic')
+
+    # ================= (c) respuesta al escalon ================= #
+    t = np.linspace(0, 1.0e-3, 800)
+    i = Inom*(1 - np.exp(-t/tau))
+    a3.plot(t*1e3, i, color='#2e5090', lw=2.2)
+    a3.axhline(Inom, color='gray', lw=0.8, ls=':')
+    a3.axvline(tau*1e3, color='#1e8449', lw=1.0, ls='--')
+    a3.plot([tau*1e3], [Inom*0.632], 'o', color='#1e8449', ms=6, zorder=5)
+    a3.annotate(f'63% en $t{{=}}\\tau_{{ci}}{{=}}1/\\omega_{{ci}}{{=}}{tau*1e3:.3f}$ ms', xy=(tau*1e3, Inom*0.632),
+                xytext=(tau*1e3+0.06, Inom*0.42), fontsize=8.8, color='#1e8449', arrowprops=dict(arrowstyle='->', color='#1e8449'))
+    a3.axvline(5*tau*1e3, color='#999', lw=0.9, ls=':')
+    a3.text(5*tau*1e3+0.015, Inom*0.15, f'≈99% en $5\\tau_{{ci}}\\approx{5*tau*1e3:.2f}$ ms\n(asentamiento)', fontsize=8.2, color='#555')
+    a3.set_xlabel('t [ms]'); a3.set_ylabel(r'$i_{out}$ [A]'); a3.grid(alpha=.3)
+    a3.set_title(r'(c) Respuesta al escalón del lazo cerrado ($i_d^*{:}\ 0\to781$ A, $I_{nom}$): '
+                 r'cancelación de polo exacta $\Rightarrow$ $T(s)=\dfrac{\omega_{ci}}{s+\omega_{ci}}$, primer orden puro',
+                 fontsize=10.0, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.94])
+    _savefig(fig, 'hvdc-planta-lazo-corriente', dpi=160)
+
+
+def _hvdc_planta_lazo_maestro():
+    """HVDC apartado 5 (maestro): (a) circuito del modelo pi de dos terminales
+    (planta real del lazo maestro, con los shunts C/2 explicitos y las dos
+    fuentes de corriente I_VSC1, I_VSC2 -- la planta que plantea el desarrollo
+    de G_master(s)/G_dist(s)); (b) diagrama de bloques del sistema coordinado de
+    control de los DOS terminales (maestro en lazo cerrado + esclavo en lazo
+    abierto) sobre la planta compartida de 3 estados; (c) respuesta simulada con
+    el modelo EXACTO de 3 estados (no el integrador simplificado del apartado 4)
+    ante el mismo escalon de P2, mostrando Vdc1, Vdc2 e Idc: el modo resonante
+    del cable es visible pero queda amortiguado por el propio lazo maestro
+    (zeta_lazo_cerrado approx 0.15 para el wn=100 usado, ver figura de analisis
+    de amortiguamiento activo)."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    L, R, C = 0.12, 3.22, 60e-6
+    Vdc0 = 640e3
+    wn = 100.0; Kp_W = 2*wn; Ki_W = wn**2
+
+    fig = plt.figure(figsize=(13.6, 9.6))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.15, 1.0], width_ratios=[1, 1], hspace=0.40, wspace=0.24)
+    a1 = fig.add_subplot(gs[0, 0]); a2 = fig.add_subplot(gs[0, 1]); a3 = fig.add_subplot(gs[1, :])
+    fig.suptitle('HVDC apartado 5: planta, lazo cerrado y respuesta coordinada de los DOS terminales', fontsize=12.6, fontweight='bold')
+
+    def box(ax, x, y, w, h, txt, fc='#D6E4F0', ec='#2e5090', fs=9):
+        ax.add_patch(mpatches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.03', facecolor=fc, edgecolor=ec, lw=1.5, zorder=4))
+        ax.text(x+w/2, y+h/2, txt, ha='center', va='center', fontsize=fs, fontweight='bold', zorder=5)
+
+    def sumjunc(ax, x, y, r=0.20, signs=('+', '−'), pos=('top', 'left')):
+        ax.add_patch(plt.Circle((x, y), r, facecolor='white', edgecolor='#333', lw=1.5, zorder=5))
+        ax.plot([x-r*0.55, x+r*0.55], [y, y], color='#333', lw=1.1, zorder=6)
+        ax.plot([x, x], [y-r*0.55, y+r*0.55], color='#333', lw=1.1, zorder=6)
+        dxy = {'left': (-r-0.18, 0), 'right': (r+0.18, 0), 'top': (0, r+0.20), 'bottom': (0, -r-0.20)}
+        for s, p in zip(signs, pos):
+            dx, dy = dxy[p]
+            ax.text(x+dx, y+dy, s, fontsize=10, ha='center', va='center', color='#333', fontweight='bold', zorder=6)
+
+    def arrow(ax, xy0, xy1, col='#333', lw=1.5, rad=0.0):
+        ax.annotate('', xy=xy1, xytext=xy0, arrowprops=dict(arrowstyle='-|>', color=col, lw=lw, connectionstyle=f'arc3,rad={rad}'))
+
+    # ================= (a) planta: circuito pi de dos terminales ================= #
+    a1.axis('off'); a1.set_xlim(0, 11); a1.set_ylim(0, 7)
+    a1.set_title('(a) Planta del lazo maestro: modelo π de dos terminales (§7)', fontsize=10.3, fontweight='bold')
+    a1.plot([0.9, 0.9], [1.4, 5.4], color='navy', lw=1.6)  # nodo Vdc1 (barra vertical)
+    a1.text(0.55, 5.7, r'$V_{dc1}$', fontsize=10, color='navy', ha='center', fontweight='bold')
+    # shunt C/2 terminal 1
+    a1.plot([0.9, 0.9], [1.4, 0.55], color='navy', lw=1.6)
+    a1.plot([0.55, 1.25], [0.9, 0.9], color='navy', lw=2.2); a1.plot([0.65, 1.15], [0.75, 0.75], color='navy', lw=2.2)
+    a1.text(1.45, 0.82, r'$C/2$', fontsize=9, color='navy')
+    # fuente I_VSC1
+    a1.add_patch(plt.Circle((0.9, 3.4), 0.4, facecolor='#D5F5E3', edgecolor='#1e8449', lw=1.6, zorder=4))
+    a1.annotate('', xy=(0.9, 3.65), xytext=(0.9, 3.15), arrowprops=dict(arrowstyle='-|>', color='#1e8449', lw=1.6))
+    a1.text(0.35, 3.4, r'$I_{VSC1}$', fontsize=9, color='#1e8449', ha='right', va='center')
+    # rama serie R,L
+    a1.plot([0.9, 3.0], [5.4, 5.4], color='navy', lw=1.6)
+    a1.add_patch(plt.Rectangle((3.0, 5.15), 1.0, 0.5, facecolor='#F5B7B1', edgecolor='navy', lw=1.4, zorder=4))
+    a1.text(3.5, 5.4, r'$R$', fontsize=9.5, ha='center', va='center', zorder=5)
+    a1.plot([4.0, 4.5], [5.4, 5.4], color='navy', lw=1.6)
+    for k in range(5):
+        xk = 4.5 + k*0.26
+        a1.plot([xk, xk+0.13, xk+0.26], [5.4, 5.68, 5.4], color='navy', lw=1.3)
+    a1.text(5.15, 6.0, r'$L$', fontsize=9.5, ha='center')
+    a1.plot([5.8, 7.9], [5.4, 5.4], color='navy', lw=1.6)
+    a1.annotate('', xy=(5.4, 4.9), xytext=(3.4, 4.9), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.6))
+    a1.text(4.4, 4.62, r'$I_{dc}$', fontsize=9.5, color='#c0392b', ha='center')
+    # nodo Vdc2
+    a1.plot([7.9, 7.9], [1.4, 5.4], color='navy', lw=1.6)
+    a1.text(8.25, 5.7, r'$V_{dc2}$', fontsize=10, color='navy', ha='center', fontweight='bold')
+    a1.plot([7.9, 7.9], [1.4, 0.55], color='navy', lw=1.6)
+    a1.plot([7.55, 8.25], [0.9, 0.9], color='navy', lw=2.2); a1.plot([7.65, 8.15], [0.75, 0.75], color='navy', lw=2.2)
+    a1.text(8.45, 0.82, r'$C/2$', fontsize=9, color='navy')
+    a1.add_patch(plt.Circle((7.9, 3.4), 0.4, facecolor='#FADBD8', edgecolor='#c0392b', lw=1.6, zorder=4))
+    a1.annotate('', xy=(7.9, 3.15), xytext=(7.9, 3.65), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.6))
+    a1.text(8.45, 3.4, r'$I_{VSC2}$', fontsize=9, color='#c0392b', ha='left', va='center')
+    a1.text(4.4, 1.6, r'$\mathbf{x}=[V_{dc1},I_{dc},V_{dc2}]^T$' + '\n' + r'(matrices $A,B$: apartado 7)',
+            fontsize=8.6, ha='center', color='#555', bbox=dict(boxstyle='round', facecolor='#F8F9F9', edgecolor='#999'))
+
+    # ================= (b) sistema coordinado de control ================= #
+    a2.axis('off'); a2.set_xlim(0, 12.6); a2.set_ylim(0, 7)
+    a2.set_title('(b) Control coordinado: maestro (lazo cerrado) + esclavo (lazo abierto)', fontsize=10.0, fontweight='bold')
+    # maestro (arriba)
+    sumjunc(a2, 1.0, 5.6, signs=('+', '−'), pos=('top', 'bottom'))
+    arrow(a2, (0.05, 5.6), (0.82, 5.6)); a2.text(0.0, 5.85, r'$V_{dc1}^*$', fontsize=9.5, ha='left')
+    box(a2, 1.5, 5.0, 2.2, 1.2, 'PI sobre\n' + r'$W{=}\frac{1}{2}CV_{dc1}^2$', fc='#FADBD8', ec='#c0392b', fs=8.2)
+    arrow(a2, (1.22, 5.6), (1.5, 5.6))
+    box(a2, 4.1, 5.0, 1.9, 1.2, r'$I_{VSC1}{=}\dfrac{P_1}{V_{dc1}}$', fc='#FADBD8', ec='#c0392b', fs=8.6)
+    arrow(a2, (3.7, 5.6), (4.1, 5.6))
+    # esclavo (abajo)
+    a2.text(0.2, 2.15, r'$P_2^*$', fontsize=9.5, ha='left')
+    arrow(a2, (0.65, 2.15), (1.5, 2.15))
+    box(a2, 1.5, 1.55, 2.9, 1.2, r'$I_{VSC2}{=}\dfrac{2P_2^*}{3v_{d2}V_{dc2}}$', fc='#FDEBD0', ec='#d68910', fs=8.4)
+    arrow(a2, (4.4, 2.15), (6.6, 3.15), rad=-0.2)
+    # planta compartida
+    box(a2, 6.6, 2.9, 3.5, 2.4, r'Planta del cable' + '\n' + r'(3 estados, §7)' + '\n\n' + r'$G_{master}(s),\,G_{dist}(s)$', fc='#D6E4F0', ec='#2e5090', fs=9.5)
+    arrow(a2, (6.0, 5.6), (6.6, 5.05))
+    arrow(a2, (10.1, 4.85), (11.1, 4.85)); a2.text(11.2, 4.85, r'$V_{dc1}$', fontsize=10.5, va='center', fontweight='bold')
+    arrow(a2, (10.1, 3.35), (11.1, 3.35)); a2.text(11.2, 3.35, r'$V_{dc2}$', fontsize=10.5, va='center', fontweight='bold')
+    # realimentacion del maestro
+    a2.plot([10.7, 10.7], [4.85, 0.30], color='#333', lw=1.2)
+    a2.plot([10.7, 1.0], [0.30, 0.30], color='#333', lw=1.2)
+    arrow(a2, (1.0, 0.30), (1.0, 5.38))
+    a2.text(5.1, 0.05, r'realimentación de $V_{dc1}$ (maestro) — el esclavo no realimenta $V_{dc2}$', fontsize=7.8, color='#333', ha='center')
+
+    # ================= (c) respuesta con el modelo exacto de 3 estados ================= #
+    dt = 2e-6; T = 0.05
+    t = np.arange(0, T, dt)
+    Vdc1 = np.full(len(t), Vdc0); Vdc2 = np.full(len(t), Vdc0); Idc = np.zeros(len(t))
+    Wref = 0.5*C*Vdc0**2
+    integ = 0.0
+    P2_set = -400e6
+    P2 = np.where(t < 0.008, 0.0, P2_set)
+    for k in range(len(t)-1):
+        W = 0.5*C*Vdc1[k]**2
+        err = Wref - W
+        integ += err*dt
+        P1 = Kp_W*err + Ki_W*integ
+        I1 = P1/Vdc1[k]
+        I2 = P2[k]/Vdc2[k]
+        Vdc1[k+1] = Vdc1[k] + dt*2*(I1 - Idc[k])/C
+        Idc[k+1] = Idc[k] + dt*(Vdc1[k] - Vdc2[k] - R*Idc[k])/L
+        Vdc2[k+1] = Vdc2[k] + dt*2*(Idc[k] - I2)/C
+
+    a3.plot(t*1e3, Vdc1/1e3, color='#c0392b', lw=2.0, label=r'$V_{dc1}$ (maestro, modelo exacto de 3 estados)')
+    a3.plot(t*1e3, Vdc2/1e3, color='#1e8449', lw=1.8, ls='--', label=r'$V_{dc2}$ (esclavo)')
+    a3.axhline(Vdc0/1e3, color='gray', lw=0.8, ls=':')
+    a3.axvline(8, color='#555', lw=1.0, ls='--')
+    a3.text(9.2, 613, r'escalón $P_2$: $0\to-400$ MW', fontsize=8.4, color='#555', va='center')
+    a3b = a3.twinx()
+    a3b.plot(t*1e3, Idc, color='#7d3c98', lw=1.2, alpha=0.75, label=r'$I_{dc}$ (eje derecho)')
+    a3b.set_ylabel(r'$I_{dc}$ [A]', color='#7d3c98'); a3b.tick_params(axis='y', colors='#7d3c98')
+    a3.set_xlabel('t [ms]'); a3.set_ylabel(r'$V_{dc}$ [kV]'); a3.grid(alpha=.3)
+    l1, lb1 = a3.get_legend_handles_labels(); l2, lb2 = a3b.get_legend_handles_labels()
+    a3.legend(l1+l2, lb1+lb2, fontsize=8.6, loc='lower right')
+    a3.set_title(r'(c) Respuesta coordinada con el modelo EXACTO de 3 estados (no el integrador simplificado del §4): '
+                 r'el modo resonante se ve (oscilación a $\approx$745 rad/s) pero amortiguado por el propio lazo maestro ($\zeta\approx0.15$, fig. anterior)',
+                 fontsize=9.5, fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.94])
+    _savefig(fig, 'hvdc-planta-lazo-maestro', dpi=160)
 
 
 def _mtdc_droop_derivacion():
@@ -18593,6 +18845,12 @@ def main():
         n += 1
     if pref is None or "hvdc-diseno-ancho-banda".startswith(pref):
         _hvdc_diseno_ancho_banda()
+        n += 1
+    if pref is None or "hvdc-planta-lazo-corriente".startswith(pref):
+        _hvdc_planta_lazo_corriente()
+        n += 1
+    if pref is None or "hvdc-planta-lazo-maestro".startswith(pref):
+        _hvdc_planta_lazo_maestro()
         n += 1
     if pref is None or "mtdc-droop-derivacion".startswith(pref):
         _mtdc_droop_derivacion()
