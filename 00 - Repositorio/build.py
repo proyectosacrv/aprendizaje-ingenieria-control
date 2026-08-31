@@ -174,7 +174,8 @@ def facets(items, key):
 # ---------------- HTML / CSS / JS ----------------
 CSS = """
 :root{--bg:#0f1419;--panel:#161d26;--panel2:#1c2530;--ink:#e6edf3;--muted:#9aa7b4;
---acc:#4ea3ff;--line:#2a3542;--fisica:#4ea3ff;--control:#a78bfa;--programacion:#5ad19a;--metodologia:#ffb454}
+--acc:#4ea3ff;--line:#2a3542;--fisica:#4ea3ff;--control:#a78bfa;--programacion:#5ad19a;--metodologia:#ffb454;
+--list-w:clamp(260px,30vw,420px)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif}
 a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
@@ -186,10 +187,10 @@ header h1{margin:0;font-size:19px}header .sub{color:var(--muted);font-size:12.5p
 .bar input#q{flex:1;min-width:220px}
 .bar .clear{cursor:pointer;color:var(--muted);border:1px solid var(--line);padding:7px 12px;border-radius:8px}
 .wrap{display:flex;min-height:calc(100vh - 120px);position:relative}
-.list{width:420px;flex:0 0 420px;border-right:1px solid var(--line);overflow-y:auto;max-height:calc(100vh - 120px);
+.list{width:var(--list-w);flex:0 0 var(--list-w);border-right:1px solid var(--line);overflow-y:auto;max-height:calc(100vh - 120px);
   transition:flex-basis .2s ease,width .2s ease}
 body.list-collapsed #list{flex-basis:0;width:0;min-width:0;border-right:0;overflow:hidden}
-.listtoggle{position:absolute;top:0;bottom:0;left:420px;z-index:9;width:15px;
+.listtoggle{position:absolute;top:0;bottom:0;left:var(--list-w);z-index:9;width:15px;
   display:flex;align-items:center;justify-content:center;
   border:0;border-right:1px solid var(--line);background:var(--panel);color:var(--muted);
   cursor:pointer;font-size:10px;transition:left .2s ease,background .15s,color .15s}
@@ -203,7 +204,7 @@ body.list-collapsed .listtoggle{left:0}
 .card .meta{display:flex;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
 .chip{padding:1px 8px;border-radius:20px;border:1px solid var(--line);background:var(--panel2)}
 .chip.cat{color:#0b0e12;font-weight:700;border:0}
-.detail{flex:1;overflow-y:auto;max-height:calc(100vh - 120px);padding:26px 40px}
+.detail{flex:1;min-width:0;overflow-y:auto;max-height:calc(100vh - 120px);padding:26px 40px}
 .detail.empty{display:grid;place-items:center;color:var(--muted)}
 .detail h1{font-size:26px;margin:0 0 6px}
 .detail h2{font-size:18px;margin:24px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line);color:#cdd9e5}
@@ -237,7 +238,7 @@ body.list-collapsed .listtoggle{left:0}
 .detail .toc-list li{margin:3px 0;break-inside:avoid}
 .detail .toc-lnk{color:#bcd3ea}
 .detail .toc-lnk:hover{color:var(--acc)}
-@media(max-width:760px){.detail .toc-list{columns:1}}
+@media(max-width:900px){.detail .toc-list{columns:1}}
 .cfig{background:#fff;border:1px solid var(--line);border-radius:9px;padding:12px;margin:16px 0;text-align:center}
 .cfig img{max-width:100%;height:auto;border-radius:4px}
 .cfig .cap{color:#555;font-size:12px;margin-top:8px;line-height:1.45}
@@ -308,8 +309,23 @@ body.fs .fsbtn{display:inline-block}
 .backbtn:focus-visible,.fbtn:focus-visible,.st-btn:focus-visible,.card:focus-visible,
 .bar input:focus-visible,.bar select:focus-visible,.viewtoggle button:focus-visible,
 .home:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-/* ── Responsive / movil ──────────────────────────────────────────── */
-@media(max-width:760px){
+/* ── Responsive: tablet en horizontal / media pantalla de escritorio ──
+   Mantiene el layout de 2 columnas (lista + ficha) pero aprieta espaciados,
+   tipografia y el ancho de la lista para que quepa comodo en ventanas de
+   ~900-1180px (ventana a media pantalla en un monitor normal, tablet
+   apaisada, portatil pequeño) ────────────────────────────────────────── */
+@media(max-width:1180px){
+  :root{--list-w:clamp(230px,34vw,360px)}
+  header{padding:13px 18px}
+  header h1{font-size:17px}
+  .detail{padding:20px 22px}
+  #rutaswrap{padding:18px 20px}
+  .ruta-card{max-width:100%}
+}
+/* ── Responsive: movil y tablet en vertical (pantalla estrecha) ──────
+   Layout de una sola columna: la lista y la ficha se alternan a pantalla
+   completa en vez de convivir apretadas lado a lado ─────────────────── */
+@media(max-width:900px){
   header{position:static;padding:12px 16px}
   header h1{font-size:16px}
   .bar{gap:7px}
@@ -323,7 +339,9 @@ body.fs .fsbtn{display:inline-block}
   .viewtoggle button{flex:1;padding:9px 12px}
   .wrap{display:block;min-height:0}
   .list{width:100%;flex:none;max-height:none;border-right:0}
+  .listtoggle{display:none}
   .detail{max-height:none;padding:16px 15px}
+  #rutaswrap{max-height:none;padding:14px 15px}
   .detail h1{font-size:21px}
   .detail pre{font-size:12px}
   #graph{height:72vh}
@@ -335,6 +353,14 @@ body.fs .fsbtn{display:inline-block}
     width:calc(100% + 30px);margin:-16px -15px 12px;padding:13px 16px;
     background:var(--panel);border:0;border-bottom:1px solid var(--line);
     color:var(--acc);font-size:15px;cursor:pointer}
+}
+@media(max-width:420px){
+  header h1{font-size:14.5px}
+  header .sub{font-size:11px}
+  .bar input#q{flex:1 1 100%}
+  .detail{padding:13px 12px}
+  .detail h1{font-size:19px}
+  .card{padding:11px 14px}
 }
 """
 
