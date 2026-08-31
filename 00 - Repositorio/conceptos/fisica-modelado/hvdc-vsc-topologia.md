@@ -9,7 +9,7 @@ objetivos: [comprender la arquitectura del HVDC-VSC y el MMC, modelar el balance
 tags: [hvdc, vsc, mmc, lcc, monopolar, bipolar, punto-a-punto, multi-terminal, offshore, cable-dc, falta-dc, dccb, droop-dc, mtdc, modelado-vdc, control-jerarquico, lazo-dq]
 fecha_creacion: 2026-07-05
 fecha_actualizacion: 2026-08-16
-relacionados: [convertidor-back-to-back, topologias-multinivel, filtro-lcl, fenomenos-oscilatorios-red, mmc-modelo-control]
+relacionados: [convertidor-back-to-back, topologias-multinivel, filtro-lcl, fenomenos-oscilatorios-red, mmc-modelo-control, dinamica-bus-dc, control-tension-bus-dc]
 referencias:
   - "Cigré TB 604, Guide for the Development of Models for HVDC Converters"
   - "Lesnicar & Marquardt, An Innovative Modular Multilevel Converter Topology"
@@ -140,53 +140,40 @@ es la que carga o descarga el condensador del bus DC de su lado.
 
 <div class="cfig"><img src="figuras/hvdc-modelado-enlace.png" alt="esquema del sistema de dos terminales HVDC-VSC mostrando el balance de potencia desde la red AC 1 a traves del convertidor VSC 1, el condensador del bus DC 1, el cable DC con su corriente Iline, el condensador del bus DC 2, el convertidor VSC 2 hasta la red AC 2, con la ecuacion del balance de potencia del condensador; y grafica de la respuesta temporal de Vdc del terminal maestro ante un escalon de carga en el terminal esclavo, usando un PI disenado sobre la variable de energia W en vez de sobre Vdc directamente"><div class="cap">(a) Cadena de bloques del enlace punto a punto: cada convertidor intercambia \(P_{ACi}\) con su red AC, y esa potencia (menos la que fluye por el cable) carga o descarga el condensador de su bus DC — de ahí sale la ecuación de balance de potencia del apartado. (b) Respuesta de \(V_{dc}\) del terminal maestro (el que fija la tensión) ante un escalón de potencia demandada por el terminal esclavo: el PI está diseñado sobre la variable de energía \(W=\tfrac12CV_{dc}^2\), cuya dinámica es exactamente lineal, no sobre \(V_{dc}\) directamente.</div></div>
 
-**Derivación de la ecuación de balance del bus DC.** La energía almacenada en el condensador del bus DC
-de un terminal es \(W=\tfrac12CV_{dc}^2\) (la fórmula estándar de energía de un condensador). Por
-conservación de energía, la potencia que fluye hacia el condensador es exactamente la diferencia entre la
-potencia que entra desde el lado AC (\(P_{AC}\), la que el convertidor decide intercambiar con la red) y
-la que sale hacia el cable DC (\(P_{line}=V_{dc}\,I_{line}\), la que abandona el bus hacia el otro
-terminal):
+**Ecuación de balance del bus DC — resultado (derivación completa en [[dinamica-bus-dc]] §1 y
+[[control-tension-bus-dc]] §1 y §3).** Ya existe en el repositorio la derivación paso a paso, desde la ley
+constitutiva del condensador (\(i_C=dq/dt\)) y el KCL del nudo, de por qué la energía almacenada
+\(W=\tfrac12CV_{dc}^2\) obedece \(\dot W=P_{in}-P_{out}\) — **exactamente lineal**, sin ningún término que
+dependa de \(W\) mismo — mientras que la ecuación en la propia \(V_{dc}\) sí es no lineal (ganancia
+\(1/(CV_{dc})\), variable con el punto de operación). Esta ficha no repite esa derivación: solo la aplica,
+adaptando la notación al enlace HVDC (\(P_{in}\to P_{AC}\), la potencia que el convertidor intercambia con
+su red; \(P_{out}\to P_{line}=V_{dc}I_{line}\), la que sale hacia el cable):
 
-$$ \frac{dW}{dt} = P_{AC} - P_{line} $$
+$$ \frac{dW}{dt} = P_{AC} - P_{line} \qquad\Longleftrightarrow\qquad \frac{dV_{dc}}{dt} = \frac{P_{AC}-P_{line}}{C\,V_{dc}} $$
 
-Sustituyendo \(W=\tfrac12CV_{dc}^2\) y derivando (regla de la cadena, \(\tfrac{d}{dt}(\tfrac12CV_{dc}^2)=
-CV_{dc}\tfrac{dV_{dc}}{dt}\)):
+y hereda la misma conclusión de diseño: el lazo de tensión se cierra sobre \(V_{dc}^2\) (equivalentemente
+\(W\)), no sobre \(V_{dc}\) en crudo, precisamente porque esa es la variable en la que la planta es un
+integrador puro lineal — la sintonía del PI por ese camino está desarrollada en
+[[control-tension-bus-dc]] §2 y §4.
 
-$$ CV_{dc}\,\frac{dV_{dc}}{dt} = P_{AC} - P_{line} \quad\Longrightarrow\quad \boxed{\ \frac{dV_{dc}}{dt} = \frac{P_{AC}-P_{line}}{C\,V_{dc}}\ } $$
+**Lo específico de HVDC: dos condensadores unidos por un cable, no uno solo.** La diferencia real de este
+apartado frente a las fichas genéricas de bus DC es que aquí hay **dos** condensadores (uno por terminal)
+acoplados por la dinámica del cable (apartado 7) en vez de un único bus alimentando cargas locales: la
+potencia que un terminal "pierde" hacia el cable es la que el otro terminal "gana" en su propio balance,
+con el retraso y la resonancia LC que introduce el cable de por medio. Es esa cadena de dos plantas
+acopladas, no la ecuación de un solo bus, lo que hace falta modelar para diseñar el control jerárquico del
+apartado 5.
 
-Esta es la ecuación de estado exacta de la tensión del bus DC. **No es lineal**: el lado derecho tiene
-\(V_{dc}\) en el denominador, así que la respuesta ante una misma perturbación de potencia depende del
-punto de operación (la misma \(\Delta P\) mueve más rápido \(V_{dc}\) cuando \(V_{dc}\) es pequeño que
-cuando es grande) — un efecto real, no un artefacto del modelo: a menor tensión, la misma potencia exige
-mayor corriente, y es la corriente (vía \(I=C\,dV_{dc}/dt\)) la que realmente carga o descarga el
-condensador linealmente.
-
-**Por qué conviene usar \(W\) (o \(V_{dc}^2\)) como variable de estado en vez de \(V_{dc}\).** Volviendo a
-la ecuación antes de sustituir \(W\):
-
-$$ \frac{dW}{dt} = P_{AC} - P_{line} $$
-
-Esta ecuación **es exactamente lineal** en \(W\): la derivada de la energía es simplemente la diferencia
-de potencias, sin ningún término que dependa de \(W\) mismo. Es la misma diferencia que hay entre describir
-la carga de un condensador por su tensión (nolineal en corriente constante solo si se mira \(v\) vs. \(i\)
-de forma acoplada de cierta manera) y describirla por su energía (siempre lineal en potencia). Esto tiene
-una consecuencia práctica directa: si el lazo de control de \(V_{dc}\) se diseña tomando como salida
-controlada \(W\) (equivalentemente, \(V_{dc}^2\)) en vez de \(V_{dc}\) directamente, la planta que ve el
-controlador es un **integrador puro lineal** (\(\dot W = P_{AC}-P_{line}\)), y se puede aplicar
-directamente toda la teoría de diseño de PI para plantas de primer orden sin necesidad de linealizar
-alrededor de un punto de operación ni de que las ganancias cambien con \(V_{dc}\). Es la razón por la que
-en control real de HVDC es habitual que la variable regulada del lazo externo sea \(V_{dc}^2\) (o \(W\)) y
-no \(V_{dc}\) en crudo, aunque la referencia y la medida sigan presentándose al operador en kV.
-
-**Ejemplo verificado: respuesta ante un escalón de carga.** El panel (b) de la figura simula el sistema de
-dos terminales completo: el terminal 1 (maestro de \(V_{dc}\)) tiene un PI diseñado sobre \(W\) con
-\(\omega_n=100\,\text{rad/s}\) (\(K_{p,W}=2\omega_n\), \(K_{i,W}=\omega_n^2\), el criterio estándar de
-segundo orden con amortiguamiento crítico para una planta integradora), y el terminal 2 (esclavo de \(P\))
-pasa de \(P_2=0\) a \(P_2=-400\,\text{MW}\) (empieza a absorber potencia) en \(t=8\,\text{ms}\). La tensión
-del terminal maestro cae transitoriamente (hasta \(\sim600\,\text{kV}\), un \(6\,\%\) por debajo de la
-nominal \(640\,\text{kV}\)) mientras el condensador se descarga entregando la potencia que aún no ha
-compensado el lazo, y se recupera en unas pocas decenas de milisegundos — el comportamiento esperado de un
-sistema de segundo orden bien amortiguado.
+**Ejemplo verificado: respuesta ante un escalón de carga en el enlace de dos terminales.** El panel (b) de
+la figura simula esa cadena completa: el terminal 1 (maestro de \(V_{dc}\)) tiene un PI diseñado sobre
+\(W\) con \(\omega_n=100\,\text{rad/s}\) (\(K_{p,W}=2\omega_n\), \(K_{i,W}=\omega_n^2\), el criterio
+estándar de segundo orden con amortiguamiento crítico para una planta integradora — método de
+[[control-tension-bus-dc]] §2), y el terminal 2 (esclavo de \(P\)) pasa de \(P_2=0\) a
+\(P_2=-400\,\text{MW}\) (empieza a absorber potencia) en \(t=8\,\text{ms}\). La tensión del terminal
+maestro cae transitoriamente (hasta \(\sim600\,\text{kV}\), un \(6\,\%\) por debajo de la nominal
+\(640\,\text{kV}\)) mientras su condensador se descarga entregando la potencia que aún no ha compensado el
+lazo, y se recupera en unas pocas decenas de milisegundos — el comportamiento esperado de un sistema de
+segundo orden bien amortiguado.
 
 ## 5 — Control de un terminal VSC-HVDC: jerarquía de dos lazos
 
