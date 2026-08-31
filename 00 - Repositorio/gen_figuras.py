@@ -16352,16 +16352,69 @@ def _hvdc_diseno_ancho_banda():
 
 
 def _hvdc_planta_corriente():
-    """HVDC apartado 5 (corriente): circuito equivalente reducido de la planta
-    del lazo de corriente del MMC (L_eq=L_arm/2, R_eq=R_arm/2), resultado directo
-    del KVL de brazo -- figura de planteamiento, para mostrar ANTES de la
-    derivacion algebraica en el texto."""
+    """HVDC apartado 5 (corriente): (a) circuito REAL de los dos brazos del MMC
+    de una fase (brazo superior: de +Vdc/2 al nodo AC; brazo inferior: del nodo
+    AC a -Vdc/2), con i_u, i_l, v_u, v_l explicitos -- para dejar claro que "los
+    dos brazos" son literalmente las dos mitades del bus DC, no una metafora; (b)
+    circuito equivalente reducido resultado de la derivacion (L_eq=L_arm/2,
+    R_eq=R_arm/2) -- ambos mostrados ANTES de la derivacion algebraica en el
+    texto."""
     import matplotlib.pyplot as plt
 
-    fig, a1 = plt.subplots(figsize=(9.0, 5.0))
-    fig.suptitle('HVDC apartado 5: planta del lazo de corriente del MMC (planteamiento)', fontsize=12.0, fontweight='bold')
+    fig, (a0, a1) = plt.subplots(1, 2, figsize=(15.6, 6.4), gridspec_kw={'width_ratios': [1.0, 1.15]})
+    fig.suptitle('HVDC apartado 5: planta del lazo de corriente del MMC (planteamiento)', fontsize=12.6, fontweight='bold')
 
+    # ================= (a) circuito real: los dos brazos ================= #
+    a0.axis('off'); a0.set_xlim(0, 8); a0.set_ylim(0, 8); a0.set_aspect('equal')
+    a0.set_title('(a) Circuito real: los dos brazos de una fase del MMC', fontsize=10.8, fontweight='bold')
+
+    xc = 3.2
+    # railes DC (rigidos = misma referencia AC, ver texto)
+    a0.plot([1.0, 5.6], [7.4, 7.4], color='#7d3c98', lw=2.4)
+    a0.text(0.9, 7.4, r'$+\dfrac{V_{dc}}{2}$', fontsize=11, ha='right', va='center', color='#7d3c98')
+    a0.plot([1.0, 5.6], [0.6, 0.6], color='#7d3c98', lw=2.4)
+    a0.text(0.9, 0.6, r'$-\dfrac{V_{dc}}{2}$', fontsize=11, ha='right', va='center', color='#7d3c98')
+
+    # brazo superior: rail+ -> nodo AC
+    a0.plot([xc, xc], [7.4, 6.6], color='navy', lw=1.6)
+    a0.add_patch(plt.Rectangle((xc-0.65, 5.55), 1.3, 1.0, facecolor='#D5F5E3', edgecolor='#1e8449', lw=1.5, zorder=4))
+    a0.text(xc, 6.05, 'N SMs\n' + r'($v_u$ insertada)', ha='center', va='center', fontsize=7.6, zorder=5)
+    a0.plot([xc, xc], [5.55, 5.25], color='navy', lw=1.6)
+    for k in range(4):
+        yk = 5.25 - k*0.26
+        a0.plot([xc, xc-0.16, xc], [yk, yk-0.13, yk-0.26], color='navy', lw=1.3)
+    a0.text(xc+0.55, 4.65, r'$L_{arm},R_{arm}$', fontsize=8.4, ha='left', va='center')
+    a0.plot([xc, xc], [4.21, 3.9], color='navy', lw=1.6)
+    a0.annotate('', xy=(xc, 6.55), xytext=(xc, 7.3), arrowprops=dict(arrowstyle='-|>', color='#1e8449', lw=1.7))
+    a0.text(xc-0.25, 6.9, r'$i_u$', color='#1e8449', fontsize=10, ha='right')
+
+    # nodo AC
+    a0.plot([xc], [3.75], marker='o', ms=7, color='#c0392b', zorder=6)
+    a0.annotate('', xy=(5.6, 3.75), xytext=(xc+0.15, 3.75), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.9))
+    a0.text(4.6, 4.05, r'$i_{out}$', color='#c0392b', fontsize=10.5, ha='center')
+    a0.text(5.75, 3.75, 'red AC\n' + r'($v_a$)', fontsize=8.6, ha='left', va='center')
+
+    # brazo inferior: nodo AC -> rail-
+    a0.plot([xc, xc], [3.6, 3.3], color='navy', lw=1.6)
+    for k in range(4):
+        yk = 3.3 - k*0.26
+        a0.plot([xc, xc-0.16, xc], [yk, yk-0.13, yk-0.26], color='navy', lw=1.3)
+    a0.text(xc+0.55, 2.7, r'$L_{arm},R_{arm}$', fontsize=8.4, ha='left', va='center')
+    a0.plot([xc, xc], [2.26, 1.95], color='navy', lw=1.6)
+    a0.add_patch(plt.Rectangle((xc-0.65, 0.95), 1.3, 1.0, facecolor='#FADBD8', edgecolor='#c0392b', lw=1.5, zorder=4))
+    a0.text(xc, 1.45, 'N SMs\n' + r'($v_l$ insertada)', ha='center', va='center', fontsize=7.6, zorder=5)
+    a0.plot([xc, xc], [0.95, 0.6], color='navy', lw=1.6)
+    a0.annotate('', xy=(xc, 0.64), xytext=(xc, 0.91), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.7))
+    a0.text(xc-0.25, 0.78, r'$i_l$', color='#c0392b', fontsize=10, ha='right')
+
+    a0.text(4.0, 0.05,
+            r'brazo superior $\to+V_{dc}/2$, brazo inferior $\to-V_{dc}/2$: literalmente las dos mitades del bus DC.'
+            + '\n' + r'Al ser ambos raíles rígidos (misma referencia AC), desde el nodo AC quedan en PARALELO $\Rightarrow L_{eq}{=}L_{arm}/2$.',
+            fontsize=8.0, ha='center', color='#555', style='italic')
+
+    # ================= (b) circuito equivalente reducido ================= #
     a1.axis('off'); a1.set_xlim(0, 10); a1.set_ylim(0, 5.7); a1.set_aspect('equal')
+    a1.set_title('(b) Equivalente reducido (resultado de la derivación)', fontsize=10.8, fontweight='bold')
     a1.add_patch(plt.Circle((1.3, 4.0), 0.55, facecolor='#FCF3CF', edgecolor='#7d6608', lw=1.6, zorder=4))
     a1.text(1.3, 4.0, r'$v_{conv}$', ha='center', va='center', fontsize=9.5, zorder=5)
     a1.plot([1.85, 3.0], [4.0, 4.0], color='navy', lw=1.6)
@@ -16382,7 +16435,7 @@ def _hvdc_planta_corriente():
     a1.text(5.0, 1.05, r'$L_{eq}=L_{arm}/2\approx48.9$ mH,   $R_{eq}=R_{arm}/2\approx0.512\,\Omega$', fontsize=8.6, ha='center', color='#444')
     a1.text(5.0, 0.35, 'misma forma que un VSC de 2 niveles: $G_i(s)=1/(L_{eq}s+R_{eq})$', fontsize=8.0, ha='center', color='#777', style='italic')
 
-    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    plt.tight_layout(rect=[0, 0, 1, 0.92])
     _savefig(fig, 'hvdc-planta-corriente', dpi=160)
 
 

@@ -211,17 +211,21 @@ cable acoplando los dos terminales) y **cómo diseñar ambos lazos, en ambos ter
 coordinada** — que es precisamente lo que el apartado 4 dejó pendiente.
 
 **Planta del lazo de corriente en un MMC: por qué la inductancia efectiva es \(L_{arm}/2\), no
-\(L_{arm}\).** Antes de derivarla algebraicamente, así es la planta reducida a la que llega esta sección
-(circuito equivalente entre la tensión que sintetiza el convertidor, \(v_{conv}\), y la tensión de fase de
-la red, \(v_a\)):
+\(L_{arm}\).** Antes de derivarla algebraicamente, así son el circuito real y la planta reducida a la que
+llega esta sección. Los "dos brazos" de los que habla la derivación son, literalmente, las dos mitades del
+bus DC: el **brazo superior** es la cadena de \(N\) submódulos más el reactor \(L_{arm}\) que conecta el
+nodo de salida AC de esa fase con el raíl \(+V_{dc}/2\); el **brazo inferior** es la cadena simétrica que lo
+conecta con \(-V_{dc}/2\). Como ambos raíles DC son rígidos (misma referencia en pequeña señal), desde el
+nodo AC las dos ramas quedan eléctricamente **en paralelo** — no en serie, aunque el dibujo físico las
+muestre una encima de la otra — y esa es la razón última de que \(L_{eq}=L_{arm}/2\): dos inductancias
+iguales en paralelo dan la mitad.
 
-<div class="cfig"><img src="figuras/hvdc-planta-corriente.png" alt="circuito equivalente reducido de la planta del lazo de corriente del MMC, con Req y Leq en serie entre la fuente de tension del convertidor vconv y la tension de red va, recorrido por la corriente iout, junto a la ecuacion diferencial de la que sale"><div class="cap">Planta reducida del lazo de corriente del MMC: resultado de la derivación que sigue, mostrado antes para tener la referencia visual a mano. \(R_{eq}\), \(L_{eq}\) en serie entre \(v_{conv}\) y \(v_a\), recorridos por \(i_{out}\).</div></div>
+<div class="cfig"><img src="figuras/hvdc-planta-corriente.png" alt="circuito real de los dos brazos de una fase del MMC, brazo superior con N submodulos y reactor Larm conectando el nodo AC al raíl mas Vdc medio con corriente iu, brazo inferior conectando el nodo AC al raíl menos Vdc medio con corriente il, y nodo AC con la corriente iout hacia la red; junto al circuito equivalente reducido con Req y Leq en serie entre la fuente de tension del convertidor vconv y la tension de red va, resultado de la derivacion"><div class="cap">(a) Circuito real de una fase del MMC: brazo superior (\(+V_{dc}/2\to\) nodo AC) y brazo inferior (nodo AC \(\to-V_{dc}/2\)), cada uno con su cadena de submódulos y su reactor \(L_{arm}\), \(R_{arm}\) — las dos mitades físicas del bus DC. (b) Circuito equivalente reducido, resultado de la derivación que sigue: \(R_{eq}\), \(L_{eq}\) en serie entre \(v_{conv}\) y \(v_a\), recorridos por \(i_{out}\).</div></div>
 
-A diferencia de un VSC de dos niveles, en el MMC la corriente de fase no ve directamente
-\(L_{arm}\): la ve a través de **dos** brazos en paralelo (superior e inferior), y hay que derivarlo desde
-las ecuaciones de brazo para no asumirlo. Partiendo de las ecuaciones de KVL de cada brazo de la fase
-\(a\) (ya establecidas en [[mmc-modelo-control]] §1, con \(v_a\equiv v_{a0}\) la tensión del punto medio
-de fase y \(v_u,v_l\) las tensiones insertadas por los SMs de cada brazo):
+Esa intuición de "dos ramas en paralelo" hay que confirmarla con álgebra, no dejarla en argumento verbal.
+Partiendo de las ecuaciones de KVL de cada brazo de la fase \(a\) (ya establecidas en
+[[mmc-modelo-control]] §1, con \(v_a\equiv v_{a0}\) la tensión del punto medio de fase y \(v_u,v_l\) las
+tensiones insertadas por los SMs de cada brazo):
 
 $$ L_{arm}\frac{di_u}{dt} = \frac{V_{dc}}{2} - v_u - R_{arm}i_u - v_a, \qquad
    L_{arm}\frac{di_l}{dt} = \frac{V_{dc}}{2} - v_l - R_{arm}i_l + v_a $$
