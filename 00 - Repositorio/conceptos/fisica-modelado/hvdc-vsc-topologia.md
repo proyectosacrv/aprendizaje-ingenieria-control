@@ -328,8 +328,59 @@ condensador \(C_1\). Eso es correcto y suficiente para elegir el ancho de banda 
 lazo antes de excitar la dinámica propia del cable? Para responderla hace falta la planta completa
 \(V_{dc1}(s)/I_{VSC1}(s)\), no la aproximación de bus aislado — y esa planta ya está en este mismo
 repositorio: es el sistema de tres estados del apartado 7 (\(\mathbf{x}=[V_{dc1},I_{dc},V_{dc2}]^T\),
-matrices \(A\), \(B\) ya dadas). Resolviendo \((sI-A)\mathbf{X}=B\mathbf{U}\) para \(V_{dc1}(s)\) en
-función de las dos corrientes de convertidor:
+matrices \(A\), \(B\) ya dadas). El desarrollo completo, paso a paso, es el que sigue.
+
+**Paso 1 — las tres ecuaciones físicas.** Un KCL (ley de corrientes de Kirchhoff: la suma de corrientes que
+entran a un nudo es igual a la que sale) en cada nudo del bus DC, más un KVL en la rama serie del cable:
+
+<div class="cfig"><img src="figuras/hvdc-kcl-kvl-cable.png" alt="circuito del modelo pi de dos terminales anotado con las tres ecuaciones fisicas: KCL en el nodo 1 igualando IVSC1 menos Idc a C medios por dVdc1 dt, KVL en la rama serie igualando Vdc1 menos Vdc2 a L por dIdc dt mas R por Idc, y KCL en el nodo 2 igualando Idc menos IVSC2 a C medios por dVdc2 dt"><div class="cap">Quién es quién en el modelo de cable: KCL en cada nudo (la corriente neta que entra carga el condensador local \(C/2\)) y KVL en la rama serie (la diferencia \(V_{dc1}{-}V_{dc2}\) se reparte entre \(R\) y \(L\)). Estas tres ecuaciones, reordenadas, son las filas de \(\dot{\mathbf{x}}=A\mathbf{x}+B\mathbf{u}\) del apartado 7 — aquí sin reordenar, tal como salen de aplicar KCL/KVL directamente.</div></div>
+
+$$ I_{VSC1}-I_{dc}=\frac{C}{2}\frac{dV_{dc1}}{dt} \qquad(1) \qquad\qquad
+   V_{dc1}-V_{dc2}=L\frac{dI_{dc}}{dt}+R\,I_{dc} \qquad(2) \qquad\qquad
+   I_{dc}-I_{VSC2}=\frac{C}{2}\frac{dV_{dc2}}{dt} \qquad(3) $$
+
+**Paso 2 — Laplace, condiciones iniciales nulas.** Cada derivada se convierte en un factor \(s\):
+
+$$ sV_{dc1}=\frac{2}{C}(I_{VSC1}-I_{dc}) \quad(1') \qquad
+   sI_{dc}=\frac{1}{L}(V_{dc1}-V_{dc2})-\frac{R}{L}I_{dc} \quad(2') \qquad
+   sV_{dc2}=\frac{2}{C}(I_{dc}-I_{VSC2}) \quad(3') $$
+
+(a partir de aquí, \(I_1\equiv I_{VSC1}(s)\), \(I_2\equiv I_{VSC2}(s)\), por brevedad.)
+
+**Paso 3 — eliminar \(I_{dc}\) usando (1′):**
+
+$$ I_{dc}=I_1-\frac{C}{2}sV_{dc1} \qquad(i) $$
+
+**Paso 4 — meter (i) en (3′) para sacar \(V_{dc2}\) en función solo de \(V_{dc1}\), \(I_1\), \(I_2\)** — el paso
+que da la relación intermedia más reveladora, y que no suele escribirse explícitamente:
+
+$$ sV_{dc2}=\frac{2}{C}\left[I_1-\frac{C}{2}sV_{dc1}-I_2\right] = \frac{2}{C}(I_1-I_2)-sV_{dc1}
+   \quad\Longrightarrow\quad \boxed{\ V_{dc2}=\frac{2}{Cs}(I_1-I_2)-V_{dc1}\ } \qquad(iv) $$
+
+Lectura física de (iv): \(V_{dc2}\) es "lo que entrega el integrador de la diferencia neta de corrientes"
+menos \(V_{dc1}\) — el reflejo algebraico de que, en el modo lento (el polo en \(s=0\) del apartado
+siguiente), los dos extremos quedan atados por la misma carga acumulada del cable.
+
+**Paso 5 — meter (i) y (iv) en (2′) para quedarse solo con \(V_{dc1}\).** Multiplicando (2′) por \(L\) y
+reordenando: \((Ls+R)I_{dc}=V_{dc1}-V_{dc2}\). Sustituyendo:
+
+$$ (Ls+R)\left[I_1-\frac{C}{2}sV_{dc1}\right] = V_{dc1}-\left[\frac{2}{Cs}(I_1-I_2)-V_{dc1}\right]
+   = 2V_{dc1}-\frac{2}{Cs}(I_1-I_2) $$
+
+**Paso 6 — agrupar los términos en \(V_{dc1}\) a un lado.** Expandiendo el paréntesis de la izquierda y
+pasando el término en \(V_{dc1}\) de esa expansión al lado derecho:
+
+$$ (Ls+R)I_1 + \frac{2}{Cs}(I_1-I_2) = V_{dc1}\left[2+\frac{C}{2}s(Ls+R)\right]
+   = V_{dc1}\cdot\frac{4+CLs^2+CRs}{2} $$
+
+**Paso 7 — despejar \(V_{dc1}\) y limpiar la fracción \(1/(Cs)\)** multiplicando numerador y denominador por
+\(Cs\):
+
+$$ V_{dc1} = \frac{2\left[(Ls+R)I_1+\frac{2}{Cs}(I_1-I_2)\right]}{CLs^2+CRs+4}
+   = \frac{2Cs(Ls+R)I_1+4I_1-4I_2}{Cs(CLs^2+CRs+4)}
+   = \frac{I_1(2CLs^2+2CRs+4)-4I_2}{Cs(CLs^2+CRs+4)} $$
+
+que, sacando factor 2 en el numerador, es exactamente el resultado buscado:
 
 $$ V_{dc1}(s) = \frac{2I_{VSC1}(s)\big(CLs^2+CRs+2\big) - 4I_{VSC2}(s)}{Cs\big(CLs^2+CRs+4\big)} $$
 

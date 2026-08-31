@@ -16641,6 +16641,65 @@ def _hvdc_planta_maestro():
     _savefig(fig, 'hvdc-planta-maestro', dpi=160)
 
 
+def _hvdc_kcl_kvl_cable():
+    """HVDC apartado 5 (maestro): mismo circuito pi de dos terminales que
+    hvdc-planta-maestro, pero anotado con las tres ecuaciones fisicas (KCL en
+    nodo 1, KVL en la rama serie, KCL en nodo 2) situadas justo debajo de donde
+    se aplican -- el paso previo, "quien es quien", antes de pasar a Laplace y
+    eliminar variables para llegar a Vdc1(s)."""
+    import matplotlib.pyplot as plt
+
+    fig, a1 = plt.subplots(figsize=(10.6, 7.4))
+    fig.suptitle('HVDC apartado 5: KCL y KVL del modelo de cable — quién es quién', fontsize=12.4, fontweight='bold')
+
+    a1.axis('off'); a1.set_xlim(-0.4, 11.4); a1.set_ylim(-2.6, 6.3); a1.set_aspect('equal')
+    a1.plot([0.9, 0.9], [1.4, 5.4], color='navy', lw=1.6)
+    a1.text(0.55, 5.7, r'$V_{dc1}$', fontsize=10, color='navy', ha='center', fontweight='bold')
+    a1.plot([0.9, 0.9], [1.4, 0.55], color='navy', lw=1.6)
+    a1.plot([0.55, 1.25], [0.9, 0.9], color='navy', lw=2.2); a1.plot([0.65, 1.15], [0.75, 0.75], color='navy', lw=2.2)
+    a1.text(1.45, 0.82, r'$C/2$', fontsize=9, color='navy')
+    a1.add_patch(plt.Circle((0.9, 3.4), 0.4, facecolor='#D5F5E3', edgecolor='#1e8449', lw=1.6, zorder=4))
+    a1.annotate('', xy=(0.9, 3.65), xytext=(0.9, 3.15), arrowprops=dict(arrowstyle='-|>', color='#1e8449', lw=1.6))
+    a1.text(0.35, 3.4, r'$I_{VSC1}$', fontsize=9, color='#1e8449', ha='right', va='center')
+    a1.plot([0.9, 3.0], [5.4, 5.4], color='navy', lw=1.6)
+    a1.add_patch(plt.Rectangle((3.0, 5.15), 1.0, 0.5, facecolor='#F5B7B1', edgecolor='navy', lw=1.4, zorder=4))
+    a1.text(3.5, 5.4, r'$R$', fontsize=9.5, ha='center', va='center', zorder=5)
+    a1.plot([4.0, 4.5], [5.4, 5.4], color='navy', lw=1.6)
+    for k in range(5):
+        xk = 4.5 + k*0.26
+        a1.plot([xk, xk+0.13, xk+0.26], [5.4, 5.68, 5.4], color='navy', lw=1.3)
+    a1.text(5.15, 6.0, r'$L$', fontsize=9.5, ha='center')
+    a1.plot([5.8, 7.9], [5.4, 5.4], color='navy', lw=1.6)
+    a1.annotate('', xy=(5.4, 4.9), xytext=(3.4, 4.9), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.6))
+    a1.text(4.4, 4.62, r'$I_{dc}$', fontsize=9.5, color='#c0392b', ha='center')
+    a1.plot([7.9, 7.9], [1.4, 5.4], color='navy', lw=1.6)
+    a1.text(8.25, 5.7, r'$V_{dc2}$', fontsize=10, color='navy', ha='center', fontweight='bold')
+    a1.plot([7.9, 7.9], [1.4, 0.55], color='navy', lw=1.6)
+    a1.plot([7.55, 8.25], [0.9, 0.9], color='navy', lw=2.2); a1.plot([7.65, 8.15], [0.75, 0.75], color='navy', lw=2.2)
+    a1.text(8.45, 0.82, r'$C/2$', fontsize=9, color='navy')
+    a1.add_patch(plt.Circle((7.9, 3.4), 0.4, facecolor='#FADBD8', edgecolor='#c0392b', lw=1.6, zorder=4))
+    a1.annotate('', xy=(7.9, 3.15), xytext=(7.9, 3.65), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.6))
+    a1.text(8.45, 3.4, r'$I_{VSC2}$', fontsize=9, color='#c0392b', ha='left', va='center')
+
+    def callout(x, ybox, label, eqs, col, leader=None):
+        if leader is not None:
+            a1.plot([x, x], [ybox+0.75, leader], color=col, lw=1.1, ls=':')
+        a1.text(x, ybox+0.6, label, fontsize=9, color=col, ha='center', va='top', fontweight='bold')
+        a1.text(x, ybox, eqs, fontsize=8.8, ha='center', va='top',
+                bbox=dict(boxstyle='round', facecolor='#F8F9F9', edgecolor=col, alpha=0.95))
+
+    callout(0.9, 0.0, 'KCL nodo 1', r'$I_{VSC1}-I_{dc}=\dfrac{C}{2}\dfrac{dV_{dc1}}{dt}$', '#1e8449')
+    callout(4.4, 2.35, 'KVL rama serie', r'$V_{dc1}-V_{dc2}=L\dfrac{dI_{dc}}{dt}+R\,I_{dc}$', '#7d3c98', leader=4.35)
+    callout(7.9, 0.0, 'KCL nodo 2', r'$I_{dc}-I_{VSC2}=\dfrac{C}{2}\dfrac{dV_{dc2}}{dt}$', '#c0392b')
+
+    a1.text(4.4, -2.35,
+            r'tres ecuaciones físicas $\to$ tres estados $[V_{dc1},I_{dc},V_{dc2}]^T$ — son, reordenadas, las filas de $\dot{\mathbf{x}}=A\mathbf{x}+B\mathbf{u}$ del apartado 7',
+            fontsize=8.4, ha='center', color='#555', style='italic')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    _savefig(fig, 'hvdc-kcl-kvl-cable', dpi=160)
+
+
 def _hvdc_lazo_maestro_respuesta():
     """HVDC apartado 5 (maestro): (a) diagrama de bloques del sistema coordinado
     de control de los DOS terminales (maestro en lazo cerrado + esclavo en lazo
@@ -19006,6 +19065,9 @@ def main():
         n += 1
     if pref is None or "hvdc-planta-maestro".startswith(pref):
         _hvdc_planta_maestro()
+        n += 1
+    if pref is None or "hvdc-kcl-kvl-cable".startswith(pref):
+        _hvdc_kcl_kvl_cable()
         n += 1
     if pref is None or "hvdc-lazo-maestro-respuesta".startswith(pref):
         _hvdc_lazo_maestro_respuesta()
