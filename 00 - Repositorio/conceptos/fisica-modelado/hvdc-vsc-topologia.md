@@ -211,7 +211,13 @@ cable acoplando los dos terminales) y **cómo diseñar ambos lazos, en ambos ter
 coordinada** — que es precisamente lo que el apartado 4 dejó pendiente.
 
 **Planta del lazo de corriente en un MMC: por qué la inductancia efectiva es \(L_{arm}/2\), no
-\(L_{arm}\).** A diferencia de un VSC de dos niveles, en el MMC la corriente de fase no ve directamente
+\(L_{arm}\).** Antes de derivarla algebraicamente, así es la planta reducida a la que llega esta sección
+(circuito equivalente entre la tensión que sintetiza el convertidor, \(v_{conv}\), y la tensión de fase de
+la red, \(v_a\)):
+
+<div class="cfig"><img src="figuras/hvdc-planta-corriente.png" alt="circuito equivalente reducido de la planta del lazo de corriente del MMC, con Req y Leq en serie entre la fuente de tension del convertidor vconv y la tension de red va, recorrido por la corriente iout, junto a la ecuacion diferencial de la que sale"><div class="cap">Planta reducida del lazo de corriente del MMC: resultado de la derivación que sigue, mostrado antes para tener la referencia visual a mano. \(R_{eq}\), \(L_{eq}\) en serie entre \(v_{conv}\) y \(v_a\), recorridos por \(i_{out}\).</div></div>
+
+A diferencia de un VSC de dos niveles, en el MMC la corriente de fase no ve directamente
 \(L_{arm}\): la ve a través de **dos** brazos en paralelo (superior e inferior), y hay que derivarlo desde
 las ecuaciones de brazo para no asumirlo. Partiendo de las ecuaciones de KVL de cada brazo de la fase
 \(a\) (ya establecidas en [[mmc-modelo-control]] §1, con \(v_a\equiv v_{a0}\) la tensión del punto medio
@@ -267,7 +273,7 @@ casi dos órdenes de magnitud más rápido que la constante de tiempo del cable 
 apartado 7), la separación temporal que justifica tratar este lazo como "instantáneo" al diseñar el lazo
 maestro más abajo.
 
-<div class="cfig"><img src="figuras/hvdc-planta-lazo-corriente.png" alt="circuito equivalente reducido de la planta del lazo de corriente del MMC con Leq y Req, diagrama de bloques del lazo cerrado con PI y desacoplo feedforward, y respuesta al escalon del lazo cerrado mostrando el primer orden puro con tau igual a un partido de omega ci"><div class="cap">(a) Planta reducida del lazo de corriente, resultado directo del KVL de brazo. (b) Lazo cerrado (PI + desacoplo feedforward de \(v_a\) + planta + realimentación) — estructura idéntica en todos los modos del terminal. (c) Respuesta al escalón con los valores numéricos diseñados: cancelación de polo exacta \(\Rightarrow\) primer orden puro, \(\tau_{ci}=1/\omega_{ci}\).</div></div>
+<div class="cfig"><img src="figuras/hvdc-lazo-corriente-respuesta.png" alt="diagrama de bloques del lazo cerrado de corriente con PI y desacoplo feedforward, y respuesta al escalon del lazo cerrado mostrando el primer orden puro con tau igual a un partido de omega ci"><div class="cap">(a) Lazo cerrado (PI + desacoplo feedforward de \(v_a\) + planta + realimentación) — estructura idéntica en todos los modos del terminal. (b) Respuesta al escalón con los valores numéricos diseñados: cancelación de polo exacta \(\Rightarrow\) primer orden puro, \(\tau_{ci}=1/\omega_{ci}\).</div></div>
 
 **El lazo externo, y los dos modos del eje d.** La referencia \(i_d^*\) (que fija \(P\)) puede generarse
 de dos formas distintas, según el papel que ese terminal desempeñe en el enlace:
@@ -302,8 +308,13 @@ corresponde aportar). En redes con más de dos terminales (MTDC), esta rigidez d
 sustituye por el droop de tensión DC del apartado 6, que reparte la función de "sostener \(V_{dc}\)" entre
 varios terminales a la vez sin que ninguno la asuma en solitario.
 
-**La planta real del maestro: no un bus aislado, sino el cable acoplando los dos terminales.** El apartado
-4 diseñó el PI del maestro tratando \(P_{line}\) como una perturbación de potencia sobre su propio
+**La planta real del maestro: no un bus aislado, sino el cable acoplando los dos terminales.** Antes de la
+derivación, así es esa planta (el modelo π de dos terminales que ya aparece en el apartado 7, aquí dibujado
+como circuito para que sirva de referencia visual a lo que sigue):
+
+<div class="cfig"><img src="figuras/hvdc-planta-maestro.png" alt="circuito del modelo pi de dos terminales, con las capacidades shunt C medio en cada extremo, la rama serie R y L en el medio recorrida por Idc, y las fuentes de corriente IVSC1 e IVSC2 inyectando en cada nodo Vdc1 y Vdc2"><div class="cap">Planta real del lazo maestro: el modelo π de dos terminales del apartado 7, mostrado antes de resolverlo — las dos fuentes de corriente \(I_{VSC1}\), \(I_{VSC2}\) son las variables manipuladas de los dos terminales; \(V_{dc1}\), \(V_{dc2}\) son las tensiones que cada uno controla o deja flotar.</div></div>
+
+El apartado 4 diseñó el PI del maestro tratando \(P_{line}\) como una perturbación de potencia sobre su propio
 condensador \(C_1\). Eso es correcto y suficiente para elegir el ancho de banda por el método de
 [[control-tension-bus-dc]] §2, pero deja una pregunta sin responder: ¿qué tan rápido puede ir realmente ese
 lazo antes de excitar la dinámica propia del cable? Para responderla hace falta la planta completa
@@ -410,7 +421,7 @@ completa del diseño: el ancho de banda del maestro no hace desaparecer la físi
 su mano, la excita cualquier escalón suficientemente brusco— pero si se elige en la región de amortiguamiento
 activo (arriba), el propio lazo la atenúa con bastante más eficacia que dejar el cable sin regular.
 
-<div class="cfig"><img src="figuras/hvdc-planta-lazo-maestro.png" alt="circuito del modelo pi de dos terminales con las capacidades shunt C medio en cada extremo y las fuentes de corriente IVSC1 e IVSC2, diagrama de bloques del sistema de control coordinado con el terminal maestro en lazo cerrado sobre la planta del cable de tres estados y el terminal esclavo en lazo abierto, y respuesta temporal simulada con el modelo exacto mostrando Vdc1, Vdc2 e Idc ante el escalon de potencia con el modo resonante visible pero amortiguado"><div class="cap">(a) Planta real del lazo maestro: el modelo π de dos terminales del apartado 7, con las dos fuentes de corriente \(I_{VSC1}\), \(I_{VSC2}\) — el planteamiento físico del que salen \(G_{master}(s)\) y \(G_{dist}(s)\). (b) Sistema de control coordinado de los dos terminales: el maestro cierra el lazo sobre \(V_{dc1}\) a través de la planta compartida; el esclavo inyecta \(I_{VSC2}\) en lazo abierto, sin realimentar \(V_{dc2}\). (c) Respuesta simulada con el modelo exacto de tres estados ante el mismo escalón de \(P_2\) de la figura del apartado 4: el modo resonante del cable es visible en \(V_{dc1}\), \(V_{dc2}\) e \(I_{dc}\), pero amortiguado por el lazo maestro (\(\zeta\approx0.15\)) en vez de persistir como en lazo abierto.</div></div>
+<div class="cfig"><img src="figuras/hvdc-lazo-maestro-respuesta.png" alt="diagrama de bloques del sistema de control coordinado con el terminal maestro en lazo cerrado sobre la planta del cable de tres estados y el terminal esclavo en lazo abierto, y respuesta temporal simulada con el modelo exacto mostrando Vdc1, Vdc2 e Idc ante el escalon de potencia con el modo resonante visible pero amortiguado"><div class="cap">(a) Sistema de control coordinado de los dos terminales sobre la planta compartida (\(G_{master}(s)\), \(G_{dist}(s)\)): el maestro cierra el lazo sobre \(V_{dc1}\); el esclavo inyecta \(I_{VSC2}\) en lazo abierto, sin realimentar \(V_{dc2}\). (b) Respuesta simulada con el modelo exacto de tres estados ante el mismo escalón de \(P_2\) de la figura del apartado 4: el modo resonante del cable es visible en \(V_{dc1}\), \(V_{dc2}\) e \(I_{dc}\), pero amortiguado por el lazo maestro (\(\zeta\approx0.15\)) en vez de persistir como en lazo abierto.</div></div>
 
 **El lazo de \(Q\) / tensión AC.** En paralelo y de forma independiente al lazo de \(V_{dc}\)/\(P\), cada
 terminal tiene un lazo sobre el eje q que genera \(i_q^*\) a partir de una consigna de potencia reactiva

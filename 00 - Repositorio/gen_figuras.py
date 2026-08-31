@@ -16351,45 +16351,17 @@ def _hvdc_diseno_ancho_banda():
     _savefig(fig, 'hvdc-diseno-ancho-banda', dpi=160)
 
 
-def _hvdc_planta_lazo_corriente():
-    """HVDC apartado 5 (corriente): (a) circuito equivalente reducido de la planta
+def _hvdc_planta_corriente():
+    """HVDC apartado 5 (corriente): circuito equivalente reducido de la planta
     del lazo de corriente del MMC (L_eq=L_arm/2, R_eq=R_arm/2), resultado directo
-    del KVL de brazo; (b) diagrama de bloques del lazo cerrado (PI + desacoplo
-    feedforward de v_a + planta + realimentacion); (c) respuesta al escalon del
-    lazo cerrado con los valores numericos disenados -- cancelacion de polo exacta,
-    primer orden puro con tau=1/wci."""
+    del KVL de brazo -- figura de planteamiento, para mostrar ANTES de la
+    derivacion algebraica en el texto."""
     import matplotlib.pyplot as plt
-    import matplotlib.patches as mpatches
 
-    Leq, Req = 48.9e-3, 0.512
-    wci = 2*np.pi*1000.0
-    tau = 1.0/wci
-    Inom = 781.0
+    fig, a1 = plt.subplots(figsize=(9.0, 5.0))
+    fig.suptitle('HVDC apartado 5: planta del lazo de corriente del MMC (planteamiento)', fontsize=12.0, fontweight='bold')
 
-    fig = plt.figure(figsize=(13.6, 9.3))
-    gs = fig.add_gridspec(2, 2, height_ratios=[1.15, 1.0], width_ratios=[1, 1], hspace=0.38, wspace=0.22)
-    a1 = fig.add_subplot(gs[0, 0]); a2 = fig.add_subplot(gs[0, 1]); a3 = fig.add_subplot(gs[1, :])
-    fig.suptitle('HVDC apartado 5: planta, lazo cerrado y respuesta del lazo de corriente del MMC', fontsize=12.8, fontweight='bold')
-
-    def box(ax, x, y, w, h, txt, fc='#D6E4F0', ec='#2e5090', fs=9):
-        ax.add_patch(mpatches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.03', facecolor=fc, edgecolor=ec, lw=1.5, zorder=4))
-        ax.text(x+w/2, y+h/2, txt, ha='center', va='center', fontsize=fs, fontweight='bold', zorder=5)
-
-    def sumjunc(ax, x, y, r=0.22, signs=('+', '-'), pos=('left', 'bottom')):
-        ax.add_patch(plt.Circle((x, y), r, facecolor='white', edgecolor='#333', lw=1.5, zorder=5))
-        ax.plot([x-r*0.55, x+r*0.55], [y, y], color='#333', lw=1.1, zorder=6)
-        ax.plot([x, x], [y-r*0.55, y+r*0.55], color='#333', lw=1.1, zorder=6)
-        dxy = {'left': (-r-0.18, 0), 'right': (r+0.18, 0), 'top': (0, r+0.18), 'bottom': (0, -r-0.18)}
-        for s, p in zip(signs, pos):
-            dx, dy = dxy[p]
-            ax.text(x+dx, y+dy, s, fontsize=10, ha='center', va='center', color='#333', fontweight='bold', zorder=6)
-
-    def arrow(ax, xy0, xy1, col='#333', lw=1.5):
-        ax.annotate('', xy=xy1, xytext=xy0, arrowprops=dict(arrowstyle='-|>', color=col, lw=lw))
-
-    # ================= (a) planta: circuito reducido ================= #
-    a1.axis('off'); a1.set_xlim(0, 10); a1.set_ylim(0, 7)
-    a1.set_title('(a) Planta del lazo de corriente\n(circuito reducido, resultado del KVL de brazo)', fontsize=10.3, fontweight='bold')
+    a1.axis('off'); a1.set_xlim(0, 10); a1.set_ylim(0, 5.7); a1.set_aspect('equal')
     a1.add_patch(plt.Circle((1.3, 4.0), 0.55, facecolor='#FCF3CF', edgecolor='#7d6608', lw=1.6, zorder=4))
     a1.text(1.3, 4.0, r'$v_{conv}$', ha='center', va='center', fontsize=9.5, zorder=5)
     a1.plot([1.85, 3.0], [4.0, 4.0], color='navy', lw=1.6)
@@ -16410,9 +16382,45 @@ def _hvdc_planta_lazo_corriente():
     a1.text(5.0, 1.05, r'$L_{eq}=L_{arm}/2\approx48.9$ mH,   $R_{eq}=R_{arm}/2\approx0.512\,\Omega$', fontsize=8.6, ha='center', color='#444')
     a1.text(5.0, 0.35, 'misma forma que un VSC de 2 niveles: $G_i(s)=1/(L_{eq}s+R_{eq})$', fontsize=8.0, ha='center', color='#777', style='italic')
 
-    # ================= (b) lazo cerrado ================= #
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'hvdc-planta-corriente', dpi=160)
+
+
+def _hvdc_lazo_corriente_respuesta():
+    """HVDC apartado 5 (corriente): (a) diagrama de bloques del lazo cerrado
+    (PI + desacoplo feedforward de v_a + planta + realimentacion); (b) respuesta
+    al escalon del lazo cerrado con los valores numericos disenados -- cancelacion
+    de polo exacta, primer orden puro con tau=1/wci. Se muestra DESPUES del
+    diseno numerico en el texto (figura hvdc-planta-corriente es la del planteamiento)."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    wci = 2*np.pi*1000.0
+    tau = 1.0/wci
+    Inom = 781.0
+
+    fig, (a2, a3) = plt.subplots(1, 2, figsize=(14.0, 5.4), gridspec_kw={'width_ratios': [1.15, 1.0]})
+    fig.suptitle('HVDC apartado 5: lazo cerrado y respuesta del lazo de corriente del MMC', fontsize=12.6, fontweight='bold')
+
+    def box(ax, x, y, w, h, txt, fc='#D6E4F0', ec='#2e5090', fs=9):
+        ax.add_patch(mpatches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.03', facecolor=fc, edgecolor=ec, lw=1.5, zorder=4))
+        ax.text(x+w/2, y+h/2, txt, ha='center', va='center', fontsize=fs, fontweight='bold', zorder=5)
+
+    def sumjunc(ax, x, y, r=0.22, signs=('+', '-'), pos=('left', 'bottom')):
+        ax.add_patch(plt.Circle((x, y), r, facecolor='white', edgecolor='#333', lw=1.5, zorder=5))
+        ax.plot([x-r*0.55, x+r*0.55], [y, y], color='#333', lw=1.1, zorder=6)
+        ax.plot([x, x], [y-r*0.55, y+r*0.55], color='#333', lw=1.1, zorder=6)
+        dxy = {'left': (-r-0.18, 0), 'right': (r+0.18, 0), 'top': (0, r+0.18), 'bottom': (0, -r-0.18)}
+        for s, p in zip(signs, pos):
+            dx, dy = dxy[p]
+            ax.text(x+dx, y+dy, s, fontsize=10, ha='center', va='center', color='#333', fontweight='bold', zorder=6)
+
+    def arrow(ax, xy0, xy1, col='#333', lw=1.5):
+        ax.annotate('', xy=xy1, xytext=xy0, arrowprops=dict(arrowstyle='-|>', color=col, lw=lw))
+
+    # ================= (a) lazo cerrado ================= #
     a2.axis('off'); a2.set_xlim(0, 10.5); a2.set_ylim(0, 7)
-    a2.set_title('(b) Lazo cerrado de corriente (por eje $d$ o $q$)', fontsize=10.3, fontweight='bold')
+    a2.set_title('(a) Lazo cerrado de corriente (por eje $d$ o $q$)', fontsize=10.3, fontweight='bold')
     sumjunc(a2, 1.3, 4.3, signs=('+', '−'), pos=('left', 'bottom'))
     arrow(a2, (0.1, 4.3), (1.08, 4.3)); a2.text(0.05, 4.55, r'$i_d^*$', fontsize=10, ha='left')
     box(a2, 1.9, 3.8, 1.7, 1.0, r'PI$(s)$' + '\n' + r'$K_p{+}K_i/s$')
@@ -16431,9 +16439,9 @@ def _hvdc_planta_lazo_corriente():
     a2.plot([8.9, 1.3], [0.55, 0.55], color='#333', lw=1.3)
     arrow(a2, (1.3, 0.55), (1.3, 4.08))
     a2.text(5.1, 0.75, r'realimentación $i_{out}$', fontsize=8.2, color='#333', ha='center')
-    a2.text(5.1, 6.55, r'estructura idéntica en todos los modos del apartado (solo cambia el origen de $i_d^*$, $i_q^*$)', fontsize=8.2, ha='center', color='#555', style='italic')
+    a2.text(5.1, 6.55, r'estructura idéntica en todos los modos (solo cambia el origen de $i_d^*$, $i_q^*$)', fontsize=8.0, ha='center', color='#555', style='italic')
 
-    # ================= (c) respuesta al escalon ================= #
+    # ================= (b) respuesta al escalon ================= #
     t = np.linspace(0, 1.0e-3, 800)
     i = Inom*(1 - np.exp(-t/tau))
     a3.plot(t*1e3, i, color='#2e5090', lw=2.2)
@@ -16445,57 +16453,26 @@ def _hvdc_planta_lazo_corriente():
     a3.axvline(5*tau*1e3, color='#999', lw=0.9, ls=':')
     a3.text(5*tau*1e3+0.015, Inom*0.15, f'≈99% en $5\\tau_{{ci}}\\approx{5*tau*1e3:.2f}$ ms\n(asentamiento)', fontsize=8.2, color='#555')
     a3.set_xlabel('t [ms]'); a3.set_ylabel(r'$i_{out}$ [A]'); a3.grid(alpha=.3)
-    a3.set_title(r'(c) Respuesta al escalón del lazo cerrado ($i_d^*{:}\ 0\to781$ A, $I_{nom}$): '
-                 r'cancelación de polo exacta $\Rightarrow$ $T(s)=\dfrac{\omega_{ci}}{s+\omega_{ci}}$, primer orden puro',
+    a3.set_title(r'(b) Respuesta al escalón ($i_d^*{:}\ 0\to781$ A, $I_{nom}$): '
+                 r'cancelación de polo $\Rightarrow$ $T(s)=\dfrac{\omega_{ci}}{s+\omega_{ci}}$, 1er orden puro',
                  fontsize=10.0, fontweight='bold')
 
-    plt.tight_layout(rect=[0, 0, 1, 0.94])
-    _savefig(fig, 'hvdc-planta-lazo-corriente', dpi=160)
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'hvdc-lazo-corriente-respuesta', dpi=160)
 
 
-def _hvdc_planta_lazo_maestro():
-    """HVDC apartado 5 (maestro): (a) circuito del modelo pi de dos terminales
+def _hvdc_planta_maestro():
+    """HVDC apartado 5 (maestro): circuito del modelo pi de dos terminales
     (planta real del lazo maestro, con los shunts C/2 explicitos y las dos
     fuentes de corriente I_VSC1, I_VSC2 -- la planta que plantea el desarrollo
-    de G_master(s)/G_dist(s)); (b) diagrama de bloques del sistema coordinado de
-    control de los DOS terminales (maestro en lazo cerrado + esclavo en lazo
-    abierto) sobre la planta compartida de 3 estados; (c) respuesta simulada con
-    el modelo EXACTO de 3 estados (no el integrador simplificado del apartado 4)
-    ante el mismo escalon de P2, mostrando Vdc1, Vdc2 e Idc: el modo resonante
-    del cable es visible pero queda amortiguado por el propio lazo maestro
-    (zeta_lazo_cerrado approx 0.15 para el wn=100 usado, ver figura de analisis
-    de amortiguamiento activo)."""
+    de G_master(s)/G_dist(s)) -- figura de planteamiento, para mostrar ANTES de
+    la derivacion algebraica en el texto."""
     import matplotlib.pyplot as plt
-    import matplotlib.patches as mpatches
 
-    L, R, C = 0.12, 3.22, 60e-6
-    Vdc0 = 640e3
-    wn = 100.0; Kp_W = 2*wn; Ki_W = wn**2
+    fig, a1 = plt.subplots(figsize=(9.6, 5.6))
+    fig.suptitle('HVDC apartado 5: planta del lazo maestro — modelo π de dos terminales (planteamiento)', fontsize=11.6, fontweight='bold')
 
-    fig = plt.figure(figsize=(13.6, 9.6))
-    gs = fig.add_gridspec(2, 2, height_ratios=[1.15, 1.0], width_ratios=[1, 1], hspace=0.40, wspace=0.24)
-    a1 = fig.add_subplot(gs[0, 0]); a2 = fig.add_subplot(gs[0, 1]); a3 = fig.add_subplot(gs[1, :])
-    fig.suptitle('HVDC apartado 5: planta, lazo cerrado y respuesta coordinada de los DOS terminales', fontsize=12.6, fontweight='bold')
-
-    def box(ax, x, y, w, h, txt, fc='#D6E4F0', ec='#2e5090', fs=9):
-        ax.add_patch(mpatches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.03', facecolor=fc, edgecolor=ec, lw=1.5, zorder=4))
-        ax.text(x+w/2, y+h/2, txt, ha='center', va='center', fontsize=fs, fontweight='bold', zorder=5)
-
-    def sumjunc(ax, x, y, r=0.20, signs=('+', '−'), pos=('top', 'left')):
-        ax.add_patch(plt.Circle((x, y), r, facecolor='white', edgecolor='#333', lw=1.5, zorder=5))
-        ax.plot([x-r*0.55, x+r*0.55], [y, y], color='#333', lw=1.1, zorder=6)
-        ax.plot([x, x], [y-r*0.55, y+r*0.55], color='#333', lw=1.1, zorder=6)
-        dxy = {'left': (-r-0.18, 0), 'right': (r+0.18, 0), 'top': (0, r+0.20), 'bottom': (0, -r-0.20)}
-        for s, p in zip(signs, pos):
-            dx, dy = dxy[p]
-            ax.text(x+dx, y+dy, s, fontsize=10, ha='center', va='center', color='#333', fontweight='bold', zorder=6)
-
-    def arrow(ax, xy0, xy1, col='#333', lw=1.5, rad=0.0):
-        ax.annotate('', xy=xy1, xytext=xy0, arrowprops=dict(arrowstyle='-|>', color=col, lw=lw, connectionstyle=f'arc3,rad={rad}'))
-
-    # ================= (a) planta: circuito pi de dos terminales ================= #
-    a1.axis('off'); a1.set_xlim(0, 11); a1.set_ylim(0, 7)
-    a1.set_title('(a) Planta del lazo maestro: modelo π de dos terminales (§7)', fontsize=10.3, fontweight='bold')
+    a1.axis('off'); a1.set_xlim(0, 11); a1.set_ylim(0.3, 6.3); a1.set_aspect('equal')
     a1.plot([0.9, 0.9], [1.4, 5.4], color='navy', lw=1.6)  # nodo Vdc1 (barra vertical)
     a1.text(0.55, 5.7, r'$V_{dc1}$', fontsize=10, color='navy', ha='center', fontweight='bold')
     # shunt C/2 terminal 1
@@ -16530,9 +16507,51 @@ def _hvdc_planta_lazo_maestro():
     a1.text(4.4, 1.6, r'$\mathbf{x}=[V_{dc1},I_{dc},V_{dc2}]^T$' + '\n' + r'(matrices $A,B$: apartado 7)',
             fontsize=8.6, ha='center', color='#555', bbox=dict(boxstyle='round', facecolor='#F8F9F9', edgecolor='#999'))
 
-    # ================= (b) sistema coordinado de control ================= #
+    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    _savefig(fig, 'hvdc-planta-maestro', dpi=160)
+
+
+def _hvdc_lazo_maestro_respuesta():
+    """HVDC apartado 5 (maestro): (a) diagrama de bloques del sistema coordinado
+    de control de los DOS terminales (maestro en lazo cerrado + esclavo en lazo
+    abierto) sobre la planta compartida de 3 estados; (b) respuesta simulada con
+    el modelo EXACTO de 3 estados (no el integrador simplificado del apartado 4)
+    ante el mismo escalon de P2, mostrando Vdc1, Vdc2 e Idc: el modo resonante
+    del cable es visible pero queda amortiguado por el propio lazo maestro
+    (zeta_lazo_cerrado approx 0.15 para el wn=100 usado, ver figura de analisis
+    de amortiguamiento activo). Se muestra DESPUES del diseno en el texto
+    (figura hvdc-planta-maestro es la del planteamiento)."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    L, R, C = 0.12, 3.22, 60e-6
+    Vdc0 = 640e3
+    wn = 100.0; Kp_W = 2*wn; Ki_W = wn**2
+
+    fig = plt.figure(figsize=(14.0, 9.8))
+    gs = fig.add_gridspec(2, 1, height_ratios=[1.15, 1.0], hspace=0.42)
+    a2 = fig.add_subplot(gs[0]); a3 = fig.add_subplot(gs[1])
+    fig.suptitle('HVDC apartado 5: control coordinado y respuesta de los DOS terminales', fontsize=12.8, fontweight='bold')
+
+    def box(ax, x, y, w, h, txt, fc='#D6E4F0', ec='#2e5090', fs=9):
+        ax.add_patch(mpatches.FancyBboxPatch((x, y), w, h, boxstyle='round,pad=0.03', facecolor=fc, edgecolor=ec, lw=1.5, zorder=4))
+        ax.text(x+w/2, y+h/2, txt, ha='center', va='center', fontsize=fs, fontweight='bold', zorder=5)
+
+    def sumjunc(ax, x, y, r=0.20, signs=('+', '−'), pos=('top', 'left')):
+        ax.add_patch(plt.Circle((x, y), r, facecolor='white', edgecolor='#333', lw=1.5, zorder=5))
+        ax.plot([x-r*0.55, x+r*0.55], [y, y], color='#333', lw=1.1, zorder=6)
+        ax.plot([x, x], [y-r*0.55, y+r*0.55], color='#333', lw=1.1, zorder=6)
+        dxy = {'left': (-r-0.18, 0), 'right': (r+0.18, 0), 'top': (0, r+0.20), 'bottom': (0, -r-0.20)}
+        for s, p in zip(signs, pos):
+            dx, dy = dxy[p]
+            ax.text(x+dx, y+dy, s, fontsize=10, ha='center', va='center', color='#333', fontweight='bold', zorder=6)
+
+    def arrow(ax, xy0, xy1, col='#333', lw=1.5, rad=0.0):
+        ax.annotate('', xy=xy1, xytext=xy0, arrowprops=dict(arrowstyle='-|>', color=col, lw=lw, connectionstyle=f'arc3,rad={rad}'))
+
+    # ================= (a) sistema coordinado de control ================= #
     a2.axis('off'); a2.set_xlim(0, 12.6); a2.set_ylim(0, 7)
-    a2.set_title('(b) Control coordinado: maestro (lazo cerrado) + esclavo (lazo abierto)', fontsize=10.0, fontweight='bold')
+    a2.set_title('(a) Control coordinado: maestro (lazo cerrado) + esclavo (lazo abierto)', fontsize=10.6, fontweight='bold')
     # maestro (arriba)
     sumjunc(a2, 1.0, 5.6, signs=('+', '−'), pos=('top', 'bottom'))
     arrow(a2, (0.05, 5.6), (0.82, 5.6)); a2.text(0.0, 5.85, r'$V_{dc1}^*$', fontsize=9.5, ha='left')
@@ -16556,7 +16575,7 @@ def _hvdc_planta_lazo_maestro():
     arrow(a2, (1.0, 0.30), (1.0, 5.38))
     a2.text(5.1, 0.05, r'realimentación de $V_{dc1}$ (maestro) — el esclavo no realimenta $V_{dc2}$', fontsize=7.8, color='#333', ha='center')
 
-    # ================= (c) respuesta con el modelo exacto de 3 estados ================= #
+    # ================= (b) respuesta con el modelo exacto de 3 estados ================= #
     dt = 2e-6; T = 0.05
     t = np.arange(0, T, dt)
     Vdc1 = np.full(len(t), Vdc0); Vdc2 = np.full(len(t), Vdc0); Idc = np.zeros(len(t))
@@ -16586,12 +16605,12 @@ def _hvdc_planta_lazo_maestro():
     a3.set_xlabel('t [ms]'); a3.set_ylabel(r'$V_{dc}$ [kV]'); a3.grid(alpha=.3)
     l1, lb1 = a3.get_legend_handles_labels(); l2, lb2 = a3b.get_legend_handles_labels()
     a3.legend(l1+l2, lb1+lb2, fontsize=8.6, loc='lower right')
-    a3.set_title(r'(c) Respuesta coordinada con el modelo EXACTO de 3 estados (no el integrador simplificado del §4): '
+    a3.set_title(r'(b) Respuesta coordinada con el modelo EXACTO de 3 estados (no el integrador simplificado del §4): '
                  r'el modo resonante se ve (oscilación a $\approx$745 rad/s) pero amortiguado por el propio lazo maestro ($\zeta\approx0.15$, fig. anterior)',
-                 fontsize=9.5, fontweight='bold')
+                 fontsize=9.8, fontweight='bold')
 
-    plt.tight_layout(rect=[0, 0, 1, 0.94])
-    _savefig(fig, 'hvdc-planta-lazo-maestro', dpi=160)
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    _savefig(fig, 'hvdc-lazo-maestro-respuesta', dpi=160)
 
 
 def _mtdc_droop_derivacion():
@@ -18846,11 +18865,17 @@ def main():
     if pref is None or "hvdc-diseno-ancho-banda".startswith(pref):
         _hvdc_diseno_ancho_banda()
         n += 1
-    if pref is None or "hvdc-planta-lazo-corriente".startswith(pref):
-        _hvdc_planta_lazo_corriente()
+    if pref is None or "hvdc-planta-corriente".startswith(pref):
+        _hvdc_planta_corriente()
         n += 1
-    if pref is None or "hvdc-planta-lazo-maestro".startswith(pref):
-        _hvdc_planta_lazo_maestro()
+    if pref is None or "hvdc-lazo-corriente-respuesta".startswith(pref):
+        _hvdc_lazo_corriente_respuesta()
+        n += 1
+    if pref is None or "hvdc-planta-maestro".startswith(pref):
+        _hvdc_planta_maestro()
+        n += 1
+    if pref is None or "hvdc-lazo-maestro-respuesta".startswith(pref):
+        _hvdc_lazo_maestro_respuesta()
         n += 1
     if pref is None or "mtdc-droop-derivacion".startswith(pref):
         _mtdc_droop_derivacion()
