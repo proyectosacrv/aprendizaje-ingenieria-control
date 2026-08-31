@@ -16257,6 +16257,91 @@ def _hvdc_control_jerarquia():
     _savefig(fig, 'hvdc-control-jerarquia', dpi=160)
 
 
+def _hvdc_diseno_ancho_banda():
+    """HVDC apartado 5 (diseno): (a) separacion de anchos de banda en el eje de
+    frecuencia -- lazo de corriente, limite de separacion x10, resonancia EXACTA
+    del cable (autovalores del modelo de 3 estados del apartado 7) frente a la
+    estimacion aproximada de una unica LC, y el ancho de banda del lazo maestro
+    de Vdc usado en la figura del apartado 4 -- mostrando que en este ejemplo la
+    resonancia del cable, no la separacion x10 del lazo de corriente, es la
+    restriccion mas estricta; (b) mapa de polos exacto del cable (autovalores de
+    la matriz de estados) comparado con el polo del lazo de corriente cerrado."""
+    import matplotlib.pyplot as plt
+
+    # ---- datos numericos: ejemplo de apartado 10 (cable 300 km) ----
+    L, R, C = 0.12, 3.22, 60e-6
+    wn_simple = 1.0/np.sqrt(L*C)          # formula aproximada de una sola LC (apartado 7)
+    wn_exact = 2.0/np.sqrt(L*C)           # autovalor exacto (derivado en apartado 5)
+    sigma = R/(2.0*L)                      # parte real de los polos complejos
+    wd = np.sqrt(wn_exact**2 - sigma**2)   # frecuencia amortiguada (~ wn_exact, zeta muy bajo)
+    zeta = sigma/wn_exact
+    wci = 2*np.pi*1000.0                   # ancho de banda del lazo de corriente (1 kHz)
+    w_master = 100.0                       # el usado en la figura del apartado 4
+    w_margin = wn_exact/3.0                # margen recomendado frente a la resonancia
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(13.2, 5.3), gridspec_kw={'width_ratios': [1.35, 1.0]})
+    fig.suptitle('HVDC apartado 5: diseño del ancho de banda del lazo maestro frente a la resonancia exacta del cable',
+                 fontsize=12.0, fontweight='bold')
+
+    # ================= panel (a): eje de frecuencias ================= #
+    a1.set_xscale('log'); a1.set_xlim(20, 20000); a1.set_ylim(0, 1.35)
+    a1.set_yticks([]); a1.set_xlabel(r'$\omega$ [rad/s]  (escala log)')
+    a1.set_title('(a) Separación de anchos de banda (ejemplo: cable 300 km, apartado 10)', fontsize=10.3, fontweight='bold')
+
+    # curva de referencia: |G| de un 2do orden ligeramente amortiguado centrado en wn_exact
+    f = np.logspace(np.log10(20), np.log10(20000), 900)
+    mag = 1.0/np.sqrt((1-(f/wn_exact)**2)**2 + (2*zeta*f/wn_exact)**2)
+    mag_n = 0.05 + 0.55*mag/mag.max()
+    a1.fill_between(f, 0, mag_n, color=BAD, alpha=0.10, zorder=1)
+    a1.plot(f, mag_n, color=BAD, lw=1.1, alpha=0.55, zorder=2)
+
+    def vline(w, color, y0, y1, ls='-', lw=2.2, zorder=4):
+        a1.plot([w, w], [y0, y1], color=color, ls=ls, lw=lw, zorder=zorder)
+
+    def lab(w, y, text, color, fs=8.4, ha='center', fw='bold'):
+        a1.text(w, y, text, color=color, fontsize=fs, ha=ha, va='bottom', fontweight=fw, zorder=6)
+
+    vline(wn_simple, '#888', 0, 1.0, ls=':', lw=1.6)
+    lab(wn_simple, 1.03, r'$\omega_{n,simple}\approx373$' + '\n(estim. aprox. §7,\nmitad de la real)', '#777', fs=7.6)
+
+    vline(wn_exact, BAD, 0, 1.15, ls='-', lw=2.4)
+    lab(wn_exact, 1.19, r'resonancia EXACTA' + '\n' + r'$\omega_{n,exact}\approx745$ rad/s', BAD, fs=8.2)
+
+    vline(w_margin, OK, 0, 0.72, ls='--', lw=2.0)
+    lab(w_margin, 0.75, r'margen recom.' + '\n' + r'$\omega_{n,exact}/3\approx248$', OK, fs=7.8)
+
+    vline(wci/10, ACC, 0, 0.50, ls='--', lw=2.0)
+    lab(wci/10, 0.53, r'$\omega_{ci}/10\approx628$' + '\n(separación×10\ndel lazo de corriente)', ACC, fs=7.6)
+
+    vline(w_master, OK, 0, 0.30, ls='-', lw=3.0)
+    lab(w_master, 0.33, r'$\omega_{master}=100$' + '\n(usado en fig. §4)', OK, fs=8.4)
+
+    vline(wci, ACC, 0, 0.95, ls='-', lw=3.0)
+    lab(wci, 0.98, r'$\omega_{ci}=2\pi\cdot1$ kHz' + '\n(lazo de corriente)', ACC, fs=8.2)
+
+    a1.text(30, 1.30, 'restricción activa (más estricta): la resonancia del cable, no la separación×10 del lazo de corriente',
+            fontsize=8.3, color='#333', ha='left', style='italic')
+
+    # ================= panel (b): mapa de polos del cable ================= #
+    a2.set_title('(b) Polos exactos del cable\n(autovalores de la matriz $A$, §7)', fontsize=10.3, fontweight='bold')
+    a2.axhline(0, color='#bbb', lw=0.7); a2.axvline(0, color='k', lw=1.1)
+    a2.scatter([0], [0], marker='x', s=110, color=OK, lw=2.6, zorder=5, label=r'polo en $s=0$ (integrador, modo común)')
+    a2.scatter([-sigma, -sigma], [wd, -wd], marker='x', s=110, color=BAD, lw=2.6, zorder=5,
+               label=r'par resonante $-\sigma\pm j\omega_d$')
+    a2.plot([0, -sigma], [0, wd], color='#999', ls='--', lw=1.0)
+    a2.annotate(r'$\zeta\approx0.018$ (muy poco amortiguado)', xy=(-sigma, wd), xytext=(-11.5, 690),
+                fontsize=8.2, color=BAD, ha='left', arrowprops=dict(arrowstyle='-', color=BAD, lw=0.8))
+    a2.set_xlim(-24, 5); a2.set_ylim(-900, 900)
+    a2.set_xlabel(r'Re($s$) [1/s]'); a2.set_ylabel(r'Im($s$) [rad/s]')
+    a2.grid(alpha=0.25)
+    a2.legend(fontsize=7.6, loc='lower right')
+    a2.text(-23, 200, r'polo del lazo de corriente cerrado:'+'\n'+r'$s=-\omega_{ci}=-6283$ rad/s'+'\n(fuera de escala, ~8× más rápido)',
+            fontsize=7.6, color=ACC, ha='left', va='center', bbox=dict(boxstyle='round', facecolor='#EBF5FB', edgecolor=ACC, alpha=0.9))
+
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    _savefig(fig, 'hvdc-diseno-ancho-banda', dpi=160)
+
+
 def _mtdc_droop_derivacion():
     """MTDC apartado 2: derivacion del droop DC desde el balance de potencia
     del sistema completo. (a) rectas P-V de 3 terminales antes y despues de
@@ -18505,6 +18590,9 @@ def main():
         n += 1
     if pref is None or "hvdc-control-jerarquia".startswith(pref):
         _hvdc_control_jerarquia()
+        n += 1
+    if pref is None or "hvdc-diseno-ancho-banda".startswith(pref):
+        _hvdc_diseno_ancho_banda()
         n += 1
     if pref is None or "mtdc-droop-derivacion".startswith(pref):
         _mtdc_droop_derivacion()

@@ -202,9 +202,59 @@ imponga ningún valor de \(Q\), simplemente ajustando \(i_d\) e \(i_q\) por sepa
 El lazo de corriente en sí (dos PI, uno por eje, con el mismo desacoplo feedforward de los términos
 cruzados \(\omega L\,i_q\) y \(\omega L\,i_d\) que ya se derivó para el MSC del PMSG) genera las
 referencias de tensión \(v_d^*\), \(v_q^*\) que el modulador del MMC sintetiza en los brazos. Es el lazo
-más rápido de la jerarquía (ancho de banda típico 500–1500 rad/s, igual que en cualquier VSC de conexión
-a red), y su estructura **no cambia** según el modo del terminal — lo único que cambia entre modos es de
-dónde vienen las referencias \(i_d^*\), \(i_q^*\) que ese lazo recibe.
+más rápido de la jerarquía, y su estructura **no cambia** según el modo del terminal — lo único que cambia
+entre modos es de dónde vienen las referencias \(i_d^*\), \(i_q^*\) que ese lazo recibe. El resto de este
+apartado desarrolla, con números reales, **la planta que ve ese lazo de corriente** (que en un MMC no es
+la inductancia de conexión a red sin más, sino la de brazo, reducida a la mitad), **la planta que ve el
+lazo maestro de \(V_{dc}\)** (que, a diferencia de un bus DC genérico, incluye la dinámica completa del
+cable acoplando los dos terminales) y **cómo diseñar ambos lazos, en ambos terminales, de forma
+coordinada** — que es precisamente lo que el apartado 4 dejó pendiente.
+
+**Planta del lazo de corriente en un MMC: por qué la inductancia efectiva es \(L_{arm}/2\), no
+\(L_{arm}\).** A diferencia de un VSC de dos niveles, en el MMC la corriente de fase no ve directamente
+\(L_{arm}\): la ve a través de **dos** brazos en paralelo (superior e inferior), y hay que derivarlo desde
+las ecuaciones de brazo para no asumirlo. Partiendo de las ecuaciones de KVL de cada brazo de la fase
+\(a\) (ya establecidas en [[mmc-modelo-control]] §1, con \(v_a\equiv v_{a0}\) la tensión del punto medio
+de fase y \(v_u,v_l\) las tensiones insertadas por los SMs de cada brazo):
+
+$$ L_{arm}\frac{di_u}{dt} = \frac{V_{dc}}{2} - v_u - R_{arm}i_u - v_a, \qquad
+   L_{arm}\frac{di_l}{dt} = \frac{V_{dc}}{2} - v_l - R_{arm}i_l + v_a $$
+
+Restando la segunda de la primera y definiendo la corriente de salida \(i_{out}\equiv i_u-i_l\) (la
+corriente de fase real hacia la red, salvo un factor 2) y la tensión de convertidor equivalente
+\(v_{conv}\equiv(v_l-v_u)/2\), los términos en \(V_{dc}/2\) se cancelan exactamente y queda:
+
+$$ \boxed{\ \frac{L_{arm}}{2}\frac{di_{out}}{dt} = v_{conv} - v_a - \frac{R_{arm}}{2}\,i_{out}\ } $$
+
+Esta es, en forma, **idéntica** a la planta de un VSC de dos niveles conectado a red por una inductancia
+\(L\) y resistencia \(R\) (la misma que aparece en [[convertidor-back-to-back]] §2.6): un integrador de
+primer orden \(G_i(s)=1/(L_{eq}s+R_{eq})\), pero con **\(L_{eq}=L_{arm}/2\), \(R_{eq}=R_{arm}/2\)** — la
+mitad de los valores de un solo brazo, no el valor completo. Este es el resultado que la literatura de MMC
+cita como atajo de diseño; aquí queda derivado desde el KVL, no asumido.
+
+**Sintonía numérica del lazo de corriente (cancelación de polo, método de [[convertidor-back-to-back]]
+§2.7).** Con \(L_{arm}=0.15\,\text{pu}\) sobre base \(S_{nom}=500\,\text{MVA}\) y \(V_{dc}/2=320\,\text{kV}\)
+(apartado 10): \(Z_{base}=(320\,\text{kV})^2/500\,\text{MVA}=204.8\,\Omega\), y con \(\omega_0=2\pi\cdot
+50=314.2\,\text{rad/s}\):
+
+$$ L_{arm} = 0.15\times\frac{204.8}{314.2} = 0.0978\,\text{H} = 97.8\,\text{mH} \quad\Longrightarrow\quad
+   L_{eq}=48.9\,\text{mH} $$
+
+Para \(R_{arm}\) no hay un valor normalizado único — se fija por el factor de calidad del reactor de
+brazo. Tomando \(Q=\omega_0L_{arm}/R_{arm}=30\) (típico de un reactor de núcleo de aire de bajas pérdidas):
+\(R_{arm}=\omega_0L_{arm}/30=1.02\,\Omega\), luego \(R_{eq}=0.512\,\Omega\). El PI por cancelación de polo
+(\(K_p=\omega_{ci}L_{eq}\), \(T_i=L_{eq}/R_{eq}\), \(K_i=\omega_{ci}R_{eq}\)) necesita elegir \(\omega_{ci}\):
+en un VSC de dos niveles el límite superior lo fija la frecuencia de conmutación (\(\omega_{ci}<\omega_{sw}/10\));
+en un MMC con NLM y cientos de SMs por brazo la tensión sintetizada es prácticamente continua, así que el
+límite real es la **tasa de muestreo del controlador digital** (típicamente 5–10 kHz). Con
+\(f_s=10\,\text{kHz}\) y el mismo margen ×10: \(\omega_{ci}\approx2\pi\cdot1000=6283\,\text{rad/s}\)
+(1 kHz), y:
+
+$$ K_p=\omega_{ci}L_{eq}=307.2\,\text{V/A}, \qquad T_i=\frac{L_{eq}}{R_{eq}}=0.0955\,\text{s}, \qquad
+   K_i=\omega_{ci}R_{eq}=3216\,\text{V/(A·s)} $$
+
+con margen de fase teórico \(90°\) (planta cancelada exactamente), \(60\)–\(75°\) en la práctica por el
+retraso de muestreo y modulación — igual que en [[convertidor-back-to-back]] §2.7.
 
 **El lazo externo, y los dos modos del eje d.** La referencia \(i_d^*\) (que fija \(P\)) puede generarse
 de dos formas distintas, según el papel que ese terminal desempeñe en el enlace:
@@ -238,6 +288,109 @@ general es inestable o, en el mejor caso, indeterminado (ninguno de los dos "sab
 corresponde aportar). En redes con más de dos terminales (MTDC), esta rigidez del maestro único se
 sustituye por el droop de tensión DC del apartado 6, que reparte la función de "sostener \(V_{dc}\)" entre
 varios terminales a la vez sin que ninguno la asuma en solitario.
+
+**La planta real del maestro: no un bus aislado, sino el cable acoplando los dos terminales.** El apartado
+4 diseñó el PI del maestro tratando \(P_{line}\) como una perturbación de potencia sobre su propio
+condensador \(C_1\). Eso es correcto y suficiente para elegir el ancho de banda por el método de
+[[control-tension-bus-dc]] §2, pero deja una pregunta sin responder: ¿qué tan rápido puede ir realmente ese
+lazo antes de excitar la dinámica propia del cable? Para responderla hace falta la planta completa
+\(V_{dc1}(s)/I_{VSC1}(s)\), no la aproximación de bus aislado — y esa planta ya está en este mismo
+repositorio: es el sistema de tres estados del apartado 7 (\(\mathbf{x}=[V_{dc1},I_{dc},V_{dc2}]^T\),
+matrices \(A\), \(B\) ya dadas). Resolviendo \((sI-A)\mathbf{X}=B\mathbf{U}\) para \(V_{dc1}(s)\) en
+función de las dos corrientes de convertidor:
+
+$$ V_{dc1}(s) = \frac{2I_{VSC1}(s)\big(CLs^2+CRs+2\big) - 4I_{VSC2}(s)}{Cs\big(CLs^2+CRs+4\big)} $$
+
+de donde se separan la planta propia del maestro y el acoplo desde el otro terminal:
+
+$$ G_{master}(s)\equiv\frac{V_{dc1}(s)}{I_{VSC1}(s)}\bigg|_{I_{VSC2}=0} = \frac{2(CLs^2+CRs+2)}{Cs(CLs^2+CRs+4)},
+   \qquad G_{dist}(s)\equiv\frac{V_{dc1}(s)}{I_{VSC2}(s)}\bigg|_{I_{VSC1}=0} = \frac{-4}{Cs(CLs^2+CRs+4)} $$
+
+\(G_{master}\) tiene un polo en \(s=0\) (el modo integrador de energía total, el mismo del apartado 4) más
+el par de polos complejos del denominador cuadrático \(CLs^2+CRs+4\) — la resonancia del cable, ahora
+vista **desde dentro** de la planta que el PI del maestro realmente controla, no como un fenómeno aparte.
+
+**La resonancia exacta es el doble de la estimación del apartado 7 — y por qué.** El polinomio
+característico completo del sistema de tres estados es \(s(CLs^2+CRs+4)/(CL)\): el término resonante es
+\(s^2+(R/L)s+4/(LC)=0\), no \(s^2+(R/L)s+1/(LC)=0\). Eso da:
+
+$$ \boxed{\ \omega_{n,exact}=\frac{2}{\sqrt{LC}} = 2\,\omega_{n,simple}\ } \qquad\text{con}\qquad
+   \omega_{n,simple}=\frac{1}{\sqrt{LC}} $$
+
+exactamente **el doble** de la fórmula aproximada \(f_{res}=1/(2\pi\sqrt{L_{total}C_{cable}})\) del
+apartado 7 — no una corrección de segundo orden, un factor 2 limpio, verificado tanto simbólicamente como
+con los autovalores numéricos de la matriz \(A\). Físicamente, la razón es la partición \(C/2\)–\(C/2\) del
+modelo π: para el modo *diferencial* (el que oscila, distinto del modo común de carga total que da el polo
+en \(s=0\)), los dos condensadores de extremo no cargan en paralelo — cargan **en serie** desde el punto de
+vista de la oscilación, porque es la diferencia \(V_{dc1}-V_{dc2}\) la que impulsa la corriente resonante a
+través de \(L\). Dos capacidades \(C/2\) en serie dan \(C_{eff}=C/4\), y
+
+$$ \omega_n=\frac{1}{\sqrt{L\,C_{eff}}}=\frac{1}{\sqrt{L\,C/4}}=\frac{2}{\sqrt{LC}} $$
+
+que reproduce exactamente el resultado de los autovalores. Con los valores reales del ejemplo del apartado
+10 (\(L=120\,\text{mH}\), \(R=3.22\,\Omega\), \(C=60\,\mu\text{F}\)): autovalores exactos
+\(-13.42\pm j745.2\) y \(0\), es decir \(\omega_{n,exact}\approx745\,\text{rad/s}\) (\(118.6\,\text{Hz}\),
+el **doble** del \(\approx59\,\text{Hz}\) del apartado 7) con amortiguamiento \(\zeta\approx0.018\) —
+extremadamente bajo, un factor de calidad \(Q\approx28\): esta resonancia, si se excita, apenas se amortigua
+por sí sola. Esto no contradice el apartado 7 (que ya la presenta como aproximación, "\(\approx\)"): lo que
+aporta este apartado es el valor exacto que hace falta para fijar con margen real el ancho de banda del
+lazo maestro, y de paso corrige a la baja los modos SSO citados allí y en el apartado 10
+(\(50\pm118.6\,\text{Hz}\to\) subsíncrono en realidad más cercano a \(50\,\text{Hz}\) reflejado con menor
+separación de lo que sugiere la cifra aproximada de 59 Hz — el efecto físico es el mismo, solo cambia la
+cifra concreta).
+
+**Qué capacidad "ve" realmente el maestro a baja frecuencia.** Tomando el límite \(s\to0\) de
+\(s\,G_{master}(s)\) (el residuo del polo integrador) se obtiene \(1/C\) — **la capacidad total del cable**,
+no la mitad local del maestro. Esto explica, a posteriori, por qué la simulación del apartado 4 usó
+\(C=60\,\mu\text{F}\) (el \(C_{total}\) del cable de 300 km, apartado 10) en vez de un valor arbitrario de
+condensador local: a frecuencias muy por debajo de la resonancia (que es exactamente el régimen en el que
+debe operar el lazo maestro, ver el criterio siguiente), el maestro efectivamente "ve" su propio condensador
+y el del otro extremo fundidos en uno solo a través del cable — la planta simplificada de bus único del
+apartado 4 y la planta exacta de tres estados de este apartado **coinciden** en ese límite, con la misma
+\(C\). El acoplo \(G_{dist}(s)\) tiene el mismo residuo en magnitud (\(-1/C\)): una inyección sostenida de
+corriente en cualquiera de los dos extremos termina repartiéndose por igual entre ambos condensadores, tal
+como exige la conservación de carga del modo común.
+
+**Criterio de separación de ancho de banda, específico de HVDC (dos terminales, no uno).** En un
+convertidor back-to-back genérico el único criterio es la separación ×10 entre lazo de corriente y lazo de
+\(V_{dc}\) ([[convertidor-back-to-back]] §3). Aquí hay un **segundo** criterio, propio del enlace HVDC de
+dos terminales: el ancho de banda del maestro \(\omega_{master}\) también tiene que quedar bien por debajo
+de \(\omega_{n,exact}\), no de la estimación aproximada, y con margen adicional porque el amortiguamiento es
+casi nulo (\(\zeta\approx0.018\)) — un margen de \(\times3\) es razonable dado ese \(Q\) tan alto:
+
+$$ \omega_{master} < \min\left(\frac{\omega_{ci}}{10},\ \frac{\omega_{n,exact}}{3}\right) $$
+
+Con los números de este apartado (\(\omega_{ci}=6283\,\text{rad/s}\), \(\omega_{n,exact}\approx745\,
+\text{rad/s}\)): el primer límite da \(628\,\text{rad/s}\), el segundo da \(248\,\text{rad/s}\) — **la
+resonancia del cable, no la separación con el lazo de corriente, es la restricción activa** en este
+ejemplo, un resultado que no es obvio a priori (podría haber sido al revés con un cable más corto o más
+amortiguado) y que solo aparece al modelar el cable explícitamente en vez de tratarlo como un bus
+genérico. El valor \(\omega_{master}=100\,\text{rad/s}\) ya usado, sin justificar, en la figura del
+apartado 4 queda ahora confirmado con margen amplio frente a ambos límites (factor \(\times2.5\) frente al
+más estricto). La figura siguiente resume la jerarquía completa de anchos de banda del ejemplo, y el mapa
+de polos exacto del cable frente al polo (mucho más rápido) del lazo de corriente cerrado.
+
+<div class="cfig"><img src="figuras/hvdc-diseno-ancho-banda.png" alt="grafica de separacion de anchos de banda en escala logaritmica mostrando el ancho de banda del lazo maestro de 100 rad/s, el margen recomendado frente a la resonancia del cable, el limite de separacion por diez del lazo de corriente, la resonancia exacta del cable en 745 rad por segundo comparada con la estimacion aproximada de 373 rad por segundo, y el ancho de banda del lazo de corriente en 1 kilohercio; y mapa de polos en el plano s de los autovalores exactos del cable mostrando el polo integrador en el origen y el par de polos complejos muy poco amortiguados de la resonancia, comparado con el polo mucho mas rapido del lazo de corriente en bucle cerrado"><div class="cap">(a) Separación de anchos de banda del ejemplo numérico: el ancho de banda del maestro (\(100\,\text{rad/s}\)) queda cómodamente por debajo tanto de \(\omega_{ci}/10\) como del margen recomendado frente a la resonancia exacta del cable (\(\omega_{n,exact}/3\)) — siendo esta última la restricción más estricta, no la separación con el lazo de corriente. (b) Mapa de polos exacto del cable (autovalores de la matriz \(A\) del apartado 7): el polo integrador en el origen y el par resonante, muy poco amortiguado (\(\zeta\approx0.018\)), muy por debajo en frecuencia del polo del lazo de corriente cerrado.</div></div>
+
+**Ejemplo coordinado: ambos terminales a la vez, con los números anteriores.** Retomando la simulación ya
+presentada en el apartado 4 (terminal 1 maestro, terminal 2 esclavo), pero ahora con el diseño completo de
+este apartado: el terminal 2 (esclavo) recibe \(P_2^*=-400\,\text{MW}\) en \(t=8\,\text{ms}\) y su lazo de
+corriente (\(K_p=307.2\), \(T_i=0.0955\,\text{s}\), sobre \(L_{eq}=48.9\,\text{mH}\), \(R_{eq}=0.512\,
+\Omega\)) sigue esa referencia de \(i_d^*=2P_2^*/(3v_d)\) en menos de \(5\,\text{ms}\) (\(\approx5/\omega_{ci}\)
+para asentamiento al 99 %) — mucho más rápido que cualquier dinámica del cable, así que desde el punto de
+vista del terminal 1 el escalón de \(P_2\) es, en la práctica, instantáneo, la misma hipótesis que usó la
+simulación del apartado 4. El terminal 1 (maestro), con el mismo lazo de corriente interno y el PI externo
+sobre \(W=\tfrac12CV_{dc}^2\) (\(\omega_{master}=100\,\text{rad/s}\), confirmado seguro frente a la
+resonancia del cable por el criterio anterior), absorbe la diferencia de potencia y su \(V_{dc1}\) cae
+transitoriamente los \(\sim6\,\%\) ya mostrados en la figura del apartado 4, con un asentamiento de segundo
+orden crítico en unas pocas decenas de milisegundos — sin excitar la resonancia de \(745\,\text{rad/s}\)
+del cable porque el ancho de banda del maestro está casi dos décadas por debajo de ella. Si en cambio se
+hubiese elegido, por ejemplo, \(\omega_{master}=400\,\text{rad/s}\) (todavía por debajo de \(\omega_{ci}/10\),
+un error fácil de cometer si solo se aplica el criterio del back-to-back genérico), el lazo maestro
+quedaría por **encima** del margen de \(248\,\text{rad/s}\) frente a una resonancia con \(Q\approx28\): el
+transitorio de \(V_{dc1}\) mostraría un rizado sobreimpuesto a \(\approx118.6\,\text{Hz}\) mal amortiguado
+en vez de la respuesta limpia de segundo orden de la figura — el error de diseño que el criterio de este
+apartado existe para evitar.
 
 **El lazo de \(Q\) / tensión AC.** En paralelo y de forma independiente al lazo de \(V_{dc}\)/\(P\), cada
 terminal tiene un lazo sobre el eje q que genera \(i_q^*\) a partir de una consigna de potencia reactiva
@@ -377,7 +530,10 @@ constante \(\tau_{RC}\)) y un par de modos complejos conjugados (la resonancia L
 dos MMC (en serie desde el punto de vista del bus DC): \(L_{total}=L_{cable}+\tfrac43 L_{arm}\). La
 frecuencia de resonancia del circuito LC formado por \(L_{total}\) y \(C_{cable}\):
 \(f_{res}=1/(2\pi\sqrt{L_{total}C_{cable}})\). Para \(L_{total}=120\,\text{mH}\),
-\(C_{cable}=60\,\mu\text{F}\): \(f_{res}\approx59\,\text{Hz}\). Esta frecuencia cae dentro del ancho de
+\(C_{cable}=60\,\mu\text{F}\): \(f_{res}\approx59\,\text{Hz}\) — esta es la resonancia de un único LC
+equivalente; el valor **exacto**, obtenido de los autovalores del sistema de tres estados de más abajo, es
+el doble (\(\approx119\,\text{Hz}\)), derivado en el apartado 5 donde es lo que fija el margen de diseño
+del lazo maestro de \(V_{dc}\). Esta frecuencia cae dentro del ancho de
 banda del lazo de corriente del MMC (~1 kHz) y cerca del de \(V_{dc}\) (~10–50 Hz): si el control excita
 la resonancia (escalón brusco de referencia, ganancia excesiva), el sistema oscila a \(f_{res}\). En el
 dominio AC, esa resonancia DC aparece como modos a \(f_{red}\pm f_{res}\): para \(f_{red}=50\,\text{Hz}\)
@@ -574,7 +730,9 @@ refrigerado por agua de mar, se elige una sección normalizada de 1600 mm² (cob
 
 *Paso 4 — pérdidas Joule.* \(P_{cable}=I_{nom}^2 R_{total}=781^2\times3.22=1.96\,\text{MW}\ (0.39\,\%)\).
 
-*Paso 5 — resonancia LC.* \(f_{res}=1/(2\pi\sqrt{L_{total}C_{total}})\approx59\,\text{Hz}\); modos SSO:
+*Paso 5 — resonancia LC.* \(f_{res}=1/(2\pi\sqrt{L_{total}C_{total}})\approx59\,\text{Hz}\) (estimación de
+un único LC; el valor exacto, derivado en el apartado 5 a partir de los autovalores del sistema de tres
+estados, es el doble: \(\approx119\,\text{Hz}\)); modos SSO con la estimación aproximada:
 \(50\pm59\to9\,\text{Hz}\) (subsíncrono) y \(109\,\text{Hz}\) (supersíncrono).
 
 *Paso 6 — corriente de falta DC pico* (apartado 8): \(Z_c=\sqrt{L_{total}/C_{total}}=44.7\,\Omega
