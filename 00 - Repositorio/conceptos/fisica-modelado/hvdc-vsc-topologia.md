@@ -223,9 +223,13 @@ iguales en paralelo dan la mitad.
 <div class="cfig"><img src="figuras/hvdc-planta-corriente.png" alt="circuito real de los dos brazos de una fase del MMC, brazo superior con N submodulos y reactor Larm conectando el nodo AC al raíl mas Vdc medio con corriente iu, brazo inferior conectando el nodo AC al raíl menos Vdc medio con corriente il, y nodo AC con la corriente iout hacia la red; junto al circuito equivalente reducido con Req y Leq en serie entre la fuente de tension del convertidor vconv y la tension de red va, resultado de la derivacion"><div class="cap">(a) Circuito real de una fase del MMC: brazo superior (\(+V_{dc}/2\to\) nodo AC) y brazo inferior (nodo AC \(\to-V_{dc}/2\)), cada uno con su cadena de submódulos y su reactor \(L_{arm}\), \(R_{arm}\) — las dos mitades físicas del bus DC. (b) Circuito equivalente reducido, resultado de la derivación que sigue: \(R_{eq}\), \(L_{eq}\) en serie entre \(v_{conv}\) y \(v_a\), recorridos por \(i_{out}\).</div></div>
 
 Esa intuición de "dos ramas en paralelo" hay que confirmarla con álgebra, no dejarla en argumento verbal.
-Partiendo de las ecuaciones de KVL de cada brazo de la fase \(a\) (ya establecidas en
+Partiendo de las ecuaciones de KVL (ley de tensiones de Kirchhoff: la suma de subidas y caídas de tensión
+alrededor de cualquier lazo cerrado es cero) de cada brazo de la fase \(a\) (ya establecidas en
 [[mmc-modelo-control]] §1, con \(v_a\equiv v_{a0}\) la tensión del punto medio de fase y \(v_u,v_l\) las
-tensiones insertadas por los SMs de cada brazo):
+tensiones insertadas por los SMs de cada brazo) — el siguiente diagrama sitúa cada símbolo sobre el
+circuito antes de escribir las ecuaciones:
+
+<div class="cfig"><img src="figuras/hvdc-kvl-brazos.png" alt="circuito de los dos brazos del MMC anotado con las polaridades de vu insertada por el brazo superior, vl insertada por el brazo inferior, iu e il como corrientes de brazo, y va equivalente a va0 como la tension del nodo AC medida respecto al punto medio virtual del bus DC, no respecto al raíl negativo"><div class="cap">Quién es quién en el KVL de brazo: \(v_u\), \(v_l\) son la tensión que inserta la cadena de SMs de cada brazo (polaridad "+" hacia el raíl DC, "−" hacia el nodo AC en el brazo superior, al revés en el inferior); \(i_u\), \(i_l\) las corrientes de brazo; \(v_a\equiv v_{a0}\) la tensión del nodo AC medida respecto al punto medio <em>virtual</em> del bus DC, no respecto a \(-V_{dc}/2\) — de ahí que \(v_a\) entre con signo opuesto en cada una de las dos ecuaciones.</div></div>
 
 $$ L_{arm}\frac{di_u}{dt} = \frac{V_{dc}}{2} - v_u - R_{arm}i_u - v_a, \qquad
    L_{arm}\frac{di_l}{dt} = \frac{V_{dc}}{2} - v_l - R_{arm}i_l + v_a $$

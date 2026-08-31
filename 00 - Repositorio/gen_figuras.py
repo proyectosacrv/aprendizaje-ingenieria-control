@@ -16351,6 +16351,83 @@ def _hvdc_diseno_ancho_banda():
     _savefig(fig, 'hvdc-diseno-ancho-banda', dpi=160)
 
 
+def _hvdc_kvl_brazos():
+    """HVDC apartado 5 (corriente): circuito de los dos brazos anotado con las
+    polaridades de v_u, v_l, v_a, i_u, i_l exactamente como aparecen en las
+    ecuaciones de KVL, incluyendo el punto medio virtual del bus DC (v_a se mide
+    respecto a el, no respecto a -Vdc/2). Pensada para que el lector pueda mapear
+    cada simbolo de la ecuacion a un punto fisico del circuito, justo antes de
+    plantear el KVL en el texto."""
+    import matplotlib.pyplot as plt
+
+    fig, a0 = plt.subplots(figsize=(11.4, 8.0))
+    fig.suptitle('MMC: quién es quién en el KVL de brazo', fontsize=13.2, fontweight='bold')
+
+    a0.axis('off'); a0.set_xlim(0, 11.4); a0.set_ylim(0, 8.6); a0.set_aspect('equal')
+    xc = 3.4
+
+    # railes DC
+    a0.plot([1.0, 5.8], [7.6, 7.6], color='#7d3c98', lw=2.4)
+    a0.text(0.9, 7.6, r'$+\dfrac{V_{dc}}{2}$', fontsize=12, ha='right', va='center', color='#7d3c98')
+    a0.plot([1.0, 5.8], [0.4, 0.4], color='#7d3c98', lw=2.4)
+    a0.text(0.9, 0.4, r'$-\dfrac{V_{dc}}{2}$', fontsize=12, ha='right', va='center', color='#7d3c98')
+
+    # brazo superior: rail+ -> nodo AC, con v_u marcada como caida en el sentido de i_u
+    a0.plot([xc, xc], [7.6, 6.85], color='navy', lw=1.6)
+    a0.annotate('', xy=(xc, 6.95), xytext=(xc, 7.55), arrowprops=dict(arrowstyle='-|>', color='#1e8449', lw=1.7))
+    a0.text(xc-0.28, 7.25, r'$i_u$', color='#1e8449', fontsize=11, ha='right')
+    a0.add_patch(plt.Rectangle((xc-0.7, 5.75), 1.4, 1.1, facecolor='#D5F5E3', edgecolor='#1e8449', lw=1.5, zorder=4))
+    a0.text(xc, 6.3, 'N SMs', ha='center', va='center', fontsize=9, zorder=5, fontweight='bold')
+    a0.text(xc, 6.72, '+', ha='center', va='center', fontsize=11, color='#7d3c98', zorder=5, fontweight='bold')
+    a0.text(xc, 5.88, r'$-$', ha='center', va='center', fontsize=11, color='#7d3c98', zorder=5, fontweight='bold')
+    a0.text(xc+1.0, 6.3, r'$v_u$' + '\n(insertada\npor el brazo)', fontsize=8.6, ha='left', va='center', color='#1e8449')
+    a0.plot([xc, xc], [5.75, 5.45], color='navy', lw=1.6)
+    for k in range(3):
+        yk = 5.45 - k*0.24
+        a0.plot([xc, xc-0.15, xc], [yk, yk-0.12, yk-0.24], color='navy', lw=1.3)
+    a0.text(xc+0.5, 4.95, r'$R_{arm}i_u,\ L_{arm}\dfrac{di_u}{dt}$', fontsize=7.6, ha='left', va='center')
+    a0.plot([xc, xc], [4.73, 4.45], color='navy', lw=1.6)
+
+    # nodo AC = v_a (respecto al punto medio virtual, mostrado aparte a la derecha)
+    a0.plot([xc], [4.3], marker='o', ms=8, color='#c0392b', zorder=6)
+    a0.annotate('', xy=(5.35, 4.3), xytext=(xc+0.15, 4.3), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.9))
+    a0.text(4.7, 4.6, r'$i_{out}$', color='#c0392b', fontsize=10.5, ha='center')
+    a0.text(5.45, 4.3, r'$v_a\equiv v_{a0}$', fontsize=10, color='#c0392b', ha='left', va='center', fontweight='bold')
+
+    # referencia: punto medio virtual del bus DC, dibujado aparte para no apelotonar el nodo
+    xref = 8.8
+    a0.plot([xref, xref], [1.6, 6.4], color='#888', lw=1.1, ls=':')
+    a0.plot([xref-0.3, xref+0.3], [4.3, 4.3], color='#888', lw=1.6)
+    a0.annotate('', xy=(xref, 4.05), xytext=(xref, 5.9), arrowprops=dict(arrowstyle='<->', color='#888', lw=1.1))
+    a0.text(xref+0.15, 5.0, r'$v_a$', fontsize=9, color='#888', ha='left', va='center')
+    a0.text(xref+0.4, 4.3, '0 — punto medio\nvirtual del bus DC\n(referencia de $v_a$,\nNO es $-V_{dc}/2$)', fontsize=7.6, color='#666', ha='left', va='center')
+
+    # brazo inferior: nodo AC -> rail-, con v_l marcada como caida en el sentido de i_l
+    a0.plot([xc, xc], [4.15, 3.87], color='navy', lw=1.6)
+    for k in range(3):
+        yk = 3.87 - k*0.24
+        a0.plot([xc, xc-0.15, xc], [yk, yk-0.12, yk-0.24], color='navy', lw=1.3)
+    a0.text(xc+0.5, 3.4, r'$R_{arm}i_l,\ L_{arm}\dfrac{di_l}{dt}$', fontsize=7.6, ha='left', va='center')
+    a0.plot([xc, xc], [3.15, 2.85], color='navy', lw=1.6)
+    a0.add_patch(plt.Rectangle((xc-0.7, 1.75), 1.4, 1.1, facecolor='#FADBD8', edgecolor='#c0392b', lw=1.5, zorder=4))
+    a0.text(xc, 2.3, 'N SMs', ha='center', va='center', fontsize=9, zorder=5, fontweight='bold')
+    a0.text(xc, 2.72, '+', ha='center', va='center', fontsize=11, color='#7d3c98', zorder=5, fontweight='bold')
+    a0.text(xc, 1.88, r'$-$', ha='center', va='center', fontsize=11, color='#7d3c98', zorder=5, fontweight='bold')
+    a0.text(xc+1.0, 2.3, r'$v_l$' + '\n(insertada\npor el brazo)', fontsize=8.6, ha='left', va='center', color='#c0392b')
+    a0.plot([xc, xc], [1.75, 1.15], color='navy', lw=1.6)
+    a0.annotate('', xy=(xc, 1.2), xytext=(xc, 1.7), arrowprops=dict(arrowstyle='-|>', color='#c0392b', lw=1.7))
+    a0.text(xc-0.28, 1.45, r'$i_l$', color='#c0392b', fontsize=11, ha='right')
+    a0.plot([xc, xc], [1.15, 0.4], color='navy', lw=1.6)
+
+    a0.text(4.0, -0.35,
+            r'$v_u,v_l$: caída de tensión insertada por cada brazo, en el sentido de $i_u,i_l$ (signo "+" hacia el raíl, "−" hacia el nodo AC en el superior; al revés en el inferior).'
+            + '\n' + r'$v_a\equiv v_{a0}$: tensión del nodo AC medida respecto al punto medio VIRTUAL del bus DC (no respecto a $-V_{dc}/2$) — de ahí el signo opuesto de $v_a$ en cada ecuación de brazo.',
+            fontsize=7.8, ha='center', color='#555', style='italic')
+
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    _savefig(fig, 'hvdc-kvl-brazos', dpi=160)
+
+
 def _hvdc_planta_corriente():
     """HVDC apartado 5 (corriente): (a) circuito REAL de los dos brazos del MMC
     de una fase (brazo superior: de +Vdc/2 al nodo AC; brazo inferior: del nodo
@@ -18917,6 +18994,9 @@ def main():
         n += 1
     if pref is None or "hvdc-diseno-ancho-banda".startswith(pref):
         _hvdc_diseno_ancho_banda()
+        n += 1
+    if pref is None or "hvdc-kvl-brazos".startswith(pref):
+        _hvdc_kvl_brazos()
         n += 1
     if pref is None or "hvdc-planta-corriente".startswith(pref):
         _hvdc_planta_corriente()
